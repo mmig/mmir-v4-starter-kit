@@ -1,0 +1,30 @@
+@contentFor("content"){
+	<div id="registration-form">
+		
+		<div id="emailField" data-role="fieldcontain" style="position: relative; font-size: 1px; top: 1em; left: 0.5em; ">
+    		<label for="email">
+    			@localize("user_name_place_holder")
+    		</label>
+    		<input type="text" name="email" id="email" value="">
+		</div>
+		
+		<div id="passwordField" data-role="fieldcontain" style="position: relative; font-size: 1px; top: 1em; left: 0.5em; ">
+    		<label for="password">
+    			@localize("password_place_holder")
+    		</label>
+    		<input type="password" name="password" id="password" value="">
+		</div>
+		
+		<button id="loginButton" name="register_btn" data-inline="true">
+   			@localize("registration_label")
+		</button>
+	</div>
+}@
+
+@contentFor("header"){
+   <h1>
+   		@localize("registration_label")
+   </h1>
+}@
+
+                   

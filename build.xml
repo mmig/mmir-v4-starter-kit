@@ -1,0 +1,252 @@
+<?xml version="1.0"?>
+<!-- 
+	This Ant-Build-File is for the generation of the directory structure in json format.
+	It generates - for the directories specified in the property 'directoriesToParse' - a file (property 'outputDirectoryParseFileJson') with a json string.
+-->
+<project name="Mobile DialogSystem" default="generateFileListJSONFile">
+	
+    
+	<!-- ############# Initialization and Property Defintions ############# -->
+	
+	<property name="buildSettingsFile" value="build.settings" />
+	<property name="buildSettingsFileDefault" value="build.settingsDefault" />
+	
+	<!-- create the settings-file (as a copy of the default settings) if not present: -->
+	<!-- NOTE: 	granularity="9223372000000"
+				is a WORKAROUND that ensures that build.settings if not overwritten,
+				even if the default-settings-file is newer (it actually will only
+				work as long as the settings-file is not older than ~ 292 years than
+				the default-settings-file).
+	-->
+	<copy file="${buildSettingsFileDefault}" tofile="${buildSettingsFile}" overwrite="false" granularity="9223372036854"/>
+	
+	<!-- if settings-file is not present, abort build: -->
+	<available file="build.settings" property="build.settings.present"/>
+	<fail unless="build.settings.present" message="Missing settings-file: ${buildSettingsFile}" />
+	
+	<!-- load settings and properties -->
+	<property file="build.settings" />
+	<property file="build.properties" />
+
+	<property name="base.js.compile.semantic.interpreter" value="${buildDirTempJS}/${tempCompileSemanticParserJSFile}" />
+	<property name="exec.js.compile.semantic.interpreter" value="${buildDirTempJS}/${tempCompileSemanticParserJSExecFile}" />
+	
+	<property name="exec.maven" value="${mavenDir}${mavenExec}" />
+	<property name="exec.nodejs" value="${nodeJsDir}${nodeJsExec}" />
+	
+	
+	<property name="in.file.DialogManager" location="${SCXMLDialogManagerDir}${SCXMLDialogManagerXMLFile}" />
+	<property name="in.file.InputManager" location="${SCXMLInputManagerDir}${SCXMLInputManagerXMLFile}" />
+	<property name="out.file.DialogManager" location="${JSOutDialogManagerDir}${SCXMLDialogManagerOutfile}" />
+	<property name="out.file.InputManager" location="${JSOutInputManagerDir}${SCXMLInputManagerOutfile}" />
+	
+	
+	<!-- ############# Build Targets ############# -->
+	    
+    <target name="clean" depends="cleanTempFilesSemanticParser" description="remove intermediate files">
+        <delete file="${outputDirectoryParseFileJson}"/>
+    </target>
+	
+    <!-- ############# Build Targets: Create JSON file with file-list ############# -->
+    
+	<macrodef name="getFilelist">
+	   <attribute name="srcdir"/>
+	   <attribute name="filter" default="*"/>
+	   <attribute name="returnproperty" default="getFilelistReturn"/>
+	   <sequential>
+			<fileset id="@{srcdir}" dir="@{srcdir}" includes="@{filter}"/>
+			<property name="@{returnproperty}" refid="@{srcdir}" />
+	   </sequential>
+	</macrodef>
+	
+	<macrodef name="getDirlist">
+	   <attribute name="srcdir"/>
+	   <attribute name="filter" default="*"/>
+	   <attribute name="returnproperty" default="getDirlistReturn"/>
+	   <sequential>
+			<dirset id="@{srcdir}" dir="@{srcdir}" includes="@{filter}" />
+			<property name="@{returnproperty}" refid="@{srcdir}" />
+	   </sequential>
+	</macrodef>
+
+	<target name="generateFileListJSONObject">
+		<script language="javascript" src="${jsSrcDirBase}tools/ant/AntScriptFileListGenerator.js">
+		</script>
+	</target>
+
+	<target name="generateFileListJSONFile" depends="generateFileListJSONObject">
+		<echo>${JSONDirString}</echo>
+		<echo file="${outputDirectoryParseFileJson}">${JSONDirString}</echo>
+		<echo>Created file ${outputDirectoryParseFileJson}.</echo>
+	</target>
+	
+	
+	<target name="checkDialogManagerUpToDate">
+	    <condition property="isDialogManagerUpToDate" else="false">
+	        <and>
+	            <!-- does (compiled) JavaScript file exist? -->
+			    <available file="${out.file.DialogManager}"	     property="isDialogManagerUpToDate" />
+			    <!-- has SCXML file changed? -->
+			    <checksum  file="${in.file.DialogManager}" verifyProperty="isDialogManagerUpToDate"/>
+		    </and>
+	    </condition>
+		<echo>Is file ${out.file.DialogManager} up-to-date? -> ${isDialogManagerUpToDate}</echo>
+	</target>
+	
+	<target name="compileDialogManager" depends="checkDialogManagerUpToDate" unless="${isDialogManagerUpToDate}">
+		<exec executable="${exec.maven}" dir="${SCXMLDialogManagerDir}" failonerror="true">
+			<arg line="-q -f ${commonsSCXMLjsDir}pom.xml exec:java -DscxmlInputArgs='--backend state --beautify --ie ${in.file.DialogManager}' > ${out.file.DialogManager}"/>
+		</exec>
+		<checksum file="${in.file.DialogManager}" />
+		<echo>Generated file ${out.file.DialogManager}.</echo>
+	</target>
+	
+	
+	<target name="checkInputManagerUpToDate">
+	    <condition property="isInputManagerUpToDate" else="false">
+	        <and>
+	            <!-- does (compiled) JavaScript file exist? -->
+			    <available file="${out.file.InputManager}"       property="isInputManagerUpToDate" />
+			    <!-- has SCXML file changed? -->
+			    <checksum  file="${in.file.InputManager}" verifyProperty="isInputManagerUpToDate"/>
+		    </and>
+	    </condition>
+		<echo>Is file ${out.file.InputManager} up-to-date? -> ${isInputManagerUpToDate}</echo>
+	</target>
+	
+	<target name="compileInputManager" depends="checkInputManagerUpToDate" unless="${isInputManagerUpToDate}">
+		<exec executable="${mavenExec}" dir="${SCXMLInputManagerDir}" failonerror="true">
+			<arg line="-q -f ${commonsSCXMLjsDir}pom.xml exec:java -DscxmlInputArgs='--backend state --beautify --ie ${in.file.InputManager}' > ${out.file.InputManager}"/>
+		</exec>
+		<checksum file="${in.file.InputManager}" />
+		<echo>Generated file ${out.file.InputManager}.</echo>
+	</target>
+	
+	
+	<!--  ############# Build Targets: tasks for SemanticParser generation #############
+				
+				NOTE: 	Generation/compiling the SemanticParser via ANT is very slow.
+						
+						Using a modern browser (e.g. Firefox, Chrome) the HTML page 
+							testSemanticInterpreter.html 
+						generates the script considerably faster:
+						ANT takes *minutes* whereas the browser/webpage generation takes *seconds*.
+						
+						When using ANT, note that the Rhino task is faster than using the task
+						with the default JavaScript environment.
+	 -->
+	 
+	<target name="createBaseParserScriptFile">
+	    <echo message="Building base script file ${base.js.compile.semantic.interpreter} for compiling SemanticParser..." />
+	    <mkdir dir="${buildDir}" />
+	    <mkdir dir="${buildDirBin}" />
+	    <mkdir dir="${buildDirTempJS}" />
+        <concat destfile="${base.js.compile.semantic.interpreter}" outputencoding="UTF-8">
+            <fileset dir="${jsSrcDirBase}tools"    includes="InitJSCC.js" />
+            <fileset dir="${jsSrcDirBase}3rdParty" includes="jscc.js" />
+            <!-- fileset dir="${jsSrcDirBase}tools"    includes="StringExtensions.js" /-->
+            <fileset dir="${jsSrcDirBase}semantic" includes="grammar_converter.js" />
+            <fileset dir="${jsSrcDirBase}semantic" includes="grammar_parser_template.js" />
+            <fileset dir="${jsSrcDirBase}semantic" includes="semantic_interpreter.js" />
+            <!-- fileset dir="${jsSrcDirBase}3rdParty" includes="jquery-1.8.3.js" /-->
+            <fileset dir="${jsSrcDirBase}tools/ant" includes="StandaloneSemanticParserCompileExec.js" />
+        </concat>
+        <echo message="${base.js.compile.semantic.interpreter} built." />
+	</target>
+	
+	<target name="cleanTempFilesSemanticParser" description="Clean temporary file that where created when compiling the SemanticParser script">
+		<echo message="Deleting temporary files in ${buildDirTempJS}..." />
+        <delete dir="${buildDirTempJS}" />
+	</target>
+	
+	<!-- ############# Build Targets: SemanticParser generation with default JavaScript environment #############
+			
+			WARNING: while this solution does not need any extra libraries or executables (other than ANT) to run,
+					it is VERY SLOW.
+	
+	-->
+	
+	<target name="createParserScriptFileDefault" depends="createBaseParserScriptFile">
+	    <echo message="Building complete js file ${exec.js.compile.semantic.interpreter} for default ANT script environment..." />
+        <concat destfile="${exec.js.compile.semantic.interpreter}" outputencoding="UTF-8">
+            <fileset dir="${jsSrcDirBase}tools/ant" includes="InitForAntDefaultScriptEnv.js" />
+            <fileset dir="${jsSrcDirBase}tools/ant" includes="AntScriptFileHandler.js" />
+            <fileset file="${base.js.compile.semantic.interpreter}" />
+        </concat>
+        <echo message="${exec.js.compile.semantic.interpreter} built." />
+	</target>
+	
+	<target name="generateSemanticParserDefaultEnv" depends="createParserScriptFileDefault" description="Compile SemanticParser script with default JavaScript environment (very very slow!!!)">
+	    <echo message="Running default ANT script environment with script file ${exec.js.compile.semantic.interpreter} and argument ${grammarDefinitionJsonFile}..." />
+		<script language="javascript" src="${exec.js.compile.semantic.interpreter}"></script>
+	</target>
+	
+	<target name="compileSemanticParserDefaultEnv" depends="generateSemanticParserDefaultEnv,cleanTempFilesSemanticParser" description="Compile (and clean up)  SemanticParser script with default JavaScript environment (very very slow!!!)">
+	    <echo message="Compiled ${outFileCompiledGrammar} using default JavaScript environment." />
+	</target>
+	
+	<!-- ############# Build Targets: SemanticParser generation with Mozilla Rhino JavaScript environment ############# 
+			
+			NOTE: this solution requires the Mozilla Rhino libarary to.
+			
+			WARNING: while this solution is faster than using the ANT default environment for running JavaScript,
+					it is still very SLOW; however it has acceptable speed and is platform independent.
+	-->
+	
+	
+	<target name="createParserScriptFileRhino" depends="createBaseParserScriptFile">
+	    <echo message="Building complete js file ${exec.js.compile.semantic.interpreter} for Rhino environment..." />
+        <concat destfile="${exec.js.compile.semantic.interpreter}" outputencoding="UTF-8">
+            <fileset dir="${jsSrcDirBase}tools/rhino" includes="InitForAntRhinoScriptEnv.js" />
+            <fileset dir="${jsSrcDirBase}tools/ant" includes="AntScriptFileHandler.js" />
+            <fileset file="${base.js.compile.semantic.interpreter}" />
+        </concat>
+        <echo message="${exec.js.compile.semantic.interpreter} built." />
+	</target>
+	
+	<target name="generateSemanticParserRhinoEnv" depends="createParserScriptFileRhino" description="Compile SemanticParser script with Rhino environment (slow)">
+	    <echo message="Running Rhino environment with script file ${exec.js.compile.semantic.interpreter} and argument ${grammarDefinitionJsonFile}, ${outFileCompiledGrammar}..." />
+        <exec executable="java">
+            <arg line="-jar ${pathRhinoJar} -opt -1 ${exec.js.compile.semantic.interpreter} ${grammarDefinitionJsonFile} ${outFileCompiledGrammar}" />
+        </exec>
+	</target>
+	
+	<target name="compileSemanticParserRhinoEnv" depends="generateSemanticParserRhinoEnv,cleanTempFilesSemanticParser" description="Compile (and clean up) SemanticParser script with Rhino environment (slow)">
+	    <echo message="Compiled ${outFileCompiledGrammar} using Rhino environment." />
+	</target>
+	
+	<!-- ############# Build Targets: SemanticParser generation with node.js JavaScript environment ############# 
+			
+			This is the fastest available variant for executing JavaScript. 
+			
+			NOTE: this solution requires a platform dependent executable for node.js.
+				  See the web page of node.js for executables for your platform (e.g. Windows, Mac, Linux). 
+	-->
+	
+	<target name="createParserScriptFileNodeJs" depends="createBaseParserScriptFile">
+	    <echo message="Building complete js file ${exec.js.compile.semantic.interpreter} for node.js environment..." />
+        <concat destfile="${exec.js.compile.semantic.interpreter}" outputencoding="UTF-8">
+            <fileset dir="${jsSrcDirBase}tools/nodejs" includes="InitForAntNodeJsScriptEnv.js" />
+            <fileset dir="${jsSrcDirBase}tools/nodejs" includes="NodeJsFileHandler.js" />
+            <fileset file="${base.js.compile.semantic.interpreter}" />
+        </concat>
+        <echo message="${exec.js.compile.semantic.interpreter} built." />
+	</target>
+	
+	
+	<target name="generateSemanticParserNodeJsEnv" depends="createParserScriptFileNodeJs" description="Compile SemanticParser script with node.js environment (fast)">
+	    <echo message="Running node.js environment with script file ${exec.js.compile.semantic.interpreter} and argument ${grammarDefinitionJsonFile}, ${outFileCompiledGrammar}..." />
+        <exec executable="${exec.nodejs}">
+            <arg value="${exec.js.compile.semantic.interpreter}"/>
+            <arg value="${grammarDefinitionJsonFile}"/>
+            <arg value="${outFileCompiledGrammar}"/>
+        </exec>
+	</target>
+	
+	<target name="compileSemanticParserNodeJsEnv" depends="generateSemanticParserNodeJsEnv,cleanTempFilesSemanticParser" description="Compile (and clean up) SemanticParser script with node.js environment (fast)">
+	    <echo message="Compiled ${outFileCompiledGrammar} using node.js environment." />
+	</target>
+	
+	<!-- END: tasks for SemanticParser generation -->
+	
+</project>

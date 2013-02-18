@@ -1,0 +1,43 @@
+@contentFor("header"){
+    <h1>
+        @localize("mmig")
+    </h1>
+}@
+
+@contentFor("content"){
+
+    <h2>
+        @localize("login_header")
+    </h2>
+    
+    <div id="emailField" data-role="fieldcontain" style=" font-size: 1px; top: 1em; left: 0.5em; ">
+        <label for="email">
+			@localize("user_name_place_holder")
+		</label>
+        <input type="number" name="email" id="email"  placeholder="user name" value="MMIG-User" style="margin: 0 !important; width: 100%;" />
+    </div>
+    
+    <div id="passwordField" data-role="fieldcontain" style=" font-size: 1px; top: 1em; left: 0.5em; ">
+    	<label for="password">
+			@localize("password_place_holder")
+		</label>
+    	<input type="password" name="password" id="password"  placeholder="password" value="mmig-user" />
+    </div>
+
+    <button id="loginButton"  name="login_btn" data-inline="true">
+        @localize("login_label")
+    </button>
+    
+    <div id="signUpLabel" style="text-align: left; position: relative; top: 1em; left: 0.5em; ">
+        <h4>
+            @localize("registration_text")
+        </h4>
+    </div>
+    
+    <div id="signUpButton" style="width: 0px; position: relative; top: 0.5em; left: 0.5em; ">
+        <button data-inline="true"  name="sign_up_btn" class="ds-ui-button" >
+            @localize("registration_label")
+        </button>
+    </div> 
+    
+}@

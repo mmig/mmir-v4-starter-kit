@@ -1,0 +1,43 @@
+@contentFor("header"){
+   <h1>
+      @localize("create_appointment_header")
+   </h1>
+}@
+
+@contentFor("content"){
+  <div id="create_appointment">
+  
+    <label for="subject">
+      @localize("subject_label")
+    </label>
+    <input type="text" name="subject" id="subject" value="" />
+    
+    
+    <label for="app-date">
+      @localize("date_label")
+    </label>
+    <input name="app-date" id="app-date" type="date" data-role="datebox" readonly="readonly"
+           data-options='{"mode": "flipbox"}' />
+    
+    <label for="start-time">
+      @localize("start_time_label")
+    </label>
+    <input name="start-time" id="start-time" type="date" data-role="datebox" readonly="readonly" 
+           data-options='{"mode": "timeflipbox"}' />
+    
+    <label for="end-time">
+      @localize("end_time_label")
+    </label>
+    <input name="end-time" id="end-time" type="date" data-role="datebox" readonly="readonly"
+           data-options='{"mode": "timeflipbox"}' />
+    
+    <button id="save_appointment" name="save_appointment_btn" data-inline="true">
+   		@localize("save")
+    </button>
+   
+    <button id="discard_appointment" name="discard_appointment_btn" data-inline="true">
+   		@localize("discard")
+    </button>
+
+  </div>
+}@ 

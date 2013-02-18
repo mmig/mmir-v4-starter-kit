@@ -1,0 +1,50 @@
+##
+## This file contains user specific settings for the ANT build.xml
+##
+
+#mavenDir: leave empty, if the Maven executable is in the system path.
+#          Note: the path must end with a separator, 
+#                i.e. "some/path/maven/bin/" and NOT "some/path/maven/bin"
+mavenDir=
+
+#mavenExec: the Maven executable
+#           e.g. for Windows: mvn.bat
+#                   for Unix: mvn
+mavenExec=mvn.bat
+
+
+# [optional] if node.js is used for running JavaScript tasks,
+#			 (see target names in build.xml) 
+# 			 set these values analogous to Maven above
+nodeJsDir=../nodejs/
+nodeJsExec=node.exe
+
+# path to the SCXML project
+#   this should be the Maven project with the SCXML sources 
+#   (e.g. the directory contains a file Maven configuration file pom.xml)
+commonsSCXMLjsDir=../commons-scxml-js/
+
+# specific settings for usage with Android and Phonegap/Cordova
+# (used when creating a file-list)
+# (1) the base directory for start scanning for files 
+baseDir=assets/
+# (2) the prefix (path) for entries in the created file-list
+pathPrefix=/android_asset/
+
+# base directory for JavaScript source files
+jsSrcDirBase=${baseDir}www/javascripts/
+
+# paths to SCXML files
+SCXMLDialogManagerDir=${baseDir}www/config/statedef/
+SCXMLInputManagerDir=${baseDir}www/config/statedef/
+JSOutDialogManagerDir=${jsSrcDirBase}gen/
+JSOutInputManagerDir=${jsSrcDirBase}gen/
+
+# for creation of file list (i.e. list of all model, view, and controller classes/files)
+directoriesToParse=www/controllers,www/views,www/models,www/config,www/javascripts/plugins,www/helpers
+# path to directory and file, where the file list will be stored
+outputDirectoryParseFileJson=${baseDir}www/config/parsed_directories.json
+
+# for creation of compiled SemanticInterpreter (grammatic parser)
+grammarDefinitionJsonFile=${baseDir}www/content/grammar.json
+outFileCompiledGrammar=${jsSrcDirBase}gen/grammar.js

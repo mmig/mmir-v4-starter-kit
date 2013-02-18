@@ -1,0 +1,53 @@
+
+
+
+
+
+/~
+    This is a four-function calculator, where precedences
+    are defined via associativity definitions of tokens.
+
+    IMPORTANT: The Warnings coming up when invoking JS/CC
+               are coming from the grammar, and are resolved
+               in order to the precedences and associativity
+               information passed to each token.
+~/
+
+
+/~ --- Token definitions --- ~/
+
+
+/~ Non-associative tokens ~/
+    ' '
+    'eintrag|trag|google kalender|kalender|hinzuefugen|fuege|zeige|zeigen|was|hab|haben|habe|spiele|spielen|spiel|abspielen|anmeld|anzeig|einloggen|einlogg|aufnahme|aufnahm|aufnehm|abspiel|sprach notiz|zurueck'                          ACTION;
+    'termin|sprachnotiz|sprachnotiz|sprachannotation|termine|annotation|notiz|lokation' ACTION_SUBJECT ;
+    '([0-9]+\.[0-9]+\.[0-9]+)|heute|([0-9]+\. (januar|februar|maerz|april|mai|juni|juli|august|september|oktober|november|dezember))'   DATE;
+    'an|um|am'  PRAEPOSITION;
+    'ein|einen|einer|eines|einem|einen|eine' INDEF_ARTICLE;
+    '[0-9]+:[0-9]+ uhr' TIME;
+    '[a-zA-Z0-9_]+' REST;
+    
+    
+
+
+
+
+
+##
+
+/~ --- Grammar specification --- ~/
+
+sentence:      word-group    [*  asr_semantic_annotation = "{" +  %1 + "}";  *]     
+        ;
+
+word-group:      word   [* %% = %1; *]
+                |word-group ' ' word [* %% =   %1 + ',' + %3 ;*];
+
+word:  ACTION  [* %% = "\"action\":\""+ %1 +"\""; *]
+      |ACTION_SUBJECT   [* %% = "\"action_subject\":\""+ %1 +"\""; *]
+      |DATE   [* %% = "\"date\":\""+ %1 +"\""; *]
+      |PRAEPOSITION [* %% = "\"preposition\":\""+ %1 +"\""; *]
+      |INDEF_ARTICLE [* %% = "\"indefinite_article\":\""+ %1 +"\""; *]
+      |TIME   [* %% = "\"time\":\""+ %1 +"\""; *]
+      |REST [* %% = "\"rest\":\""+ %1 +"\""; *];
+   

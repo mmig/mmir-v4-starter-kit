@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+		<title>MMIG Starter Kit - CalendarApp</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<!--
+			Copyright (C) 2012-2013 DFKI GmbH
+			Deutsches Forschungszentrum fuer Kuenstliche Intelligenz
+			German Research Center for Artificial Intelligence
+			http://www.dfki.de
+
+			Permission is hereby granted, free of charge, to any person obtaining a 
+			copy of this software and associated documentation files (the 
+			"Software"), to deal in the Software without restriction, including 
+			without limitation the rights to use, copy, modify, merge, publish, 
+			distribute, sublicense, and/or sell copies of the Software, and to 
+			permit persons to whom the Software is furnished to do so, subject to 
+			the following conditions:
+
+			The above copyright notice and this permission notice shall be included 
+			in all copies or substantial portions of the Software.
+
+			THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
+			OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
+			MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+			IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
+			CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+			TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+			SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+		-->
+
+        <link rel="stylesheet" href="content/stylesheets/jquery.mobile-1.2.0.min.css" />
+        <link rel="stylesheet" href="content/stylesheets/jquery.mobile.datebox-1.0.1.min.css"/>
+	    
+	    <script src="javascripts/3rdParty/jquery-1.8.3.min.js">
+        </script>
+        <script type="text/javascript" src="javascripts/3rdParty/jquery.mobile-1.2.0.min.js">
+        </script>
+		<script type="text/javascript" src="javascripts/3rdParty/datebox/jquery.mobile.datebox-1.0.1.min.js">
+        </script>
+		<script type="text/javascript" src="javascripts/3rdParty/datebox/jquery.mobile.datebox.i18n.de.utf8.js">
+        </script>
+        <script type="text/javascript" src="javascripts/3rdParty/cordova-2.3.0.js">
+        </script>
+        <script type="text/javascript" src="javascripts/tools/commonUtils.js" type="text/javascript">
+        </script>
+        
+        <script type="text/javascript">
+	    	var forBrowser = true;
+	    	var initializeRuntimeEnvDetection = (function(){
+	    		var params = mobileDS.CommonUtils.getInstance().get_params_as_dict( window.location.search );
+	    		if(params.has('env')){
+	    			var envSetting = params['env'];
+	    			if(envSetting === 'browser' || envSetting !== 'android'){
+	    				forBrowser = true;
+	    			}
+	    			else {
+	    				forBrowser = false;
+	    			}
+	    		}
+	    	})();
+	    </script>
+        <script type="text/javascript" src="javascripts/tools/StringExtensions.js">
+        </script>
+	    <script type="text/javascript" src="javascripts/main.js">
+        </script>
+        
+        <script type="text/javascript" src="javascripts/3rdParty/jpath.js">
+        </script>
+        <script type="text/javascript" src="javascripts/tools/InitJSCC.js">
+        </script>
+        <script type="text/javascript" src="javascripts/3rdParty/jscc.js">
+        </script>
+		
+		<script type="text/javascript" src="javascripts/3rdParty/timer.js">
+        </script>
+		
+        <script type="text/javascript" src="javascripts/tools/queue.js">
+        </script>
+        
+        <script type="text/javascript" src="javascripts/manager/settings/configurationManager.js">
+        </script>
+      	<script type="text/javascript" src="javascripts/manager/settings/languageManager.js">
+        </script>
+        
+		<script type="text/javascript" src="javascripts/3rdParty/antlr3-all-min.js"></script>
+		<script type="text/javascript" src="javascripts/mvc/parser/parseElementTypes.js"></script>
+		<script type="text/javascript" src="javascripts/gen/parser/MmirTemplateLexer.js"></script>
+		<!-- script type="text/javascript" src="javascripts/gen/parser/MmirTemplateParser.js"></script-->
+		<script type="text/javascript" src="javascripts/gen/parser/MmirScriptLexer.js"></script>
+		<script type="text/javascript" src="javascripts/gen/parser/MmirScriptParser.js"></script>
+		<script type="text/javascript" src="javascripts/gen/parser/MmirScriptContentLexer.js"></script>
+		<script type="text/javascript" src="javascripts/gen/parser/MmirScriptContentParser.js"></script>
+		<script type="text/javascript" src="javascripts/mvc/parser/templateParseUtils.js"></script>
+
+        <script type="text/javascript" src="javascripts/mvc/views/layout.js">
+        </script>
+        <script type="text/javascript" src="javascripts/mvc/views/view.js">
+        </script>
+        <script type="text/javascript" src="javascripts/mvc/views/partial.js">
+        </script>
+        <script type="text/javascript" src="javascripts/mvc/controllers/controller.js">
+        </script>
+		 <script type="text/javascript" src="javascripts/mvc/controllers/helper.js">
+        </script>
+        <script type="text/javascript" src="javascripts/manager/controllerManager.js">
+        </script>
+        <script type="text/javascript" src="javascripts/mediators/audioInput.js">
+        </script>
+        <script type="text/javascript" src="javascripts/manager/modelManager.js">
+        </script>
+        <script type="text/javascript" src="javascripts/manager/presentationManager.js">
+        </script>
+        <script type="text/javascript" src="javascripts/semantic/stemmer.js">
+        </script>
+	    <script type="text/javascript" src="javascripts/gen/DialogDescription.js">
+        </script>
+        <script type="text/javascript" src="javascripts/manager/event/DialogEngine.js">
+        </script>
+		<script type="text/javascript" src="javascripts/plugins/multitouchPlugin.js">
+        </script>
+        <script type="text/javascript" src="javascripts/notification.js">
+        </script>
+        
+        <script type="text/javascript" src="javascripts/semantic/grammar_converter.js">
+        </script>
+        <script type="text/javascript" src="javascripts/gen/grammar.js">
+        </script>
+        <script type="text/javascript" src="javascripts/semantic/grammar_parser_template.js">
+        </script>
+      
+        <script type="text/javascript" src="javascripts/semantic/semantic_interpreter.js">
+        </script>
+        <script type="text/javascript" src="javascripts/gesture/accelerometerGestureDetector.js">
+        </script>
+        <script type="text/javascript" src="javascripts/gesture/compassHandler.js">
+        </script>
+        <script type="text/javascript" src="javascripts/gesture/locationObserver.js">
+        </script>
+
+        <script type="text/javascript" src="javascripts/gen/input_manager_state_chart.js">
+        </script>
+        <script type="text/javascript" src="javascripts/manager/event/input_manager_engine.js">
+        </script>
+        
+        <!-- 
+      		IMPORTANT Notice:
+      		DirectoryListing Plugin loads ALL plugins in javascripts/plugins/*.js 
+      		so, no other plugin has to be included into the index.html
+    	-->
+       <script type="text/javascript" src="javascripts/plugins/directoryListing.js">
+       </script>
+
+      </head>
+    <body>
+	   <div id="pageContainer" data-role="page" class="type-interior"
+			data-url="pageContainer" data-cache="false">
+	
+			<div id="pageContent"  data-role="content" class="full_screen_content"></div>
+	
+		</div>
+	
+	
+		<dialogs id="applications_dialogs"></dialogs>
+    </body>
+</html>

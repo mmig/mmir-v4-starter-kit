@@ -1,0 +1,7 @@
+﻿
+version notes for MMIG Starter Kit
+
+ * support for partial views
+ * using Cordova 2.3.x library
+ * using jQuery 1.8.x library
+ * using jQuery Mobile 1.2.x library

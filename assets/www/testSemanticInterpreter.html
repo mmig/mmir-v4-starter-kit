@@ -1,0 +1,706 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+
+	<title>Semantic Parser Test</title>
+
+	<!--
+		Copyright (C) 2012-2013 DFKI GmbH
+		Deutsches Forschungszentrum fuer Kuenstliche Intelligenz
+		German Research Center for Artificial Intelligence
+		http://www.dfki.de
+
+		Permission is hereby granted, free of charge, to any person obtaining a 
+		copy of this software and associated documentation files (the 
+		"Software"), to deal in the Software without restriction, including 
+		without limitation the rights to use, copy, modify, merge, publish, 
+		distribute, sublicense, and/or sell copies of the Software, and to 
+		permit persons to whom the Software is furnished to do so, subject to 
+		the following conditions:
+
+		The above copyright notice and this permission notice shall be included 
+		in all copies or substantial portions of the Software.
+
+		THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
+		OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
+		MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+		IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
+		CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+	-->
+		
+	<script src="javascripts/3rdParty/jquery-1.8.3.min.js" type="text/javascript">
+	</script>
+	<!-- script src="javascripts/3rdParty/jquery.mobile-1.2.0.js" type="text/javascript">
+	</script-->
+
+
+	<script src="javascripts/3rdParty/jpath.js" type="text/javascript">
+	</script>
+	<script src="javascripts/tools/InitJSCC.js" type="text/javascript">
+	</script>
+	<script src="javascripts/3rdParty/jscc.js" type="text/javascript"> 
+	</script>
+
+	<script src="javascripts/semantic/grammar_converter.js" type="text/javascript">
+	</script>
+
+	<script src="javascripts/semantic/grammar_parser_template.js" type="text/javascript">
+	</script>
+	<script src="javascripts/gen/grammar.js" type="text/javascript">
+	</script>
+	<script src="javascripts/semantic/semantic_interpreter.js" type="text/javascript">
+	</script>
+		
+	<style type="text/css">
+		#outputBox {
+			font-family:monospace;
+			font-size:12px;
+			white-space: pre;
+			overflow:scroll;
+			border: thin solid lightGrey;
+			height: 300px;
+			width:100%;
+		}
+		
+		code {
+			white-space: pre;
+		}
+		
+		#compileOutBox, #compiledParserOutBox {
+			font-family:monospace;
+			font-size:12px;
+			white-space: pre;
+			overflow:scroll;
+			border: thin solid lightGrey;
+			height: 300px;
+			width:100%;
+		}
+		
+		#compiledParserOutBox {
+			height: 600px;
+		}
+		
+		#interpretationBox, #interpretationBoxAlt {
+			font-family:monospace;
+			font-size:12px;
+			white-space: pre;
+			overflow:scroll;
+			border: thin solid lightGrey;
+			height: 300px;
+			width:100%;
+		}
+		
+		#stopwordBox, #stopwordBox2 {
+			font-family:monospace;
+			font-size:12px;
+			white-space: pre;
+			overflow:scroll;
+			border: thin solid lightGrey;
+			height: 3em;
+			width:100%;
+		}
+	</style>
+	
+<!-- Test Code -->
+<script type="text/javascript">
+	
+	var IS_DEBUG_ENABLED = true;
+	
+	var IS_FILE_READING_API = false;
+	
+	if(!console){
+		console = new Object();
+	}
+	if(!console.log){
+		console.log = function(msg){ alert(msg);};
+	}
+	if(!console.debug){
+		console.debug = console.log;
+	}
+	if(!console.info){
+		console.info = console.log;
+	}
+	if(!console.warn){
+		console.warn = console.log;
+	}
+	if(!console.error){
+		console.error = console.log;
+	}
+	
+	var mobileDS = window.mobileDS ||
+	{};
+
+
+	var semanticInterpreter;
+	var inputElement;
+	var interpretElement;
+	var stopwordElement;
+	
+	var compiledParser;
+	var compileCount = 0;
+	
+	var theJSONGrammarURL = 'content/grammar.json';
+	var theJSONgrammar = 'un-initialized';
+
+	jQuery(document).ready(function(){
+		
+		initFileApi();
+		
+		if(!inputElement) 
+			inputElement = document.getElementById("inputBox");
+			
+		if(!interpretElement) 
+			interpretElement = document.getElementById("interpretationInputBox");
+			
+		if(!stopwordElement) 
+			stopwordElement = document.getElementById("stopwordInputBox");
+			
+
+		var succ = loadJsonGrammar();
+		
+		if(succ){
+			initPageWithJsonGrammar();
+		} 
+		else {
+			$('#file-selector').trigger('click');
+		}
+		
+	});
+	
+	function initPageWithJsonGrammar(){
+		semanticInterpreter = mobileDS.SemanticInterpreter.getNewInstance(theJSONgrammar, 'theGeneratedTestParser');
+		//var asr_result = "Radio spielen";
+		//var res = mobileDS.SemanticInterpreter.getInstance().get_asr_semantic(asr_result.toLowerCase());
+		//var semantic = JSON.parse(res.semantic);
+		//console.log("semantic : " + res.semantic);
+		
+		printGrammarDefinition();
+		printInput(JSON.stringify(theJSONgrammar, null, 2));
+		printCompiledParserDefinition();
+		interpretElement.value = "Radio spielen";
+		processInterpretation();
+	}
+	
+	function loadJsonGrammar(){
+				
+		var theURL = theJSONGrammarURL;
+		var success = false;
+		
+		$.ajax({
+    		async: false,
+    		dataType: "text",
+    		url: theURL,
+    		success: function(data){
+    			
+				if(data){ 
+    				var jsonData = jQuery.parseJSON( data );
+    				
+    				theJSONgrammar = jsonData;
+    				
+    				success = true;
+    			}
+    		},
+    		error: function(data){
+    			alert("Initialize:\n failed to load configuration from\n '"+theURL+"'!\n\n ERROR: \n"+ JSON.stringify(data));
+    			
+    		}
+    	});
+		
+		return success;
+	}
+	
+
+	function initFileApi() {
+		if (window.File && window.FileReader && window.FileList && window.Blob) {
+			IS_FILE_READING_API = true;
+			$('#file-selector').on('change', loadJsonGrammarFromFile);
+		} 
+		else {
+			$('#file-selector').hide();
+		}
+	}
+
+	function loadJsonGrammarFromFile(evt) {
+	    var files = evt.target.files; // FileList object
+	    
+	    // Loop through the FileList (should be only one, since "multiple" is not set)
+	    for (var i = 0, f; f = files[i]; i++) {
+
+	      var reader = new FileReader();
+
+	      // Closure to capture the file information.
+	      reader.onload = function(theFileEvent) {
+
+				theJSONgrammar = $.parseJSON( theFile.target.result );
+				
+				clearInput();
+				clearOut();
+				clearInterpret();
+				clearStopword();
+
+				$('#inputBox').val(JSON.stringify(theJSONgrammar, null, 2));
+				
+				initPageWithJsonGrammar();
+				$('#file-selector').val(null);
+	      };
+
+	      reader.onerror = function(theFileEvent) {
+	    	  var msg = '';
+	    	  var e = theFileEvent.target.error;
+
+	    	  switch (e.code) {
+	    	    case FileError.QUOTA_EXCEEDED_ERR:
+	    	      msg = 'QUOTA_EXCEEDED_ERR';
+	    	      break;
+	    	    case FileError.NOT_FOUND_ERR:
+	    	      msg = 'NOT_FOUND_ERR';
+	    	      break;
+	    	    case FileError.SECURITY_ERR:
+	    	      msg = 'SECURITY_ERR';
+	    	      break;
+	    	    case FileError.INVALID_MODIFICATION_ERR:
+	    	      msg = 'INVALID_MODIFICATION_ERR';
+	    	      break;
+	    	    case FileError.INVALID_STATE_ERR:
+	    	      msg = 'INVALID_STATE_ERR';
+	    	      break;
+	    	    default:
+	    	      msg = 'Unknown Error';
+	    	      break;
+	    	  };
+
+	    	  alert('Error: ' + msg);
+	      };
+	      
+	      // Read in the file as text (UTF-8)
+	      reader.readAsText(f);
+	    }
+	}
+	
+	function parseInput(){
+		var text = inputElement.value;
+		theJSONgrammar = JSON.parse(text);
+		clearOut();
+		semanticInterpreter = mobileDS.SemanticInterpreter.getNewInstance(
+				theJSONgrammar, 'theGeneratedTestParser' + (++compileCount));
+		printGrammarDefinition();
+		printCompiledParserDefinition();
+	}
+	
+	function processInterpretation(){
+		
+		var asr_result = interpretElement.value;
+		var res = semanticInterpreter
+				.get_asr_semantic(asr_result.toLowerCase());//, semanticInterpreter.getGrammarParserText());
+		var res2 = semanticInterpreter.get_asr_semantic_alt(asr_result
+				.toLowerCase());//, semanticInterpreter.getGrammarParserText());
+		clearInterpret();
+		
+		$('#time').text('');
+		$('#time-mod').text('');
+		
+		printInterpretation(res);
+		printInterpretationAlt(res2);
+		stopword(asr_result);
+	}
+	
+	function benchmarkInterpretation(){
+		
+		var asr_result = interpretElement.value;
+		var res = semanticInterpreter
+				.get_asr_semantic(asr_result.toLowerCase());//, semanticInterpreter.getGrammarParserText());
+		var res2 = semanticInterpreter.get_asr_semantic_alt(asr_result
+				.toLowerCase());//, semanticInterpreter.getGrammarParserText());
+		clearInterpret();
+		
+		var iterations = 10000;
+		
+		var startTime = new Date();
+		for(var i=0; i < iterations; ++i){
+			semanticInterpreter.get_asr_semantic(asr_result.toLowerCase());
+		}
+		var diffTime = new Date() - startTime;
+		
+		var startTimeAlt = new Date();
+		for(var i=0; i < iterations; ++i){
+			semanticInterpreter.get_asr_semantic_alt(asr_result.toLowerCase());
+		}
+		var diffTimeAlt = new Date() - startTimeAlt;
+		
+		$('#time').text(iterations + ' interations in ' + diffTime + ' ms');
+		$('#time-mod').text(
+				iterations + ' interations in ' + diffTimeAlt
+						+ ' ms (alt. method)');
+		
+		printInterpretation(res);
+		printInterpretationAlt(res2);
+		stopword(asr_result);
+	}
+	
+	function stopword(text){
+		var sw_result;
+		if(typeof text ==='undefined' || text == null){
+			sw_result = stopwordElement.value;
+		} else {
+			sw_result = text;
+			stopwordElement.value = sw_result;
+		}
+		var res = semanticInterpreter.removeStopwords(sw_result.toLowerCase());
+		var res2 = semanticInterpreter.removeStopwordsAlt(sw_result
+				.toLowerCase());
+		clearStopword();
+		printStopword(res, res2);
+	}
+	
+	function printGrammarDefinition(){
+		printCompile(semanticInterpreter.getGrammarDefinitionText());
+	}
+	
+	function printCompiledParserDefinition(){
+		printCompiledParser(semanticInterpreter.getGrammarParserText());
+	}
+	
+	function clearInput() {
+		$('#inputBox').val('');
+	}
+	
+	function clearOut() {
+		var outputBox = document.getElementById("outputBox");
+		outputBox.textContent="";
+		outputBox = document.getElementById("compileOutBox");
+		outputBox.textContent="";
+		clearInterpret();
+		clearStopword();
+	}
+	
+	function clearInterpret() {
+		var outputBox = document.getElementById("interpretationBox");
+		outputBox.textContent="";
+		outputBox = document.getElementById("interpretationBoxAlt");
+		outputBox.textContent="";
+	}
+	
+	function clearStopword() {
+		var outputBox = document.getElementById("stopwordBox");
+		outputBox.textContent="";
+		outputBox = document.getElementById("stopwordBox2");
+		outputBox.textContent="";
+	}
+	
+	function _error(msg) {
+		print("ERROR: " + msg);
+	}
+
+	function _warning(msg) {
+		print("WARNING: " + msg);
+	}
+
+	function _print(msg) {
+		print("INFO: " + msg);
+	}
+	
+	var print = (function () {
+		var outputBox;
+		return function(text) {
+			text = text.replace(/[^\r]\n/g, "\r\n");
+			if (!outputBox)
+				outputBox = document.getElementById("outputBox");
+			if(typeof text == "string") {
+				outputBox.appendChild(document.createTextNode(text + "\r\n"));
+			} else {
+				for(var i=0;i<text.length;i++) {
+					outputBox.appendChild(document.createTextNode(text[i]
+							+ "\r\n"));
+				}
+			}
+		};
+	})();
+	
+	var printCompile = (function () {
+		var outputBoxC;
+		return function(text) {
+			//text = text.replace(/[^\r]\n/g, "\r\n");
+			if (!outputBoxC)
+				outputBoxC = document.getElementById("compileOutBox");
+
+			outputBoxC.textContent = text + "\r\n";
+		};
+	})();
+	
+	var printCompiledParser = (function () {
+		var outputBox;
+		return function(text) {
+			//text = text.replace(/[^\r]\n/g, "\r\n");
+			if (!outputBox)
+				outputBox = document.getElementById("compiledParserOutBox");
+			if(typeof text == "string") {
+				outputBox.textContent = text + "\r\n";
+			} else {
+				for(var i=0;i<text.length;i++) {
+					outputBox.appendChild(document.createTextNode(text[i]
+							+ "\r\n"));
+				}
+			}
+		};
+	})();
+	
+	var printInterpretation = function(text) {
+		doPrintInterpretation(text, true);
+	};
+	
+	var printInterpretationAlt = function(text) {
+		doPrintInterpretation(text, false);
+	};
+	
+	var doPrintInterpretation = (function () {
+		var outputBox1;
+		var outputBox2;
+		return function(text, inNormalNotAlt) {
+			if(typeof text == "object") {
+				if(typeof text.semantic === 'string'){
+					text.semantic = JSON.parse(text.semantic);
+				}
+				text = JSON.stringify(text, null, 2);
+			} else 
+				text = text.replace(/[^\r]\n/g, "\r\n");
+
+			if (!outputBox1)
+				outputBox1 = document.getElementById("interpretationBox");
+			if (!outputBox2)
+				outputBox2 = document.getElementById("interpretationBoxAlt");
+			
+			var outputBox = inNormalNotAlt? outputBox1 : outputBox2;
+			
+			if(typeof text == "string") {
+				outputBox.appendChild(document.createTextNode(text + "\r\n"));
+			} else {
+				for(var i=0;i<text.length;i++) {
+					outputBox.appendChild(document.createTextNode(text[i]
+							+ "\r\n"));
+				}
+			}
+		};
+	})();
+	
+	var printStopword = (function () {
+		var outputBox;
+		var outputBox2;
+		return function(text, text2) {
+			text = text.replace(/[^\r]\n/g, "\r\n");
+			if (!outputBox)
+				outputBox = document.getElementById("stopwordBox");
+			if(typeof text == "string") {
+				outputBox.appendChild(document.createTextNode(text + "\r\n"));
+			} else {
+				for(var i=0;i<text.length;i++) {
+					outputBox.appendChild(document.createTextNode(text[i]
+							+ "\r\n"));
+				}
+			}
+			
+			text2 = text2.replace(/[^\r]\n/g, "\r\n");
+			if (!outputBox2)
+				outputBox2 = document.getElementById("stopwordBox2");
+			if(typeof text2 == "string") {
+				outputBox2.appendChild(document.createTextNode(text2 + "\r\n"));
+			} else {
+				for(var i=0;i<text2.length;i++) {
+					outputBox2.appendChild(document.createTextNode(text2[i]
+							+ "\r\n"));
+				}
+			}
+		};
+	})();
+	
+	var printInput = (function () {
+		var outputBox;
+		return function(text) {
+			//text = text.replace(/[^\r]\n/g, "\r\n");
+			if (!outputBox)
+				outputBox = document.getElementById("inputBox");
+			if(typeof text == "string") {
+				outputBox.appendChild(document.createTextNode(text + "\r\n"));
+			} else {
+				for(var i=0;i<text.length;i++) {
+					outputBox.appendChild(document.createTextNode(text[i]
+							+ "\r\n"));
+				}
+			}
+		};
+	})();
+	
+	var selectJsonGrammar = (function () {
+		var outputBox;
+		return function(text) {
+			if (!outputBox)
+				outputBox = document.getElementById('inputBox');
+			
+			outputBox.select();
+		};
+	})();
+	
+	var selectJsjcGrammar = (function () {
+		var outputBox;
+		return function(text) {
+			if (!outputBox)
+				outputBox = document.getElementById('compileOutBox');
+			
+			outputBox.select();
+		};
+	})();
+	
+	var selectCompiledCode = (function () {
+		var outputBox;
+		return function(text) {
+			if (!outputBox)
+				outputBox = document.getElementById('compiledParserOutBox');
+			
+			outputBox.select();
+		};
+	})();
+	</script>
+	
+
+</head>
+
+<body>
+    
+    <a name="top"></a>
+    <h1>Semantic Parser Test: Grammar Compiler</h1>
+    
+    <div style="font-size: 0.9em;width: 100%; white-space: normal !important;">
+    <strong>NOTE:</strong>
+		On initial load of the page, the grammar definition in JSON 
+    	format is loaded from the file <code>content/grammar.json</code>.<br/>
+    	This path (URL) is defined in the JavaScript variable <code>theJSONGrammarURL</code>.<br/>
+    	<br/>
+    </div>
+    
+    <hr/>
+    <div>
+    TOC: 		<a href="#json-grammer">JSON Grammar</a> | 
+    			<a href="#jsjc-grammar">JS/JC Grammar</a> | 
+    			<a href="#interpreter-tester">TEST interpretation</a> | 
+    			<a href="#stopword-tester">TEST stopword processing</a> |
+    			<a href="#compiled-parser">Compiled parser code</a>  
+    </div>
+    <hr/>
+    
+    <div style="float:left; width: 70%;">
+    	
+    	<div style="float:left;">
+    	<a href="#top">top</a>  
+    	<a name="json-grammar"></a>
+	    	<p></p>
+		</div>
+		<div style="clear:left;"></div>
+		<div style="float:left;">
+	    	JSON Grammar Definition:
+		</div>
+		<div style="float:right;">
+			<input type="file" id="file-selector" accept="text" name="files[]" />
+		</div>
+		<div style="clear:both;"></div>
+		
+		<textarea id="inputBox" rows="20" style="width: 100%;"></textarea><br/>
+		
+		<div style="float:left;">
+			<input type="button" onclick="selectJsonGrammar();" value="Select All" style="right:0;"/>
+		</div><div style="float:right;">
+			<input type="button" onclick="parseInput();" value="Parse"/>
+		</div>
+		<div style="clear:both;"></div>
+		
+		<!-- input type="button" onclick="clearOut();" value="Clear"/-->
+		
+		<br/>
+    	<a href="#top">top</a>  
+		<a name="jsjc-grammar"></a>
+	    <p>JS/JC Grammar Definition (generated from JSON grammar):</p>
+		<textarea  id="compileOutBox" readonly="readonly"></textarea>
+		
+		<input type="button" onclick="selectJsjcGrammar();" value="Select All"/>  
+    </div>
+    <div style="float:right; width: 27%;">
+    	<br/>
+	    <p>Output/Error:</p>
+	    <div id="outputBox"></div>
+    </div>
+	
+	<hr/>
+	
+    <div style="float:left; clear: left; width: 100%;"><div style="clear: right; width: 100%;">
+	
+		<table width="100%" border="0">
+			<tr>
+				<td colspan="3">
+					<hr/>
+    				<a href="#top">top</a>  
+					<a name="interpreter-tester"></a><br/>
+					Semantic Parser Test: Interpertation
+				</td>
+			</tr>
+			<tr>
+				<td valign="top">
+					<p>TEST Interpret Sentence:</p>
+					<textarea id="interpretationInputBox" rows="1" cols="30"></textarea>
+					<br/>
+					<input type="button" onclick="processInterpretation();" value="Interpret"/>
+					<br/>
+					<input type="button" onclick="benchmarkInterpretation();" value="Benchmark"/>
+					<br/>
+					<span id="time"></span>
+					<br/>
+					<span id="time-mod"></span>
+				</td>
+				<td>
+					<p>Interpreter Result:</p>
+					<div id="interpretationBox"></div>
+				</td>
+				<td>
+					<p>Alternate Interpreter Result (using alternate method for stopword removal):</p>
+					<div id="interpretationBoxAlt"></div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="3">
+					<hr/>
+    				<a href="#top">top</a>
+					<a name="stopword-tester"></a><br/>
+					Semantic Parser Test: Stopword
+				</td>
+				
+			</tr>
+			<tr>
+				<td valign="top">
+					<p>TEST Process Stopwords:</p>
+					<textarea id="stopwordInputBox" rows="1" cols="30"></textarea>
+					<input type="button" onclick="stopword();" value="Apply Stopwords"/>
+				</td>
+				<td>
+					<p>Stopword Result (Method 1):</p>
+					<div id="stopwordBox"></div>
+				</td>
+				<td>					
+					<p>Stopword Result (Method 2):</p>
+					<div id="stopwordBox2"></div>
+				</td>
+			</tr>
+		</table>
+		
+		<hr/>
+		
+		<div style="width: 100%;">
+    		<a href="#top">top</a>  
+			<a name="compiled-parser"></a>
+			<h2>Compiled Parser Code:</h2>
+			<input type="button" onclick="selectCompiledCode();" value="Select All"/>  
+			<textarea id="compiledParserOutBox" readonly="readonly"></textarea>
+		</div>
+    </div></div>
+	
+</body>
+</html>                                                                                                                                                                            
