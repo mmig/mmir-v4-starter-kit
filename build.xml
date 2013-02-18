@@ -144,7 +144,7 @@
         <concat destfile="${base.js.compile.semantic.interpreter}" outputencoding="UTF-8">
             <fileset dir="${jsSrcDirBase}tools"    includes="InitJSCC.js" />
             <fileset dir="${jsSrcDirBase}3rdParty" includes="jscc.js" />
-            <!-- fileset dir="${jsSrcDirBase}tools"    includes="StringExtensions.js" /-->
+            <fileset dir="${jsSrcDirBase}tools"    includes="StringExtensions.js" />
             <fileset dir="${jsSrcDirBase}semantic" includes="grammar_converter.js" />
             <fileset dir="${jsSrcDirBase}semantic" includes="grammar_parser_template.js" />
             <fileset dir="${jsSrcDirBase}semantic" includes="semantic_interpreter.js" />
@@ -163,7 +163,9 @@
 			
 			WARNING: while this solution does not need any extra libraries or executables (other than ANT) to run,
 					it is VERY SLOW.
-	
+					
+			NOTE: currently not working -- this environment does not allow extending base classes (e.g. String.prototype),
+				  but the current implementation requires utility functions on String. TODO (?) remove this requirement?
 	-->
 	
 	<target name="createParserScriptFileDefault" depends="createBaseParserScriptFile">
