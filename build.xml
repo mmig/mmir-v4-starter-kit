@@ -164,7 +164,7 @@
 			WARNING: while this solution does not need any extra libraries or executables (other than ANT) to run,
 					it is VERY SLOW.
 					
-			NOTE: currently not working -- this environment does not allow extending base classes (e.g. String.prototype),
+			NOTE: currently not working - this environment does not allow extending base classes (e.g. String.prototype),
 				  but the current implementation requires utility functions on String. TODO (?) remove this requirement?
 	-->
 	
