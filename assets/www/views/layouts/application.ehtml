@@ -3,7 +3,7 @@
     <head>
      	@style( "jqm-extentions" )
         @style( "application")
-        @style("jquery.mobile-1.2.0.min")
+        @style( "flags")
         
         <!-- 
         	this comment will be ignored:
@@ -33,4 +33,8 @@
         </div>
         
     </body>
+    
+    <dialogs>
+    	@yield('dialogs')
+    </dialogs>
 </html>
