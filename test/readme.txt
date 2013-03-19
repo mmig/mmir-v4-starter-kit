@@ -38,3 +38,14 @@ java -jar JsTestDriver.jar --config testdriverconfigfile --tests ALL
 
 The default driver definition file is /jsTestDriver.conf.
 More specific driver definitions can be found in /test/drivers/
+
+----
+3. Executing tests using Ant-Script "test.xml"
+----
+
+The settings file 'test.settings' has to be adapted:
+- Path to at least one browser must be valid! (browser.*)
+- If the JSTestdriver is updated the 'jstestdriver.bin'-property must be adapted accordingly
+
+This script automatically finds all config files in the directory specified by "jstestdriver.config.dir".
+And then it performs a seperate test for each config file.

@@ -45,7 +45,7 @@ describe("tools/StringExtensions", function() {
 	  it("String: function startsWith( ), where the String is starting with X using IGNORE CASE modus (and X contains some characters with mismatching case)", function() {
 		  var before= 'lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd';
 		  
-		  expect(before.startsWith('PaLdjf a', true)).toBe(true);
+		  expect(before.startsWith('Lakdjf a', true)).toBe(true);
 	  });
 	  
 	  it("String: function startsWith( ), where the String is NOT starting with X (character mismatch)", function() {
