@@ -2,12 +2,12 @@
 ## This file contains user specific settings for the ANT build.xml
 ##
 
-#mavenDir: leave empty, if the Maven executable is in the system path.
+# mavenDir: leave empty, if the Maven executable is in the system path.
 #          Note: the path must end with a separator, 
 #                i.e. "some/path/maven/bin/" and NOT "some/path/maven/bin"
 mavenDir=
 
-#mavenExec: the Maven executable
+# mavenExec: the Maven executable
 #           e.g. for Windows: mvn.bat
 #                   for Unix: mvn
 mavenExec=mvn.bat
@@ -23,6 +23,11 @@ nodeJsExec=node.exe
 #   this should be the Maven project with the SCXML sources 
 #   (e.g. the directory contains a file Maven configuration file pom.xml)
 commonsSCXMLjsDir=../commons-scxml-js/
+
+#################################################
+##
+## Android / Phonegap (cordova) specific settings
+##
 
 # specific settings for usage with Android and Phonegap/Cordova
 # (used when creating a file-list)
