@@ -51,7 +51,7 @@ String.prototype.startsWith = function (token, ignoreCase) {
     var str, isStarting = false;
     var isIgnoreCase = typeof ignoreCase !== 'undefined' && ignoreCase == true;
     if(isIgnoreCase){
-    	token = token.toLowerCaser();
+    	token = token.toLowerCase();
     	str = this.toLowerCase();
     }
     else {
