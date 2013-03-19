@@ -14,7 +14,7 @@
         <label for="email">
 			@localize("user_name_place_holder")
 		</label>
-        <input type="number" name="email" id="email"  placeholder="user name" value="MMIG-User" style="margin: 0 !important; width: 100%;" />
+        <input type="text" name="email" id="email"  placeholder="user name" value="MMIG-User" style="margin: 0 !important; width: 100%;" />
     </div>
     
     <div id="passwordField" data-role="fieldcontain" style=" font-size: 1px; top: 1em; left: 0.5em; ">
@@ -34,7 +34,7 @@
         </h4>
     </div>
     
-    <div id="signUpButton" style="width: 0px; position: relative; top: 0.5em; left: 0.5em; ">
+    <div id="signUpButton" style="width: 0px; position: relative; top: 0.3em; left: 0.5em; ">
         <button data-inline="true"  name="sign_up_btn" class="ds-ui-button" >
             @localize("registration_label")
         </button>
