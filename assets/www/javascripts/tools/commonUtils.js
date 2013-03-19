@@ -224,37 +224,38 @@ mobileDS.CommonUtils = (function(){
 		
 	    /**
 	     * Array of strings for the conversion of month represented by integers to strings 
-	     * 
+	     * Default Language for months is english, 'en'
 	     * @property months
 	     * @type Object
 	     * @private
 	     */
 	    this.months = new Object();
-	    this.months['01'] = 'Januar';
-	    this.months['02'] = 'Februar';
-	    this.months['03'] = 'M&auml;rz';
+	    this.months['01'] = 'January';
+	    this.months['02'] = 'February';
+	    this.months['03'] = 'March';
 	    this.months['04'] = 'April';
-	    this.months['05'] = 'Mai';
-	    this.months['06'] = 'Juni';
-	    this.months['07'] = 'Juli';
+	    this.months['05'] = 'May';
+	    this.months['06'] = 'June';
+	    this.months['07'] = 'July';
 	    this.months['08'] = 'August';
 	    this.months['09'] = 'September';
-	    this.months['10'] = 'Oktober';
+	    this.months['10'] = 'October';
 	    this.months['11'] = 'November';
-	    this.months['12'] = 'Dezember';
-	    this.months['en'] = new Object();
-	    this.months['en']['01'] = 'January';
-	    this.months['en']['02'] = 'February';
-	    this.months['en']['03'] = 'March';
-	    this.months['en']['04'] = 'April';
-	    this.months['en']['05'] = 'May';
-	    this.months['en']['06'] = 'June';
-	    this.months['en']['07'] = 'July';
-	    this.months['en']['08'] = 'August';
-	    this.months['en']['09'] = 'September';
-	    this.months['en']['10'] = 'October';
-	    this.months['en']['11'] = 'November';
-	    this.months['en']['12'] = 'December';
+	    this.months['12'] = 'December';
+
+	    this.months['de'] = new Object();
+	    this.months['de']['01'] = 'Januar';
+	    this.months['de']['02'] = 'Februar';
+	    this.months['de']['03'] = 'M&auml;rz';
+	    this.months['de']['04'] = 'April';
+	    this.months['de']['05'] = 'Mai';
+	    this.months['de']['06'] = 'Juni';
+	    this.months['de']['07'] = 'Juli';
+	    this.months['de']['08'] = 'August';
+	    this.months['de']['09'] = 'September';
+	    this.months['de']['10'] = 'Oktober';
+	    this.months['de']['11'] = 'November';
+	    this.months['de']['12'] = 'Dezember';
 
 		return {
             //public members.
@@ -266,6 +267,15 @@ mobileDS.CommonUtils = (function(){
 			getPartialsPrefix: function(){
 				return partialsPrefix;
 			},
+
+			/**
+			 * @function getDirectoryStructure
+			 * @public
+			 * @returns {Object} Directory structure as json object
+			 */
+			getDirectoryStructure: function(){
+            	return this.directoryStructure;
+            },
 			
 //			/**
 //			 * Get the prefix for views.
@@ -661,7 +671,10 @@ mobileDS.CommonUtils = (function(){
             	script.type = 'text/javascript';
             	script.src = scriptUrl;
             	script.onload = function() { success && success(); };
-            	script.onerror = function(e) { console.error("Insert Script Failed - " + scriptUrl + ": " + e); fail && fail(e); };
+            	script.onerror = function(e) { 
+            		if(IS_DEBUG_ENABLED) console.info("Insert Script Failed - " + scriptUrl + ": " + e); 
+            		fail && fail(e); 
+            	};
             	head.appendChild(script);
         	},
             
