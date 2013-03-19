@@ -128,7 +128,42 @@ Controller.prototype.loadHelper = function(name, helperPath){
 	/// ATTENTION: $.getScript --> mobileDS.CommonUtils.getInstance().getLocalScript
 	/// under version 4.0 of Android getScript is not working properly
 	
-	//TODO only load helper, if one is present (use directoryListing to check)
+	//TODO move check of helper existance to Controller.foundControllersCallBack ?
+
+	//determine if there is a helper for the controller:
+	var path = helperPath;
+	var fileName = path;
+	var lastPathSeparatorIndex = path.lastIndexOf('/');
+	if(lastPathSeparatorIndex !== -1){
+		path = path.substring(0,lastPathSeparatorIndex);
+		fileName = fileName.substring( lastPathSeparatorIndex + 1 );
+	}
+	//get contents of the helper directory:
+	var dirContents = mobileDS.CommonUtils.getInstance().getDirectoryContents(path);
+	if(!dirContents){
+		console.warn('Could not determine contents for directory "'+path+'"');
+		return; ////////////////////// EARLY EXIT //////////////////////////////
+	}
+	else if(! $.isArray(dirContents) || dirContents.length < 1){
+		console.warn('Invalid information for contents of directory "'+path+'": '+dirContents);
+		return; ////////////////////// EARLY EXIT //////////////////////////////
+	}
+	
+	//check, if there is an implementation file for this helper:
+	var helperIsSpecified = false;
+	for(var i=0, size= dirContents.length; i < size; ++i){
+		if(dirContents[i] === fileName){
+			helperIsSpecified = true;
+			break;
+		}
+	}
+	
+	if( ! helperIsSpecified){
+		if(IS_DEBUG_ENABLED) console.debug("[HELPER] no helper available (not implemented) at '"+ helperPath+"'");//debug
+		return; ////////////////////// EARLY EXIT //////////////////////////////
+	}
+	
+	//if there is a file: load the helper
 	mobileDS.CommonUtils.getInstance().getLocalScript(helperPath, function(data, textStatus, jqxhr){
 		
 		if(IS_DEBUG_ENABLED) console.debug("[HELPER] load "+ helperPath);//debug
@@ -137,8 +172,9 @@ Controller.prototype.loadHelper = function(name, helperPath){
 	},
 	function(exception) {
 		// print out an error message
-		console.error("[WARN] " + exception + ":'" + helperPath + "'"); //failure
-	});
+			console.warn("[WARN] Could not load helper -> " + exception + ": '" + helperPath + "'"); //failure
+		}
+	);
 };
 
 
