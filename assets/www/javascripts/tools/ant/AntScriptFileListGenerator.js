@@ -62,6 +62,11 @@ function getJSONFromFileList(dir, fileString){
 	
 	var boolFirst = true;
 	for (var i=0; i<fileArray.length;i++){
+		
+		if(fileArray[i].length === 0){
+			continue;
+		}
+		
 		if (boolFirst == false){
 			jsonString = jsonString + ',';
 		}
@@ -75,7 +80,7 @@ function getJSONFromFileList(dir, fileString){
 
 function getFileListForDir(dir, filter){
 	if (dir == null){
-		return null
+		return null;
 	}
 	
 	// create task with macro getFilelist
@@ -99,7 +104,7 @@ function getDirListForDir(dir, filter){
 	var dirprop = "dir_"+dir;
 	
 	if (dir == null){
-		return null
+		return null;
 	}
 	
 	// create task with macro getFilelist
@@ -117,12 +122,20 @@ function getDirListForDir(dir, filter){
 }
 
 function parseDirectoriesRecursively(basedir,dir){
+	
+	var subDirList = getDirListForDir(basedir+dir, "*");
 	var filelist = getFileListForDir(basedir+dir, "*");
+	
 	filelist = filelist.replace("\\", "/");
-	var jsonFileContents = getJSONFromFileList(dir, filelist);
+	
+	//create JSON entry for directory: 
+	//
+	//		"dir-name" : [<list of dir contents, i.e. sub-dirs and files>]
+	//
+	var jsonFileContents = getJSONFromFileList(dir, subDirList + ';' + filelist );
 
-	var dirlist = getDirListForDir(basedir+dir, "*");
-	var dirlistArray = dirlist.split(";");
+	//process the sub-directories
+	var dirlistArray = subDirList.split(";");
 	for (var j=0; j<dirlistArray.length;j++){
 		if (dirlistArray[j] != ""){
 			jsonFileContents = jsonFileContents + ",";
