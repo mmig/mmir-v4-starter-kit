@@ -29,8 +29,10 @@ var silenceCount = 0, //how many silent blobs have there been in a row now?
 	speachCount = 0, //how many blobs have been loud in a row now?
 	lastInput = 0, // how long has there been no good loud input?
 	recording= false,
-	treshold = 0.1, //the bigger, the more is counted as silent
-	sampleRate = 0;
+	noiseTreshold = 0.1, //the bigger, the more is counted as silent
+	sampleRate = 0,
+	pauseCount = 3,
+	resetCount = 15;
   
 self.onmessage = function(e){
   switch(e.data.command){
@@ -53,13 +55,16 @@ self.onmessage = function(e){
  * @param config
  */
 function init(config){
-  sampleRate = config.sampleRate;
+  if (config.sampleRate)sampleRate = config.sampleRate;
+  if (config.noiseTreshold) noiseTreshold = config.noiseTreshold;
+  if (config.pauseCount) pauseCount = config.pauseCount;
+  if (config.resetCount) resetCount = config.restCount;
   self.postMessage('Silence Detection initialized');
 }
 
 /**
  * recieves an audioBlob and decides whether or not there has been a real input (min. 3 loud blobs in a row)
- * and a real pause (min. 3 silent blobs in a row) afterwards. In this case it dictates a pause. 
+ * and a real pause (min. <pauseCount> silent blobs in a row) afterwards. In this case it dictates a pause. 
  * If some time has gone by without any real input, it sends a signal to clear the buffers.
  * @param inputBuffer
  */
@@ -68,19 +73,19 @@ function isSilent(inputBuffer){
 		var thisSilent = true;
 		var bound = 0;
 		for (var i = 0; i < inputBuffer.length; i++) {
-			if (( inputBuffer[i]> treshold)||( inputBuffer[i]<0-treshold)){
+			if (( inputBuffer[i]> noiseTreshold)||( inputBuffer[i]<0-noiseTreshold)){
 				if (inputBuffer[i]>bound) bound= inputBuffer[i];
 				thisSilent = false;
 			}
 		}
 		if (thisSilent){
-			if (silenceCount>=3){
+			if (silenceCount>=pauseCount){
 				self.postMessage('Silence detected!');
 				speachCount = 0;
 				silenceCount = 0;
 				lastInput = 0;
 			}
-			if (speachCount>=3){
+			if (speachCount>=pauseCount){
 				silenceCount++;
 			} 
 			else {
@@ -89,7 +94,7 @@ function isSilent(inputBuffer){
 			}
 		} 
 		else {
-			if (speachCount>=3){
+			if (speachCount>=pauseCount){
 				silenceCount=0;
 			} 
 			else {
@@ -98,7 +103,7 @@ function isSilent(inputBuffer){
 			}
 		}
 		
-		if (speachCount==0 && lastInput>15){
+		if (speachCount==0 && lastInput>resetCount){
 			this.postMessage('clear');
 			lastInput= 0;
 		}

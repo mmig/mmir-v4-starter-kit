@@ -42,7 +42,7 @@ newAudioInput = {
 		    		/** initializes the connection to the googleMediator-server, 
 		    		 * where the audio will be sent in order to be recognized. **/
 				    function initializeWebSocket(){
-						   webSocket = new WebSocket("webSocket://127.0.0.1:9999");
+						   webSocket = new WebSocket("ws://127.0.0.1:9999");
 			               webSocket.onopen = function () {
 			            	   if(IS_DEBUG_ENABLED) console.log("Openened connection to websocket");
 			               };
@@ -93,6 +93,7 @@ newAudioInput = {
 			   	    				if(IS_DEBUG_ENABLED) console.log("wav exported");
 			   	    			   	recorder.clear();
 				   					webSocket.send("clear");
+				   					webSocket.send("language "+mobileDS.ConfigurationManager.getInstance().getLanguage());
 				   					webSocket.send("start");
 				   					webSocket.send(blob);
 				   					webSocket.send("stop");
@@ -106,43 +107,48 @@ newAudioInput = {
 		   	    		silenceDetection.postMessage({
 				   	         command: 'init',
 				   	         config: {
-				   	           sampleRate: input.context.sampleRate
+				   	           sampleRate: input.context.sampleRate,
+				   	           
 				   	         }
 				   	       });
 		   	    	}
 		    		try {
 				        // unify the different kinds of HTML5 implementations
-		    			window.AudioContext = window.AudioContext || window.webkitAudioContext;
-		    			navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
-		    			window.URL = window.URL || window.webkitURL;
-		    			audio_context = new AudioContext;
-		    			initializeWebSocket();
+		    			//window.AudioContext = window.AudioContext || window.webkitAudioContext;
+		    			//navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+		    			//window.URL = window.URL || window.webkitURL;
+		    			audio_context = new webkitAudioContext;
 		    		} 
 		    		catch (e) {
 		    			alert('No web audio support in this browser!');
 		    		}
+		    		try {
+		    			initializeWebSocket();
+		    		} catch (e) {
+		    			alert('Could not reach the voice recognition server!');
+		    		}
 		    		// get audioInputStream
-		    		navigator.getUserMedia({audio: true}, startUserMedia, function(e) {});
+		    		navigator.__proto__.webkitGetUserMedia({audio: true}, startUserMedia, function(e) {});
 
 		    		return {
 		    			startRecord: function(callBack){
 			   			textProcessor = callBack;
-		    			startNewInputNode();
+		    			silenceDetection && startNewInputNode();
 		    			recording=true;
 		    			recorder && recorder.clear();
 		   				recorder && recorder.record();
-		   				silenceDetection.postMessage({command: 'start'});
+		   				silenceDetection && silenceDetection.postMessage({command: 'start'});
 		   			 },
 		   			 stopGetRecord: function(blobHandler){
 		   				recording=false;
 		   				recorder && recorder.stop();
 		   				recorder && recorder.exportWAV(blobHandler);
-		   				silenceDetection.postMessage({command: 'stop'});
+		   				silenceDetection && silenceDetection.postMessage({command: 'stop'});
 		   			 },
 		   			 recognize: function(successCallBack,failureCallBack){
 			   			textProcessor = successCallBack;
 		   				recorder && recorder.stop();
-		   				silenceDetection.postMessage({command: 'stop'});
+		   				silenceDetection && silenceDetection.postMessage({command: 'stop'});
 		   				recorder && recorder.exportWAV(function(blob){		   					 
 		   					 webSocket.send("clear");
 		   					 webSocket.send("start");
