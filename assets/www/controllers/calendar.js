@@ -35,7 +35,21 @@
 
  //This method will be called before rendering the views of this controller.
  Calendar.prototype.on_page_load = function(){
+	 
+ };
 
+ //This method will be called only for view create_appointment, after on_page_load was called
+ Calendar.prototype.on_page_load_create_appointment = function(){
+	 $('#create_appointment input').each(function(index, el) {
+		var tis = $(this);
+		if ('datebox' == tis.attr('data-role')) {
+			
+			tis.on('focus vclick', function(event) {
+				$('a', tis.parent()).trigger('click');
+			});
+			
+		}
+	});
  };
 
  Calendar.prototype.create_appointment = function (data){
@@ -52,14 +66,25 @@
   var start_h = startTime.getHours();
   var start_m = startTime.getMinutes();
   
-  var endTime = $("#end-time", container).data('datebox').theDate; 
+  var endTime = $("#end-time", container).data('datebox').theDate;
   var end_h = endTime.getHours();
   var end_m = endTime.getMinutes();
-    
+  
+
+  var note = $("#note", container).val();
+  if(typeof note !== 'string'){
+	  note = '';
+  }
+  else {
+	  note = note.escapeDoubleQuotes()
+  				.replaceAll('\r\n','\\r\\n').replaceAll('\n','\\n');
+  }
+  
   var eventData = '{"subject":"' + subject + '","year":"' + year + 
                   '","month":"' + month+'","day":"' + day + 
                   '","start_hours":"' + start_h+'","start_minutes":"' + start_m +
-                  '","end_hours":"' + end_h+'","end_minutes":"' + end_m+ '"}';
+                  '","end_hours":"' + end_h+'","end_minutes":"' + end_m+
+                  '","note":"' + note + '"}';
 					 
   var jData = jQuery.parseJSON(eventData);
   var cb_func = function(){
