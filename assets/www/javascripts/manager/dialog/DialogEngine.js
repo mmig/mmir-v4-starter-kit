@@ -142,27 +142,44 @@ mobileDS.DialogEngine = (function(){
 	 */
 	// listener for transitions / state-changes:
 	function constructor(){
-			var dialogStateChartInstance = new StatechartExecutionContext();
+		
+			var interpreter = null;
+			var isInitialized = false;
+			var scion = require('scion');
+			
+			scion.urlToModel("config/statedef/dialogDescription.xml",function(err,model){
+	
+	            if(err) throw err;
+	
+	            //instantiate the interpreter
+	            interpreter = new scion.SCXML(model);
+	
+				// listener for transitions / state-changes:
+				var listener = {
+					onEntry : function(stateName) {
+						statesActive.push(stateName);
+						
+						if(IS_DEBUG_ENABLED) console.debug('Dialog State Entry: "' + stateName + '"');//debug
+					},
+					onExit : function(stateName) {
+						statesActive.pop();
+						
+						if(IS_DEBUG_ENABLED) console.debug('Dialog State Exit: "' + stateName + '"');//debug
+					},
+					onTransition : function(sourceState, targetStatesArray) {
+						if(IS_DEBUG_ENABLED) console.debug('Dialog State Transition: "'
+								+ sourceState + '"->"' + targetStatesArray + '"');//debug
 
-			// listener for transitions / state-changes:
-			var listener = {
-				onEntry : function(stateName) {
-					statesActive.push(stateName);
-					
-					if(IS_DEBUG_ENABLED) console.debug('Dialog State Entry: "' + stateName + '"');//debug
-				},
-				onExit : function(stateName) {
-					statesActive.pop();
-					
-					if(IS_DEBUG_ENABLED) console.debug('Dialog State Exit: "' + stateName + '"');//debug
-				},
-				onTransition : function(name, sourceState, targetState) {
-					if(IS_DEBUG_ENABLED) console.debug('Dialog State Transition "' + name + '": "'
-							+ sourceState + '"->"' + targetState + '"');//debug
-				}
-			};
-			dialogStateChartInstance.addListener(listener);
-   
+	    				//currently, only 1-target transitions are supported:
+						if(targetStatesArray && targetStatesArray.length > 1){
+	    					console.warn('Dialog State Transition: multiple target states!');
+	    				}
+					}
+				};
+	    		interpreter.registerListener(listener);
+	    		
+	        });
+			
 	        return {
 	            /**
 	    		 * This function initializes the statechart automata instance and then raises the 'init' event. 
@@ -171,9 +188,59 @@ mobileDS.DialogEngine = (function(){
 	    		 * @public
 	    		 */
 	            initializeDialog: function(){
-	                dialogStateChartInstance.initialize();
-	                this.raiseEvent('init');
-	               // this.raiseEvent('touch_end_on_login_btn');
+	                
+	            	if(isInitialized){
+						if(IS_DEBUG_ENABLED) console.warn('DialogEngine.initializeDialog(): already initialized!'+' '+new Error().stack);//debug (use Error for retrieving call-hierarchy using its stack-trace) 
+						return; ////////////////////// EARLY EXIT //////////////////////////////////
+					}
+	            	
+	                if(interpreter){
+	                	isInitialized = true;
+						interpreter.start();
+//		                console.error('DialogEngine init: '+(new Date() - startUpTime));//debug : for testing, must initialize startUpTime with new Date(), first thing in index.html! 
+		                this.raiseEvent('init');
+					}
+					else {
+						var isTimeout = false;
+						var startTime = new Date();
+						var timeout = 10000;//10 sec. TODO setting this global/by configuration?
+						
+						var self = this;
+						
+						//self-calling wait-function with timeout
+						//  (waiting for interpreter to become != null):
+						var waitForInit = function(){
+							isTimeout = new Date() - startTime > timeout;
+							if(!interpreter && !isTimeout){
+								setTimeout(function(){waitForInit();},50);
+							}
+							else if(interpreter){
+								isInitialized = true;
+								interpreter.start();
+//				                console.error('DialogEngine init: '+(new Date() - startUpTime));//debug : for testing, must initialize startUpTime with new Date(), first thing in index.html! 
+				                self.raiseEvent('init');
+							}
+							else {
+								if(confirm){
+									var result = confirm('Could not initialize DialogEngine (time out).\nContinue to wait another\n '+ (timeout/1000).toFixed(3) +' seconds?');
+									if(result){
+										startTime = new Date();
+										setTimeout(function(){waitForInit();},50);
+									}
+									else {
+										console.error('Could not initialize DialogEngine (time out).');
+									}
+								}
+								else {
+									console.error('Could not initialize DialogEngine (time out).');
+								}
+							}
+						};
+						
+						//start waiting:
+						waitForInit();
+					}
+	                
 	            },
 
 	            /**
@@ -203,18 +270,26 @@ mobileDS.DialogEngine = (function(){
 	                        navigator.app.exitApp();
 	                	}
 	                }
-	                else if (!(typeof dialogStateChartInstance[eventName] === 'undefined')) {
-	                	if (typeof data !== 'undefined' && typeof data.Data !== 'undefined' && typeof data.Data.data !== 'undefined') {
-	                		dialogStateChartInstance[eventName](data.Data.data);  
-	                	}
-	                	else {
-	                		dialogStateChartInstance[eventName](data);
-	                	}
-	                		
-  	                }
-  	                else {
-  	                    console.warn('no possible transition for ' + eventName + ' in state '+ statesActive[statesActive.length-1]);
-  	                }    
+//	                else if (!(typeof dialogStateChartInstance[eventName] === 'undefined')) {
+//	                	if (typeof data !== 'undefined' && typeof data.Data !== 'undefined' && typeof data.Data.data !== 'undefined') {
+//	                		dialogStateChartInstance[eventName](data.Data.data);  
+//	                	}
+//	                	else {
+//	                		dialogStateChartInstance[eventName](data);
+//	                	}
+//	                		
+//  	                }
+//  	                else {
+//  	                    console.warn('no possible transition for ' + eventName + ' in state '+ statesActive[statesActive.length-1]);
+//  	                }
+
+					//TODO is there a way to check, if eventName is defined in interpreter-model?
+	                else if (typeof data !== 'undefined' && typeof data.Data !== 'undefined' && typeof data.Data.data !== 'undefined') {
+	                	interpreter.gen(eventName, data.Data.data);
+                	}
+                	else {
+                		interpreter.gen(eventName, data);
+                	}
 	                
 	                //Logging
 	                //writeLogEntry(eventName, data); FIXME disabled for BROWSER compatibility ... (how could this be done with Browsers?)

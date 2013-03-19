@@ -78,7 +78,8 @@
       this.registerUsers[email] = password;
       mobileDS.User.create(email);
  	  
-      mobileDS.DialogEngine.getInstance().raiseEvent("user_logged_in");
+    //need to invoke this asynchronously, since this function is called from within the dialogEngine
+	  setTimeout(function(){mobileDS.DialogEngine.getInstance().raiseEvent("user_logged_in");},0);
   };
   
   Application.prototype.verify = function(name, pw){

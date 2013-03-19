@@ -69,31 +69,39 @@ mobileDS.InputManager = (function(){
 	 * @constructor
 	 */
 	function constructor(){
-		var input_manager_state_chart_instance = new inputStatechartExecutionContext();
 		
-        /**
-         * Listener Object which defines which functions have to be called by certain events - for the usage of the stateHistory.
-         * 
-         * @property listener
-         * @type Object
-         * @private
-         */
-		// listener for transitions / state-changes:
-		var listener = {
-			onEntry : function(stateName) {
-				stateHistory.push(stateName);
-				if(IS_DEBUG_ENABLED) console.debug('InputManager State Entry: "' + stateName + '"');//debug
+		var interpreter = null;
+		var isInitialized = false;
+		var scion = require('scion');
+		scion.urlToModel("config/statedef/input_manager_scxml.xml",function(err,model){
 
-			},
-			onExit : function(stateName) {
-				stateHistory.pop();
-				if(IS_DEBUG_ENABLED) console.debug('InputManager State Exit: "' + stateName + '"');//debug
-			},
-			onTransition : function(name, sourceState, targetState) {
-				if(IS_DEBUG_ENABLED) console.debug('InputManager State Transition "' + name + '": "' + sourceState + '"->"' + targetState + '"');//debug
-			}
-		};
-		input_manager_state_chart_instance.addListener(listener);
+            if(err) throw err;
+
+            //instantiate the interpreter
+            interpreter = new scion.SCXML(model);
+
+            var listener = {
+    			onEntry : function(stateName) {
+    				stateHistory.push(stateName);
+    				if(IS_DEBUG_ENABLED) console.debug('InputManager State Entry: "' + stateName + '"');//debug
+    
+    			},
+    			onExit : function(stateName) {
+    				stateHistory.pop();
+    				if(IS_DEBUG_ENABLED) console.debug('InputManager State Exit: "' + stateName + '"');//debug
+    			},
+    			onTransition : function(sourceState, targetStatesArray) {
+    				if(IS_DEBUG_ENABLED) console.debug('InputManager State Transition: "' + sourceState + '"->"' + targetStatesArray + '"');//debug
+    				
+    				//currently, only 1-target transitions are supported:
+    				if(targetStatesArray && targetStatesArray.length > 1){
+    					console.warn('InputManager State Transition: multiple target states!');
+    				}
+    			}
+    		};
+    		interpreter.registerListener(listener);
+    		
+        });
 		
 		return {
             /**
@@ -103,14 +111,59 @@ mobileDS.InputManager = (function(){
     		 * @public
     		 */
 			initializeDialog: function(){
-				input_manager_state_chart_instance.initialize();
-				// this.raiseEvent('init');
+				
+				if(isInitialized){
+					if(IS_DEBUG_ENABLED) console.warn('InputManager.initializeDialog(): already initialized!'+' '+new Error().stack);//debug  (use Error for retrieving call-hierarchy using its stack-trace) 
+					return; ////////////////////// EARLY EXIT //////////////////////////////////
+				}
+				
+				if(interpreter){
+					isInitialized = true;
+					interpreter.start();
+//	                console.error('InputManager init: '+(new Date() - startUpTime)+' '+new Error().stack);//debug : for testing, must initialize startUpTime with new Date(), first thing in index.html! 
+				}
+				else {
+					var isTimeout = false;
+					var startTime = new Date();
+					var timeout = 10000;//10 sec. TODO setting this global/by configuration?
+					
+					//self-calling wait-function with timeout
+					//  (waiting for interpreter to become != null):
+					var waitForInit = function(){
+						isTimeout = new Date() - startTime > timeout;
+						if(!interpreter && !isTimeout){
+							setTimeout(function(){waitForInit();},50);
+						}
+						else if(interpreter){
+							isInitialized = true;
+							interpreter.start();
+//			                console.error('InputManager init: '+(new Date() - startUpTime)+' '+new Error().stack);//debug : for testing, must initialize startUpTime with new Date(), first thing in index.html! 
+						}
+						else {
+							if(confirm){
+								var result = confirm('Could not initialize InputManager (time out).\nContinue to wait another\n '+ (timeout/1000).toFixed(3) +' seconds?');
+								if(result){
+									startTime = new Date();
+									setTimeout(function(){waitForInit();},50);
+								}
+								else{
+									console.error('Could not initialize InputManager (time out).');
+								}
+							}
+							else {
+								console.error('Could not initialize InputManager (time out).');
+							}
+						}
+					};
+					
+					waitForInit();
+				}
 			},
 
             /**
     		 * This function raises an arbitrary Event.
     		 * 
-    		 * @function initializeDialog
+    		 * @function raiseEvent
     		 * @param {String} eventName Name of the event to be raised
     		 * @param {Object} data Data of the event
     		 * @public
@@ -119,12 +172,14 @@ mobileDS.InputManager = (function(){
 				
 				if(IS_DEBUG_ENABLED) console.debug("InputManager raising event : '" + eventName + "'");//debug
 										
-				if (!(typeof input_manager_state_chart_instance[eventName] === "undefined")) {
-					input_manager_state_chart_instance[eventName](data);
-				}
-				else {
-					console.warn("no possible transition for " + eventName);
-                }   				
+//				if (!(typeof input_manager_state_chart_instance[eventName] === "undefined")) {
+//					input_manager_state_chart_instance[eventName](data);
+//				}
+//				else {
+//					console.warn("no possible transition for " + eventName);
+//                }
+				//TODO is there a way to check, if eventName is defined in interpreter-model?
+				interpreter.gen(eventName, data);
 
             }
 	            

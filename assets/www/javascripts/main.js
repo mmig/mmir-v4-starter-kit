@@ -55,7 +55,7 @@ var controllerManager;
 var semanticInterpreter;
 var modelManager;
 var initialized = false;
-var AudioInput;
+var audioInput;
 var applicationLanguage;
 var langManager;
 var appConfiguration;
@@ -110,8 +110,9 @@ function initializeApplication(){
 		        loadManagers();
 		});
     }
-    loadManagers();
-
+    else {
+    	loadManagers();
+    }
 
 }
 
@@ -122,14 +123,26 @@ function loadManagers(){
     langManager = mobileDS.LanguageManager.getInstance(mobileDS.ConfigurationManager.getInstance().getLanguage());//applicationLanguage);
     controllerManager = mobileDS.ControllerManager.initializeControllers(afterLoadingControllers);
     semanticInterpreter = mobileDS.SemanticInterpreter.getInstance();
-    if (forBrowser) mobileDS.AudioInput.loadFile('javascripts/mediators/html5AudioInput.js', function(){
-    	AudioInput = mobileDS.AudioInput.getInstance;
-    	console.log('AudioInput loaded');
-    	});
-    else mobileDS.AudioInput.loadFile(basePath+'javascripts/mediators/nuanceAudioInput.js', function(){
-    	AudioInput = mobileDS.AudioInput.getInstance;
-    	console.log('AudioInput loaded');
-    	});
+    if (forBrowser){
+    	mobileDS.AudioInput.loadFile('javascripts/mediators/html5AudioInput.js', function(){
+    		audioInput = mobileDS.AudioInput.getInstance;
+    		console.log('AudioInput loaded');
+    		});
+    	mobileDS.AudioOutput.loadFile('javascripts/mediators/html5AudioOutput.js', function(){
+        	audioOutput = mobileDS.AudioOutput.getInstance;
+        	console.log('AudioOutput loaded');
+        	});
+    }
+    else {
+    	mobileDS.AudioInput.loadFile(basePath+'javascripts/mediators/nuanceAudioInput.js', function(){
+    		audioInput = mobileDS.AudioInput.getInstance;
+    		console.log('AudioInput loaded');
+    		});
+    	mobileDS.AudioOutput.loadFile(basePath+'javascripts/mediators/nuanceAudioOutput.js', function(){
+        	audioOutput = mobileDS.AudioOutput.getInstance;
+        	console.log('AudioOutput loaded');
+        	});
+    }
     inputManager = mobileDS.InputManager.getInstance();
 	inputManager.initializeDialog();
 
@@ -182,20 +195,22 @@ function exectueAfterEachPageIsLoaded(ctrlName,viewName,data){
 	  var tis = $(this);
 	  var eventName;
 	  tis.bind('vmousedown', function(event){
+	      tis.parent().addClass('ui-focus ui-btn-active ui-btn-down-a');
 	      eventName = "touch_start_on_" + tis.attr("name");
 	      mobileDS.InputManager.getInstance().raiseEvent("touch_input_event");
-	    mobileDS.InputManager.getInstance().raiseEvent(eventName);
+	      mobileDS.InputManager.getInstance().raiseEvent(eventName);
 	  });
 	  tis.bind('click', function(event){
 	      eventName = "click_on_" + tis.attr("name");
 	      mobileDS.InputManager.getInstance().raiseEvent("touch_input_event");
-	    mobileDS.InputManager.getInstance().raiseEvent(eventName);
+	      mobileDS.InputManager.getInstance().raiseEvent(eventName);
 	  });
 	  tis.bind('vmouseup', function(event){
-	      eventName = "touch_end_on_" + tis.attr("name");
-	      mobileDS.InputManager.getInstance().raiseEvent("touch_input_event");
-	          mobileDS.InputManager.getInstance().raiseEvent(eventName);
-	      });
+		  	tis.parent().removeClass('ui-focus ui-btn-active ui-btn-down-a');
+	      	eventName = "touch_end_on_" + tis.attr("name");
+	      	mobileDS.InputManager.getInstance().raiseEvent("touch_input_event");
+	      	mobileDS.InputManager.getInstance().raiseEvent(eventName);
+	  });
 	});
 }
 
@@ -211,7 +226,7 @@ function micClick(){
 		$('#mic_button').addClass('footer_button_clicked');
 		mobileDS.AudioInput.getInstance().startRecord(function printResult(res){
 			console.log("[AudioInput] "  + res);
-	
+			mobileDS.AudioOutput.getInstance().textToSpeach(res, function(){}, function(){});	
 			var asr_result = res;
 	
 			var result = mobileDS.SemanticInterpreter.getInstance().get_asr_semantic(asr_result);
