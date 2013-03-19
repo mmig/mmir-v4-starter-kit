@@ -64,8 +64,6 @@ mobileDS.PresentationManager = (function(){
      */
     var instance = null;
     
-    var renderer = mobileDS.parser.ParserUtils.getInstance();
-    
 	/**
 	 * Constructor-Method of Class {@link mobileDS.PresentationManager}<br>
 	 * It invokes the loading of layouts, views and partials. 
@@ -188,6 +186,8 @@ mobileDS.PresentationManager = (function(){
          */
         var current_dialog = null;
      
+        //helper for loading/parsing the template-files
+        var renderer = mobileDS.parser.ParserUtils.getInstance();
         
 		/**
 		 * This function loads the layouts for every controller and puts the name of the layouts into the <b>layouts</b> array.
@@ -544,8 +544,8 @@ mobileDS.PresentationManager = (function(){
                 var layoutBody = layout.getBodyContents();
                 var layoutDialogs = layout.getDialogsContents();
 
-                layoutBody = renderer.renderViewContent(layoutBody, layout.getYields(), view.contentFors );
-                layoutDialogs = renderer.renderViewDialogs(layoutDialogs, layout.getYields(), view.contentFors );
+                layoutBody = renderer.renderViewContent(layoutBody, layout.getYields(), view.contentFors, data );
+                layoutDialogs = renderer.renderViewDialogs(layoutDialogs, layout.getYields(), view.contentFors, data );
                 
                 //TODO handle additional template syntax e.g. for BLOCK, STATEMENT (previously: partials)
                 var dialogs = $("#applications_dialogs");

@@ -106,7 +106,7 @@ function View(ctrl, name, definition){
     //TODO handle scripts (BLOCK, STATEMENTS) -> this.helperMethods
     
     for(var i=0, size = parseResult.contentFors.length; i < size ; ++i){
-    	this.contentFors.push(new ContentFor(parseResult.contentFors[i], parser));
+    	this.contentFors.push(new ContentFor(parseResult.contentFors[i], this.controller, parser));
     }
     
 }
@@ -194,12 +194,15 @@ View.prototype.getHelperMethods = function(){
  * @class ContentFor
  * @constructor
  * @param {Array} group or {Object} with properties <code>name</code> {String}, and <code>content</code> {String}
+ * @param {Object} controller the controller of the view that owns this ContentFor-element 
  * @param {Object} parser for the the content (optional) if supplied this object must have a function <code>parse({String})</code> (see templateParseUtil)
  * @category core
  */ 
-function ContentFor(group, parser){
+function ContentFor(group, controller, parser){
 	
 	this.localizer = mobileDS.LanguageManager.getInstance();
+	
+	this.controller = controller;
 	
 	if(typeof group.name !== 'undefined' && typeof group.content !== 'undefined'){
 		this.name = group.name;
@@ -214,6 +217,9 @@ function ContentFor(group, parser){
 	
 	this.definition 	= parsingResult.rawTemplateText;
 	this.localizations 	= parsingResult.localizations;
+	this.helpers		= parsingResult.helpers;
+	
+	this.allContentElements = null;
 	
 	//TODO enable this (recursive contentFors; and something similar for  for-/if- etc. contents...)
 //	this.contentFors = new Array();
@@ -258,25 +264,35 @@ ContentFor.prototype.toHtml = function(){
 	return this.toStrings().join('');
 };
 
+/**
+ * Renders this object into the renderingBuffer.
+ * 
+ * @param renderingBuffer {Array} of Strings (if <code>null</code> a new buffer will be created)
+ * @param data {Any} (optional) the event data with which the rendering was invoked
+ * @returns {Array} of Strings the renderingBuffer with the contents of this object added at the end
+ */
+ContentFor.prototype.toStrings = function(renderingBuffer, data){
 
-ContentFor.prototype.toStrings = function(array){
+	if(this.allContentElements == null){
+		
+		this.allContentElements = this.localizations.concat(this.helpers);//TODO also add other parsed-elements
+		
+		var sortAscByStart=function(parsedElem1, parsedElem2){
+			return parsedElem1.start - parsedElem2.start;
+		};
+		
+		this.allContentElements.sort(sortAscByStart);
+	}
 	
-	//TODO do this in the constructor? add parameter for enabling/disabling sorting?
-	var all = this.localizations;//.merge(....);
-	var sortAscByStart=function(parsedElem1, parsedElem2){
-		return parsedElem1.start - parsedElem2.start;
-	};
-	all.sort(sortAscByStart);
-	
-	var renderResult = array;
+	var renderResult = renderingBuffer;
 	if(!renderResult){
 		renderResult = new Array();
 	}
 	
 	var pos = 1;
-	for(var i=0, size = all.length; i < size; ++i){
+	for(var i=0, size = this.allContentElements.length; i < size; ++i){
 		
-		var contentElement = all[i];
+		var contentElement = this.allContentElements[i];
 				
 		//render the "static" content, beginning from the 
 		//	lastly rendered "dynamic" element up to the start 
@@ -285,11 +301,7 @@ ContentFor.prototype.toStrings = function(array){
 		
 		//render the current "dynamic" element:
 //		if(contentElement is localization)...
-		var text = this.localizer.getText(contentElement.name);
-		if(!text){
-			console.warn('ContentFor.render(localize): could not find localization text for "'+contentElement.name+'"');
-			text = '';
-		}
+		var text = this.doGetStringForElement(contentElement, data);
 		renderResult.push(text);
 //		else if(contentElement is ...)
 		
@@ -300,16 +312,53 @@ ContentFor.prototype.toStrings = function(array){
 		//alert('Replacing \n"'+rawTemplateText.substring(contentElement.start, contentElement.end)+'" with \n"'+content+'"');
 	}
 	
-	if(pos < this.definition.length - 1){
+	if(pos - 1 < this.definition.length){
 		if(pos === 1){
 			renderResult.push(this.definition);
 		}
 		else {
-			renderResult.push(this.definition.substring(pos));
+			renderResult.push(this.definition.substring(pos-1));
 		}
 	}
 	
 	return renderResult;
+};
+
+/** @private */
+ContentFor.prototype.doGetStringForElement = function(element, data){
+	
+	if(element.type === mobileDS.parser.element.LOCALIZE){
+		return this.doGetStringForLocalize(element, data);
+	}
+	else if(element.type === mobileDS.parser.element.HELPER){
+		return this.doGetStringForHelper(element, data);
+	}
+	else {
+		console.warn('ContentFor.doGetStringForElement: unknown element type '+element.type);
+		return '';
+	}
+};
+
+/** @private */
+ContentFor.prototype.doGetStringForLocalize = function(localizeElement, data){
+	var text = this.localizer.getText(localizeElement.name);
+	if(!text){
+		console.warn('ContentFor.render(localize): could not find localization text for "'+contentElement.name+'"');
+		text = '';
+	}
+	return text;
+};
+
+/** @private */
+ContentFor.prototype.doGetStringForHelper = function(helperElement, data){
+	//TODO handle case, when .helper is not a String
+	//TODO handle arguments for helper
+	var text = this.controller.performHelperAction(helperElement.helper, data);
+	if(!text){
+		console.warn('ContentFor.render(helper): no result for helper >'+helperElement.helper+'<');
+		text = '';
+	}
+	return text.toString();
 };
 
 ContentFor.prototype.getRawText = function(){
@@ -317,7 +366,8 @@ ContentFor.prototype.getRawText = function(){
 };
 
 ContentFor.prototype.hasDynamicContent = function(){
-    return this.localizations && this.localizations.length > 0;//TODO if ContentFor supports more dynamic (e.g. child-ContentFor objects, For-Loops ...) then add appropriate checks here! 
+    return (this.localizations && this.localizations.length > 0)
+    		|| (this.helpers && this.helpers.length > 0);//TODO if ContentFor supports more dynamic (e.g. child-ContentFor objects, For-Loops ...) then add appropriate checks here! 
 };
 
 ContentFor.prototype.getLocalizations = function(){

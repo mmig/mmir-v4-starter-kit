@@ -51,8 +51,8 @@ var printInfo = function(prefix, msg){//FIXME
 mobileDS.parser.ParserUtils = (function(){
 	
 
-	var RENDER_MODE_LAYOUT 	= 0;
-	var RENDER_MODE_PARTIAL = 2;
+	var RENDER_MODE_LAYOUT 			= 0;
+	var RENDER_MODE_PARTIAL 		= 2;
 	var RENDER_MODE_VIEW_CONTENT 	= 4;
 	var RENDER_MODE_VIEW_DIALOGS 	= 8;
 
@@ -74,11 +74,25 @@ mobileDS.parser.ParserUtils = (function(){
 //		print('[ERROR] TemplateParser: '+msg);
 //	};
 	
-	MmirScriptLexer.prototype.emitErrorMessage = function(msg) {
-		print('[ERROR] ScriptLexer: '+msg);
+	ES3Lexer.prototype.emitErrorMessage = function(msg) {
+		print('[ERROR] JavaScriptLexer_ES3: '+msg);
 	};
-	MmirScriptParser.prototype.emitErrorMessage = function(msg) {
-		print('[ERROR] ScriptParser: '+msg);
+	ES3Parser.prototype.emitErrorMessage = function(msg) {
+		print('[ERROR] JavaScriptParser_ES3: '+msg);
+	};
+	
+	MmirScriptBlockLexer.prototype.emitErrorMessage = function(msg) {
+		print('[ERROR] ScriptBlockLexer: '+msg);
+	};
+	MmirScriptBlockParser.prototype.emitErrorMessage = function(msg) {
+		print('[ERROR] ScriptBlockParser: '+msg);
+	};
+	
+	MmirScriptStatementLexer.prototype.emitErrorMessage = function(msg) {
+		print('[ERROR] ScriptStatementLexer: '+msg);
+	};
+	MmirScriptStatementParser.prototype.emitErrorMessage = function(msg) {
+		print('[ERROR] ScriptStatementParser: '+msg);
 	};
 	
 	MmirScriptContentLexer.prototype.emitErrorMessage = function(msg) {
@@ -123,8 +137,12 @@ mobileDS.parser.ParserUtils = (function(){
 		result.scripts 			= lexer.includeScripts;
 		result.styles 			= lexer.includeStyles;
 		result.localizations 	= lexer.locales;
+		result.ifs	 			= lexer.ifs;
+		result.fors 			= lexer.fors;
 		result.yields 			= lexer.yields;
 		result.contentFors 		= lexer.yieldContents;
+		result.helpers	 		= lexer.helpers;
+		result.partials 		= lexer.renderPartials;
 		//end: parsing results
 		
 		return result;
@@ -180,14 +198,14 @@ mobileDS.parser.ParserUtils = (function(){
     			//alert('Replacing \n"'+rawTemplateText.substring(scriptElem.start, scriptElem.end)+'" with \n"'+content+'"');
     		}
     		
-    		if(pos < result.rawTemplateText.length - 1 ){
-    			renderResult.push(result.rawTemplateText.substring(pos, result.rawTemplateText.length));
+    		if(pos - 1 < result.rawTemplateText.length){
+    			renderResult.push(result.rawTemplateText.substring(pos - 1));
     		}
     		
     		return renderResult.join('');
     	}
     	
-    	function renderContent(htmlContentString, yieldDeclarationsArray, contentForArray, renderingMode) {
+    	function renderContent(htmlContentString, yieldDeclarationsArray, contentForArray, renderingMode, data) {
 
     		//TODO do this in the view-object? add parameter for enabling/disabling sorting?
     		var sortAscByStart=function(parsedElem1, parsedElem2){
@@ -216,7 +234,7 @@ mobileDS.parser.ParserUtils = (function(){
     			
     			//render the current "dynamic" element:
 //    			var renderedElement = 
-    				renderYield(yieldDeclaration, contentForArray, renderingMode, htmlContentString, renderResult);
+    				renderYield(yieldDeclaration, contentForArray, renderingMode, htmlContentString, renderResult, data);
 //    			if(isArray(renderedElement)){
 //    				for(var r_i = 0, r_size = renderedElement.length; r_i < r_size; ++r_i){
 //    					renderResult.push(renderedElement[r_i]);
@@ -233,14 +251,14 @@ mobileDS.parser.ParserUtils = (function(){
     			//alert('Replacing \n"'+rawTemplateText.substring(yieldDeclaration.start, yieldDeclaration.end)+'" with \n"'+content+'"');
     		}
     		
-    		if(pos < htmlContentString.length - 1 ){
-    			renderResult.push(htmlContentString.substring(pos, htmlContentString.length));
+    		if(pos - 1 < htmlContentString.length){
+    			renderResult.push(htmlContentString.substring(pos - 1));
     		}
     		
     		return renderResult.join('');
     	}
     	
-    	function renderElement(elem, contentForArray, renderingMode, rawTemplateText) {
+    	function renderElement(elem, contentForArray, renderingMode, rawTemplateText, data) {
     		var type = elem.type;
     		if(type === mobileDS.parser.element.INCLUDE_SCRIPT){
     			return renderIncludeScript(elem, renderingMode, rawTemplateText);
@@ -252,7 +270,7 @@ mobileDS.parser.ParserUtils = (function(){
     			return renderLocalize(elem, renderingMode, rawTemplateText);
     		}
     		else if(type === mobileDS.parser.element.YIELD_DECLARATION){
-    			return renderYield(elem, contentForArray, renderingMode, rawTemplateText);
+    			return renderYield(elem, contentForArray, renderingMode, rawTemplateText, data);
     		}
     		
     		else if(type === mobileDS.parser.element.YIELD_CONTENT){
@@ -300,7 +318,7 @@ mobileDS.parser.ParserUtils = (function(){
     		return null;
     	}
 
-    	function renderYield(element, contentForArray, renderingMode, rawTemplateText, renderingBuffer){
+    	function renderYield(element, contentForArray, renderingMode, rawTemplateText, renderingBuffer, data){
     		
     		if(RENDER_MODE_LAYOUT === renderingMode){
     			return rawTemplateText.substring(element.start, element.end);
@@ -314,7 +332,7 @@ mobileDS.parser.ParserUtils = (function(){
 	    		}
 	    		
 	    		if(contentFor.hasDynamicContent()){
-	    			return contentFor.toStrings(renderingBuffer);
+	    			return contentFor.toStrings(renderingBuffer, data);
 	    		}
 	    		else {
 	    			if(renderingBuffer && isArray(renderingBuffer)){
@@ -335,11 +353,11 @@ mobileDS.parser.ParserUtils = (function(){
     		renderLayout: function(parseResult, contentForArray){
     			return renderLayout(parseResult, contentForArray, RENDER_MODE_LAYOUT);
     		},
-    		renderViewContent: function(htmlContentString, yieldDeclarationsArray, contentForObjectsArray){
-    			return renderContent(htmlContentString, yieldDeclarationsArray, contentForObjectsArray, RENDER_MODE_VIEW_CONTENT);
+    		renderViewContent: function(htmlContentString, yieldDeclarationsArray, contentForObjectsArray, data){
+    			return renderContent(htmlContentString, yieldDeclarationsArray, contentForObjectsArray, RENDER_MODE_VIEW_CONTENT, data);
     		},
-    		renderViewDialogs: function(htmlContentString, yieldDeclarationsArray, contentForObjectsArray){
-    			return renderContent(htmlContentString, yieldDeclarationsArray, contentForObjectsArray, RENDER_MODE_VIEW_DIALOGS);
+    		renderViewDialogs: function(htmlContentString, yieldDeclarationsArray, contentForObjectsArray, data){
+    			return renderContent(htmlContentString, yieldDeclarationsArray, contentForObjectsArray, RENDER_MODE_VIEW_DIALOGS, data);
     		}
     	};
     }

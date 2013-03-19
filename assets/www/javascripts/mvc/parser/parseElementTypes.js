@@ -45,6 +45,11 @@ mobileDS.parser.element.YIELD_DECLARATION 	= 8;
 mobileDS.parser.element.YIELD_CONTENT 		= 16;
 mobileDS.parser.element.BLOCK 				= 32;
 mobileDS.parser.element.STATEMENT 			= 64;
+mobileDS.parser.element.HELPER	 			= 128;
+mobileDS.parser.element.IF		 			= 256;
+mobileDS.parser.element.ELSE	 			= 512;
+mobileDS.parser.element.FOR		 			= 1024;
+mobileDS.parser.element.RENDER	 			= 2048;
 
 mobileDS.parser.element.isScript = function(element){
 	
