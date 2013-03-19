@@ -46,6 +46,50 @@
   Application.prototype.on_page_load = function (){
 	  
   };
+  
+  Application.prototype.on_page_load_login = function (){
+		
+
+		var isUseAlphaMagLanguageSelection = mobileDS.ConfigurationManager.getInstance().get('ALPHA_MapLanguageSelection');
+
+		//handle language selection:
+		$('#languageListView li')
+			.bind('vmousedown',           function(){	$(this).addClass(	'ui-focus ui-btn-active ui-btn-down-a');})
+			.bind('vmouseup vmousecancel',function(){	$(this).removeClass('ui-focus ui-btn-active ui-btn-down-a');})
+			//
+			//NOTE: we need to use 'click' here due to default event-handling of browser
+			//		  touchend -> tap/vclick -> click [delayed]
+			//		when using tap or vclick here, the click event is triggered,
+			//		regardless whether or not the tap/vclick.event.preventDefault()
+			//		is invoked
+			//		=> if there is a clickable element "under" the the clicked item of
+			//		the language menu, it will be triggered after the language menu closes!
+			//		Using the click event here does not have this side effect, obviously.
+			//
+			.bind('click', function(event){
+//				event.preventDefault();
+		
+				var lang = $(this).attr('lang');
+		
+//				console.log('lang-clicked: ' + lang);
+		
+				mobileDS.LanguageManager.getInstance().changeLanguage(lang, true);
+				if(isUseAlphaMagLanguageSelection){
+					showLoader();//actually this does not really work, but at least something is shown...
+					mobileDS.DialogEngine.getInstance().perform_helper_method('GoogleMap', 'update_map_language');
+				}
+				mobileDS.InputManager.getInstance().raiseEvent('touch_input_event');
+				mobileDS.InputManager.getInstance().raiseEvent('language_choosen');
+				
+				return false;
+		});
+		
+//		if(isUseAlphaMagLanguageSelection){
+//			showLoader();//actually this does not really work, but at least something is shown...
+//			mobileDS.DialogEngine.getInstance().perform_helper_method('GoogleMap', 'update_map_language');
+//		}
+		
+	};
 
   Application.prototype.on_page_load_welcome = function (){
 	  if(typeof mobileDS.User.getInstance() !== 'undefined'){
@@ -89,3 +133,12 @@
 	  return false;
   };
   
+
+  Application.prototype.slide_down_language_menu = function() {
+	  var langMenu = $('#language-menu-panel');
+	  langMenu.slideDown();
+  };
+
+  Application.prototype.slide_up_language_menu = function() {
+	  $('#language-menu-panel').slideUp();
+  };

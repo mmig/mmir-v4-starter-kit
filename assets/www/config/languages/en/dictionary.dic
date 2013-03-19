@@ -17,13 +17,15 @@
 	"welcome_header": "MMIG",
 	"welcome_date": "some Date",
 	"welcome_text":"Welcome to MMIG",
-	 "create_appointment": "Make an appointment",
+	"create_appointment": "Make an appointment",
+	"choose_language" : "Please choose a language",
     "create_appointment_header":"Appointment",
     "date_label" : "Date",
     "start_time_label":"Start",
     "end_time_label":"End",
     "subject_label":"Subject",
     "save":"Save",
-    "discard":"Discard"
+    "discard":"Discard",
+	"note_label":"Note"
 	
 }

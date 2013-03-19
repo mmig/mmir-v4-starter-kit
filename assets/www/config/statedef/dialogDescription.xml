@@ -32,13 +32,28 @@
 	</state>
 
 	<state id="main_state" name="main_state">
+	    
 		<onentry>
 			<script>
 				dialogManager.render('Application', 'login');
 			</script>
 		</onentry>
+		
 		<transition event="touch_end_on_login_btn" name="touch_end_on_login_btn" target="login_user" />
 		<transition event="touch_end_on_sign_up_btn" name="touch_end_on_sign_up_btn" target="registration_form" />
+		
+		<transition name="click_on_language_btn" event="click_on_language_btn" >
+	        <script>
+		        dialogManager.perform('Application','slide_down_language_menu');
+	        </script>
+	    </transition>
+	
+	    <transition name="language_choosen" event="language_choosen" >
+	        <script>
+				dialogManager.perform('Application','slide_up_language_menu');
+	        </script>
+	    </transition>
+	    
 	</state>
 
 	<state id="registration_form" name="registration_form">
@@ -112,4 +127,5 @@
 		</state>
 
 	</state>
+
 </scxml>   

@@ -18,12 +18,14 @@
 	"welcome_date": "Ein Datum",
 	"welcome_text":"Willkommen bei MMIG",
 	"create_appointment": "Termin erstellen",
+	"choose_language" : "Bitte w&auml;hlen Sie eine Sprache",
     "create_appointment_header":"Termin",
     "date_label" : "Datum",
     "start_time_label":"Start",
     "end_time_label":"Ende",
     "subject_label":"Betreff",
     "save":"Speichern",
-    "discard":"Verwerfen"
+    "discard":"Verwerfen",
+	"note_label": "Notiz"
 	
 }

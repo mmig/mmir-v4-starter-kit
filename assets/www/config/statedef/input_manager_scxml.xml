@@ -27,6 +27,10 @@
  
  <state id="input_manager_initial_state" initial="touch_input" name="input_manager_initial_state"><!--   node-size-and-position x=10.0 y=40.0 w=1490.0 h=620.0  -->
   
+  <datamodel>
+   <data expr="new Object()" id="data"></data>
+  </datamodel>
+ 
   <transition event="speech_input_event" target="speech_input"></transition>
   <transition event="touch_input_event" target="touch_input"></transition>
   
@@ -191,8 +195,22 @@
 			</script>
    </onentry>
   </state>
+  
   <state id="touch_input" initial="start_touch" name="touch_input"><!--   node-size-and-position x=20.0 y=270.0 w=1370.0 h=320.0  -->
+   
    <state id="start_touch" name="start_touch"><!--   node-size-and-position x=20.0 y=50.0 w=150.0 h=20.0  -->
+    
+    <onentry>
+     <script>
+         data = { &quot;Emma&quot; : { &quot;medium&quot; : &quot;tactile&quot; , &quot;mode&quot; : &quot;gui&quot; }};
+     </script>
+     <assign expr="{}" location="data.Data"></assign>
+    </onentry>
+    
+    <onexit>
+     <assign expr="_event.data" location="data.Data.data"></assign>
+    </onexit>
+    
     <transition event="back" target="back"></transition>
     <transition event="touch_end_on_login_btn" target="login"></transition>
     <transition event="touch_end_on_register_btn" target="register"></transition>
@@ -201,12 +219,16 @@
     <transition event="touch_end_on_appointment_btn" target="appointment"></transition>
     <transition event="touch_end_on_save_appointment_btn" target="save_appointment"></transition>
     <transition event="touch_end_on_discard_appointment_btn" target="discard_appointment"></transition>
+    
+    <transition event="click_on_language_btn" name="click_on_language_btn" target="language_btn"><!--   edge-path [language_btn]  x=400.0 y=540.0 pointx=1.0 pointy=-10.0 offsetx=140.0 offsety=0.0  --></transition>
+    <transition event="language_choosen" name="language_choosen" target="language_chosen"><!--   edge-path [language_chosen]  x=400.0 y=810.0 pointx=1.0 pointy=10.0 offsetx=-110.0 offsety=0.0  --></transition>
+    
    </state>
    <state id="back" name="back"><!--   node-size-and-position x=20.0 y=250.0 w=70.0 h=20.0  -->
     <onentry>
      <script>
 		    mobileDS.DialogEngine.getInstance().raiseEvent(&#039;back&#039;); 
-		  </script>
+	 </script>
     </onentry>
    </state>
    
@@ -214,7 +236,7 @@
     <onentry>
      <script>
 		       mobileDS.DialogEngine.getInstance().raiseEvent(&#039;touch_end_on_login_btn&#039;);
-		     </script>
+	 </script>
     </onentry>
    </state>
    
@@ -222,7 +244,7 @@
     <onentry>
      <script>
 		       mobileDS.DialogEngine.getInstance().raiseEvent(&#039;touch_end_on_register_btn&#039;); 
-		     </script>
+	 </script>
     </onentry>
    </state>
    
@@ -230,7 +252,7 @@
     <onentry>
      <script>
 		       mobileDS.DialogEngine.getInstance().raiseEvent(&#039;touch_end_on_sign_up_btn&#039;); 
-		     </script>
+	 </script>
     </onentry>
    </state>
    
@@ -238,7 +260,7 @@
     <onentry>
      <script>
 		       mobileDS.DialogEngine.getInstance().raiseEvent(&#039;touch_end_on_appointment_btn&#039;); 
-		     </script>
+	 </script>
     </onentry>
    </state>
    
@@ -246,7 +268,7 @@
     <onentry>
      <script>
 		       mobileDS.DialogEngine.getInstance().raiseEvent(&#039;touch_end_on_save_appointment_btn&#039;); 
-		     </script>
+	 </script>
     </onentry>
    </state>
    
@@ -254,7 +276,23 @@
     <onentry>
      <script>
 		       mobileDS.DialogEngine.getInstance().raiseEvent(&#039;touch_end_on_discard_appointment_btn&#039;); 
-		     </script>
+	 </script>
+    </onentry>
+   </state>
+   
+   <state id="language_btn" name="language_btn"><!--   node-size-and-position x=30.0 y=530.0 w=80.0 h=20.0  -->
+    <onentry>
+     <script>
+         mobileDS.DialogEngine.getInstance().raiseEvent(&#039;click_on_language_btn&#039;, data);
+	</script>
+    </onentry>
+   </state>
+   
+   <state id="language_chosen" name="language_chosen"><!--   node-size-and-position x=640.0 y=800.0 w=100.0 h=20.0  -->
+    <onentry>
+     <script>
+         mobileDS.DialogEngine.getInstance().raiseEvent(&#039;language_choosen&#039;, data);
+     </script>
     </onentry>
    </state>
    
