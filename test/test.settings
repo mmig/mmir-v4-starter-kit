@@ -1,0 +1,28 @@
+#
+# jstestdriver.dir - directory of the jstestdriver-jar
+jstestdriver.dir=lib/jstestdriver
+
+# jstestdriver.bin - path to jstestdriver-jar
+jstestdriver.bin=${jstestdriver.dir}/JsTestDriver-1.3.5.jar
+
+# jstestdriver.port - port of the jstestdriver-server
+jstestdriver.port=52525
+
+# jstestdriver.runnermode - how much information to show:
+# DEBUG, DEBUG_NO_TRACE, DEBUG_OBSERVE, PROFILE, QUIET (default), INFO
+jstestdriver.runnermode=QUIET
+
+# jstestdriver.config.dir - wheere to look for config files
+jstestdriver.config.dir=drivers
+
+# Path to javascripts-dir of the project
+jsSrcDirBase=../assets/www/javascripts/
+
+
+# paths to browser binaries
+browser.firefox=C:/Program Files/Mozilla Firefox/firefox.exe
+#browser.iexplore=C:/Program Files/Internet Explorer/iexplore.exe
+#browser.chrome=C:/Users/flpe02/AppData/Local/Google/Chrome/Application/chrome.exe
+#browser.opera=
+#browser.safari=
+
