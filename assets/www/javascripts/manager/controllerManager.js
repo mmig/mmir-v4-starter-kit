@@ -304,7 +304,9 @@ mobileDS.ControllerManager = (function(){
                 }
 			}
         };
-        callbackFunction();
+        if(typeof callbackFunction !== 'undefined' && callbackFunction !== null){
+        	callbackFunction();
+       	}
       });
     }
     
