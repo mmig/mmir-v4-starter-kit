@@ -43,7 +43,7 @@ mobileDS.AudioOutput = (function(){
     			playWAV: function(blob, successCallBack, failureCallBack){
     				alert("Audio Output is not supported.");
     			},
-    			textToSpeach: function(text, successCallBack,failureCallBack){
+    			textToSpeech: function(text, successCallBack,failureCallBack){
     				alert("Audio Output is not supported.");
     			}
     	};

@@ -44,11 +44,22 @@ var mobileDS = window.mobileDS ||
  */
 function Partial(ctrl, name, definition){
 //    var HTMLCommentRegExp = /<!--[\s\S]*?-->/g;
-    definition = definition.replace(mobileDS.CommonUtils.getInstance().html_comment_regex, '');//remove HTML comments!  .replace(HTMLCommentRegExp,"");
+    
+	definition = definition.replace(mobileDS.CommonUtils.getInstance().html_comment_regex, '');//remove HTML comments!  .replace(HTMLCommentRegExp,"");
     this.controller = ctrl;
     this.def = definition;
     this.name = name.toLowerCase();
 //    console.log("[Partial] parsed Partial '" +this.controller + "-"+this.name+ "'.");
+    
+    var parser = mobileDS.parser.ParserUtils.getInstance();
+    var renderer = mobileDS.parser.RenderUtils.getInstance();
+    
+    var contentElementInfo = {
+    		//this name is purely informational:
+    		name : this.controller.getName() + 'Partial',
+    		content : this.def
+    	};
+    this.contentElement = new ContentElement(contentElementInfo, this, parser, renderer);
 }
 
 /**
@@ -82,16 +93,11 @@ Partial.prototype.getController = function(){
 };
 
 /**
- * Should parse the code, but does nothing. This function is implemented inside the presentationManager.
+ * Gets the {@link mobileDS.ContentElement}, i.e. the content that this instance represents.
  * 
- * @function parse_code
- * @deprecated does nothing
+ * @function getContentElement
+ * @returns {mobileDS.ContentElement} The ContentElement object
  */
-// Process code
-Partial.prototype.parse_code = function(data){
-	var self = this;
-// Todo	
-//	$.each(self.getHelperMethods(), function(index, h_method){
-//		self.controller.performHelperAction(h_method, data);
-//	});
+Partial.prototype.getContentElement = function(){
+    return this.contentElement;
 };

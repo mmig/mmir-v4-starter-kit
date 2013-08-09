@@ -33,6 +33,7 @@ options {
 
 @lexer::members {
 	this.isDebug = true;
+	this.nesting = 0;
 }
 
 @parser::members {
@@ -62,46 +63,6 @@ text
 	: (CHAR | EscapeExit | DoExit)* ( other (CHAR | EscapeExit | DoExit)* )*
 	;
 
-stringArgAndContent returns[String theName, String theContent]	
-	@init{
-		var startPos;
-	}
-	@after{
-		var end = this.input.getTokens()[this.input.size()-1].getStopIndex()+1;
-		var theString = this.input.getTokenSource().input.data;
-		$theContent = theString.substring(startPos, end);
-		
-		if(this.isDebug) print('CONTENT_stringArgAndContent -> content= "'+$theContent+'"');//debug
-	}
-	: stringArg ')' (NL|WS)* start='{'  (NL  | CHAR )*
-	{
-		$theName = $stringArg.theText;
-		startPos = start.getStartIndex()+1;
-		
-		if(this.isDebug) print('CONTENT_stringArgAndContent -> str='+$stringArg.theText);//debug
-	}
-	;
-
-stringArg returns[String theText]	
-	@init{
-		var strs;
-	}
-	@after{
-		if(strs) $theText = strs.join(''); 
-		else $theText='';
-	}
-	: (NL|WS)* 
-	  (
-		str=STRING {if(!strs)strs=new Array();strs.push(this.extractString($str.text));}
-	  |	str=SSTRING {if(!strs)strs=new Array();strs.push(this.extractString($str.text));}
-	  ) ( 
-	  	(NL|WS)* '+' (NL|WS)* 
-	  	  (str=STRING {if(!strs)strs=new Array();strs.push(this.extractString($str.text));}
-	  	  |str=SSTRING {if(!strs)strs=new Array();strs.push(this.extractString($str.text));}
-	  	 )
-	  )* (NL|WS)*
-	;
-	
 content returns[String theContent]	
 	@init{
 		var startPos;
@@ -113,7 +74,17 @@ content returns[String theContent]
 		
 		if(this.isDebug) print('CONTENT_content -> content= "'+$theContent+'"');//debug
 	}
-	: (NL|WS)* start='{'  (NL  | CHAR )*
+	: (NL|WS)* start='{'  
+		(
+		  NL
+		| CHAR
+		| COMMENT
+		| DoEnterBlock
+		| DoEnterYieldContent
+		| DoEnterIfStatement
+		| DoEnterElseStatement
+		| DoEnterForStatement
+		)*
 	{
 		startPos = start.getStartIndex()+1;
 		
@@ -123,18 +94,53 @@ content returns[String theContent]
 
 other	: COMMENT  {if(this.isDebug) printInfo('CONTENT_comment',$COMMENT.text);/*debug*/}
 	| STRING   {if(this.isDebug) printInfo('CONTENT_String' ,$STRING.text);/*debug*/}
-	| SSTRING  {if(this.isDebug) printInfo('CONTENT_string' ,$SSTRING.text);/*debug*/}
+		| SSTRING  {if(this.isDebug) printInfo('CONTENT_string' ,$SSTRING.text);/*debug*/}
 	;
 	
 line_end:	NL | EOF;
 
-EscapeExit 
-	:	'}@@';
+EscapeExit	:	'}@@';
+	
+DoEnterBlock	:	'@{'
+            {++this.nesting;}
+            {$channel=HIDDEN;}
+        ;
+    
+DoEnterYieldContent :   '@contentFor('
+            {++this.nesting;}
+            {$channel=HIDDEN;}
+        ;
+
+DoEnterRender :   '@render('
+            {++this.nesting;}
+            {$channel=HIDDEN;}
+        ;
+        
+DoEnterIfStatement :   '@if('
+            {++this.nesting;}
+            {$channel=HIDDEN;}
+        ;
+        
+DoEnterElseStatement :   '@else'
+            {++this.nesting;}
+            {$channel=HIDDEN;}
+        ;
+        
+DoEnterForStatement :   '@for('
+            {++this.nesting;}
+            {$channel=HIDDEN;}
+        ;
+ 
 DoExit	:	'}@'
 	{
-                this.emit(org.antlr.runtime.Token.EOF_TOKEN);
-                
-                if(this.isDebug) print("exiting embedded CONTENT");//debug
+		if(this.nesting == 0){
+	                this.emit(org.antlr.runtime.Token.EOF_TOKEN);
+	                
+	                if(this.isDebug) print("exiting embedded CONTENT");//debug
+                }
+                else {
+                	--this.nesting;
+                }
           
         }
 	;
@@ -160,11 +166,11 @@ COMMENT
 
 
 STRING
-    :  '"' ( options {greedy=false;}: ((ESC_EXIT_SEQ)=>ESC_EXIT_SEQ | (EXIT_SEQ)=>EXIT_SEQ | ESC_SEQ | ~('\\'|'"') ))* '"'
+    :  '"' ( options {greedy=false;}: ((EscapeExit)=>EscapeExit | (DoExit)=>DoExit | ESC_SEQ | ~('\\'|'"') ))* '"'
     ;
     
 SSTRING
-    :  '\'' ( options {greedy=false;}: ((ESC_EXIT_SEQ)=>ESC_EXIT_SEQ | (EXIT_SEQ)=>EXIT_SEQ | ESC_SEQ | ~('\\'|'\'') ))* '\''
+    :  '\'' ( options {greedy=false;}: ((EscapeExit)=>EscapeExit | (DoExit)=>DoExit | ESC_SEQ | ~('\\'|'\'') ))* '\''
     ;
 
 fragment
@@ -176,21 +182,6 @@ ESC_SEQ
     |   UNICODE_ESC
     |   OCTAL_ESC
     ;
-
-fragment
-ESC_EXIT_SEQ 
-	:	'}@@';
-
-fragment
-EXIT_SEQ
-	:	'}@'
-	{
-                this.emit(org.antlr.runtime.Token.EOF_TOKEN);
-                
-                if(this.isDebug) print("IN_STRING: exiting embedded CONTENT");//debug
-          
-        }
-	;
 
 fragment
 OCTAL_ESC

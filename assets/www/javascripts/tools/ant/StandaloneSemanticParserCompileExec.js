@@ -40,26 +40,37 @@ var IS_DEBUG_ENABLED = true;
 
 console.log('Path to JSON grammar: "'+theJSONGrammarPath+'"');
 
-var theJSONGrammarURL = theJSONGrammarPath;
-var theCompiledOutputFile = theCompiledGrammarTargetPath;
+var theJSONGrammarDir 			= theJSONGrammarPath;
+var theJSONGrammarFile			= theJSONGrammarFileName;
+var theJSONGrammarLanguage 		= theJSONGrammarLanguageStr;
+var theCompiledOutputPath 		= theCompiledGrammarTargetPath;
+var theCompiledOutputFileName 	= theCompiledGrammarTargetFileName;
+
+var theJSONGrammarURL = theJSONGrammarDir + theJSONGrammarLanguage + '/' + theJSONGrammarFile;
+console.info('Created source/input path for JSON grammar file (for language '+theJSONGrammarLanguage+'): "'+theJSONGrammarURL+'"');
+
+var theCompiledOutputFile = theCompiledOutputPath + theJSONGrammarLanguage + '_' + theCompiledOutputFileName;
+console.info('Created target/output path for JavaScript grammar file (for language '+theJSONGrammarLanguage+'): "'+theCompiledOutputFile+'"');
 
 var theJSONgrammar = 'un-initialized';
 
 theJSONgrammar = loadLocalFile(theJSONGrammarURL);
-semanticInterpreter = mobileDS.SemanticInterpreter.getNewInstance(theJSONgrammar, 'compiled_grammar');
-var compiledParser = semanticInterpreter.getGrammarParserText();
+semanticInterpreter = mobileDS.SemanticInterpreter.getInstance();
+semanticInterpreter.createGrammar(theJSONgrammar, theJSONGrammarLanguage, function(){
+	var compiledParser = semanticInterpreter.getGrammarParserText( theJSONGrammarLanguage );
 
-//normalize newlines:
-// convert windows/mac to unix newlines
-compiledParser = compiledParser.replaceAll('\r\n','\n').replaceAll('\r','\n');
-// convert to windows style newlines:
-compiledParser = compiledParser.replaceAll('\n','\r\n');
-//append an empty last line:
-compiledParser += '\r\n';
+	//normalize newlines:
+	// convert windows/mac to unix newlines
+	compiledParser = compiledParser.replaceAll('\r\n','\n').replaceAll('\r','\n');
+	// convert to windows style newlines:
+	compiledParser = compiledParser.replaceAll('\n','\r\n');
+	//append an empty last line:
+	compiledParser += '\r\n';
 
 
-console.log('------------------------------------------------ finished compiling ---------------------------');
+	console.log('------------------------------------------------ finished compiling ---------------------------');
 
-saveToFile(compiledParser, theCompiledOutputFile);
+	saveToFile(compiledParser, theCompiledOutputFile);
 
-console.log('------------------------------------------------ finished! ---------------------------');
+	console.log('------------------------------------------------ finished! ---------------------------');	
+});

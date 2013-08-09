@@ -24,62 +24,125 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 var mobileDS = window.mobileDS ||
 {};
 
+/**
+ * @class Notification
+ */
 mobileDS.Notification = (function(){
     //private members
-    var instance;
+	
+	/** @private */
+    var instance = null;
     
     
+    //private methods
     
-  //private methods
+    /**
+	 * Constructor-Method of Class {@link mobileDS.Notification}.<br> 
+	 * 
+	 * @constructor
+	 * @augments mobileDS.Notification
+	 * @memberOf mobileDS.Notification.prototype
+	 */
     function constructor(){
-    
-    	// The watch id references the current `watchHeading`
-        var watchID = null;
-        var options = {
-            frequency: 500
-        };
+    	
+    	function createAudio(url, success, fail){
+    		return mobileDS.AudioOutput.getInstance().getURLAsAudio(url, success, fail);
+    	}
+    	
+    	
+    	var beepAudio = null;
+    	function playBeepAudio(times){
+    		//create beep-audio-object, if not existing yet
+    		if(beepAudio === null){
+    			beepAudio = createAudio(
+    					mobileDS.constants.getInstance().getBeepUrl(),
+    					function(){ mobileDS.Notification.getInstance().beep(times-1);}, 
+    					function(e){console.log('Error playing the beep: '+e);}
+    			);
+    		}
+    		beepAudio.play();
+    	}
+    	//on Android: release resources on pause/exit, since they are limited
+    	if(!forBrowser){
+    		document.addEventListener(
+    				"pause", 
+    				function(event){
+    					if(beepAudio !== null){
+    						beepAudio.release();
+    						beepAudio = null;
+    						console.info('Notification: released media resources for beep.');
+    					}
+    				},
+    				false
+    		);
+    	}
         
-        // onSuccess: Get the current heading
-        //
-        function onSuccess(heading) {
-            
-        	if(IS_DEBUG_ENABLED) console.debug('Heading: ' + heading.magneticHeading);//debug
-        }
-
-        // onError: Failed to get the heading
-        //
-        function onError(compassError) {
-            alert('Compass error: ' + compassError.code);
-        }
-        
+    	/** @lends mobileDS.Notification.prototype */
         return { //public members and methods
             
+        	/**
+        	 * Trigger a haptic vibration feedback.
+        	 * 
+        	 * <p>Note: The device / execution environment may not support haptic vibration feedback 
+        	 * 
+        	 * @function vibrate
+        	 * @param milliseconds {Number} duration for vibration in milliseconds
+        	 * @public
+        	 */
             vibrate: function(milliseconds){
-            	navigator.notification.vibrate(milliseconds);
+            	if (!forBrowser){
+            		navigator.notification.vibrate(milliseconds);
+            	}
             },
+            /**
+             * Opens a (native) notification dialog.
+             * 
+             * @function alert
+             * @public
+             */
             alert: function(message, alertCallback, title, buttonName){
             	navigator.notification.alert(message, alertCallback, title, buttonName);
             },
-            
+            /**
+             * Opens a (native) confirmation dialog.
+             * 
+             * @function confirm
+             * @public
+             */
             confirm: function(message, confirmCallback, title, buttonLabels){
             	navigator.notification.confirm(message, confirmCallback, title, buttonLabels);
             },
-            
+            /**
+             * Trigger a beep notification sound.
+             * 
+             * @function beep
+             * @param times {Number} how many times should to beep repeated
+             * @public
+             */
             beep: function(times){
-            	navigator.notification.beep(times);
+        		if (times>0){
+        			console.warn('BEEP, repeat '+times);
+        			playBeepAudio(times);
+        		}
             }
-        }
+        };
     }
-        return {
+    return {
+        /**
+         * Get the instance of the singleton {@link mobileDS.Notification} 
+         * 
+         * @function getInstance
+         * @returns {Object} the instance for singleton {@link mobileDS.Notification}
+         * @public
+         */
         getInstance: function(){
-            if (!instance) {
+            if (instance === null) {
                 instance = constructor();
             }
             return instance;
         }
-    }
+    };
 })();

@@ -91,14 +91,15 @@
 		
 	};
 
-  Application.prototype.on_page_load_welcome = function (){
-	  if(typeof mobileDS.User.getInstance() !== 'undefined'){
-		  var userName = mobileDS.User.getInstance().getName();
-		  if(userName){
-			  $('#user-name').text(', '+userName);
-		  }
-	  }
-  };
+	//DISABLED: now a @-statement within the template-definition is used
+//  Application.prototype.on_page_load_welcome = function (){
+//	  if(typeof mobileDS.User.getInstance() !== 'undefined'){
+//		  var userName = mobileDS.User.getInstance().getName();
+//		  if(userName){
+//			  $('#user-name').text(', '+userName);
+//		  }
+//	  }
+//  };
   
   Application.prototype.login = function(){
       var email = $('#emailField #email').val();

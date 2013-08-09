@@ -68,9 +68,10 @@
   <state id="no_match" name="no_match"><!--   node-size-and-position x=610.0 y=50.0 w=120.0 h=20.0  -->
    <onentry>
     <script>
-			    var dm = mobileDS.CalendarModel.getInstance().getDiscourseManager();
+			    var dm = null;//TODO: mobileDS.CalendarModel.getInstance().getDiscourseManager();
 			   	if (dm == null) {
-					window.plugins.nuancePlugin.speak(&#039;Ich habe Sie leider nicht verstanden.&#039;,null, null);
+			   		var msg = mobileDS.LanguageManager.getInstance().getText(&#039;did_not_understand_msg&#039;);
+					mobileDS.AudioOutput.getInstance().textToSpeech(msg, null, null);
 				} else {
 					dm.getCommand().parse(command);
 				}

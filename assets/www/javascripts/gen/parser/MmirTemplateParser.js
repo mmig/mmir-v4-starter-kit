@@ -1,4 +1,4 @@
-// $ANTLR 3.3 Nov 30, 2010 12:50:56 ../MmirTemplate.g 2013-03-01 18:48:35
+// $ANTLR 3.3 Nov 30, 2010 12:50:56 ../MmirTemplate.g 2013-04-12 13:42:06
 
 var MmirTemplateParser = function(input, state) {
     if (!state) {
@@ -23,25 +23,27 @@ org.antlr.lang.augmentObject(MmirTemplateParser, {
     CHAR: 4,
     NL: 5,
     END: 6,
-    ESC_DoEnter: 7,
-    COMMENT: 8,
-    DoEnterBlock: 9,
-    DoEnterStatement: 10,
-    DoEnterIncludeScript: 11,
-    DoEnterIncludeStyle: 12,
-    DoEnterLocalize: 13,
-    DoEnterYieldDeclaration: 14,
-    DoEnterYieldContent: 15,
-    DoEnterHelper: 16,
-    DoEnterRender: 17,
-    DoEnterIfStatement: 18,
-    DoEnterElseStatement: 19,
-    DoEnterForStatement: 20,
-    END_SCRIPT: 21,
-    HEX_DIGIT: 22,
-    UNICODE_ESC: 23,
-    OCTAL_ESC: 24,
-    ESC_SEQ: 25
+    EscapeExit: 7,
+    ESC_DoEnter: 8,
+    COMMENT: 9,
+    DoEnterBlock: 10,
+    DoEnterStatement: 11,
+    DoEnterIncludeScript: 12,
+    DoEnterIncludeStyle: 13,
+    DoEnterLocalize: 14,
+    DoEnterYieldDeclaration: 15,
+    DoEnterYieldContent: 16,
+    DoEnterIfStatement: 17,
+    DoEnterElseStatement: 18,
+    DoEnterForStatement: 19,
+    DoEnterDeclareVar: 20,
+    DoEnterHelper: 21,
+    DoEnterRender: 22,
+    END_SCRIPT: 23,
+    HEX_DIGIT: 24,
+    UNICODE_ESC: 25,
+    OCTAL_ESC: 26,
+    ESC_SEQ: 27
 });
 
 (function(){
@@ -50,25 +52,27 @@ var EOF= -1,
     CHAR= 4,
     NL= 5,
     END= 6,
-    ESC_DoEnter= 7,
-    COMMENT= 8,
-    DoEnterBlock= 9,
-    DoEnterStatement= 10,
-    DoEnterIncludeScript= 11,
-    DoEnterIncludeStyle= 12,
-    DoEnterLocalize= 13,
-    DoEnterYieldDeclaration= 14,
-    DoEnterYieldContent= 15,
-    DoEnterHelper= 16,
-    DoEnterRender= 17,
-    DoEnterIfStatement= 18,
-    DoEnterElseStatement= 19,
-    DoEnterForStatement= 20,
-    END_SCRIPT= 21,
-    HEX_DIGIT= 22,
-    UNICODE_ESC= 23,
-    OCTAL_ESC= 24,
-    ESC_SEQ= 25;
+    EscapeExit= 7,
+    ESC_DoEnter= 8,
+    COMMENT= 9,
+    DoEnterBlock= 10,
+    DoEnterStatement= 11,
+    DoEnterIncludeScript= 12,
+    DoEnterIncludeStyle= 13,
+    DoEnterLocalize= 14,
+    DoEnterYieldDeclaration= 15,
+    DoEnterYieldContent= 16,
+    DoEnterIfStatement= 17,
+    DoEnterElseStatement= 18,
+    DoEnterForStatement= 19,
+    DoEnterDeclareVar= 20,
+    DoEnterHelper= 21,
+    DoEnterRender= 22,
+    END_SCRIPT= 23,
+    HEX_DIGIT= 24,
+    UNICODE_ESC= 25,
+    OCTAL_ESC= 26,
+    ESC_SEQ= 27;
 
 // public instance methods/vars
 org.antlr.lang.extend(MmirTemplateParser, org.antlr.runtime.Parser, {
@@ -175,7 +179,7 @@ org.antlr.lang.augmentObject(MmirTemplateParser.prototype, {
                 var alt1=2;
                 var LA1_0 = this.input.LA(1);
 
-                if ( ((LA1_0>=CHAR && LA1_0<=DoEnterYieldContent)) ) {
+                if ( ((LA1_0>=CHAR && LA1_0<=DoEnterForStatement)) ) {
                     alt1=1;
                 }
 
@@ -263,7 +267,7 @@ org.antlr.lang.augmentObject(MmirTemplateParser.prototype, {
                 var alt2=3;
                 var LA2_0 = this.input.LA(1);
 
-                if ( ((LA2_0>=ESC_DoEnter && LA2_0<=DoEnterYieldContent)) ) {
+                if ( ((LA2_0>=EscapeExit && LA2_0<=DoEnterForStatement)) ) {
                     alt2=1;
                 }
                 else if ( (LA2_0==CHAR) ) {
@@ -343,7 +347,7 @@ org.antlr.lang.augmentObject(MmirTemplateParser.prototype, {
         return;
     })(),
 
-    // ../MmirTemplate.g:57:1: other : ( ESC_DoEnter | COMMENT | DoEnterBlock | DoEnterStatement | DoEnterIncludeScript | DoEnterIncludeStyle | DoEnterLocalize | DoEnterYieldDeclaration | DoEnterYieldContent );
+    // ../MmirTemplate.g:57:1: other : ( EscapeExit | ESC_DoEnter | COMMENT | DoEnterBlock | DoEnterStatement | DoEnterIncludeScript | DoEnterIncludeStyle | DoEnterLocalize | DoEnterYieldDeclaration | DoEnterYieldContent | DoEnterIfStatement | DoEnterElseStatement | DoEnterForStatement );
     // $ANTLR start "other"
     other: function() {
         var retval = new MmirTemplateParser.other_return();
@@ -356,12 +360,12 @@ org.antlr.lang.augmentObject(MmirTemplateParser.prototype, {
         var set6_tree=null;
 
         try {
-            // ../MmirTemplate.g:57:7: ( ESC_DoEnter | COMMENT | DoEnterBlock | DoEnterStatement | DoEnterIncludeScript | DoEnterIncludeStyle | DoEnterLocalize | DoEnterYieldDeclaration | DoEnterYieldContent )
+            // ../MmirTemplate.g:57:7: ( EscapeExit | ESC_DoEnter | COMMENT | DoEnterBlock | DoEnterStatement | DoEnterIncludeScript | DoEnterIncludeStyle | DoEnterLocalize | DoEnterYieldDeclaration | DoEnterYieldContent | DoEnterIfStatement | DoEnterElseStatement | DoEnterForStatement )
             // ../MmirTemplate.g:
             root_0 = this.adaptor.nil();
 
             set6=this.input.LT(1);
-            if ( (this.input.LA(1)>=ESC_DoEnter && this.input.LA(1)<=DoEnterYieldContent) ) {
+            if ( (this.input.LA(1)>=EscapeExit && this.input.LA(1)<=DoEnterForStatement) ) {
                 this.input.consume();
                 this.adaptor.addChild(root_0, this.adaptor.create(set6));
                 this.state.errorRecovery=false;
@@ -405,11 +409,11 @@ org.antlr.lang.augmentObject(MmirTemplateParser.prototype, {
 
 // public class variables
 org.antlr.lang.augmentObject(MmirTemplateParser, {
-    tokenNames: ["<invalid>", "<EOR>", "<DOWN>", "<UP>", "CHAR", "NL", "END", "ESC_DoEnter", "COMMENT", "DoEnterBlock", "DoEnterStatement", "DoEnterIncludeScript", "DoEnterIncludeStyle", "DoEnterLocalize", "DoEnterYieldDeclaration", "DoEnterYieldContent", "DoEnterHelper", "DoEnterRender", "DoEnterIfStatement", "DoEnterElseStatement", "DoEnterForStatement", "END_SCRIPT", "HEX_DIGIT", "UNICODE_ESC", "OCTAL_ESC", "ESC_SEQ"],
+    tokenNames: ["<invalid>", "<EOR>", "<DOWN>", "<UP>", "CHAR", "NL", "END", "EscapeExit", "ESC_DoEnter", "COMMENT", "DoEnterBlock", "DoEnterStatement", "DoEnterIncludeScript", "DoEnterIncludeStyle", "DoEnterLocalize", "DoEnterYieldDeclaration", "DoEnterYieldContent", "DoEnterIfStatement", "DoEnterElseStatement", "DoEnterForStatement", "DoEnterDeclareVar", "DoEnterHelper", "DoEnterRender", "END_SCRIPT", "HEX_DIGIT", "UNICODE_ESC", "OCTAL_ESC", "ESC_SEQ"],
     FOLLOW_text_in_main42: new org.antlr.runtime.BitSet([0x00000002, 0x00000000]),
-    FOLLOW_line_in_text54: new org.antlr.runtime.BitSet([0x0000FFF2, 0x00000000]),
-    FOLLOW_other_in_line73: new org.antlr.runtime.BitSet([0x0000FFF0, 0x00000000]),
-    FOLLOW_CHAR_in_line86: new org.antlr.runtime.BitSet([0x0000FFF0, 0x00000000]),
+    FOLLOW_line_in_text54: new org.antlr.runtime.BitSet([0x000FFFF2, 0x00000000]),
+    FOLLOW_other_in_line73: new org.antlr.runtime.BitSet([0x000FFFF0, 0x00000000]),
+    FOLLOW_CHAR_in_line86: new org.antlr.runtime.BitSet([0x000FFFF0, 0x00000000]),
     FOLLOW_set_in_line98: new org.antlr.runtime.BitSet([0x00000002, 0x00000000]),
     FOLLOW_set_in_other0: new org.antlr.runtime.BitSet([0x00000002, 0x00000000])
 });

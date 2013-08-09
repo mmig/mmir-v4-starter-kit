@@ -58,5 +58,8 @@ if (!window) {
 }
 
 //retrieve values for input-path & output-file from the ANT project-object
-var theJSONGrammarPath = project.getProperty('grammarDefinitionJsonFile');
-var theCompiledGrammarTargetPath = project.getProperty('outFileCompiledGrammar');
+var theJSONGrammarPath 				= project.getProperty('grammarDefinitionJsonDir');
+var theJSONGrammarFileName			= project.getProperty('grammarDefinitionJsonFile');
+var theJSONGrammarLanguageStr 		= project.getProperty('grammarLanguageCode');
+var theCompiledGrammarTargetPath 	= project.getProperty('outDirCompiledGrammar');
+var theCompiledGrammarTargetFileName= project.getProperty('outFileCompiledGrammar');

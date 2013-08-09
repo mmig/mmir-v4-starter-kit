@@ -127,7 +127,7 @@ Controller.prototype.loadHelper = function(name, helperPath){
 	var self = this;
 	/// ATTENTION: $.getScript --> mobileDS.CommonUtils.getInstance().getLocalScript
 	/// under version 4.0 of Android getScript is not working properly
-	
+
 	//TODO move check of helper existance to Controller.foundControllersCallBack ?
 
 	//determine if there is a helper for the controller:
@@ -166,12 +166,12 @@ Controller.prototype.loadHelper = function(name, helperPath){
 	//if there is a file: load the helper
 	mobileDS.CommonUtils.getInstance().getLocalScript(helperPath, function(data, textStatus, jqxhr){
 		
-		if(IS_DEBUG_ENABLED) console.debug("[HELPER] load "+ helperPath);//debug
-		
-		self.helper =   new Helper(self, name);//new window["GoogleMapHelper"]();
-	},
-	function(exception) {
-		// print out an error message
+			if(IS_DEBUG_ENABLED) console.debug("[HELPER] load "+ helperPath);//debug
+			
+			self.helper =   new Helper(self, name);//new window["GoogleMapHelper"]();
+		},
+		function(exception) {
+			// print out an error message
 			console.warn("[WARN] Could not load helper -> " + exception + ": '" + helperPath + "'"); //failure
 		}
 	);

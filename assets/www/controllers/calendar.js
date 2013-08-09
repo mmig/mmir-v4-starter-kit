@@ -57,16 +57,16 @@
   var container = $("#" + container_id);
   var subject = $("#subject", container).val();
   
-  var enteredDate = $("#app-date", container).data('datebox').theDate;
+  var enteredDate = $("#app-date", container).datebox('getTheDate');
   var year = enteredDate.getFullYear();
   var month = enteredDate.getMonth() + 1;
   var day = enteredDate.getDate();
   
-  var startTime = $("#start-time", container).data('datebox').theDate;
+  var startTime = $("#start-time", container).datebox('getTheDate');
   var start_h = startTime.getHours();
   var start_m = startTime.getMinutes();
   
-  var endTime = $("#end-time", container).data('datebox').theDate;
+  var endTime = $("#end-time", container).datebox('getTheDate');
   var end_h = endTime.getHours();
   var end_m = endTime.getMinutes();
   

@@ -41,6 +41,8 @@ var mobileDS = window.mobileDS ||
  * @example <code>mobileDS.ConfigurationManager.getInstance()</code>
  * @class ConfigurationManager
  * @category core
+ * 
+ * @see mobileDS.ConfigurationManager#constructor
  */
 mobileDS.ConfigurationManager = (function(){
     /**
@@ -56,18 +58,10 @@ mobileDS.ConfigurationManager = (function(){
 	 * Constructor-Method of Class {@link mobileDS.ConfigurationManager}.
 	 * 
 	 * @constructor
+	 * @augments mobileDS.ConfigurationManager
+	 * @memberOf mobileDS.ConfigurationManager.prototype
 	 */
     function constructor(){
-    	
-    	/**
-    	 * the language (default: de)
-		 * @property language
-		 * @type String
-		 * @private
-		 * @default "de"
-    	 */
-    	var language = 'de';
-    	
     	/**
     	 * the configuration data (i.e. properties)
 		 * @property configData
@@ -76,40 +70,33 @@ mobileDS.ConfigurationManager = (function(){
     	 */
     	var configData = null;
     	
-    	/**
-    	 * the URL to the configuration file (in JSON format)
-		 * @property configurationFileUrl
-		 * @type String
-		 * @private
-    	 */
-        var configurationFileUrl = "config/configuration.json";
-        
         //load configuration file asynchronously: 
         $.ajax({
     		async: false,
     		dataType: "json",
-    		url: configurationFileUrl,
+    		url: mobileDS.constants.getInstance(forBrowser).getConfigurationFileUrl(),
     		success: function(data){
     			
-    			if(IS_DEBUG_ENABLED) console.debug("ConfigurationManager.constructor: loaded language settings from "+configurationFileUrl);//debug
+    			if(IS_DEBUG_ENABLED) console.debug("ConfigurationManager.constructor: loaded language settings from "+mobileDS.constants.getInstance(forBrowser).getConfigurationFileUrl());//debug
     			
 				if(data){ 
     				var jsonData = data;//jQuery.parseJSON( data );
     				
     				//get & set language setting
-    				if(jsonData.language && jsonData.language != language){
-	    				language = jsonData.language;
-	    				if(IS_DEBUG_ENABLED) console.debug("ConfigurationManager.constructor: setting language to "+ language);//debug
+    				if(jsonData.language && jsonData.language != mobileDS.LanguageManager.getInstance().getLanguage()){
+	    				mobileDS.LanguageManager.getInstance().setLanguage(jsonData.language);
+	    				if(IS_DEBUG_ENABLED) console.debug("ConfigurationManager.constructor: setting language to "+ jsonData.language);//debug
 	    			}
     				
     				configData = jsonData;
     			}
     		},
     		error: function(data){
-    			console.error("ConfigurationManager.constructor: failed to load configuration from '"+configurationFileUrl+"'! ERROR: "+ JSON.stringify(data));
+    			console.error("ConfigurationManager.constructor: failed to load configuration from '"+mobileDS.constants.getInstance(forBrowser).getConfigurationFileUrl()+"'! ERROR: "+ JSON.stringify(data));
     		}
     	});
     	
+        /** @lends mobileDS.ConfigurationManager.prototype */
         return { // public members
 			/**
 			 * Returns the currently used language. 
@@ -119,7 +106,7 @@ mobileDS.ConfigurationManager = (function(){
 			 * @public
 			 */
             getLanguage: function(){
-                return language;
+                return mobileDS.LanguageManager.getInstance().getLanguage();
             },
 			/**
 			 * Sets the currently used language. 
@@ -129,7 +116,7 @@ mobileDS.ConfigurationManager = (function(){
 			 * @public
 			 */
             setLanguage: function(lang){
-            	language = lang;
+            	mobileDS.LanguageManager.getInstance().setLanguage(lang);
             },
 			/**
 			 * Returns the value of a property.

@@ -28,8 +28,100 @@
 newAudioOutput = {
 		initialize: function(callBack){
 			callBack({
-				    textToSpeach: function (text, successCallBack, failureCallBack){
-				    	window.plugins.nuancePlugin.speak(text, successCallBack, failureCallBack);
+				    textToSpeech: function (text, successCallBack, failureCallBack, startCallBack){
+				    	try{
+					    	window.plugins.nuancePlugin.speak(
+					    			text, 
+					    			successCallBack, 
+					    			failureCallBack,
+					    			mobileDS.LanguageManager.getInstance().getSpeaker()["voice_lang"]
+					    	);
+					    	
+					    	//TODO implement real start-callback (needs to be done within java-/javascript-plugin)
+					    	if(startCallBack){
+					    		startCallBack();
+					    	}
+				    	} catch(e){
+				    		if(failureCallBack){
+				    			failureCallBack(e);
+				    		}
+				    	}
+				    	
+				    },
+	    			cancelSpeech: function(successCallBack,failureCallBack){
+	    				 
+	    				//FIXME currently, NuancePlugin returns failure on successful cancel-performance, so we call the function with switched failure, success arguments...
+	    				//			-> switch back, when NuancePlugin returns PluginResults correctly... 
+	    				window.plugins.nuancePlugin.cancel(failureCallBack, successCallBack);
+	    			},
+				    playWav: function(blob, successCallback, failureCallBack){
+				    	try {
+				    	     var blobURL = window.URL.createObjectURL(blob);
+				    		 var my_media = new Media(
+				    				 blobURL,
+				    				 function(){ 
+				    					 console.log('WAV Audio created');
+		
+							    		 my_media.release();//TODO if my_media object is to be re-used, do not release immediately...
+							    		 if(successCallback){
+							                successCallback();
+							    		 }
+				    				 },failureCallBack
+				    		);
+				    		 
+				            my_media.play();
+				            
+				    	} catch (e){
+				    		if(failureCallBack){
+				    			failureCallBack(e);
+				    		}
+				    	}
+				    },
+				    playURL: function(url, successCallback, failureCallBack){
+				    	try {
+				    		 console.log(url);
+				    		 var my_media = new Media(
+				    				 url, 
+				    				 function(){ 
+				    					 console.log('Audio created');
+
+							    		 my_media.release();//TODO if my_media object is to be re-used, do not release immediately...
+							    		 if(successCallback){
+							                successCallback();
+							    		 }
+				    				 } ,
+				    				 failureCallBack
+				    		 );
+
+				    		 my_media.play();
+				    	} catch (e){
+				    		if(failureCallBack){
+				    			failureCallBack(e);
+				    		}
+				    	}
+				    },
+				    getURLAsAudio: function(url, successCallback, failureCallBack){
+				    	try {
+				    		 console.log(url);
+				    		 var my_media = new Media(
+				    				 url, 
+				    				 function(){ 
+				    					 console.log('Audio created');
+
+//							    		 my_media.release();//TODO if my_media object is to be re-used, do not release immediately...
+							    		 if(successCallback){
+							                successCallback();
+							    		 }
+				    				 } ,
+				    				 failureCallBack
+				    		 );
+
+				    		 return my_media;
+				    	} catch (e){
+				    		if(failureCallBack){
+				    			failureCallBack(e);
+				    		}
+				    	}
 				    }
 				});	
 		}

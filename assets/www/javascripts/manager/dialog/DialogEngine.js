@@ -139,11 +139,14 @@ mobileDS.DialogEngine = (function(){
 	 * Initializes the statechart-automata which is described by **DialogDescription.xml** and handles the logic/flow of the application. 
 	 * 
 	 * @constructor
+	 * @augments mobileDS.DialogEngine
+	 * @memberOf mobileDS.DialogEngine.prototype
 	 */
 	// listener for transitions / state-changes:
 	function constructor(){
 		
 			var interpreter = null;
+			var eventGenerator = null;
 			var isInitialized = false;
 			var scion = require('scion');
 			
@@ -177,9 +180,11 @@ mobileDS.DialogEngine = (function(){
 					}
 				};
 	    		interpreter.registerListener(listener);
-	    		
+	    		eventGenerator = mobileDS.ConcurrentSCION.getInstance().newConcurrentSCION(interpreter, 
+	    					function(e){console.log('ERROR creating concurrentSCION');});
 	        });
 			
+			/** @lends mobileDS.DialogEngine.prototype */
 	        return {
 	            /**
 	    		 * This function initializes the statechart automata instance and then raises the 'init' event. 
@@ -285,10 +290,10 @@ mobileDS.DialogEngine = (function(){
 
 					//TODO is there a way to check, if eventName is defined in interpreter-model?
 	                else if (typeof data !== 'undefined' && typeof data.Data !== 'undefined' && typeof data.Data.data !== 'undefined') {
-	                	interpreter.gen(eventName, data.Data.data);
+	                	eventGenerator.gen(eventName, data.Data.data);
                 	}
                 	else {
-                		interpreter.gen(eventName, data);
+                		eventGenerator.gen(eventName, data);
                 	}
 	                
 	                //Logging
@@ -488,7 +493,7 @@ mobileDS.DialogEngine = (function(){
  	            }
 	        };
 	    }
-   
+	
 	    return {
         /**
          * Get the object containing the instance of the class {@link mobileDS.DialogManager} 

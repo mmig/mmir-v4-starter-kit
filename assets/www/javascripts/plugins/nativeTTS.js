@@ -99,6 +99,17 @@ TTS.prototype.setLanguage = function(lang, successCallback, errorCallback) {
 };
 
 /**
+ * Cancel TTS speak (if active; do nothing if not active).
+ * 
+ * @function cancel
+ * @param {Object} successCallback
+ * @param {Object} errorCallback
+ */
+TTS.prototype.cancel = function(successCallback, errorCallback) {
+     return cordova.exec(successCallback, errorCallback, "NativeTTS", "cancel", []);
+};
+
+/**
  * Load TTS
  */
 //cordova.addConstructor(function() {

@@ -1,3 +1,15 @@
 {
-    "language": "en"
+    "language": "en",
+    "silenceDetectorNoiseTreshold": "0.1",
+    "silenceDetectorPauseCount": "3",
+    "silenceDetectorMinimalSpeachCount": "3",
+    "silenceDetectorResetCount": "15",
+    "HTML5InputSilenceBuffer": "2000000",
+    "HTML5InputWebSocketAddress": "ws://127.0.0.1:9999",
+    "HTML5InputSoundPackageSize": "4096",
+    "HTML5InputSilenceDetectorPath": "javascripts/mediators/silenceDetection.js",
+    "HTML5OutputServerBasePath": "http://mary.dfki.de:59125/",
+    "autoLogin": "true",
+    "TEST_prefetchRemoteResources": "false",
+    "TEST_resetStylesBeforeLoad": "true"
 }

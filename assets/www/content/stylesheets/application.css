@@ -75,8 +75,8 @@
 
 .ui-input-text, .ui-select
 {
-	width: 97% !important;
-    left:2% !important;
+	width: 97%;
+    left:2%;
 }
 
 .ui-li-has-arrow {
@@ -139,8 +139,13 @@ textarea.ui-voice-tag-text { height: 30%; margin:10px; background:white; color:b
 }
 
 #create_appointment #note{
-	height: 5em;
-	width: 100% !important;
+	height: 4.5em;
+	margin-left: 2%;
+	width: 97%;
+}
+
+#create_appointment div.ui-input-text{
+	padding: 0px;
 }
 
 .login_background_gradient{

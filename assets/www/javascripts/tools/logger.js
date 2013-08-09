@@ -28,6 +28,15 @@
 var mobileDS = window.mobileDS ||
 {};
 
+/**
+ * A Logger factory.<br>
+ * 
+ * @example <code>mobileDS.Logging.getInstance('SomeClass')</code>
+ * @class Logging
+ * @category core
+ * 
+ * @see mobileDS.Logging#constructor
+ */
 mobileDS.Logging = (function(){
 	
 	//private class members
@@ -74,6 +83,12 @@ mobileDS.Logging = (function(){
 		throw new TypeError('Logger.getAsLevel: parameter must be number or string, but "'+strLogLevel+'" is '+typeof strLogLevel);
 	}
 	
+	/**
+	 * Constructor-Method of Class {@link mobileDS.Logging}<br>
+	 * @constructor
+	 * @augments mobileDS.Logging
+	 * @memberOf mobileDS.Logging.prototype
+	 */
     function constructor(theName){
     	
 
@@ -219,6 +234,7 @@ mobileDS.Logging = (function(){
     		return new Array(csvHeader.length);
     	}
     	
+    	/** @lends mobileDS.Logging.prototype */
         return {//public instance members
         	/**
         	 * 

@@ -3,3 +3,6 @@ Mozilla Rhino
 
 ANTLR
 * antlr-3.3-complete.jar
+
+Apache Ant Contrib Tasks (Apache Software License) 
+* ant-contrib-1.0b3.jar

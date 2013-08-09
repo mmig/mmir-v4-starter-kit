@@ -31,18 +31,15 @@
 var mobileDS = window.mobileDS ||
 {};
 
-/*function Layout(name, jsonDef){
- this.def = new JPath(jsonDef);
- this.name = name;
- this.yields = new Array();
- 
- var headJson = this.def.query('head');
- var bodyJson = this.def.query('body');
- this.head = this.parseHead(new JPath(headJson));
- this.body = this.parseBody(new JPath(bodyJson));
- 
- }
- */
+
+Layout.CONTENT_AREA_HEAD 		= 0;
+Layout.CONTENT_AREA_BODY 		= 2;
+Layout.CONTENT_AREA_DIALOGS 	= 4;
+
+
+Layout.REMOTE_RESOURCES_ATTR_NAME = 'loc';
+Layout.REMOTE_RESOURCES_ATTR_VALUE = 'remote';
+
 /**
  * The Layout class 
  * The constructor parses the layout and divides them into containers (headerContents, bodyContents, dialogsContents).
@@ -53,14 +50,16 @@ var mobileDS = window.mobileDS ||
  * @param {String} definition layout description
  * @category core
  */
-
-Layout.prototype.CONTENT_AREA_HEAD 		= 0;
-Layout.prototype.CONTENT_AREA_BODY 		= 2;
-Layout.prototype.CONTENT_AREA_DIALOGS 	= 4;
-
-function Layout(name, definition){
+function Layout(name, definition, remote){
 //	console.log("[Layout] initialize '"+name+"'.");
 
+	//FIXME MODIFICATIONS for "remote content layout object":
+	this.remoteaccess = false;
+	if ((typeof remote !== "undefined") && (remote == true)){
+		this.remoteaccess = true;
+	}
+	
+	
 	/**
      * The definition string of the layout (ehtml-format, taken from assets/www/views/layout/*.ehtml)
      * 
@@ -118,9 +117,12 @@ function Layout(name, definition){
     this.yields = new Array();
 
     var parser = mobileDS.parser.ParserUtils.getInstance();
+    var renderer = mobileDS.parser.RenderUtils.getInstance();
     
-    var parseResult = parser.parse(this.def);
-    var renderedLayout = parser.renderLayout(parseResult, null/*FIXME?*/);
+    //console.debug('Layout<constructor>: start rendering layout for "'+this.name+'"'+(remote?' (REMOTE)':'')+', RAW: '+this.def);
+    
+    var parseResult = parser.parse(this.def, this);
+    var renderedLayout = renderer.renderLayout(parseResult, null/*FIXME?*/);
     
     //NOTE: parsing a string as HTML via jQuery etc. does not work (removes head, body,... tags):
 //    var doc = new DOMParser().parseFromString(renderedLayout, "text/html");
@@ -144,15 +146,83 @@ function Layout(name, definition){
 //    //TODO remove this (replace with HTML parser)
 
     var self = this;
-    //remove all HTML comments
+    
+    //TODO these should be constants (remove to constants.js?): 
+    this.markerAttributeName = Layout.REMOTE_RESOURCES_ATTR_NAME;
+    this.markerAttributeValue = Layout.REMOTE_RESOURCES_ATTR_VALUE;
+    this.markerUseSingleQuotes = false;//<- set value enclosed in single-quotes (true) or double-quotes (false)
+    
+    //appends the marker attribute for "signaling"/marking that a
+    //		  script/style/link-TAG was parsed&evaluated by this layout object
+    var addMarkerAttribute = function(strStartOfTag){
+    	return strStartOfTag + ' ' 
+    			+ self.markerAttributeName + '='
+    			+ (self.markerUseSingleQuotes? '\'': '"')
+    			+ self.markerAttributeValue
+    			+ (self.markerUseSingleQuotes? '\'': '"')
+    			;
+    };
+    
+    //pure HTML:
+    // (1) removed all HTML comments (via RegExpr)
+    // (2) removed template comments (via parser/renderer)
     var pureHtml = renderedLayout;
     
-    //matching: <script some attributes...> some content but no child-tags allowed! </script>
+    var regExprTagContent = //match one of the following (as groups):
+    						 '(('+ 		//match as groups
+    							'('+		//(1) CDATA: this may contain anything, even a closing script-statement
+    								'<!\\[CDATA\\['+		//CDATA open: <![CDATA[
+    									'(.|[\\r\\n])*?'+ //allow anything within CDATA, but match non-greedily...
+    								'\\]\\]>'+			//...for the CDATA-closing statement: ]]>
+    													//   (i.e. the first time we encounter this, we stop)
+    							')'+				//close group for CDATA-matching
+    							
+    							'|[\\r\\n]'+	//(2) OR line breaks \r and \n (in any combination)
+//DISABLED (using . instead!):	'|[^<]'+	//(3) OR any symbol that is NOT <
+    							'|.'+		//(4) OR any symbol (REQUIRED for allowing <-symbol within script!
+    						 ')'+			//close group
+    						 '*'+			//match this any number of times (or even none)
+    						 '?'+			//do matching non-greedy (i.e. until the next pattern in the RegExpr can be matched the first time)
+
+	 						 ')';			//close outer group (i.e. one group for ALL content that is matched)
+    
+    //_non-greedy_ RegExpr for
+    //	* any line-break: \r or \n or a combination of them
+    //	* any other character but < (less-symbol); note that this itself does not include line breaks
+    var regExprTagInternal = '('+			//open group: match as a group (i.e. give access to the matched content via an index in the RegExpr object)
+    							'[\\r\\n]'+	//line breaks \r and \n
+    						   '|'+			//OR
+    						    '[^<]'+		//any symbol that is NOT <
+    						 ')'+			//close group
+    						 '*'+			//match this any number of times (or even none)
+    						 '?';			//do matching non-greedy (i.e. until the next pattern in the RegExpr can be matched the first time)
+    
+    
+    //matching: <script some attributes...> some content and '<!CDATA[' with any content allowed  </script>
     //      or: <script some attributes... />
-    var regExpScriptTag = /((<script([\r\n]|[^<])*?>)(([\r\n]|[^<])*?)(<\/script>))|(<script([\r\n]|[^<])*?\/>)/igm;
+//    var regExpScriptTag = /((<script([\r\n]|[^<])*?>)(((<!\[CDATA\[(.|[\r\n])*?\]\]>)|[\r\n]|.)*?)(<\/script>))|(<script([\r\n]|[^<])*?\/>)/igm;// /((<script([\r\n]|[^<])*?>)((<!\[CDATA|[\r\n]|[^<])*?)(<\/script>))|(<script([\r\n]|[^<])*?\/>)/igm;
+    var strRegExpScriptTag = '((<script'+regExprTagInternal+'>)'+regExprTagContent+'(</script>))'+ //DETECT    "normal" script-TAG with optional content
+    						 '|(<script'+regExprTagInternal+'/>)';								   //OR DETECT "self-closing" script TAG
+    var regExpScriptTag = new RegExp(strRegExpScriptTag,'igm');
+    
+    //change to the following RegExpr (change the ones for link/style etc too)
+    // from
+    //		/((<script([\r\n]|[^<])*?>)(([\r\n]|[^<])*?)(<\/script>))|(<script([\r\n]|[^<])*?\/>)/igm;
+    // to
+    //		/((<script([\r\n]|[^<])*?>)(((<!\[CDATA\[(.|[\r\n])*?\]\]>)|[\r\n]|.)*?)(<\/script>))|(<script([\r\n]|[^<])*?\/>)/igm
+    //
+    // -> this RegExpr additionally 
+    //		* respects CDATA (<![CDTATA[ ... ]]>), with any content within its boundaries, even a "closing" </script>-TAG
+    //		* allows opening < within the script-TAGs
+    // LIMITATIONS: both this and the current one do not allow a < within the script-TAGS attributes, e.g. 
+    //				NOT: <script data-condition=" i < 5">
+    //				WORKAROUND: encode the <-symbol, i.e. instead use <script data-condition=" i &lt; 5"> 
+    //							==> use "&lt;" or "&#60;" instead of "<" in TAG attributes!
+    
     // regExpScriptTag[0]: complete match
     // regExpScriptTag[1]: script with start and end tag (if matched)
-    // regExpScriptTag[7]: self-closing script (if matched)
+    // regExpScriptTag[4]: TEXT content of script-tag (if present/matched)
+    // regExpScriptTag[9]: self-closing script (if matched)
     var matchScriptTag = null;
     
     self.headerContents = '';
@@ -160,10 +230,16 @@ function Layout(name, definition){
     var removedScriptAndLinkHmtl = new Array();
 //    var matchIndex;
     while(matchScriptTag = regExpScriptTag.exec(pureHtml)){
-//    	matchIndex = matchScriptTag[1] ? 1 : (matchScriptTag[7]? 7 : -1);
+//    	matchIndex = matchScriptTag[1] ? 1 : (matchScriptTag[9]? 9 : -1);
     	
     	if(matchScriptTag[0]){//matchIndex != -1){
-    		self.headerContents += matchScriptTag[0];//[matchIndex];
+//    		console.warn("Remote: " + self.remoteaccess);
+    		if (self.remoteaccess) {
+//    			self.headerContents += matchScriptTag[0].replace("<script", "<script loc=\"remote\"");//[matchIndex];
+    			self.headerContents += addMarkerAttribute('<script') + matchScriptTag[0].substring('<script'.length);
+    		} else {
+        		self.headerContents += matchScriptTag[0];
+    		}
     		//remove script tag, and continue search
 //    		pureHtml = pureHtml.substring(0,matchScriptTag.index) + pureHtml.substring(matchScriptTag.index + matchScriptTag[0].length);// pureHtml.replace(matchScriptTag[matchIndex], '');
 
@@ -171,20 +247,57 @@ function Layout(name, definition){
     	}
     }
     
-    //matching: <link some attributes...> some content but no child-tags allowed! </link>
+    //matching: <link some attributes...> some content and '<!CDATA[' with any content allowed </link>
     //      or: <link some attributes... />
-    var regExpLinkTag = /((<link([\r\n]|[^<])*?>)(([\r\n]|[^<])*?)(<\/link>))|(<link([\r\n]|[^<])*?\/>)/igm;
-    // regExpScriptTag[0]: complete match
-    // regExpScriptTag[1]: link with start and end tag (if matched)
-    // regExpScriptTag[7]: self-closing link (if matched)
+//    var regExpLinkTag = /((<link([\r\n]|[^<])*?>)(((<!\[CDATA\[(.|[\r\n])*?\]\]>)|[\r\n]|.)*?)(<\/link>))|(<link([\r\n]|[^<])*?\/>)/igm;
+    var strRegExpLinkTag = '((<link'+regExprTagInternal+'>)'+regExprTagContent+'(</link>))'+ //DETECT    "normal" script-TAG with optional content
+	 					   '|(<link'+regExprTagInternal+'/>)';								 //OR DETECT "self-closing" script TAG
+    var regExpLinkTag = new RegExp(strRegExpLinkTag,'igm');
+    // regExpLinkTag[0]: complete match
+    // regExpLinkTag[1]: link with start and end tag (if matched)
+    // regExpLinkTag[4]: TEXT content of link-tag (if present/matched)
+    // regExpLinkTag[9]: self-closing link (if matched)
     var matchLinkTag = null;
     
     while(matchLinkTag = regExpLinkTag.exec(pureHtml)){
-
+//    	console.warn("Matchlinktag: " + matchLinkTag[0]);
     	if(matchLinkTag[0]){
-    		self.headerContents += matchLinkTag[0];
-
+//    		console.warn("Remote: " + self.remoteaccess);
+    		if (self.remoteaccess) {
+//    			self.headerContents += matchLinkTag[0].replace("<link", "<link loc=\"remote\"");
+    			self.headerContents += addMarkerAttribute('<link') + matchLinkTag[0].substring('<link'.length);
+    		} else {
+        		self.headerContents += matchLinkTag[0];
+    		}
     	    removedScriptAndLinkHmtl.push({start: matchLinkTag.index, end: matchLinkTag.index + matchLinkTag[0].length});
+    	}
+    }
+    
+    
+    //matching: <style type="text/css" some attributes...> some content and '<!CDATA[' with any content allowed </style>
+//    var regExpStyleTag = /((<style([\r\n]|[^<])*?type="text\/css"([\r\n]|[^<])*?>)(((<!\[CDATA\[(.|[\r\n])*?\]\]>)|[\r\n]|.)*?)(<\/style>))/igm;
+    var strRegExpStyleTag = '((<style'+regExprTagInternal+'>)'+regExprTagContent+'(</style>))'; //DETECT only "normal" style-TAG with content
+    var regExpStyleTag = new RegExp(strRegExpStyleTag,'igm');
+    // regExpStyleTag[0]: complete match
+    // regExpStyleTag[1]: script with start and end tag (if matched)
+    // regExpStyleTag[4]: TEXT content of style-tag (if present/matched)
+    var matchStyleTag = null;
+    
+    while(matchStyleTag = regExpStyleTag.exec(pureHtml)){
+//    	matchIndex = matchStyleTag[1] ? 1 : -1;
+    	
+    	if(matchStyleTag[0]){//matchIndex != -1){
+//    		console.warn("Remote: " + self.remoteaccess);
+    		if (self.remoteaccess) {
+//    			self.headerContents += matchStyleTag[0].replace("<style", "<style loc=\"remote\"");//[matchIndex];
+    			self.headerContents += addMarkerAttribute('<style') + matchStyleTag[0].substring('<style'.length);
+    		} else {
+        		self.headerContents += matchStyleTag[0];
+    		}
+    		//remove script tag, and continue search
+//    		pureHtml = pureHtml.substring(0,matchStyleTag.index) + pureHtml.substring(matchStyleTag.index + matchStyleTag[0].length);// pureHtml.replace(matchStyleTag[matchIndex], '');
+
+    	    removedScriptAndLinkHmtl.push({start: matchStyleTag.index, end: matchStyleTag.index + matchStyleTag[0].length});
     	}
     }
     
@@ -215,6 +328,7 @@ function Layout(name, definition){
 	    pureHtml = cleanedHtml.join('');
     }
     
+    //FIXME reg-expr does not detect body-TAG, if body has no content (i.e. body="<body></body>")
     var regExpBodyTag = /(<body([\r\n]|.)*?>)(([\r\n]|.)*?)(<\/body>)/igm;
     // matchBodyTag[0]: complete match
     // matchBodyTag[1]: body start tag
@@ -249,14 +363,14 @@ function Layout(name, definition){
 	    self.dialogsContents += matchDialogsTag[3];
     }
     
-    var parseBodyResult = parser.parse(this.bodyContents);
+    var parseBodyResult = parser.parse(this.bodyContents, this);
     for(var i=0, size = parseBodyResult.yields.length; i < size ; ++i){
-    	this.yields.push(new YieldDeclaration(parseBodyResult.yields[i], Layout.prototype.CONTENT_AREA_BODY));
+    	this.yields.push(new YieldDeclaration(parseBodyResult.yields[i], Layout.CONTENT_AREA_BODY));
     }
     
-    var parseDialogResult = parser.parse(this.dialogsContents);
+    var parseDialogResult = parser.parse(this.dialogsContents, this);
     for(var i=0, size = parseDialogResult.yields.length; i < size ; ++i){
-    	this.yields.push(new YieldDeclaration(parseDialogResult.yields[i], Layout.prototype.CONTENT_AREA_DIALOGS));
+    	this.yields.push(new YieldDeclaration(parseDialogResult.yields[i], Layout.CONTENT_AREA_DIALOGS));
     }
     //END todo
 }
@@ -407,69 +521,3 @@ Layout.prototype.parseBody = function(jsonDef){
     
     return body;
 };
-
-/**
- * The YieldDeclaration class holds the name of the yield-declaration (which is a place-holder for the contentFor-fields and is used in the layouts: content, header, footer, dialogs, ...)
- * and its starting and ending position within the content-definition.
- * 
- * @class YieldDeclaration
- * @constructor
- * @param {Object} parsingElement with properties <code>name</code> {String}, <code>start</code> {Integer}, <code>end</code> {Integer}
- * @param {Integer} contentAreaType the type of the content area within the layout that this yield-declaration refers to (e.g. Layout.CONTENT_AREA_BODY )
- * @category core
- */ 
-function YieldDeclaration(parsingElement, contentAreaType){
-	
-	this.name = parsingElement.name;
-	this.start = parsingElement.start;
-	this.end = parsingElement.end;
-	this.contentAreaType = contentAreaType;
-    
-	return this;
-}
-
-
-/**
- * Gets the name of a {@link mobileDS.YieldDeclaration} object (e.g. content, header, footer, dialogs, ...).
- * 
- * @function getName
- * @returns {String} Name - used by yield tags in layout
- * @public
- */ 
-YieldDeclaration.prototype.getName = function(){
-    return this.name;
-};
-
-/**
- * Gets the type of the content area that this {@link mobileDS.YieldDeclaration} object refers to (i.e. "areas" in the layout, e.g. bodyContents, dialogsContent).
- * 
- * @function getAreaType
- * @returns {Integer} Content area type (see {@link mobileDS.Layout}, e.g. Layout.CONTENT_AREA_BODY)
- * @public
- */ 
-YieldDeclaration.prototype.getAreaType = function(){
-    return this.contentAreaType;
-};
-
-/**
- * Gets the start position (index) of a {@link mobileDS.YieldDeclaration} object.
- * 
- * @function getStart
- * @returns {Integer} Start position of the Yield within the content (e.g. the bodyContent or the dialogsContent)
- * @public
- */ 
-YieldDeclaration.prototype.getStart = function(){
-    return this.start;
-};
-
-/**
- * Gets the end position (index) of a {@link mobileDS.YieldDeclaration} object.
- * 
- * @function getEnd
- * @returns {Integer} End position of the Yield within the content (e.g. the bodyContent or the dialogsContent)
- * @public
- */ 
-YieldDeclaration.prototype.getEnd = function(){
-    return this.end;
-};
-

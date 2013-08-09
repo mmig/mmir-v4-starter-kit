@@ -1,0 +1,44 @@
+<h3 class="subsection-title"><?js print( this._title ); ?></h3>
+
+<dl>
+    <?js
+        this.forEach(function(p, i) {
+            var access = typeof p.access == 'undefined' ? '' : p.access;
+            var augmented = typeof p.inherited == 'undefined' ? '' : 'augmented';
+            
+            print(
+                '<dt class="'+access+' '+augmented+' '+(i%2==0?'even':'odd')+'">'+ 
+                    '<span class="type-attr">'+p.attribs+'</span>'+ 
+                    '<span class="type-name">'+
+                        '<a href="#'+p.name+'">'+p.name+'</a>'+
+                    '</span>'+ 
+                    '<span class="type-sig">'+p.signature+'</span>'+
+                '</dt>'
+            );
+
+            print( '<dd class="'+access+' '+augmented+' '+(i%2==0?'even':'odd')+'">' );
+
+            if (p.description) {
+                var lines = p.description.split('</p>');
+                if ( lines.length > 2 ) {
+                    print( lines[0]+ ' [<a href-"#'+p.name+'">...</a>] </p>' );
+                }
+                else {
+                    print( p.description );
+                }
+            }
+            
+            if ( typeof p.inherited != 'undefined' ) {
+                print( 
+                    '<div class="type-augmented" title="Extended from '+p.inherits.split('#')[0]+'">'+
+                        '<a href="'+p.inherits+'.html#'+p.name+'">'+
+                            '<img src="media/images/extended.png">'+
+                        '</a>'+
+                    '</div>'
+                );
+            }
+
+            print( '</dd>' );
+        } );
+    ?>
+</dl>

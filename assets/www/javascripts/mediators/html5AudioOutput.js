@@ -36,29 +36,103 @@ newAudioOutput = {
 		    			audio_context = new webkitAudioContext;
 		    		} 
 		    		catch (e) {
-		    			alert('No web audio support in this browser!');
+		    			console.error('No web audio support in this browser!');
 		    		}
 		    		
-		    		var playURL = function (url){
-		    			
-		    		}
 		    		callBack({
 		    			playWAV: function(blob, successCallBack, failureCallBack){
-		    				blobURL = window.webkitURL.createObjectURL(blob);
-		    				var my_audio = new Audio(blobURL,null,null);
-		    				my_audio.play();
+		    				try {
+			    				blobURL = window.webkitURL.createObjectURL(blob);
+			    				var my_audio = new Audio(blobURL,null,failureCallBack);
+			    				if(successCallBack){
+			    					my_audio.addEventListener('ended', successCallBack, false);
+			    				}
+			    				my_audio.play();
+					    	} catch (e){
+					    		if(failureCallBack){
+					    			failureCallBack(e);
+					    		}
+					    	}
 		    			},
-		    			textToSpeach: function(text,successCallBack,failureCallBack){
-		    				 text = text.replace(/\s/g, '%20');
-		    				 var lang = mobileDS.ConfigurationManager.getInstance().getLanguage();
-		    				 var voice = 'dfki-pavoque-styles';
-		    				 if (lang == 'en'){
-		    					 voice = 'dfki-spike';
-		    					 lang = 'en_GB';
-		    				 }
-		    	             var my_media = new Audio('http://mary.dfki.de:59125/process?INPUT_TYPE=TEXT&OUTPUT_TYPE=AUDIO&INPUT_TEXT=' + text + '&LOCALE='+lang+'&VOICE='+voice+'&AUDIO=WAVE_FILE', null, null);
-		    	             my_media.play();
-		    			}
+		    			textToSpeech: function(text,successCallBack,failureCallBack, startCallBack){
+		    				try {
+			    				text = text.replace(/\s/g, '%20');
+			    				 var speaker = window.mobileDS.LanguageManager.getInstance().getSpeaker();
+			    				 var lang = speaker["lang_simple"];
+			    				 var voice = speaker["speaker"];
+			    				 
+			    	             var my_media = new Audio(
+			    	            		 window.mobileDS.ConfigurationManager.getInstance().get("HTML5OutputServerBasePath")+'process?INPUT_TYPE=TEXT&OUTPUT_TYPE=AUDIO&INPUT_TEXT=' + text + '&LOCALE='+lang+'&VOICE='+voice+'&AUDIO=WAVE_FILE',
+			    	            		 null, 
+			    	            		 failureCallBack
+			    	            );
+	
+			    				 this.current_speech = my_media; 
+			    				 
+			    	             my_media.addEventListener('ended', function() {
+			    	            	 	this.current_speech = null;
+			    	            	 	if(successCallBack){
+			    	            	 		successCallBack();
+			    	            	 	}
+					    			}, false);
+			    	             
+			    	             if(startCallBack){
+					    			 my_media.addEventListener('playing', startCallBack, false);
+			    				 }
+			    	             
+			    	             my_media.play();
+					    	} catch (e){
+					    		this.current_speech = null;
+					    		if(failureCallBack){
+					    			failureCallBack(e);
+					    		}
+					    	}
+		    			},
+		    			cancelSpeech: function(successCallBack,failureCallBack){
+		    				 
+		    				if(this.current_speech){
+		    					try{
+		    						this.current_speech.pause();
+		    					} catch(e){
+		    						if(failureCallBack){
+		    							failureCallBack(e);
+		    							return;////////////////// EARLY EXIT ////////////////
+		    						}
+		    					}
+		    				}
+		    				
+		    				if(successCallBack){
+		    					successCallBack();
+		    				}
+		    			},
+					    playURL: function(url, successCallBack, failureCallBack){
+					    	try {
+					    		
+					    		 var my_media = new Audio(url,null,failureCallBack);
+					    		 if(successCallBack){
+					    			 my_media.addEventListener('ended', successCallBack, false);
+					    		 }
+					                my_media.play();
+					    	} catch (e){
+					    		if(failureCallBack){
+					    			failureCallBack(e);
+					    		}
+					    	}
+					    },
+		    			getURLAsAudio: function(url, successCallBack, failureCallBack){
+					    	try {
+					    		
+					    		 var my_media = new Audio(url,null,failureCallBack);
+					    		 if(successCallBack){
+					    			 my_media.addEventListener('ended', successCallBack, false);
+					    		 }
+					             return my_media;
+					    	} catch (e){
+					    		if(failureCallBack){
+					    			failureCallBack(e);
+					    		}
+					    	}
+					    }
 		    		});
 		}
 };

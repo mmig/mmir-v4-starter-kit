@@ -56,5 +56,10 @@ for(var arguments_i=0,arguments_size=theArguments.length; arguments_i < argument
 	console.log('node.js.env.arguments ('+arguments_i+'): '+ theArguments[arguments_i]);
 }
 
-var theJSONGrammarPath = theArguments && theArguments.length > 2? theArguments[2] : null;
-var theCompiledGrammarTargetPath = theArguments && theArguments.length > 3? theArguments[3] : null;
+
+var theJSONGrammarPath 					= theArguments && theArguments.length > 2? theArguments[2] : null;
+var theJSONGrammarFileName				= theArguments && theArguments.length > 3? theArguments[3] : null;
+//var theJSONGrammarPath 					= theArguments && theArguments.length > 2? theArguments[2] : null;
+var theJSONGrammarLanguageStr 			= theArguments && theArguments.length > 4? theArguments[4] : null;
+var theCompiledGrammarTargetPath		= theArguments && theArguments.length > 5? theArguments[5] : null;
+var theCompiledGrammarTargetFileName	= theArguments && theArguments.length > 6? theArguments[6] : null;

@@ -30,8 +30,10 @@
  *
  */
 
+if( !String.prototype.startsWith ){
 /**
  * Check if the String starts with token
+ * @function
  */
 String.prototype.startsWith = function (token, ignoreCase) {
     /// <summary>
@@ -46,7 +48,6 @@ String.prototype.startsWith = function (token, ignoreCase) {
     /// </param>
     /// <returns type="Boolean">
     ///     true, if the String starts with token, otherwise false.
-    ///     Note, that if token is not of type String, the function returns always false.
     /// </returns>
     var str, isStarting = false;
     var isIgnoreCase = typeof ignoreCase !== 'undefined' && ignoreCase == true;
@@ -58,16 +59,62 @@ String.prototype.startsWith = function (token, ignoreCase) {
     	str = this;
     }
     
-    if (typeof token === "string") {
-        isStarting = str.lastIndexOf(token, 0) === 0;
-    }
+    isStarting = str.lastIndexOf(token, 0) === 0;
+
     return isStarting;
 };
+}//END: if( !String.prototype.startsWith
 
+
+
+if( !String.prototype.endsWith ){
+/**
+ * Check if the String ends with token
+ * @function
+ */
+String.prototype.endsWith = function (token, ignoreCase) {
+    /// <summary>
+    /// Check if the String ends with token
+    /// </summary>
+    /// <param name="token" type="String">
+    ///     the token to check for
+    /// </param>
+    /// <param name="ignoreCase" type="Boolean">
+    ///     (optional) if <code>true</code> checking will ignore case of characters.
+	///		Default is <code>false</code>.
+    /// </param>
+    /// <returns type="Boolean">
+    ///     true, if the String ends with token, otherwise false.
+    /// </returns>
+    var str, isEnding = false, pos;
+    var isIgnoreCase = typeof ignoreCase !== 'undefined' && ignoreCase == true;
+    if(isIgnoreCase){
+    	token = token.toLowerCase();
+    	str = this.toLowerCase();
+    }
+    else {
+    	str = this;
+    }
+    
+    pos = str.length - token.length;
+    //sanity check if the token is smaller than the String itself -> token cannot be a sub-string!
+    if(pos < 0){
+    	return false;
+    }
+    isEnding = str.indexOf(token, pos) === pos;
+    
+    return isEnding;
+};
+}//END: if( !String.prototype.endsWith
+
+
+if( !String.prototype.replaceAll ){
 /**
 * ReplaceAll by Fagner Brack (MIT License)
 *
 * Replaces all occurrences of a substring in a string
+* 
+* @function
 */
 String.prototype.replaceAll = function (token, newToken, ignoreCase) {
     /// <summary>
@@ -103,9 +150,11 @@ String.prototype.replaceAll = function (token, newToken, ignoreCase) {
     }
     return str;
 };
+}//END: if( !String.prototype.replaceAll
 
 /**
- * Escape quotes, i.e. replace single quotes <code>'</code> with <code>\'</code> 
+ * Escape quotes, i.e. replace single quotes <code>'</code> with <code>\'</code>
+ * @function
  */
 String.prototype.escapeQuotes = function () {
     var str;

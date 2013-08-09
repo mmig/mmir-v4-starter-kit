@@ -30,6 +30,11 @@
     </label>
     <input name="end-time" id="end-time" type="date" data-role="datebox" readonly="readonly"
            data-options='{"mode": "timeflipbox"}' />
+           
+    <label for="note">
+      @localize("note_label")
+    </label>
+    <textarea name="note" id="note"></textarea>
     
     <button id="save_appointment" name="save_appointment_btn" data-inline="true">
    		@localize("save")

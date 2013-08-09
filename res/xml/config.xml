@@ -54,10 +54,14 @@
     <plugin name="InAppBrowser" value="org.apache.cordova.InAppBrowser"/>
     
     
-    <plugin name="NativeTTS" value="de.dfki.iui.mmig.plugins.NativeTTS"/>
-    <plugin name="DirectoryListing" value="de.dfki.iui.mmig.plugins.DirectoryListing"/>
-    <plugin name="MultitouchPlugin" value="de.dfki.iui.mmig.plugins.MultitouchPlugin"/>
-	<plugin name="SoftKeyBoard" value="com.cordova.plugin.softkeyboard.SoftKeyBoard"/>
+    <plugin name="NativeTTS" 			value="de.dfki.iui.mmig.plugins.NativeTTS"/>
+    <plugin name="DirectoryListing" 	value="de.dfki.iui.mmig.plugins.DirectoryListing"/>
+    <plugin name="MultitouchPlugin" 	value="de.dfki.iui.mmig.plugins.MultitouchPlugin"/>
+	<plugin name="CookiePlugin" 		value="de.dfki.iui.mmig.plugins.CookiePlugin"/>
+	<plugin name="QueuePlugin" 			value="de.dfki.iui.mmig.plugins.QueuePlugin"/>
+
+    <plugin name="VideoPlayer" 			value="com.phonegap.plugins.video.VideoPlayer"/>
+	<plugin name="SoftKeyBoard"         value="com.cordova.plugin.softkeyboard.SoftKeyBoard"/>
     
 </plugins>
 </cordova>

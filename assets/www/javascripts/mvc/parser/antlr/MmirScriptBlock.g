@@ -35,7 +35,6 @@ options {
 
 	this.isDebug = true;
 	
-	this.nesting = 0;
 	this.nestingBlock = 0;
 	
 	this.isParseAsStatement = function(){
@@ -66,50 +65,7 @@ main returns[String theText]
 	;
 
 text
-	: ( other | DoExit | DoEnter | CHAR )*
-	;
-
-stringArgAndContent returns[String theName, String theContent]	
-	@init{
-		var startPos;
-	}
-	@after{
-		var end = this.input.getTokens()[this.input.size()-1].getStopIndex()+1;
-		var theString = this.input.getTokenSource().input.data;
-		$theContent = theString.substring(startPos, end);
-		
-		if(this.isDebug) print('Block.stringArgAndContent -> content= "'+$theContent+'"');//debug
-	}
-	: stringArg ')' (NL|WS)* start='{'  (NL  | CHAR )*
-	{
-		$theName = $stringArg.theText;
-		startPos = start.getStartIndex()+1;
-		
-		if(this.isDebug) print('Block.stringArgAndContent -> str='+$stringArg.theText);
-	}
-	;
-parseStringArg returns[String theText]
-	: stringArg EOF {$theText = $stringArg.theText;}
-	;
-
-stringArg returns[String theText]
-@init{
-	var strs;
-}
-@after{
-	if(strs) $theText = strs.join(''); 
-	else $theText='';
-}
-	: (NL|WS)* 
-	  (
-		str=STRING {if(!strs)strs=new Array();strs.push(this.extractString($str.text));}
-	  |	str=SSTRING {if(!strs)strs=new Array();strs.push(this.extractString($str.text));}
-	  ) ( 
-	  	(NL|WS)* '+' (NL|WS)* 
-	  	  (str=STRING {if(!strs)strs=new Array();strs.push(this.extractString($str.text));}
-	  	  |str=SSTRING {if(!strs)strs=new Array();strs.push(this.extractString($str.text));}
-	  	 )
-	  )* (NL|WS)*
+	: ( other | DoExitBlock | DoEnterBlock | CHAR )*
 	;
 
 other	: COMMENT  {if(this.isDebug) printInfo('SCRIPT_BLOCK_comment',$COMMENT.text);/*debug*/}
@@ -119,11 +75,11 @@ other	: COMMENT  {if(this.isDebug) printInfo('SCRIPT_BLOCK_comment',$COMMENT.tex
 	
 line_end:	NL | EOF;
 
-DoEnter
+DoEnterBlock
 	:	'{' {this.nestingBlock++; if(this.isDebug) print("opening level SCRIPT_BLOCK "+this.nestingBlock);/*debug*/}
         ;
         
-DoExit
+DoExitBlock
 	:	'}'
 	{
           if ( this.nestingBlock <= 0 ) {

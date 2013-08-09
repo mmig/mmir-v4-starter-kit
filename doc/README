@@ -1,0 +1,18 @@
+For the creation of the Api documentation, yuidoc is used.
+
+To install yuidoc, first install Node.js:
+Download and install Node.js (http://nodejs.org/#download)
+
+After that install yuidoc via the Node.js command prompt
+npm -g install yuidocjs.
+
+Very Important: copy the adapted docparser in 
+<workspace>/Voice2SocialApp/doc/docparser.js
+to
+%USERPROFILE%\AppData\Roaming\npm\node_modules\yuidocjs\lib
+so that category tags are parsed.
+
+Now you can open a Node.js command prompt and go to the <workspace>/Voice2SocialApp/doc directory and execute create_doc.bat (Windows)
+
+The documentation should be created in the <workspace>/Voice2SocialApp/doc/out directory
+--> open <workspace>/Voice2SocialApp/doc/out/index.html

@@ -41,8 +41,8 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.webkit.WebView;
 
-//import com.phonegap.api.LOG;
-import org.apache.cordova.api.Plugin;
+import org.apache.cordova.api.CallbackContext;
+import org.apache.cordova.api.CordovaPlugin;
 import org.apache.cordova.api.PluginResult;
 import org.apache.cordova.api.PluginResult.Status;
 
@@ -50,7 +50,7 @@ import org.apache.cordova.api.PluginResult.Status;
  * @author Florian Petersen
  * 
  */
-public class MultitouchPlugin extends Plugin implements OnTouchListener {
+public class MultitouchPlugin extends CordovaPlugin implements OnTouchListener {
 
 	// string used for distinguishing action directory-listing
 	private static final String ACTION_ADD_LISTENER = "addMultitouchListener";
@@ -137,8 +137,8 @@ public class MultitouchPlugin extends Plugin implements OnTouchListener {
 	 * ACTION_REM_LISTENER
 	 */
 	@Override
-	public PluginResult execute(String action, JSONArray data, String callbackId) {
-		// TODO Auto-generated method stub
+	public boolean execute(String action, JSONArray data, CallbackContext callbackContext) {
+		boolean isValidAction = true;
 		PluginResult result = null;
 		
 
@@ -264,14 +264,16 @@ public class MultitouchPlugin extends Plugin implements OnTouchListener {
 				}
 			}
 		}
-
 		else {
 			result = new PluginResult(Status.INVALID_ACTION);
-			Log.d(LOGTAG, "Invalid action : " + action
-					+ " passed");
+			Log.d(LOGTAG, "Invalid action : " + action + " passed");
+			isValidAction = false;
 		}
 
-		return result;
+//		return result;
+		callbackContext.sendPluginResult(result);
+		
+		return isValidAction;
 	}
 
 	@Override

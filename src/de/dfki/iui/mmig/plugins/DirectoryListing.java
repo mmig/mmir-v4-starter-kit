@@ -40,7 +40,8 @@ import org.json.JSONObject;
 import android.content.res.AssetManager;
 import android.util.Log;
 
-import org.apache.cordova.api.Plugin;
+import org.apache.cordova.api.CallbackContext;
+import org.apache.cordova.api.CordovaPlugin;
 import org.apache.cordova.api.PluginResult;
 import org.apache.cordova.api.PluginResult.Status;
 
@@ -48,7 +49,7 @@ import org.apache.cordova.api.PluginResult.Status;
  * @author Florian Petersen
  * 
  */
-public class DirectoryListing extends Plugin {
+public class DirectoryListing extends CordovaPlugin {
 
 	// path-prefix - not used by now
 	// public static final String PREFIX_PATH="www/views/";
@@ -74,7 +75,8 @@ public class DirectoryListing extends Plugin {
 	public DirectoryListing() {
 		// TODO Auto-generated constructor stub
 	}
-
+	
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -83,8 +85,9 @@ public class DirectoryListing extends Plugin {
 	 * "applications" data[1] - filter e.g. ".ehtml"
 	 */
 	@Override
-	public PluginResult execute(String action, JSONArray data, String callbackId) {
-		// TODO Auto-generated method stub
+	public boolean execute(String action, JSONArray data, CallbackContext callbackContext) throws JSONException {
+		
+		boolean isValidAction = true;
 		PluginResult result = null;
 
 		// This part (GETCONTROLLERANDVIEWS) is now implemented in Javascript
@@ -200,10 +203,17 @@ public class DirectoryListing extends Plugin {
 		} else {
 			result = new PluginResult(Status.INVALID_ACTION);
 			Log.d("PluginDirectoryListing", "Invalid action : " + action + " passed");
+			isValidAction = false;
 		}
 
-		return result;
+//		return result;
+		
+		callbackContext.sendPluginResult(result);
+		
+		return isValidAction;
 	}
+
+
 
 	// ==========================
 	JSONObject getDirectoryStructure(AssetManager mgr, String path, int level, JSONObject directoryStructure) {

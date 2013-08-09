@@ -45,6 +45,7 @@ var GrammarConverter = function(){
 	this.grammar_utterances = "";
 	this.grammar_phrases = "phrases:";
 	this.jscc_grammar_definition = "";
+	this.js_grammar_definition = "";
 	this.variable_prefix = "_$";
 	this.variable_regexp = /"(_\$[^\"]*)"/igm;// /"_$([^\"]*)/igm;
 	this.token_variables = "[*\n  var " + this.variable_prefix
@@ -56,19 +57,31 @@ var GrammarConverter = function(){
 
 	//alternative reg-exp for stop-words (a different method for detecting/removing stopwords must be used!)
 	this.stop_words_regexp_alt;
+	
 };
 
-GrammarConverter.prototype.load_grammar = function(successCallback, errorCallback){
+GrammarConverter.prototype.load_grammar = function(successCallback, errorCallback, grammarUrl){
 	var grammar = '';
 	var self = this;
+	var theUrl = grammarUrl;
+	if(!theUrl){
+		theUrl = 'content/grammar.json'; 
+	}
 	$.ajax({
 		async: false,
-		dataType: "json",
-		url:"content/grammar.json",
+		dataType: 'json',
+		url:theUrl,
 		success: function(data){
 			
 			data = JSON.stringify(data);
-			grammar=data.replace(/ö/g,'__oe__').replace(/ä/g,'__ae__').replace(/ü/g,'__ue__');
+			
+			//TODO: externalize replacement (encoding/decoding); see also in semantic_interpreter.js
+			//Java-Code:
+//			data = data.replaceAll("\u00E4", "__ae__");//HTML: &#228;
+//			data = data.replaceAll("\u00FC", "__ue__");//HTML: &#252;
+//			data = data.replaceAll("\u00F6", "__oe__");//HTML: &#246;
+//			data = data.replaceAll("\u00DF", "__ss__");//HTML: &#223;
+			grammar=data.replace(/ö/g,'__oe__').replace(/ä/g,'__ae__').replace(/ü/g,'__ue__').replace(/ß/g,'__ss__');
 			
 			self.json_grammar_definition = jQuery.parseJSON( grammar );
 			if (typeof successCallback == "function") {
@@ -103,6 +116,22 @@ GrammarConverter.prototype.convert_json_grammar = function(){
 			+ "\n" + this.grammar_phrases + ";";
 };
 
+GrammarConverter.prototype.set_stop_words = function(stopWordArray){
+	if(!this.json_grammar_definition){
+		this.json_grammar_definition = {};
+	}
+	this.json_grammar_definition.stop_word = stopWordArray;
+	
+	this.parse_stop_words();
+	this.parse_stop_words_alt();
+};
+
+GrammarConverter.prototype.get_stop_words = function(){
+	if(!this.json_grammar_definition){
+		return null;
+	}
+	return this.json_grammar_definition.stop_word;
+};
 
 //(this is the original implementation; has problems if stopwords are at the end of a senctence)
 GrammarConverter.prototype.parse_stop_words = function(){
@@ -117,7 +146,7 @@ GrammarConverter.prototype.parse_stop_words = function(){
 		if (index > 0){
 			stop_words +=	"|" 		//... OR match ...: 
 							+ stop_word //... the stopword "stop_word"
-							+ "\w?";	//... and optionally one white-character that follows the stopword
+							+ "\\s?";	//... and optionally one white-character that follows the stopword
 		}else{
 			stop_words += stop_word + " ";//if there is no entry in the stopword list: only match space-character as stopword
 		}
@@ -170,6 +199,14 @@ GrammarConverter.prototype.get_stop_words_regexp_alt = function(){
 
 GrammarConverter.prototype.get_jscc_grammar = function(){
 	return  this.jscc_grammar_definition;
+};
+
+GrammarConverter.prototype.get_js_grammar = function(){
+	return  this.js_grammar_definition;
+};
+
+GrammarConverter.prototype.set_js_grammar = function(src_code){
+	 this.js_grammar_definition = src_code;
 };
 
 GrammarConverter.prototype.parse_tokes = function(){
@@ -310,4 +347,8 @@ GrammarConverter.prototype.get_semantic_interpretationt_of_phrase = function(utt
 			+ this.variable_prefix + "phrase] = " + utterance_name + "_temp; "
 			+ this.variable_prefix + "result = " + utterance_name + "_temp; *]";
 	return result;
+};
+
+GrammarConverter.prototype.set_compiled_grammar = function(func){
+	this.compiled_grammar = func;
 };

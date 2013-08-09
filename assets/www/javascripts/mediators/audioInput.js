@@ -41,13 +41,13 @@ mobileDS.AudioInput = (function(){
     //those are the standard audioInput procedures, that should be implemented by a loaded file
     function constructor(){
     	return {
-    			recognizeWAV: function(blob, successCallBack, failureCallBack){
+    			recognize: function(blob, successCallBack, failureCallBack){
     				alert("Audio Input is not supported.");
     			},
     			startRecord: function(successCallBack,failureCallBack){
     				alert("Audio Input is not supported.");
     			},
-    			stopGetRecord: function(successCallBack){
+    			stopRecord: function(successCallBack){
     				alert("Audio Input is not supported.");	
     	   		}
     	}

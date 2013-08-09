@@ -45,6 +45,8 @@ var mobileDS = window.mobileDS ||
  * @example <code>mobileDS.ModelManager.getInstance()</code>
  * @class ModelManager
  * @category core
+ * 
+ * @see mobileDS.ModelManager#constructor
  */
 mobileDS.ModelManager = (function(){
 	
@@ -58,17 +60,6 @@ mobileDS.ModelManager = (function(){
      */
     var instance = null;
 
-    
-    /**
-     * Path to the models.
-     * 
-     * @property PATHMODELS
-     * @type String
-     * @private
-     * @deprecated unused
-     */
-    var PATHMODELS = "models"; 
-    
 	/**
 	 * Constructor-Method of Class {@link mobileDS.ModelManager}.<br>
 	 * This class is similar to the class {@link mobileDS.ControllerManager}.
@@ -81,6 +72,8 @@ mobileDS.ModelManager = (function(){
 	 * 
 	 * @param {Function} callbackFunction A callback function
 	 * @constructor
+	 * @augments mobileDS.ModelManager
+	 * @memberOf mobileDS.ModelManager.prototype
 	 */
     function constructor(callbackFunction){
         // private members
@@ -133,7 +126,7 @@ mobileDS.ModelManager = (function(){
         function foundModelsCallBack(foundModels, myCallbackFunction, isRecursiveCall){
     		if (foundModels.length < 1){
     			if(!isRecursiveCall){
-    				console.warn("Load Model: no models found in "+PATHMODELS+"/");
+    				console.warn("Load Model: no models found in "+mobileDS.constants.getInstance(forBrowser).getModelPath()+"/");
     			}
     			if (typeof myCallbackFunction == 'function'){
     				myCallbackFunction();
@@ -141,12 +134,12 @@ mobileDS.ModelManager = (function(){
     		} else {
     			var tmpModel = foundModels[0];
     			
-    			if(IS_DEBUG_ENABLED) console.debug("Load Model: "+PATHMODELS + "/" + tmpModel);//debug
+    			if(IS_DEBUG_ENABLED) console.debug("Load Model: "+mobileDS.constants.getInstance(forBrowser).getModelPath() + "/" + tmpModel);//debug
     			
     			// Create Controller after (!!!!) the adequate controller-js-file is loaded.
     			// or else there is no constructor and the controller-contructor fails.
     			
-        		mobileDS.CommonUtils.getInstance().getLocalScript(modelPath + tmpModel,
+        		mobileDS.CommonUtils.getInstance().getLocalScript(mobileDS.constants.getInstance(forBrowser).getModelPath() + tmpModel,
         			function(){
     				// save Modelname in models-array - starting with an upper-case character and 
     				// cutting of the extension of the file containing the model.
@@ -173,13 +166,14 @@ mobileDS.ModelManager = (function(){
         function loadModels(myCallbackFunction){
             // Load application's models.
 //        	var mod_i = 0;
-//        	console.log("[MODELS] " + PATHMODELS);
-        	var foundModels = mobileDS.CommonUtils.getInstance().getDirectoryContentsWithFilter(modelPath, "*.js");
+//        	console.log("[MODELS] " + mobileDS.constants.getInstance(forBrowser).getModelPath());
+        	var foundModels = mobileDS.CommonUtils.getInstance().getDirectoryContentsWithFilter(mobileDS.constants.getInstance(forBrowser).getModelPath(), "*.js");
             foundModelsCallBack(foundModels, myCallbackFunction);
         }
         
         loadModels(callbackFunction);
-        
+
+    	/** @lends mobileDS.ModelManager.prototype */
         return { // public members
             /**
     		 * This function gets the model by name. 

@@ -39,17 +39,24 @@ pathPrefix=/android_asset/
 # base directory for JavaScript source files
 jsSrcDirBase=${baseDir}www/javascripts/
 
+# base directory for generated JavaScript application (i.e. none-framework) files
+jsGenDirBase=${baseDir}www/gen/
+
 # paths to SCXML files
 SCXMLDialogManagerDir=${baseDir}www/config/statedef/
 SCXMLInputManagerDir=${baseDir}www/config/statedef/
-JSOutDialogManagerDir=${jsSrcDirBase}gen/
-JSOutInputManagerDir=${jsSrcDirBase}gen/
+JSOutDialogManagerDir=${jsGenDirBase}
+JSOutInputManagerDir=${jsGenDirBase}
 
 # for creation of file list (i.e. list of all model, view, and controller classes/files)
-directoriesToParse=www/controllers,www/views,www/models,www/config,www/javascripts/plugins,www/helpers
+directoriesToParse=www/controllers,www/views,www/models,www/config,www/javascripts/plugins,www/helpers,www/gen/grammar
 # path to directory and file, where the file list will be stored
 outputDirectoryParseFileJson=${baseDir}www/config/parsed_directories.json
 
 # for creation of compiled SemanticInterpreter (grammatic parser)
-grammarDefinitionJsonFile=${baseDir}www/content/grammar.json
-outFileCompiledGrammar=${jsSrcDirBase}gen/grammar.js
+grammarDefinitionJsonDir=${baseDir}www/config/languages/
+grammarDefinitionJsonFile=grammar.json
+#FIXME this really needs to be read out from lang-dir
+grammarLanguageCode=de
+outDirCompiledGrammar=${jsGenDirBase}grammar/
+outFileCompiledGrammar=grammar.js

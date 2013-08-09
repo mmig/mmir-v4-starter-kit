@@ -120,13 +120,14 @@ var DirectoryListing = function() {
  * @async
  */
 DirectoryListing.prototype.getDirectoryStructure = function(directories, successCallback, failureCallback) {
+	
+	if(IS_DEBUG_ENABLED) console.log('DirectoryListing.getDirectoryStructure for directories: '+directories.join(', '));
+	
 	if (true){
-		if(IS_DEBUG_ENABLED) console.log("[getDirectoryStructure] called.");
-    	//Passing a list of arguments to the plugin, in this case this is the directory path
-		console.log(directories);
-		/**
-		 * the URL to the configuration file (in JSON format)
-		 */
+		
+		if(IS_DEBUG_ENABLED) console.log("[getDirectoryStructure] called, reading directory structure file...");
+		
+		// the URL to the configuration file (in JSON format) TODO this should come from constants.js
     	var directoryFileUrl = "config/parsed_directories.json";
     
    		 //load configuration file asynchronously: 
@@ -135,22 +136,31 @@ DirectoryListing.prototype.getDirectoryStructure = function(directories, success
 			dataType: "json",
 			url: directoryFileUrl,
 			success: function(data){
-				if(IS_DEBUG_ENABLED) console.log("ConfigurationManager.constructor: loaded language settings from "+directoryFileUrl);
+				if(IS_DEBUG_ENABLED) console.log("DirectoryListing.getDirectoryStructure: loaded file from "+directoryFileUrl);
 			
 				if(data){ 
 					var jsonData = data;//jQuery.parseJSON( data );
-					if(IS_DEBUG_ENABLED) console.log("ConfigurationManager.constructor: Succeeded to load configuration from '"+directoryFileUrl+"'! Data: "+ JSON.stringify(data));
-					successCallback(jsonData);
+					if(IS_DEBUG_ENABLED) console.log("DirectoryListing.getDirectoryStructure: Succeeded to load directory structure from '"+directoryFileUrl+"'! Data: "+ JSON.stringify(data));
+					
+					if(successCallback){
+						successCallback(jsonData);
+					}
 				
 				}
 			},
-			error: function(data){
-				if(IS_DEBUG_ENABLED) console.log("ConfigurationManager.constructor: failed to load configuration from '"+directoryFileUrl+"'! ERROR: "+ JSON.stringify(data));
-				failureCallback(jsonData);
+			error: function(jqXHR, textStatus, errorThrown){
+				if(IS_DEBUG_ENABLED) console.log("DirectoryListing.getDirectoryStructure: failed to load file from '"+directoryFileUrl+"'! Status "+textStatus+": "+ errorThrown+ ", "+JSON.stringify(jqXHR));
+				
+				if(failureCallback){
+					failureCallback(textStatus+": failed to load file from '"+directoryFileUrl+"' - "+ errorThrown);
+				}
+				else {
+					console.error("DirectoryListing.getDirectoryStructure: failed to load file from '"+directoryFileUrl+"'! Status "+textStatus+": "+ errorThrown);
+				}
 			}
 		});
-	} else {
-		if(IS_DEBUG_ENABLED) console.log("[getDirectoryStructure] called.");
+	} else {//DISABLED: use native Android plugin for reading directories...
+		if(IS_DEBUG_ENABLED) console.log("[getDirectoryStructure] called, ");
 	
 		return cordova.exec(successCallback,    //Callback which will be called when directory listing is successful
 			failureCallback,     //Callback which will be called when directory listing encounters an error

@@ -39,13 +39,13 @@ this.onmessage = function(e){
       record(e.data.buffer);
       break;
     case 'exportWAV':
-      exportWAV(e.data.type);
+      exportWAV(e.data.type, e.data.silenceBuffer,e.data.id);
       break;
     case 'getBuffer':
       getBuffer();
       break;
     case 'clear':
-      clear();
+      clear(e.data.silenceBuffer);
       break;
   }
 };
@@ -60,14 +60,22 @@ function record(inputBuffer){
   recLength += inputBuffer[0].length;
 }
 
-function exportWAV(type){
+function exportWAV(type,silenceBuffer,id){
   var bufferL = mergeBuffers(recBuffersL, recLength);
   var bufferR = mergeBuffers(recBuffersR, recLength);
   var interleaved = interleave(bufferL, bufferR);
   var dataview = encodeWAV(interleaved);
+  if (silenceBuffer>=0) {
+	  clear(silenceBuffer);
+  }
   var audioBlob = new Blob([dataview], { type: type });
 
-  this.postMessage(audioBlob);
+  this.postMessage(
+		  {
+			  blob: audioBlob,
+			  id: id
+		  }
+  		);
 }
 
 function getBuffer() {
@@ -77,10 +85,14 @@ function getBuffer() {
   this.postMessage(buffers);
 }
 
-function clear(){
-  recLength = 0;
-  recBuffersL = [];
-  recBuffersR = [];
+function clear(silenceBuffer){
+  if (!silenceBuffer || silenceBuffer<0 || silenceBuffer>recLength) {
+	  silenceBuffer = 0;
+  }
+  recBuffersL = recBuffersL.slice(recLength-silenceBuffer);
+  recBuffersR = recBuffersR.slice(recLength-silenceBuffer);
+  recLength = silenceBuffer;
+
 }
 
 function mergeBuffers(recBuffers, recLength){

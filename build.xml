@@ -5,7 +5,13 @@
 -->
 <project name="Mobile DialogSystem" default="generateFileListJSONFile">
 	
-    
+	<!-- ############# Include Ant Contrib Task (needed: foreach) ############# -->
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+	  <classpath>
+	    <pathelement location="build/lib/ant-contrib-1.0b3.jar"/>
+	  </classpath>
+	</taskdef>
+	
 	<!-- ############# Initialization and Property Defintions ############# -->
 	
 	<property name="buildSettingsFile" value="build.settings" />
@@ -47,6 +53,11 @@
         <delete file="${outputDirectoryParseFileJson}"/>
     </target>
 	
+	<!-- ############# Test Targets ############# -->
+    <target name="test" depends="" description="runs all tests specified in test/drivers">
+        <ant antfile="test.xml" target="test-all"/>
+    </target>
+	
     <!-- ############# Build Targets: Create JSON file with file-list ############# -->
     
 	<macrodef name="getFilelist">
@@ -74,12 +85,21 @@
 		</script>
 	</target>
 
-	<target name="generateFileListJSONFile" depends="generateFileListJSONObject">
-		<echo>${JSONDirString}</echo>
+	<target name="generateFileListJSONFile" depends="createGeneratedSemanticParserDir,generateFileListJSONObject">
+		<echo>writing to file ${outputDirectoryParseFileJson}: ${JSONDirString}</echo>
 		<echo file="${outputDirectoryParseFileJson}">${JSONDirString}</echo>
 		<echo>Created file ${outputDirectoryParseFileJson}.</echo>
 	</target>
 	
+	<!-- ############# Build Targets: compile DialogEngine (with up-to-date check) ############# -->
+	
+	<!--
+				NOTE: 	Since SCION is used now for loading/interpreting SCXML files, comilation
+						is not required only more.
+						In fact, the compiled JS file is ignored (i.e. not included in the main index.html)
+						
+						However, compilation may still be useful for finding syntax errors in the SCXML file.  
+	-->
 	
 	<target name="checkDialogManagerUpToDate">
 	    <condition property="isDialogManagerUpToDate" else="false">
@@ -101,6 +121,16 @@
 		<echo>Generated file ${out.file.DialogManager}.</echo>
 	</target>
 	
+
+	<!-- ############# Build Targets: compile InputManager (with up-to-date check) ############# -->
+	
+	<!--
+			NOTE: 	Since SCION is used now for loading/interpreting SCXML files, comilation
+					is not required only more.
+					In fact, the compiled JS file is ignored (i.e. not included in the main index.html)
+					
+					However, compilation may still be useful for finding syntax errors in the SCXML file.  
+	-->
 	
 	<target name="checkInputManagerUpToDate">
 	    <condition property="isInputManagerUpToDate" else="false">
@@ -148,7 +178,7 @@
             <fileset dir="${jsSrcDirBase}semantic" includes="grammar_converter.js" />
             <fileset dir="${jsSrcDirBase}semantic" includes="grammar_parser_template.js" />
             <fileset dir="${jsSrcDirBase}semantic" includes="semantic_interpreter.js" />
-            <!-- fileset dir="${jsSrcDirBase}3rdParty" includes="jquery-1.8.3.js" /-->
+            <!-- fileset dir="${jsSrcDirBase}3rdParty" includes="jquery-1.9.1.js" /-->
             <fileset dir="${jsSrcDirBase}tools/ant" includes="StandaloneSemanticParserCompileExec.js" />
         </concat>
         <echo message="${base.js.compile.semantic.interpreter} built." />
@@ -157,6 +187,20 @@
 	<target name="cleanTempFilesSemanticParser" description="Clean temporary file that where created when compiling the SemanticParser script">
 		<echo message="Deleting temporary files in ${buildDirTempJS}..." />
         <delete dir="${buildDirTempJS}" />
+	</target>
+	
+	<target name="createGrammarLanguageList" depends="generateFileListJSONObject" description="create comma-separated list with language codes for available JSON grammar files">
+		<script language="javascript" src="${jsSrcDirBase}tools/ant/AntScriptGrammarLanguageList.js">
+		</script>	
+	</target>
+	
+	<target name="createGeneratedSemanticParserDir" description="Create base directory for generated semantic parser files">
+		<mkdir dir="${outDirCompiledGrammar}"/>
+	</target>
+	
+	<target name="cleanGeneratedSemanticParserDir" description="Clean directory for generated semantic parser files">
+		<echo message="Deleting generated files in ${outDirCompiledGrammar}..." />
+        <delete dir="${outDirCompiledGrammar}" />
 	</target>
 	
 	<!-- ############# Build Targets: SemanticParser generation with default JavaScript environment #############
@@ -178,13 +222,24 @@
         <echo message="${exec.js.compile.semantic.interpreter} built." />
 	</target>
 	
-	<target name="generateSemanticParserDefaultEnv" depends="createParserScriptFileDefault" description="Compile SemanticParser script with default JavaScript environment (very very slow!!!)">
-	    <echo message="Running default ANT script environment with script file ${exec.js.compile.semantic.interpreter} and argument ${grammarDefinitionJsonFile}..." />
+	<target name="generateSemanticParserDefaultEnv" depends="createGeneratedSemanticParserDir,createParserScriptFileDefault" description="Compile SemanticParser script with default JavaScript environment (very very slow!!!)">
+	    <echo message="Running default ANT script environment with script file ${exec.js.compile.semantic.interpreter} and arguments ${grammarDefinitionJsonDir}, ${grammarDefinitionJsonFile}, ${grammarLanguageCode}, ${outDirCompiledGrammar}, ${outFileCompiledGrammar}..." />
 		<script language="javascript" src="${exec.js.compile.semantic.interpreter}"></script>
 	</target>
 	
 	<target name="compileSemanticParserDefaultEnv" depends="generateSemanticParserDefaultEnv,cleanTempFilesSemanticParser" description="Compile (and clean up)  SemanticParser script with default JavaScript environment (very very slow!!!)">
-	    <echo message="Compiled ${outFileCompiledGrammar} using default JavaScript environment." />
+	    <echo message="Compiled ${outDirCompiledGrammar}/${grammarLanguageCode}/${outFileCompiledGrammar} using default JavaScript environment." />
+	</target>
+	
+	<target name="compileSemanticParserDefaultEnvAllLanguages" depends="cleanGeneratedSemanticParserDir,createGeneratedSemanticParserDir,createGrammarLanguageList" description="Compile (and clean up) SemanticParser scripts for all Languages with default environment (very slow)">
+		<!-- NOTE: ${grammarJsonFileLanguageList} is generated by target createGrammarLanguageList -->
+		<foreach 
+			list="${grammarLanguageList}" 
+			delimiter=","
+			target="generateSemanticParserDefaultEnv" 
+			param="grammarLanguageCode"
+			inheritall="true"
+		/>
 	</target>
 	
 	<!-- ############# Build Targets: SemanticParser generation with Mozilla Rhino JavaScript environment ############# 
@@ -206,15 +261,26 @@
         <echo message="${exec.js.compile.semantic.interpreter} built." />
 	</target>
 	
-	<target name="generateSemanticParserRhinoEnv" depends="createParserScriptFileRhino" description="Compile SemanticParser script with Rhino environment (slow)">
-	    <echo message="Running Rhino environment with script file ${exec.js.compile.semantic.interpreter} and argument ${grammarDefinitionJsonFile}, ${outFileCompiledGrammar}..." />
-        <exec executable="java">
-            <arg line="-jar ${pathRhinoJar} -opt -1 ${exec.js.compile.semantic.interpreter} ${grammarDefinitionJsonFile} ${outFileCompiledGrammar}" />
+	<target name="generateSemanticParserRhinoEnv" depends="createGeneratedSemanticParserDir,createParserScriptFileRhino" description="Compile SemanticParser script with Rhino environment (slow)">
+	    <echo message="Running Rhino environment with script file ${exec.js.compile.semantic.interpreter} and arguments ${grammarDefinitionJsonDir}, ${grammarDefinitionJsonFile}, ${grammarLanguageCode}, ${outDirCompiledGrammar}, ${outFileCompiledGrammar}..." />
+		<exec executable="java">
+            <arg line="-jar ${pathRhinoJar} -opt -1 ${exec.js.compile.semantic.interpreter} ${grammarDefinitionJsonDir} ${grammarDefinitionJsonFile} ${grammarLanguageCode} ${outDirCompiledGrammar} ${outFileCompiledGrammar}" />
         </exec>
 	</target>
 	
 	<target name="compileSemanticParserRhinoEnv" depends="generateSemanticParserRhinoEnv,cleanTempFilesSemanticParser" description="Compile (and clean up) SemanticParser script with Rhino environment (slow)">
-	    <echo message="Compiled ${outFileCompiledGrammar} using Rhino environment." />
+	    <echo message="Compiled ${outDirCompiledGrammar}/${grammarLanguageCode}/${outFileCompiledGrammar} using Rhino environment." />
+	</target>
+	
+	<target name="compileSemanticParserRhinoEnvAllLanguages" depends="cleanGeneratedSemanticParserDir,createGeneratedSemanticParserDir,createGrammarLanguageList" description="Compile (and clean up) SemanticParser scripts for all Languages with Rhino environment (slow)">
+		<!-- NOTE: ${grammarJsonFileLanguageList} is generated by target createGrammarLanguageList -->
+		<foreach 
+			list="${grammarLanguageList}" 
+			delimiter=","
+			target="generateSemanticParserRhinoEnv" 
+			param="grammarLanguageCode"
+			inheritall="true"
+		/>
 	</target>
 	
 	<!-- ############# Build Targets: SemanticParser generation with node.js JavaScript environment ############# 
@@ -236,17 +302,31 @@
 	</target>
 	
 	
-	<target name="generateSemanticParserNodeJsEnv" depends="createParserScriptFileNodeJs" description="Compile SemanticParser script with node.js environment (fast)">
-	    <echo message="Running node.js environment with script file ${exec.js.compile.semantic.interpreter} and argument ${grammarDefinitionJsonFile}, ${outFileCompiledGrammar}..." />
-        <exec executable="${exec.nodejs}">
+	<target name="generateSemanticParserNodeJsEnv" depends="createGeneratedSemanticParserDir,createParserScriptFileNodeJs" description="Compile SemanticParser script with node.js environment (fast)">
+	    <echo message="Running node.js environment with script file ${exec.js.compile.semantic.interpreter} and arguments ${grammarDefinitionJsonDir}, ${grammarDefinitionJsonFile}, ${grammarLanguageCode}, ${outDirCompiledGrammar}, ${outFileCompiledGrammar}..." />
+		<exec executable="${exec.nodejs}">
             <arg value="${exec.js.compile.semantic.interpreter}"/>
+            <arg value="${grammarDefinitionJsonDir}"/>
             <arg value="${grammarDefinitionJsonFile}"/>
+            <arg value="${grammarLanguageCode}"/>
+            <arg value="${outDirCompiledGrammar}"/>
             <arg value="${outFileCompiledGrammar}"/>
         </exec>
 	</target>
 	
 	<target name="compileSemanticParserNodeJsEnv" depends="generateSemanticParserNodeJsEnv,cleanTempFilesSemanticParser" description="Compile (and clean up) SemanticParser script with node.js environment (fast)">
-	    <echo message="Compiled ${outFileCompiledGrammar} using node.js environment." />
+	    <echo message="Compiled ${outDirCompiledGrammar}/${grammarLanguageCode}/${outFileCompiledGrammar} using node.js environment." />
+	</target>
+	
+	<target name="compileSemanticParserNodeJsEnvAllLanguages" depends="cleanGeneratedSemanticParserDir,createGeneratedSemanticParserDir,createGrammarLanguageList" description="Compile (and clean up) SemanticParser script for all Languages with node.js environment (fast)">
+		<!-- NOTE: ${grammarJsonFileLanguageList} is generated by target createGrammarLanguageList -->
+		<foreach 
+			list="${grammarLanguageList}" 
+			delimiter=","
+			target="generateSemanticParserNodeJsEnv" 
+			param="grammarLanguageCode"
+			inheritall="true"
+		/>
 	</target>
 	
 	<!-- END: tasks for SemanticParser generation -->

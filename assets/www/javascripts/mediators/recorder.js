@@ -71,8 +71,12 @@
       recording = false;
     }
 
-    this.clear = function(){
-      worker.postMessage({ command: 'clear' });
+    this.clear = function(silenceBuffer){
+     silenceBuffer = silenceBuffer || 0;
+      worker.postMessage({ 
+    	  command: 'clear',
+    	  silenceBuffer: silenceBuffer
+    	});
     }
 
     this.getBuffer = function(cb) {
@@ -80,19 +84,23 @@
       worker.postMessage({ command: 'getBuffer' })
     }
 
-    this.exportWAV = function(cb, type){
+    this.exportWAV = function(cb, silenceBuffer, id, type){
       currCallback = cb || config.callback;
       type = type || config.type || 'audio/wav';
+      id = id || 0;
+      silenceBuffer = silenceBuffer || -1;
       if (!currCallback) throw new Error('Callback not set');
       worker.postMessage({
         command: 'exportWAV',
-        type: type
+        type: type,
+        silenceBuffer: silenceBuffer,
+        id: id
       });
     }
 
     worker.onmessage = function(e){
-      var blob = e.data;
-      currCallback(blob);
+      var blob = e.data.blob;
+      currCallback(blob, e.data.id);
     }
 
     source.connect(this.node);

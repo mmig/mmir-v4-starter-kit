@@ -30,7 +30,6 @@ var silenceCount = 0, //how many silent blobs have there been in a row now?
 	lastInput = 0, // how long has there been no good loud input?
 	recording= false,
 	noiseTreshold = 0.1, //the bigger, the more is counted as silent
-	sampleRate = 0,
 	pauseCount = 3,
 	resetCount = 15;
   
@@ -55,10 +54,15 @@ self.onmessage = function(e){
  * @param config
  */
 function init(config){
-  if (config.sampleRate)sampleRate = config.sampleRate;
-  if (config.noiseTreshold) noiseTreshold = config.noiseTreshold;
-  if (config.pauseCount) pauseCount = config.pauseCount;
-  if (config.resetCount) resetCount = config.restCount;
+  if (config.noiseTreshold){
+	  noiseTreshold = config.noiseTreshold;
+  }
+  if (config.pauseCount) {
+	  pauseCount = config.pauseCount;
+  }
+  if (config.resetCount) {
+	  resetCount = config.resetCount;
+  }
   self.postMessage('Silence Detection initialized');
 }
 

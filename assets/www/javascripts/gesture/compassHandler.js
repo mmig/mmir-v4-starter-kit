@@ -40,6 +40,8 @@ var mobileDS = window.mobileDS ||
  * @example <code>mobileDS.CompassHandler.getInstance()</code>
  * @class CompassHandler
  * @category core
+ * 
+ * @see mobileDS.CompassHandler#constructor
  */
 mobileDS.CompassHandler = (function(){
     //private members
@@ -66,6 +68,8 @@ mobileDS.CompassHandler = (function(){
 	 * Constructor-Method of Class {@link mobileDS.CompassHandler}.<br>
 	 * Sets the default behavior of the compass.
 	 * @constructor
+	 * @augments mobileDS.CompassHandler
+	 * @memberOf mobileDS.CompassHandler.prototype
 	 */
   //private methods
     function constructor(){
@@ -106,6 +110,7 @@ mobileDS.CompassHandler = (function(){
             alert('Compass error: ' + compassError.code);
         }
         
+    	/** @lends mobileDS.CompassHandler.prototype */
         return { //public members and methods
             
           	/**

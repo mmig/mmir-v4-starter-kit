@@ -33,19 +33,23 @@ describe("tools/StringExtensions", function() {
 		  
 		  expect(before.startsWith('lakdjf a')).toBe(true);
 		  expect(before.startsWith('lakdjf a', false)).toBe(true);//explicitly using RESPECT CASE mode
+		  expect(before.startsWith('lakdjf a', true )).toBe(true);//explicitly using IGNORE CASE mode
 	  });
 	  
 	  it("String: function startsWith( ), where the String is NOT starting with X (case mismatch)", function() {
 		  var before= 'lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd';
 		  
-		  expect(before.startsWith('laLdjf a')).toBe(false);
-		  expect(before.startsWith('laLdjf a', false)).toBe(false);//explicitly using RESPECT CASE mode
+		  expect(before.startsWith('laKdjf a')).toBe(false);
+		  expect(before.startsWith('laKdjf a', false)).toBe(false);//explicitly using RESPECT CASE mode
+		  expect(before.startsWith('laKdjf a', true )).toBe(true );//explicitly using IGNORE CASE mode
 	  });
 	  
 	  it("String: function startsWith( ), where the String is starting with X using IGNORE CASE modus (and X contains some characters with mismatching case)", function() {
 		  var before= 'lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd';
 		  
-		  expect(before.startsWith('Lakdjf a', true)).toBe(true);
+		  expect(before.startsWith('Lakdjf A')).toBe(false);
+		  expect(before.startsWith('Lakdjf A', false)).toBe(false);
+		  expect(before.startsWith('Lakdjf A', true )).toBe(true );
 	  });
 	  
 	  it("String: function startsWith( ), where the String is NOT starting with X (character mismatch)", function() {
@@ -53,6 +57,7 @@ describe("tools/StringExtensions", function() {
 		  
 		  expect(before.startsWith('luldjf a')).toBe(false);
 		  expect(before.startsWith('luldjf a', false)).toBe(false);//explicitly using RESPECT CASE mode
+		  expect(before.startsWith('luldjf a', true )).toBe(false);//explicitly using IGNORE CASE mode
 	  });
 	  
 	  it("String: function startsWith( ), where the String is NOT starting with X (contains, but does not start with)", function() {
@@ -60,6 +65,7 @@ describe("tools/StringExtensions", function() {
 		  
 		  expect(before.startsWith('jdf 34aKdß')).toBe(false);
 		  expect(before.startsWith('jdf 34aKdß', false)).toBe(false);//explicitly using RESPECT CASE mode
+		  expect(before.startsWith('jdf 34aKdß', true )).toBe(false);//explicitly using IGNORE CASE mode
 	  });
 	  
 	  it("String: function startsWith( ), where the String is NOT starting with X (ends, but does not start with)", function() {
@@ -67,6 +73,83 @@ describe("tools/StringExtensions", function() {
 		  
 		  expect(before.startsWith('90 ASKLJKLakd')).toBe(false);
 		  expect(before.startsWith('90 ASKLJKLakd',false)).toBe(false);//explicitly using RESPECT CASE mode
+		  expect(before.startsWith('90 ASKLJKLakd',true )).toBe(false);//explicitly using IGNORE CASE mode
+	  });
+	  
+	  it("String: function startsWith( ), where the String equals other String (i.e. starts with)", function() {
+		  var before= 'lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd';
+		  
+		  expect(before.startsWith('lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd')).toBe(true);
+		  expect(before.startsWith('lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd',false)).toBe(true);//explicitly using RESPECT CASE mode
+		  expect(before.startsWith('lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd',true )).toBe(true);//explicitly using IGNORE CASE mode
+	  });
+  });
+  
+  describe("<String>.endsWith(string)", function() {
+	  
+	  it("String: function endsWith( ), where the String is ending with X", function() {
+		  var before= 'lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd';
+		  
+		  expect(before.endsWith('0 ASKLJKLakd')).toBe(true);
+		  expect(before.endsWith('0 ASKLJKLakd', false)).toBe(true);//explicitly using RESPECT CASE mode
+		  expect(before.endsWith('0 ASKLJKLakd', true )).toBe(true);//explicitly using IGNORE CASE mode
+	  });
+	  
+	  it("String: function endsWith( ), where the String is NOT ending with X (string is shorter than X)", function() {
+		  
+		  var before= 'lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd';
+		  
+		  expect(before.endsWith('lksdjflöasdjkfasldkjflasghasuihg asdf253789ysaiosejf09JLKH H(89z98h')).toBe(false);
+		  expect(before.endsWith('lksdjflöasdjkfasldkjflasghasuihg asdf253789ysaiosejf09JLKH H(89z98h', false)).toBe(false);//explicitly using RESPECT CASE mode
+		  expect(before.endsWith('lksdjflöasdjkfasldkjflasghasuihg asdf253789ysaiosejf09JLKH H(89z98h', true )).toBe(false);//explicitly using IGNORE CASE mode
+	  });
+	  
+	  it("String: function endsWith( ), where the String is ending with X", function() {
+		  var before= 'lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd';
+		  
+		  expect(before.endsWith('0 ASKLJKLakd')).toBe(true);
+		  expect(before.endsWith('0 ASKLJKLakd', false)).toBe(true);//explicitly using RESPECT CASE mode
+		  expect(before.endsWith('0 ASKLJKLakd', true )).toBe(true);//explicitly using IGNORE CASE mode
+	  });
+	  
+	  it("String: function endsWith( ), where the String is NOT ending with X (case mismatch)", function() {
+		  var before= 'lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd';
+		  
+		  expect(before.endsWith('0 ASKLJkLakd')).toBe(false);
+		  expect(before.endsWith('0 ASKLJkLakd', false)).toBe(false);//explicitly using RESPECT CASE mode
+		  expect(before.endsWith('0 ASKLJkLakd', true )).toBe(true);//explicitly using IGNORE CASE mode
+	  });
+	  
+	  it("String: function endsWith( ), where the String is NOT ending with X (character mismatch)", function() {
+		  var before= 'lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd';
+		  
+		  expect(before.endsWith('0 AFKLJkLakd')).toBe(false);
+		  expect(before.endsWith('0 AFKLJkLakd', false)).toBe(false);//explicitly using RESPECT CASE mode
+		  expect(before.endsWith('0 AFKLJkLakd', true )).toBe(false);//explicitly using IGNORE CASE mode
+	  });
+	  
+	  it("String: function endsWith( ), where the String is NOT ending with X (contains, but does not end with)", function() {
+		  var before= 'lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd';
+		  
+		  expect(before.endsWith('jdf 34aKdß')).toBe(false);
+		  expect(before.endsWith('jdf 34aKdß', false)).toBe(false);//explicitly using RESPECT CASE mode
+		  expect(before.endsWith('jdf 34aKdß', true )).toBe(false);//explicitly using IGNORE CASE mode
+	  });
+	  
+	  it("String: function endsWith( ), where the String is NOT ending with X (starts, but does not end with)", function() {
+		  var before= 'lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd';
+		  
+		  expect(before.endsWith('lakdjf a')).toBe(false);
+		  expect(before.endsWith('lakdjf a', false)).toBe(false);//explicitly using RESPECT CASE mode
+		  expect(before.endsWith('lakdjf a', true )).toBe(false);//explicitly using IGNORE CASE mode
+	  });
+	  
+	  it("String: function endsWith( ), where the String equals other String (i.e. ends with)", function() {
+		  var before= 'lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd';
+		  
+		  expect(before.endsWith('lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd')).toBe(true);
+		  expect(before.endsWith('lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd', false)).toBe(true);//explicitly using RESPECT CASE mode
+		  expect(before.endsWith('lakdjf alsjdf 34aKdß5äAkDä lajfakd0990 ASKLJKLakd', true )).toBe(true);//explicitly using IGNORE CASE mode
 	  });
   });
   

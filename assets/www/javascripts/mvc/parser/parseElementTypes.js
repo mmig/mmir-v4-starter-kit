@@ -33,7 +33,10 @@ var mobileDS = window.mobileDS || {};
 mobileDS.parser = mobileDS.parser || {};
 mobileDS.parser.element = mobileDS.parser.element || {};
 
-/**
+//TODO detect&use Object.defineProperty (if positively detected), e.g.:
+//	Object.defineProperty(mobileDS.parser.element, 'INCLUDE_SCRIPT', {value : 0, writable : false, configurable : false, enumerable : true});
+
+/*
  * 
  * @category parser
  * @public
@@ -50,7 +53,17 @@ mobileDS.parser.element.IF		 			= 256;
 mobileDS.parser.element.ELSE	 			= 512;
 mobileDS.parser.element.FOR		 			= 1024;
 mobileDS.parser.element.RENDER	 			= 2048;
+mobileDS.parser.element.ESCAPE_ENTER		= 4096;
+mobileDS.parser.element.ESCAPE_EXIT			= 8192;
 
-mobileDS.parser.element.isScript = function(element){
-	
-};
+mobileDS.parser.element.FOR_TYPE_ITER		= 16384;
+mobileDS.parser.element.FOR_TYPE_STEP		= 32768;
+
+mobileDS.parser.element.VAR_DECLARATION		= 65536;
+mobileDS.parser.element.VAR_REFERENCE		= 131072;
+
+mobileDS.parser.element.COMMENT				= 262144;
+
+mobileDS.parser.element.DATA_NAME				= '__$$DATA$$__';
+mobileDS.parser.element.DATA_ARGUMENT_NAME		= '@data';
+mobileDS.parser.element.ARGUMENT_ARGUMENT_NAME	= '@argument';

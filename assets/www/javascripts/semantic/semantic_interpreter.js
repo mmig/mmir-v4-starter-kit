@@ -27,150 +27,346 @@
 
 var mobileDS = window.mobileDS ||
 {};
-var asr_recognized_text;
 
-function _error( msg )
-{
+
+// overwrite/implement output functions for JS/CC compiler:
+function _error( msg ){
     console.error('ERROR [SemanticInterpreter.parse]: '+msg);
 }
-
-function _warning( msg )
-{
+function _warning( msg ){
     console.warn('WARNING [SemanticInterpreter.parse]: '+msg);   
 }
-
-
-function _print( msg )
-{
+function _print( msg ){
     console.info('INFO [SemanticInterpreter.parse]: '+msg);   
 }
 
+/**
+ * @class
+ * 
+ * @see mobileDS.SemanticInterpreter#costructor
+ */
 mobileDS.SemanticInterpreter = (function(){
-    var instance = null;
+	var instance = null;
+        
+    var INPUT_FIELD_NAME = 'asr_recognized_text';
     
-    var defaultGeneratedParserFunctionName = 'compiled_grammar';
-    var generatedParserFunction = null;
+    
     
     /**
      * @param doRecompile (OPTIONAL) IF {Boolean}: if true, the JSON grammar in content\grammar.json will be recompiled (needs to be accessable through ajax!)
      * 					IF {String}: the String's contents will be used as a String-representation of the JSON grammar
      * 					IF {Object}: the Object will be used as JSON representation for the grammar
      * 
-     * @param generatedParserFunctionName (OPTIONAL) {String} if param doRecompile is used, this String specifies the 
-     * 					function name for the generated grammatic-parser, i.e. the (global) function with which the
-     * 					parser will be invoked (parameterless). If omitted, the name "compiled_grammar" will be used
-     * 					by default.
-     * 					NOTE: this must be a valid JavaScript identifier!
+     * @param generatedParserLanguageCode (OPTIONAL) {String} if param doRecompile is used, this String specifies the 
+     * 					language for the generated grammatic-parser. If omitted, the default "de" (German) will be used.
+     * 					NOTE: this must be a valid ISO language code!
+     * 
+     * @constructor
+     * @augments mobileDS.SemanticInterpreter
+     * @memberOf mobileDS.SemanticInterpreter.prototype
      */
-    function constructor(doRecompile, generatedParserFunctionName){
+    function constructor(doRecompile, generatedParserLanguageCode){
     
-    	var grammarParser = null;
-    	var grammarDefinitionText = null;
+	    /**
+	     * "map" for grammar implementations (e.g. for different languages)
+	     * 
+	     * @property
+	     * @private
+	     */
+	    var grammarImplMap = {};
+	    /**
+	     * list of IDs for grammar implementations (e.g. for different languages).
+	     * 
+	     * This list contains the "keys" of all current entries in <tt>grammarImplMap</tt>.
+	     * 
+	     * @property
+	     * @private
+	     */
+	    var grammarImplList = [];
+	    
+	    /**
+	     * id (i.e. the <em>key</em> for map <tt>grammarImplMap</tt>) for currently used
+	     * grammar.
+	     * 
+	     * If for invocations of get_asr_semantic(..) etc. function the ID/languageCode
+	     * argument is missing/omitted, then this id will be used.
+	     * 
+	     * NOTE: if not <tt>NULL</tt>, the grammar must be available, either
+	     * 		 as compiled JS file (which must be already loaded, i.e. already present in <tt>grammarImplMap</tt>), or
+	     * 		 as JSON grammar file (which must be available at <tt>/config/languages/[ID]/grammar.json</tt>
+	     */
+	    var currentGrammarId = null;
     	
-        var gc = new GrammarConverter();
-      
-        function build_grammar(){
+	    /**
+	     * 
+	     * NOTE: if no other grammar is available yet, <tt>currentGrammarId</tt> will be set to <tt>id</tt> 
+	     * 
+	     * @param id {String} ID for the grammar (e.g. an ISO-639 language code)
+	     * @param grammarImpl {GrammarConverter|Function} the executable JavaScript grammar implementation
+	     * 					IF {GrammarConverter}: the impl. with valid member {Function} {@link GrammarConverter.compiled_grammar()}
+	     * 					IF {Function}: the {Function} {@link GrammarConverter.compiled_grammar()} - 
+	     * 									In this case, if no GrammarConverter instance fo <tt>id</tt> is present, a new one will be created; 
+	     * 									The stopwords must already be set, or must additionally be set for the GrammarConverter instance
+	     * 									  (e.g. using {@link mobileDS.SemanticInterpreter.setStopwords}) 
+	     */
+    	var doAddGrammar = function(id, grammarImpl){
+        	
+    		
+        	if( ! (grammarImpl instanceof GrammarConverter)){
+        		var gc = doGetGrammar(id, true);
+        		if(!gc){
+        			gc = new GrammarConverter();
+        		}
+        		gc.set_compiled_grammar(grammarImpl);
+        		grammarImpl = gc;
+        	}
+        	else {
+        		
+        	}
+        	
+        	var isAlreadyPresent = checkHasGrammar(id);
+        	grammarImplMap[id] = grammarImpl;
+        	
+        	if( ! isAlreadyPresent){
+	        	if(grammarImplList.length === 0){
+	        		currentGrammarId = id;
+	        	}
+	        	grammarImplList.push(id);
+        	}
+        };
         
-            
-            gc.convert_json_grammar();
-            var grammarDefinition = gc.get_jscc_grammar();
-            
-            grammarDefinitionText = grammarDefinition;
-            
-            var pure_code, out_code, i;
-            html_output = new String();
-            error_output = new String();
-            reset_all(EXEC_WEB);
-            parse_grammar(grammarDefinition);
-          
-            if (errors == 0) {
-                undef();
-                unreachable();
-                    
+        var doSetStopwords = function(id, stopwordArray){
+        	doGetGrammar(id).set_stop_words(stopwordArray);
+        };
+        var doGetGrammar = function(id, doNotResolve){//NOTE: this should stay private
+        	
+        	if(!id){
+        		if(!currentGrammarId){
+        			throw 'Could not retrieve grammar: required grammar ID is missing';
+        		}
+        		else {
+        			id = currentGrammarId;
+        		}
+        	}
+        	
+        	if(!doNotResolve && ! checkHasGrammar(id) ){
+        		var jsonGrammarUrl = instance.get_json_grammar_url(id);
+        		
+        		createAndAddGrammar(jsonGrammarUrl, id, function(){console.error('created!');});
+        	}
+        	
+        	return grammarImplMap[id];
+        };
+        var checkHasGrammar = function(id){
+        	return typeof grammarImplMap[id] !== 'undefined';
+        };
+        var doRemoveGrammar = function(id){
+        	
+        	if( checkHasGrammar(id) ){
+        		
+        		//remove from impl.-map:
+	        	delete grammarImplMap[id];
+	        	
+	        	//remove from ID-list
+	        	for(var i=0, size = grammarImplList.length; i < size; ++i){
+	        		if(grammarImplList[i]==id){
+		        		grammarImplList.splice(i, 1);
+	        			break;
+	        		}
+	        	}
+        	}
+        };
+        
+        
+        //TODO move create/build into GrammarConverter
+    	/**
+         * @param doRecompile (OPTIONAL) IF {Boolean}: if true, the JSON grammar in content\grammar.json will be recompiled (needs to be accessable through ajax!)
+         * 					IF {String}: the String's contents will be used as a String-representation of the JSON grammar
+         * 					IF {Object}: the Object will be used as JSON representation for the grammar
+         * 					IF omitted: the current grammar-JSON file will be loaded into the GrammarConverter.json_grammar_definition 
+         * 
+         * @param generatedParserLanguageCode (OPTIONAL) {String} if param doRecompile is used, this String specifies the 
+         * 					language for the generated grammatic-parser. If omitted, the default "de" (German) will be used.
+         * 					NOTE: this must be a valid ISO language code!
+         * 
+         * @param callback (OPTIONAL) {Function} a callback that is invoked after the grammar was created and added to the SemanticInterpreter. 
+         * 							The callback-function will be invoked without arguments, i.e. <code>callback();</code>
+         * @function
+         */
+        function createAndAddGrammar(doRecompile, generatedParserLanguageCode, callback){
+        	
+        	var gc = new GrammarConverter();
+        	
+        	function build_grammar(theConverterInstance){
+        	    
+                
+                theConverterInstance.convert_json_grammar();
+                var grammarDefinition = theConverterInstance.get_jscc_grammar();
+                
+//                grammarDefinitionText = grammarDefinition;
+                
+//                var pure_code, out_code, i;
+
+                //set up the JS/CC compiler (writes into global variables!):
+                html_output = new String();
+                error_output = new String();
+                reset_all(EXEC_WEB);
+                parse_grammar(grammarDefinition);
+              
                 if (errors == 0) {
-                    first();
-                     print_symbols();
-                     dfa_table = create_subset(nfa_states);
-                     dfa_table = minimize_dfa(dfa_table);
-                     lalr1_parse_table(false);
-                     errors = 0;
+                    undef();
+                    unreachable();
+                        
+                    if (errors == 0) {
+                        first();
+                         print_symbols();
+                         dfa_table = create_subset(nfa_states);
+                         dfa_table = minimize_dfa(dfa_table);
+                         lalr1_parse_table(false);
+                         errors = 0;
+                    }
                 }
-            }
-         
-            if (errors > 0 || warnings > 0 && error_output != "") 
-                console.error(''+error_output);
-            
-            if(IS_DEBUG_ENABLED) console.debug("before replace " + gc.PARSER_TEMPLATE);//debug
-         
-            grammarParser = new String(gc.PARSER_TEMPLATE);
-            grammarParser = grammarParser.replace(/##PREFIX##/gi, "");
-            grammarParser = grammarParser.replace(/##HEADER##/gi, code_head);
-            grammarParser = grammarParser.replace(/##TABLES##/gi, print_parse_tables(MODE_GEN_JS));
-            grammarParser = grammarParser.replace(/##DFA##/gi, print_dfa_table(dfa_table));
-            grammarParser = grammarParser.replace(/##TERMINAL_ACTIONS##/gi, print_term_actions());
-            grammarParser = grammarParser.replace(/##LABELS##/gi, print_symbol_labels());
-            grammarParser = grammarParser.replace(/##ACTIONS##/gi, print_actions());
-            grammarParser = grammarParser.replace(/##FOOTER##/gi, "__parse( asr_recognized_text, new Array(), new Array());");
-            grammarParser = grammarParser.replace(/##ERROR##/gi, get_error_symbol_id());
-            grammarParser = grammarParser.replace(/##EOF##/gi, get_eof_symbol_id());
-            grammarParser = grammarParser.replace(/##WHITESPACE##/gi, get_whitespace_symbol_id());
-            
-            var funcName = typeof generatedParserFunctionName === 'string'? generatedParserFunctionName : defaultGeneratedParserFunctionName;
-            //FIXME attach compiled parser to some other class/object
-            grammarParser = 'GrammarConverter.prototype.' + funcName + ' = function(){\n ' +grammarParser + '\n};';
-            eval(grammarParser);
-            generatedParserFunction = funcName + '();';
-        }
-        
-        if(doRecompile === true || doRecompile === 'true'){
-        	gc.load_grammar(build_grammar);
-        } if(typeof doRecompile === 'string'){
-        	gc.json_grammar_definition = jQuery.parseJSON(doRecompile);
-        	build_grammar();
-        } if(typeof doRecompile === 'object'){
-        	gc.json_grammar_definition = doRecompile;
-        	build_grammar();
-        } else {
-        	gc.load_grammar();
-        }
-        
-        var process_asr_semantic = function(phrase, stopwordFunc, grammarParserCode){
-//        	var stop_words_regexp = gc.get_stop_words_regexp();
-        	phrase = stopwordFunc(phrase);//phrase.replace(stop_words_regexp, '');
-            asr_recognized_text = "";
-            //var tokens = phrase.split(" ");
-            asr_recognized_text = phrase.toLowerCase().replace(/ö/g,'__oe__').replace(/ä/g,'__ae__').replace(/ü/g,'__ue__').replace(/ß/g,'__ss__');
-           
-            if(IS_DEBUG_ENABLED) console.debug('SemanticInterpreter.process_asr_semantic: removed stopwords, now parsing phrase "'+asr_recognized_text+'"');//debug
-            
-            if(typeof grammarParserCode === 'string'){
-//        		console.log('SemanticInterpreter.process_asr_semantic: using CODE STRING paramter as grammar-parser (eval)');//FIXM debug
-            	eval(grammarParserCode);
+             
+                if (errors > 0 || warnings > 0 && error_output != "") 
+                    console.error(''+error_output);
+                
+                console.debug("before replace " + theConverterInstance.PARSER_TEMPLATE);//debug
+             
+                var grammarParser = new String(theConverterInstance.PARSER_TEMPLATE);
+                grammarParser = grammarParser.replace(/##PREFIX##/gi, "");
+                grammarParser = grammarParser.replace(/##HEADER##/gi, code_head);
+                grammarParser = grammarParser.replace(/##TABLES##/gi, print_parse_tables(MODE_GEN_JS));
+                grammarParser = grammarParser.replace(/##DFA##/gi, print_dfa_table(dfa_table));
+                grammarParser = grammarParser.replace(/##TERMINAL_ACTIONS##/gi, print_term_actions());
+                grammarParser = grammarParser.replace(/##LABELS##/gi, print_symbol_labels());
+                grammarParser = grammarParser.replace(/##ACTIONS##/gi, print_actions());
+                grammarParser = grammarParser.replace(/##FOOTER##/gi, "__parse( "+INPUT_FIELD_NAME+", new Array(), new Array());");
+                grammarParser = grammarParser.replace(/##ERROR##/gi, get_error_symbol_id());
+                grammarParser = grammarParser.replace(/##EOF##/gi, get_eof_symbol_id());
+                grammarParser = grammarParser.replace(/##WHITESPACE##/gi, get_whitespace_symbol_id());
+                
+                
+                //FIXME attach compiled parser to some other class/object
+                var addGrammarParserExec = 
+                	  'mobileDS.SemanticInterpreter.getInstance().addGrammar("'
+                		+generatedParserLanguageCode
+                		+'", function('+INPUT_FIELD_NAME+'){'
+                			+ grammarParser
+                	+ '\n});\n\n'
+                	+ 'mobileDS.SemanticInterpreter.getInstance().setStopwords("'
+                		+generatedParserLanguageCode+'",'
+                		+JSON.stringify(theConverterInstance.get_stop_words())
+                	+ ');\n'
+                ;
+                
+                theConverterInstance.set_js_grammar(addGrammarParserExec);
+
+                doAddGrammar(generatedParserLanguageCode, theConverterInstance);
+                
+                eval(addGrammarParserExec);
+                
+                //invoke create&add callback if present:
+                if(callback){
+                	callback();
+                }
+                
+            }//END function build_grammar
+        	
+            if(doRecompile === true || doRecompile === 'true'){//FIXME this option must be re-implemented (there is no 'default' grammar any more!)
+            	gc.load_grammar(build_grammar, function(){ throw 'Could not find JSON grammar file at default location'; } );
+            } else if(typeof doRecompile === 'string'){
+            	//previously: STRING was interpreted as "stringified" JSON-grammar, now: as URL for the JSON grammar
+//            	gc.json_grammar_definition = JSON.parse(doRecompile);
+//            	build_grammar(gc);
+            	gc.load_grammar(build_grammar, function(){ throw 'Could not find JSON grammar file at "'+doRecompile+'"'; } , doRecompile);
+            } else if(typeof doRecompile === 'object'){
+            	gc.json_grammar_definition = doRecompile;
+            	build_grammar(gc);
             } else {
-            	if(generatedParserFunction != null){
-//            		console.log('SemanticInterpreter.process_asr_semantic: using generated grammar-parser (eval)!');//FIXM debug
-            		//FIXME see above: when attachment of compile parser is changed, this also needs to be changed.
-            		eval('gc.' + generatedParserFunction);
-            	} else {
-            		
-            		if(IS_DEBUG_ENABLED) console.debug('SemanticInterpreter.process_asr_semantic: using default grammar-parser!');//debug
-            		
-            		gc.compiled_grammar();
+            	gc.load_grammar();
+            	doAddGrammar(generatedParserLanguageCode, gc);
+            	if(callback){
+            		callback();
             	}
             }
+        }
+        
+        var encodeSpecialChars = function(target, doAlsoEncodeUpperCase){
+        	var isString = typeof target === 'string';
+        	var str;
+        	if(isString){
+        		str = target;
+        	}
+        	else {
+        		str = JSON.stringify(target);
+        	}
+        	
+        	str = str.replace(/ö/g,'__oe__').replace(/ä/g,'__ae__').replace(/ü/g,'__ue__').replace(/ß/g,'__ss__');
+        	if(doAlsoEncodeUpperCase){
+            	str = str.replace(/Ö/g,'__Oe__').replace(/Ä/g,'__Ae__').replace(/Ü/g,'__Ue__');
+        	}
+        	
+        	if(isString){
+        		return str;
+        	}
+        	else {
+        		return JSON.parse(str);
+        	}
+        };
+        
+        var decodeSpecialChars = function(target, doAlsoDecodeUpperCase){
+        	var isString = typeof target === 'string';
+        	var str;
+        	if(isString){
+        		str = target;
+        	}
+        	else {
+        		str = JSON.stringify(target);
+        	}
+        	
+        	str = str.replace(/__oe__/g,'ö').replace(/__ae__/g,'ä').replace(/__ue__/g,'ü').replace(/__ss__/g,'ß');
+        	if(doAlsoDecodeUpperCase){
+            	str = str.replace(/__Oe__/g,'Ö').replace(/__Ae__/g,'Ä').replace(/__Ue__/g,'Ü');
+        	}
+        	
+        	if(isString){
+        		return str;
+        	}
+        	else {
+        		return JSON.parse(str);
+        	}
+        };
+        
+        var process_asr_semantic = function(phrase, stopwordFunc, langCode){//grammarParserCode){
 
-            return gc.asr_semantic_annotation = 
-            	JSON.parse((JSON.stringify(gc.asr_semantic_annotation).replace(/__oe__/g,'ö').replace(/__ae__/g,'ä').replace(/__ue__/g,'ü').replace(/__ss__/g,'ß')));
+        	var grammarConverter = doGetGrammar(langCode);
+        	
+        	if(!grammarConverter){
+    			throw 'NoGrammar_'+langCode;
+    		}
+        	
+            var asr_recognized_text = encodeSpecialChars( phrase.toLowerCase() );
+            asr_recognized_text = stopwordFunc(phrase.toLowerCase(), langCode);
+           
+            if(IS_DEBUG_ENABLED) console.debug('SemanticInterpreter.process_asr_semantic('+langCode+'): removed stopwords, now parsing phrase "'+asr_recognized_text+'"');//debug
+            
+    		grammarConverter.compiled_grammar(asr_recognized_text);
+            		
+            grammarConverter.asr_semantic_annotation = decodeSpecialChars(grammarConverter.asr_semantic_annotation);
+//            	JSON.parse((JSON.stringify(grammarConverter.asr_semantic_annotation).replace(/__oe__/g,'ö').replace(/__ae__/g,'ä').replace(/__ue__/g,'ü').replace(/__ss__/g,'ß')));
+            
+            return grammarConverter.asr_semantic_annotation;//TODO return copy instead of original instance? 
         };
         
 
-		var removeStopwordsFunc =  function(thePhrase){
+		var removeStopwordsFunc =  function(thePhrase, lang){
+			var gc = doGetGrammar(lang);
     		var stop_words_regexp = gc.get_stop_words_regexp();
         	return thePhrase.replace(stop_words_regexp, '').trim();
     	};
     	
-		var removeStopwordsAltFunc = function(thePhrase){
-    		
+		var removeStopwordsAltFunc = function(thePhrase, lang){
+    		var gc = doGetGrammar(lang);
     		var stop_words_regexp = gc.get_stop_words_regexp_alt();
         	
 			while (thePhrase.match(stop_words_regexp)) {
@@ -181,68 +377,99 @@ mobileDS.SemanticInterpreter = (function(){
 			return thePhrase;
 		};
         
+		/** @lends mobileDS.SemanticInterpreter.prototype */
         return { // public members
         	/**
              * NOTE: now uses the modified implementation for stopwords.
              */
-            get_asr_semantic: function(phrase, grammarParserCode){
+            get_asr_semantic: function(phrase, langCode){
             	
-            	return process_asr_semantic(phrase, removeStopwordsAltFunc, grammarParserCode);
+            	return process_asr_semantic(phrase, removeStopwordsFunc, langCode);
             	
-//            	var stop_words_regexp = gc.get_stop_words_regexp();
-//            	phrase = phrase.replace(stop_words_regexp, '');
-//                asr_recognized_text = "";
-//                //var tokens = phrase.split(" ");
-//                asr_recognized_text = phrase.toLowerCase().replace(/ö/g,'__oe__').replace(/ä/g,'__ae__').replace(/ü/g,'__ue__').replace(/ß/g,'__ss__');
-//               // eval(grammarParser);
-//                compiled_grammar();
-//                return asr_semantic_annotation = 
-//                    jQuery.parseJSON((JSON.stringify(asr_semantic_annotation).replace(/__oe__/g,'ö').replace(/__ae__/g,'ä').replace(/__ue__/g,'ü').replace(/__ss__/g,'ß')));
             },
-            get_curr_asr_semantic: function(){
-                return gc.asr_semantic_annotation;
-            },
+//            get_curr_asr_semantic: function(id){
+//                return doGetGrammar(id).asr_semantic_annotation;
+//            },
             /**
              * NOTE: uses the original implementation for stopwords (has some problems for stopwords at the 
-             *  end of a sentence
+             *  end of a sentence)
              */
-            get_asr_semantic_alt: function(phrase, grammarParserCode){
+            get_asr_semantic_alt: function(phrase, langCode){
             	
-            	return process_asr_semantic(phrase, removeStopwordsFunc, grammarParserCode);
+            	return process_asr_semantic(phrase, removeStopwordsAltFunc, langCode);
             	
             },
-			removeStopwords: removeStopwordsFunc,
-			removeStopwordsAlt: removeStopwordsAltFunc,
-			/** NOTE: the grammar must be compiled first, see getNewInstance(true) */
-			getGrammarDefinitionText: function(){
-				return grammarDefinitionText;
+			removeStopwords: function(thePhrase, lang){
+				var str = encodeSpecialChars(thePhrase, true);
+				str = removeStopwordsFunc(str, lang);
+				return decodeSpecialChars(str, true);
+			},
+			removeStopwordsAlt: function(thePhrase, lang){
+				var str = encodeSpecialChars(thePhrase, true);
+				str = removeStopwordsAltFunc(str, lang);
+				return decodeSpecialChars(str, true);
 			},
 			/** NOTE: the grammar must be compiled first, see getNewInstance(true) */
-			getGrammarParserText: function(){
-				return grammarParser;
-			},	
-			printAndRaise: function(asr_result){//FIXME move this code from here into application-specific code file!
+			getGrammarDefinitionText: function(id){
+				return doGetGrammar(id).get_jscc_grammar();//grammarDefinitionText;
+			},
+			/** NOTE: the grammar must be compiled first, see getNewInstance(true) */
+			getGrammarParserText: function(id){
+				return doGetGrammar(id).get_js_grammar();//grammarParser;
+			},
+			getGrammarConverter: function(id){
+				return doGetGrammar(id);
+			},
+			
+			createGrammar: function(rawGrammarSrc, id, callback){
 				
-			//	console.log("[Nuance] "  + res['result']);
-				
-		//		var asr_result = res['result'];
-				
-				var result = mobileDS.SemanticInterpreter.getInstance().get_asr_semantic(asr_result);
-				var semantic;
-				if ($('#mic_button').hasClass('footer_button_clicked'))
-					$('#mic_button').removeClass('footer_button_clicked');
-				if (result.semantic != null) {
-				    semantic = JSON.parse(result.semantic);
-				    semantic.phrase = asr_result;
-				    console.log("semantic : " + result.semantic);
+				if(!id){
+					throw 'missing ID for generated grammar';//TODO
 				}
-				else {
-				    semantic = JSON.parse('{ "NoMatch": { "phrase": "'+asr_result+'" }}');
-				}
-				MobileDS.InputManager.getInstance().raiseEvent("speech_input_event",  semantic);
-			}
+		        
+				createAndAddGrammar(rawGrammarSrc, id, callback);
+				
+				return this;
+			},
+			
+	        addGrammar: doAddGrammar,
+	        setStopwords: doSetStopwords,
+//	        getGrammar: doGetGrammar, <- set to private
+	        hasGrammar: checkHasGrammar,
+	        removeGrammar: doRemoveGrammar,
+
+	        /**
+	         * Sets the current grammar.
+	         * 
+	         * If in invocations of get_asr_semantic(..) the grammar ID (e.g. language code) is missing,
+	         * then this grammar that is set here is used.
+	         * 
+	         * The id must reference either a grammar that was compiled (i.e. generated JavaScript file)
+	         * for this id, or there must exists JSON-grammar file for which the language-dir matches the id parameter,
+	         * e.g. config/languages/[id]/grammar.json.
+	         * 
+	         * @param {String} id the ID for the grammar, e.g. an ISO language code
+	         * 
+	         * @function
+	         * @public
+	         */
+	        setCurrentGrammar: function(id){
+	        	currentGrammarId = id;
+	        },
+	        getCurrentGrammar: function(){
+	        	return currentGrammarId;
+	        },
+	        
+	        //FIXME rename/move functions
+	        get_json_grammar_url: function(id){
+	        	var configLangPath = mobileDS.constants.getInstance().getLanguagePath();
+	        	var jsonGrammarFileName = mobileDS.constants.getInstance().getGrammarFilename();
+	        	
+	        	return configLangPath + id + '/' +jsonGrammarFileName;
+	        }
         };
     }
+    
     return {
         getInstance: function(){
         
@@ -251,13 +478,14 @@ mobileDS.SemanticInterpreter = (function(){
                 instance = constructor();
             }
             return instance;
-        },
-        getNewInstance: function(doRecompile, generatedParserFunctionName){
-            
-            instance = constructor(doRecompile, generatedParserFunctionName);
-            
-            return instance;
         }
+//    	,
+//        getNewInstance: function(doRecompile, generatedParserId){
+//            
+//            instance = constructor(doRecompile, generatedParserId);
+//            
+//            return instance;
+//        }
     };
     
 })();

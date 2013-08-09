@@ -43,6 +43,8 @@ var mobileDS = window.mobileDS ||
  * @example <code>mobileDS.LocationObserver.getInstance()</code>
  * @class LocationObserver
  * @category core
+ * 
+ * @see mobileDS.LocationObserver#constructor
  */
 mobileDS.LocationObserver = (function(){
     //private members
@@ -62,6 +64,8 @@ mobileDS.LocationObserver = (function(){
 	 * Constructor-Method of Class {@link mobileDS.LocationObserver}.<br>
 	 * Sets the default behavior of the gesture detection.
 	 * @constructor
+	 * @augments mobileDS.LocationObserver
+	 * @memberOf mobileDS.LocationObserver.prototype
 	 */
     function constructor(){
     
@@ -104,6 +108,7 @@ mobileDS.LocationObserver = (function(){
                   'message: ' + error.message + '\n');
         }
         
+    	/** @lends mobileDS.LocationObserver.prototype */
         return { //public members and methods
             
         	/**

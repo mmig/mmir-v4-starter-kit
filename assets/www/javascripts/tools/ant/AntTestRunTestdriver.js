@@ -64,7 +64,6 @@ for (var cfileIndex in fileArray){
 	var workingDir = new File(project.getProperty("basedir").replace("\\","/")+"/..");
 	
 	testDriverTask.setDir(workingDir);
-	
 	testDriverTask.setJar(targetJar);
 	testDriverTask.setFork(true);
 	testDriverTask.setTimeout(60000);
@@ -78,6 +77,9 @@ for (var cfileIndex in fileArray){
 	testDriverTask.createArg().setValue("--captureConsole");
 	testDriverTask.createArg().setValue("--tests");
 	testDriverTask.createArg().setValue("all");
+	testDriverTask.createArg().setValue("--verbose");
+	testDriverTask.createArg().setValue("--testOutput");
+	testDriverTask.createArg().setValue(project.getProperty("basedir")+"/"+project.getProperty("jstestdriver.log.dir"));
 	testDriverTask.createArg().setValue("--browser");
 	testDriverTask.createArg().setValue(project.getProperty("config.browser.args"));
 	testDriverTask.createArg().setValue("--config");

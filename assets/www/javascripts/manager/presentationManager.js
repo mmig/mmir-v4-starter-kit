@@ -52,6 +52,8 @@ var pageIndex = 0;
  * @example <code>mobileDS.PresentationManager.getInstance()</code>
  * @class PresentationManager
  * @category core
+ * 
+ * @see mobileDS.PresentationManager#constructor
  */
 mobileDS.PresentationManager = (function(){
 
@@ -70,6 +72,8 @@ mobileDS.PresentationManager = (function(){
 	 * 
 	 * @param {Function} main A completely useless parameter
 	 * @constructor
+	 * @augments mobileDS.PresentationManager
+	 * @memberOf mobileDS.PresentationManager.prototype
 	 */
     function constructor(main){
         //private members
@@ -186,8 +190,8 @@ mobileDS.PresentationManager = (function(){
          */
         var current_dialog = null;
      
-        //helper for loading/parsing the template-files
-        var renderer = mobileDS.parser.ParserUtils.getInstance();
+        //helper for rendering the HTML templates (i.e. the parsed template files)
+        var renderer = mobileDS.parser.RenderUtils.getInstance();
         
 		/**
 		 * This function loads the layouts for every controller and puts the name of the layouts into the <b>layouts</b> array.
@@ -205,7 +209,7 @@ mobileDS.PresentationManager = (function(){
                 $.ajax({
                     async: false,
                     dataType: "text",
-                    url: layoutPath + ctrlFileName + '.ehtml',
+                    url: mobileDS.constants.getInstance(forBrowser).getLayoutPath() + ctrlFileName + '.ehtml',
                     success: function(data){
 					    var layout = new Layout(ctrlFileName, data);
                         layouts[layoutIndex++] = layout;
@@ -308,6 +312,9 @@ mobileDS.PresentationManager = (function(){
         loadLayouts();
         loadViews();
         loadPartials();
+        
+
+    	/** @lends mobileDS.PresentationManager.prototype */
         return { //public members
             /**
     		 * This function returns a visualComponent by id.<br>
@@ -324,6 +331,19 @@ mobileDS.PresentationManager = (function(){
             },
             
             
+            addLayout: function(layout){
+            	var layout_replaced = false;
+            	$.each(layouts, function(index, l){
+                	if (layouts[index].getName() == layout.getName()) {
+                		layouts[index] = layout;
+                        layout_replaced = true;
+                        return false;
+                    }
+                });
+            	if (layout_replaced == false){
+                    layouts.push(layout);
+            	}
+            },
             /**
     		 * This function returns a layout object by name.<br>
     		 * 
@@ -343,7 +363,19 @@ mobileDS.PresentationManager = (function(){
                 return layout;
             },
 
-            
+            addView: function(view){
+            	var view_replaced = false;
+            	$.each(views, function(index, v){
+                	if (views[index].getName() == view.getName()) {
+                		views[index] = view;
+                		view_replaced = true;
+                        return false;
+                    }
+                });
+            	if (view_replaced == false){
+            		views.push(view);
+            	}
+            },
             /**
     		 * This function returns a view object by name.<br>
     		 * 
@@ -375,18 +407,29 @@ mobileDS.PresentationManager = (function(){
     		 * @returns {Object} The requested partial, "false" if not found 
     		 * @public
     		 */
-            getPartial: function(partialName){
-              var partial;
-              partialName = partialName.toLowerCase();
+            getPartial: function(partialName, controller){
+            	var partial = false;
+            	
+            	partialName = partialName.toLowerCase();//TODO remove conversion to lower case (this has to be done in all locations that write/access the partial's name!)
+            	
+            	if(controller){
+            		if(typeof controller.getName !== 'undefined'){
+            			partialName = controller.getName() + mobileDS.CommonUtils.getInstance().getPartialsPrefix() + partialName;
+            		}
+            		else {
+            			partialName = controller + mobileDS.CommonUtils.getInstance().getPartialsPrefix() + partialName;
+            		}
+            	}
+            	
 //				console.log("[PresentationManager] looking for " + partialName);
-              $.each(partials, function(index, p){
+            	for(var i=0, size = partials.length; i < size; ++i){
 //					console.log("partialName: " + p.getName());
-            	  if (p.getName() == partialName.toLowerCase()) {
-//						console.log("found " + p.getName());
-                        partial = p;
-                        return false;
-                  }
-              });
+            		if (partials[i].getName() == partialName.toLowerCase()) {
+//						console.log("found " + partials[i].getName());
+            			partial = partials[i];
+                        break;
+                    }
+            	}
             	return partial;
             },
 
@@ -400,7 +443,7 @@ mobileDS.PresentationManager = (function(){
             close_current_dialog: function (){
             	/*if (current_dialog != null){
             		current_dialog.close();
-            		current_dialog = nulll;
+            		current_dialog = null;
             	}*/
             	if($.modal != null){
             	 $.modal.close();
@@ -468,8 +511,9 @@ mobileDS.PresentationManager = (function(){
                 if (ctrl != null) {
 					var view = mobileDS.PresentationManager.getInstance().getView(ctrlName + "#" + viewName);
 					
-					//execute the helper-scripts that were referenced in the view:
-					view.executeHelperMethods(data);
+					//DISABLED helper methods are now handled differently -> invoked during rendering where they are specified in the template/view definition
+//					//execute the helper-scripts that were referenced in the view:
+//					view.executeHelperMethods(data);
 					
 					mobileDS.PresentationManager.getInstance().render_view_successor(ctrlName, viewName, view, ctrl, data);
 					
@@ -568,7 +612,10 @@ mobileDS.PresentationManager = (function(){
                 var newId = "pageContainer" + pageIndex;
                 
                 layoutBody = layoutBody.replace(pg, newId);
-              
+                
+                if(typeof $.parseHTML !== 'undefined'){
+                	layoutBody = $.parseHTML(layoutBody);
+                }
                 var newPage = $(layoutBody);
                 
                 //'load' new content into the page (using jQuery mobile)

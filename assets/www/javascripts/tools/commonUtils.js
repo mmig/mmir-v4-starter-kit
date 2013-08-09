@@ -40,6 +40,8 @@ var mobileDS = window.mobileDS ||
  * @example <code>mobileDS.CommonUtils.getInstance()</code>
  * @class CommonUtils
  * @category core
+ * 
+ * @see mobileDS.CommonUtils#constructor
  */
 mobileDS.CommonUtils = (function(){
 
@@ -75,13 +77,15 @@ mobileDS.CommonUtils = (function(){
 	/**
 	 * This function is used by {@link mobileDS.CommonUtils-constructor.getDirectoryContents} and {@link mobileDS.CommonUtils-constructor.getDirectoryContentsWithFilter} to strip the pathname parameter
 	 * @function stripPathName
-	 * @protected
+	 * @private
 	 * @param {string} pathname The path that should be stripped of "file://" and a beginning or trailing "/"
 	 * @returns {String} The stripped pathname - devoid of beginning "file://" or "/" and trailing "/"
  	 */
 	function stripPathName(pathname){
 		
 		//FIXME this is a HACK; TODO handle this in a general way!
+		var basePath = mobileDS.constants.getInstance(forBrowser).getBasePath();
+		
     	if(pathname.startsWith(basePath)){
     		pathname = pathname.substring(basePath.length);
     	}
@@ -98,11 +102,49 @@ mobileDS.CommonUtils = (function(){
     	
     	return pathname;
 	}
+	
+	/**
+	 * This helper initializes a function for detecting if an Object is an Array.
+	 * 
+	 * The helper tries to find functions of JavaScript libraries for this; if none can be found,
+	 * a custom implementation is used.
+	 * 
+	 * The returned function is used by {@link mobileDS.CommonUtils-constructor.isArray}
+	 * 
+	 * NOTE: The current implementation checks $.isArray for presences
+	 * 
+	 * @function isArrayHelper
+	 * @private
+	 * @returns {Function} a function that takes one parameter (Object) and returns true if this parameter is an Array (false otherwise)
+ 	 */
+	var isArrayHelper = function(obj){
+		
+		//this is the initializer: the following will overwrite the isArray-function
+		// with the appropriate version (use jQuery method, if present, otherwise use alternative)
+		
+		//if present, use jQuery method:
+		if(typeof $ !== 'undefined' && typeof $.isArray === 'function'){
+			isArrayHelper = $.isArray; 
+		}
+		else {
+			//use the toString method with well-defined return-value from Object:
+			var staticToString = Object.prototype.toString;
+			
+			isArrayHelper = function(obj){
+				return staticToString.call(obj) === '[object Array]';
+			};
+		}
+	};
+	//initialize the isArray-function
+	isArrayHelper();
 
 	/**
 	 * Constructor-Method of Class {@link mobileDS.CommonUtils}
 	 * 
 	 * @constructor
+	 * @augments mobileDS.CommonUtils
+	 * 
+	 * @memberOf mobileDS.CommonUtils.prototype
 	 */
     function constructor(){
         //private members.
@@ -257,6 +299,7 @@ mobileDS.CommonUtils = (function(){
 	    this.months['de']['11'] = 'November';
 	    this.months['de']['12'] = 'Dezember';
 
+	    /** @lends mobileDS.CommonUtils.prototype */
 		return {
             //public members.
 			/**
@@ -566,7 +609,7 @@ mobileDS.CommonUtils = (function(){
 			 * @async
 			 * @public
 			 */
-            loadAllPhonegapPlugins: function (pluginspath, cbFunction){
+            loadAllPhonegapPlugins: function (pluginsPath, cbFunction){
             	var self = this;
             	// reads all *.js files under /assets/www/javascript/plugins
             	// and loads them dynamically
@@ -735,6 +778,25 @@ mobileDS.CommonUtils = (function(){
             	return retValue;
             },
             
+            /**
+             * Checks if an object is an <code>Array</code>.
+             * 
+             * <p>
+             * This function can be savely run in arbirtray contexts, e.g.
+             * 
+             * <pre> var checkArray = mobileDS.CommonUtils.getInstance().isArray;
+             * if( checkArray(someObject) ){
+             *   ...</pre>
+             *  
+			 * @function isArray
+			 * @param {Object} object the Object for checking if it is an Array
+			 * @public
+			 * @returns {Boolean} <code>true</code> if <code>object</code> is an <code>Array</code>, otherwise <code>false</code>.
+			 */
+            isArray: function(object){
+            	return isArrayHelper(object);
+            },
+            
 			/**
 			 * This function iterates over all elements of a specific class and changes the font-size of the contained text to the maximal possible size - while still being small enough to fit in the element. 
 			 * @function html_resize_font_to_fit_surrounding_box
@@ -827,8 +889,8 @@ mobileDS.CommonUtils = (function(){
 
         	},
             
-        	convert_json_to_HTML_string: function(o){
-        		var parse = function(_o){
+        	convert_json_to_HTML_string: function(_o){
+//        		var parse = function(_o){
 			        var a = new Array(), t;
 			        for(var p in _o){
 			            if(_o.hasOwnProperty(p)){
@@ -846,9 +908,11 @@ mobileDS.CommonUtils = (function(){
 			                }
 			            }
 			        }
-    		        return a;
-        		};
-    		    return "{" + parse(o).join(", ") + "}";
+//    		        return a;
+//        		};
+//    		    return "{" + parse(o).join(", ") + "}";
+
+    		    return "{" + a.join(", ") + "}";
         	},
         	
         	/**
@@ -1014,7 +1078,7 @@ mobileDS.CommonUtils = (function(){
         	 * TODO implement with HTML5 functions (in addition to / instead of cordova)? 
         	 * 
         	 * @function checkNetworkConnection
-        	 * @protected
+        	 * @private
         	 * @returns {Boolean} <code>true</code> if a network connection is enabled
          	 */
         	checkNetworkConnection: function() {

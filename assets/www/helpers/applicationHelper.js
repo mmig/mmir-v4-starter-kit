@@ -52,10 +52,11 @@ var ApplicationHelper = function(){
  * 
  * @method initialize_language_menu
  * @param {Object} ctrl Controller which stores the available languages
+ * @param {Object} data the event-data (un-used)
  * @deprecated TODO use partials instead
  * @public
  */
-ApplicationHelper.prototype.get_language_menu = function(ctrl){
+ApplicationHelper.prototype.get_language_menu = function(ctrl, data){
 	
 	var self = this;
 
@@ -98,7 +99,7 @@ ApplicationHelper.prototype.get_language_menu = function(ctrl){
 				class_li += "ui-body-"+self.listItemTheme;
 			}
 			
-			li.addClass( "class", class_li );
+			li.addClass( class_li );
 			li.css("padding", "0px" );
 			
 			// add onclick actions

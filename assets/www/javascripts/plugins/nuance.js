@@ -50,23 +50,41 @@ NuancePlugin.prototype.init = function(successCallback, failureCallback) {
     					 []);                 //Passing a list of arguments to the plugin
 };
 
-NuancePlugin.prototype.speak = function(text, successCallback, failureCallback){
+NuancePlugin.prototype.speak = function(text, successCallback, failureCallback, language){
 	
 	 return cordova.exec(successCallback,     //Callback which will be called when directory listing is successful
-    					 failureCallback,      //Callback which will be called when directory listing encounters an error
-    					 'NuanceAndroidPlugin',       //Telling cordova that we want to run "NuancePlugin" Plugin
-    					 'tts',                //Telling the plugin, which action we want to perform
-    					 [text]);                  //Passing a list of arguments to the plugin
+   					 failureCallback,      //Callback which will be called when directory listing encounters an error
+   					 'NuanceAndroidPlugin',       //Telling cordova that we want to run "NuancePlugin" Plugin
+   					 'tts',                //Telling the plugin, which action we want to perform
+   					 [text,language]);                  //Passing a list of arguments to the plugin
 };
 
 
-NuancePlugin.prototype.recognize = function(data, successCallback, failureCallback){
+NuancePlugin.prototype.recognize = function(language, successCallback, failureCallback){
 
 	 return cordova.exec(successCallback,     //Callback which will be called when directory listing is successful
-    					 failureCallback,      //Callback which will be called when directory listing encounters an error
-    					 'NuanceAndroidPlugin',       //Telling cordova that we want to run "NuancePlugin" Plugin
-    					 'asr',                //Telling the plugin, which action we want to perform
-    					 [data]);                  //Passing a list of arguments to the plugin
+   					 failureCallback,      //Callback which will be called when directory listing encounters an error
+   					 'NuanceAndroidPlugin',       //Telling cordova that we want to run "NuancePlugin" Plugin
+   					 'asr',                //Telling the plugin, which action we want to perform
+   					 [language]);                  //Passing a list of arguments to the plugin
+};
+
+NuancePlugin.prototype.recognizeNoEOS = function(language, successCallback, failureCallback){
+
+	 return cordova.exec(successCallback,     //Callback which will be called when directory listing is successful
+  					 failureCallback,      //Callback which will be called when directory listing encounters an error
+  					 'NuanceAndroidPlugin',       //Telling cordova that we want to run "NuancePlugin" Plugin
+  					 'asr-no-eos-detection',                //Telling the plugin, which action we want to perform
+  					 [language]);                  //Passing a list of arguments to the plugin
+};
+
+NuancePlugin.prototype.stopRecord = function(successCallback, failureCallback){
+
+	 return cordova.exec(successCallback,     //Callback which will be called when directory listing is successful
+ 					 failureCallback,      //Callback which will be called when directory listing encounters an error
+ 					 'NuanceAndroidPlugin',       //Telling cordova that we want to run "NuancePlugin" Plugin
+ 					 'stop-rec',                //Telling the plugin, which action we want to perform
+ 					 []);                  //Passing a list of arguments to the plugin
 };
 
 NuancePlugin.prototype.cancel = function(successCallback, failureCallback){

@@ -32,29 +32,34 @@
 			SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		-->
 
-        <link rel="stylesheet" href="content/stylesheets/jquery.mobile-1.2.0.min.css" />
-        <link rel="stylesheet" href="content/stylesheets/jquery.mobile.datebox-1.0.1.min.css"/>
+        <link rel="stylesheet" href="content/stylesheets/jquery.mobile-1.3.1.min.css" />
+        <link rel="stylesheet" href="content/stylesheets/jqm-datebox-1.4.0.min.css"/>
 	    
-	    <script src="javascripts/3rdParty/jquery-1.8.3.min.js">
+	    <script type="text/javascript" src="javascripts/3rdParty/jquery-1.9.1.min.js">
         </script>
-        <script type="text/javascript" src="javascripts/3rdParty/jquery.mobile-1.2.0.min.js">
+        <script type="text/javascript" src="javascripts/3rdParty/jquery.mobile-1.3.1.min.js">
         </script>
-		<script type="text/javascript" src="javascripts/3rdParty/datebox/jquery.mobile.datebox-1.0.1.min.js">
+		<script type="text/javascript" src="javascripts/3rdParty/datebox/jqm-datebox-1.4.0.comp.flipbox.min.js">
         </script>
-		<script type="text/javascript" src="javascripts/3rdParty/datebox/jquery.mobile.datebox.i18n.de.utf8.js">
+		<script type="text/javascript" src="javascripts/3rdParty/datebox/jquery.mobile.datebox.i18n.en.utf8.js">
         </script>
-        <script type="text/javascript" src="javascripts/3rdParty/cordova-2.3.0.js">
+        <script type="text/javascript" src="javascripts/remoteAjax.js">
         </script>
         
+        <script type="text/javascript" src="javascripts/remoteLogging.js">
+        </script>
         
         <script type="text/javascript" src="javascripts/tools/StringExtensions.js">
         </script>
         <script type="text/javascript" src="javascripts/tools/FunctionExtensions.js">
         </script>
         
-        <script type="text/javascript" src="javascripts/3rdParty/scion-min.js">
+        <script type="text/javascript" src="javascripts/3rdParty/scion.js">
         </script>
         
+        <script type="text/javascript" src="javascripts/tools/constants.js">
+        </script>
+
         <script type="text/javascript" src="javascripts/tools/commonUtils.js">
         </script>
         
@@ -71,8 +76,20 @@
 	    				forBrowser = false;
 	    			}
 	    		}
+	    		
+	    		if(forBrowser){
+	    			html5Navigator = window.navigator;//<- omit var-declaration in order to make this variable global
+	    		}
 	    	})();
 	    </script>
+	    
+	    <script type="text/javascript">
+	        //create script-element for cordova (only if run on Android):
+	        if(! forBrowser){
+	    		document.write('<'+'script type="text/javascript" src="javascripts/3rdParty/cordova-2.8.1.js"><'+'/script>');
+	    	}
+	    </script>
+	    
 	    <script type="text/javascript" src="javascripts/main.js">
         </script>
         
@@ -95,8 +112,9 @@
         </script>
         
 		<script type="text/javascript" src="javascripts/3rdParty/antlr3-all-min.js"></script>
-		<script type="text/javascript" src="javascripts/mvc/parser/templateProcessor.js"></script>
 		<script type="text/javascript" src="javascripts/mvc/parser/parseElementTypes.js"></script>
+		<script type="text/javascript" src="javascripts/mvc/parser/parsingResult.js"></script>
+		<script type="text/javascript" src="javascripts/mvc/parser/templateProcessor.js"></script>
 		<script type="text/javascript" src="javascripts/gen/parser/MmirTemplateLexer.js"></script>
 		<!-- script type="text/javascript" src="javascripts/gen/parser/MmirTemplateParser.js"></script-->
 		<script type="text/javascript" src="javascripts/gen/parser/ES3Lexer.js"></script>
@@ -108,7 +126,12 @@
 		<script type="text/javascript" src="javascripts/gen/parser/MmirScriptContentLexer.js"></script>
 		<script type="text/javascript" src="javascripts/gen/parser/MmirScriptContentParser.js"></script>
 		<script type="text/javascript" src="javascripts/mvc/parser/templateParseUtils.js"></script>
+		<script type="text/javascript" src="javascripts/mvc/parser/templateRenderUtils.js"></script>
 
+        <script type="text/javascript" src="javascripts/mvc/views/contentElement.js">
+        </script>
+        <script type="text/javascript" src="javascripts/mvc/views/yield.js">
+        </script>
         <script type="text/javascript" src="javascripts/mvc/views/layout.js">
         </script>
         <script type="text/javascript" src="javascripts/mvc/views/view.js">
@@ -124,6 +147,8 @@
         <script type="text/javascript" src="javascripts/mediators/audioInput.js">
         </script>
         <script type="text/javascript" src="javascripts/mediators/audioOutput.js">
+        </script>
+        <script type="text/javascript" src="javascripts/mediators/concurrentSCION.js">
         </script>
         <script type="text/javascript" src="javascripts/manager/modelManager.js">
         </script>
@@ -142,13 +167,14 @@
         
         <script type="text/javascript" src="javascripts/semantic/grammar_converter.js">
         </script>
-        <script type="text/javascript" src="javascripts/gen/grammar.js">
-        </script>
         <script type="text/javascript" src="javascripts/semantic/grammar_parser_template.js">
         </script>
-      
         <script type="text/javascript" src="javascripts/semantic/semantic_interpreter.js">
         </script>
+        <!-- TODO load all grammars in gen/grammar dynamically instead of statically linking here! -->
+        <script type="text/javascript" src="gen/grammar/de_grammar.js">
+        </script>
+        
         <script type="text/javascript" src="javascripts/gesture/accelerometerGestureDetector.js">
         </script>
         <script type="text/javascript" src="javascripts/gesture/compassHandler.js">
@@ -171,6 +197,15 @@
 
       </head>
     <body>
+       
+       <!-- DEBUGGING: connection to remote weinre debugging-server -->
+       <script type="text/javascript">
+        //create script-element for weinre debugger (only if run on Android):
+        if(! forBrowser){
+    		document.write('<'+'script type="text/javascript" src="http://172.16.150.204:8888/target/target-script-min.js"><'+'/script>');
+    	}
+       </script>
+       
 	   <div id="pageContainer" data-role="page" class="type-interior"
 			data-url="pageContainer" data-cache="false">
 	

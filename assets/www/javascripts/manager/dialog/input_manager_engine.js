@@ -67,10 +67,13 @@ mobileDS.InputManager = (function(){
 	 * It instantiates a state-machine handling every input. 
 	 * 
 	 * @constructor
+	 * @augments mobileDS.InputManager
+	 * @memberOf mobileDS.InputManager.prototype
 	 */
 	function constructor(){
 		
 		var interpreter = null;
+		var eventGenerator = null;
 		var isInitialized = false;
 		var scion = require('scion');
 		scion.urlToModel("config/statedef/input_manager_scxml.xml",function(err,model){
@@ -100,9 +103,12 @@ mobileDS.InputManager = (function(){
     			}
     		};
     		interpreter.registerListener(listener);
-    		
+    		eventGenerator = mobileDS.ConcurrentSCION.getInstance().newConcurrentSCION(interpreter, 
+					function(e){console.log('ERROR creating concurrentSCION');});
+
         });
 		
+		/** @lends mobileDS.InputManager.prototype */
 		return {
             /**
     		 * This function initializes the state-machine, which will handle the input. 
@@ -179,7 +185,7 @@ mobileDS.InputManager = (function(){
 //					console.warn("no possible transition for " + eventName);
 //                }
 				//TODO is there a way to check, if eventName is defined in interpreter-model?
-				interpreter.gen(eventName, data);
+				eventGenerator.gen(eventName, data);
 
             }
 	            

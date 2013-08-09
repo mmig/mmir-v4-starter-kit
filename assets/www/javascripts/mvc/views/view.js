@@ -79,7 +79,7 @@ function View(ctrl, name, definition){
    
 	
     /**
-     * An array of all the views {@link mobileDS.ContentFor} objects.<br>
+     * An array of all the views {@link mobileDS.ContentElement} objects.<br>
      * 
      * @property contentFors
      * @type Array
@@ -89,7 +89,10 @@ function View(ctrl, name, definition){
    
 	
     /**
+     *
      * An array of all names of the for the view required helper methods.
+     * 
+     * @deprecated helper methods must now explicitly called in template definition (using syntax <code>@helper(name,args)</code>)
      * 
      * @property helperMethods
      * @type Array
@@ -99,14 +102,13 @@ function View(ctrl, name, definition){
     
 
     var parser = mobileDS.parser.ParserUtils.getInstance();
+    var renderer = mobileDS.parser.RenderUtils.getInstance();
     
     
-    var parseResult = parser.parse(this.def);
-    
-    //TODO handle scripts (BLOCK, STATEMENTS) -> this.helperMethods
+    var parseResult = parser.parse(this.def, this);
     
     for(var i=0, size = parseResult.contentFors.length; i < size ; ++i){
-    	this.contentFors.push(new ContentFor(parseResult.contentFors[i], this.controller, parser));
+    	this.contentFors.push(new ContentElement(parseResult.contentFors[i], this, parser, renderer));
     }
     
 }
@@ -115,22 +117,26 @@ function View(ctrl, name, definition){
 /**
  * Executes all helper methods that were specified / referenced in the view; with **data** as parameter.
  * 
+ * @deprecated helper methods must now explicitly called in template definition (using syntax <code>@helper(name,args)</code>)
+ * 
  * @function executeHelperMethods
  * @param {Object} data Parameter to pass to the helper methods
  */
 View.prototype.executeHelperMethods = function(data){
-	var self = this;
-	
-	$.each(self.getHelperMethods(), function(index, h_method){
-		//if(index == self.getHelperMethods().length -1){
-		//	console.log("calling an action in view  : " + h_method );
-		//	self.controller.performHelperAction(h_method, data, mobileDS.PresentationManager.getInstance().render_view_successor(self.controller.getName(), self.name, self, self.controller));
-		//	console.log("action berformed : " + h_method);
-		//}else{
-			self.controller.performHelperAction(h_method, data);
-		//}
-	
-	});
+	for(var i=0, size = this.getHelperMethods().length; i < size ; ++i){
+		this.controller.performHelperAction(this.getHelperMethods()[i], data);
+    }
+//	var self = this;
+//	$.each(self.getHelperMethods(), function(index, h_method){
+//		//if(index == self.getHelperMethods().length -1){
+//		//	console.log("calling an action in view  : " + h_method );
+//		//	self.controller.performHelperAction(h_method, data, mobileDS.PresentationManager.getInstance().render_view_successor(self.controller.getName(), self.name, self, self.controller));
+//		//	console.log("action berformed : " + h_method);
+//		//}else{
+//			self.controller.performHelperAction(h_method, data);
+//		//}
+//	
+//	});
 };
 
 
@@ -155,26 +161,42 @@ View.prototype.getName = function(){
     return this.name;
 };
 
-
 /**
- * Gets a specific {@link mobileDS.ContentFor} object by name. 
+ * Gets the name of a view. 
  * 
- * @function getContentFor
- * @param {String} name Name of the ContentFor object
- * @returns {object} The wanted ContentFor object or null
+ * @function getController
+ * @returns {Object} The controller for the view
  */
-View.prototype.getContentFor = function( name){
-    var result = null;
-	//this.controller = ctrl;
-    $.each(this.contentFors, function(index, content){
-    
-        if (content.getName() == name) {
-            result = content;
-        }
-    });
-    return result;
+View.prototype.getController = function(){
+    return this.controller;
 };
 
+
+/**
+ * Gets a specific {@link mobileDS.ContentElement} object by name. 
+ * 
+ * @function getContentElement
+ * @param {String} name Name of the ContentElement object
+ * @returns {object} The wanted ContentElement object or null
+ */
+View.prototype.getContentElement = function( name){
+//    var result = null;
+//	//this.controller = ctrl;
+//    $.each(this.contentFors, function(index, content){
+//    
+//        if (content.getName() == name) {
+//            result = content;
+//        }
+//    });
+//    return result;
+    
+    for(var i=0, size = this.contentFors.length; i < size ; ++i){
+    	if(this.contentFors[i].getName() == name){
+    		return this.contentFors[i];/////////////////////// EARLY EXIT /////////////////////////////
+    	}
+    }
+    return null;
+};
 
 /**
  * Gets an array of all helper methods. 
@@ -184,192 +206,4 @@ View.prototype.getContentFor = function( name){
  */
 View.prototype.getHelperMethods = function(){
 	return this.helperMethods;
-};
-
-
-/**
- * The ContentFor class holds the name of the content-field (used via the yield-tag in the layouts: content, header, footer, dialogs, ...)
- * and its definition as HTML-String.
- * 
- * @class ContentFor
- * @constructor
- * @param {Array} group or {Object} with properties <code>name</code> {String}, and <code>content</code> {String}
- * @param {Object} controller the controller of the view that owns this ContentFor-element 
- * @param {Object} parser for the the content (optional) if supplied this object must have a function <code>parse({String})</code> (see templateParseUtil)
- * @category core
- */ 
-function ContentFor(group, controller, parser){
-	
-	this.localizer = mobileDS.LanguageManager.getInstance();
-	
-	this.controller = controller;
-	
-	if(typeof group.name !== 'undefined' && typeof group.content !== 'undefined'){
-		this.name = group.name;
-		this.definition = group.content;
-	}
-	else {
-		this.name = group[1];
-	    this.definition = group[2];
-	}
-	
-	var parsingResult = parser.parse(this.definition);
-	
-	this.definition 	= parsingResult.rawTemplateText;
-	this.localizations 	= parsingResult.localizations;
-	this.helpers		= parsingResult.helpers;
-	
-	this.allContentElements = null;
-	
-	//TODO enable this (recursive contentFors; and something similar for  for-/if- etc. contents...)
-//	this.contentFors = new Array();
-//	var contentDefs  = parsingResult.yieldContents;
-//	for(var i=0, size = contentDefs.length; i < size; ++i){
-//		this.contentFors.push(new ContentFor(contentDefs[i], parser));
-//	}
-	
-	//TODO create ALL array and sort localizations, contentFors etc. ...
-//	var sortAscByStart=function(parsedElem1, parsedElem2){
-//		return parsedElem1.start - parsedElem2.start;
-//	};
-//	all.sort(sortAscByStart);
-	
-    return this;
-}
-
-
-/**
- * Gets the name of a {@link mobileDS.ContentFor} object (content, header, footer, dialogs, ...).
- * 
- * @function getName
- * @returns {String} Name - used by yield tags in layout
- * @public
- */ 
-ContentFor.prototype.getName = function(){
-    return this.name;
-};
-
-
-/**
- * Gets the definition of a {@link mobileDS.ContentFor} object.
- * 
- * TODO remove this?
- * 
- * @function toHtml
- * @returns {String} The HTML content.
- * @public
- */
-ContentFor.prototype.toHtml = function(){
-//	return this.definition;
-	return this.toStrings().join('');
-};
-
-/**
- * Renders this object into the renderingBuffer.
- * 
- * @param renderingBuffer {Array} of Strings (if <code>null</code> a new buffer will be created)
- * @param data {Any} (optional) the event data with which the rendering was invoked
- * @returns {Array} of Strings the renderingBuffer with the contents of this object added at the end
- */
-ContentFor.prototype.toStrings = function(renderingBuffer, data){
-
-	if(this.allContentElements == null){
-		
-		this.allContentElements = this.localizations.concat(this.helpers);//TODO also add other parsed-elements
-		
-		var sortAscByStart=function(parsedElem1, parsedElem2){
-			return parsedElem1.start - parsedElem2.start;
-		};
-		
-		this.allContentElements.sort(sortAscByStart);
-	}
-	
-	var renderResult = renderingBuffer;
-	if(!renderResult){
-		renderResult = new Array();
-	}
-	
-	var pos = 1;
-	for(var i=0, size = this.allContentElements.length; i < size; ++i){
-		
-		var contentElement = this.allContentElements[i];
-				
-		//render the "static" content, beginning from the 
-		//	lastly rendered "dynamic" element up to the start 
-		//  of the current "dynamic" element: 
-		renderResult.push(this.definition.substring(pos-1, contentElement.start));
-		
-		//render the current "dynamic" element:
-//		if(contentElement is localization)...
-		var text = this.doGetStringForElement(contentElement, data);
-		renderResult.push(text);
-//		else if(contentElement is ...)
-		
-		//set position-marker for "static" content after entry position
-		// of current "dynamic" element:
-		pos = contentElement.end + 1;
-		
-		//alert('Replacing \n"'+rawTemplateText.substring(contentElement.start, contentElement.end)+'" with \n"'+content+'"');
-	}
-	
-	if(pos - 1 < this.definition.length){
-		if(pos === 1){
-			renderResult.push(this.definition);
-		}
-		else {
-			renderResult.push(this.definition.substring(pos-1));
-		}
-	}
-	
-	return renderResult;
-};
-
-/** @private */
-ContentFor.prototype.doGetStringForElement = function(element, data){
-	
-	if(element.type === mobileDS.parser.element.LOCALIZE){
-		return this.doGetStringForLocalize(element, data);
-	}
-	else if(element.type === mobileDS.parser.element.HELPER){
-		return this.doGetStringForHelper(element, data);
-	}
-	else {
-		console.warn('ContentFor.doGetStringForElement: unknown element type '+element.type);
-		return '';
-	}
-};
-
-/** @private */
-ContentFor.prototype.doGetStringForLocalize = function(localizeElement, data){
-	var text = this.localizer.getText(localizeElement.name);
-	if(!text){
-		console.warn('ContentFor.render(localize): could not find localization text for "'+contentElement.name+'"');
-		text = '';
-	}
-	return text;
-};
-
-/** @private */
-ContentFor.prototype.doGetStringForHelper = function(helperElement, data){
-	//TODO handle case, when .helper is not a String
-	//TODO handle arguments for helper
-	var text = this.controller.performHelperAction(helperElement.helper, data);
-	if(!text){
-		console.warn('ContentFor.render(helper): no result for helper >'+helperElement.helper+'<');
-		text = '';
-	}
-	return text.toString();
-};
-
-ContentFor.prototype.getRawText = function(){
-    return this.definition;
-};
-
-ContentFor.prototype.hasDynamicContent = function(){
-    return (this.localizations && this.localizations.length > 0)
-    		|| (this.helpers && this.helpers.length > 0);//TODO if ContentFor supports more dynamic (e.g. child-ContentFor objects, For-Loops ...) then add appropriate checks here! 
-};
-
-ContentFor.prototype.getLocalizations = function(){
-    return this.localizations;
 };

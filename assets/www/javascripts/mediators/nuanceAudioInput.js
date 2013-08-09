@@ -27,20 +27,19 @@
 
 newAudioInput = {
 		initialize: function(callBack){
-		    		callBack ({
-		    			startRecord: function(){
-		    				window.plugins.nuancePlugin.recognize(null,function(res){callBack(res['result']);}, function(e){
-			   					alert('tts failed');});
-		   			 },
-		   			 stopGetRecord: function(blobHandler){
-		   				window.plugins.nuancePlugin.cancel();
-		   			 },
-		   			 recognize: function(successCallBack,failureCallBack){
-		   				window.plugins.nuancePlugin.recognize(null, function(res){successCallBack(res['result']);}, failureCallBack);
-		   			 }
-		    		});
-		    		
-		    		
+			callBack ({
+				startRecord: function(successCallBack, failureCallBack){
+					window.plugins.nuancePlugin.recognizeNoEOS(mobileDS.LanguageManager.getInstance().getSpeaker()["voice_lang"],successCallBack, failureCallBack);
+				},
+				stopRecord: function(successCallBack,failureCallBack){
+					window.plugins.nuancePlugin.stopRecord(successCallBack,failureCallBack);
+				},
+				recognize: function(successCallBack,failureCallBack){
+					window.plugins.nuancePlugin.recognize(mobileDS.LanguageManager.getInstance().getSpeaker()["voice_lang"], successCallBack, failureCallBack);
 				}
+			});
+		    		
+		    		
+		}
 		
 };

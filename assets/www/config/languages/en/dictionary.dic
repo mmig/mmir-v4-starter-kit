@@ -26,6 +26,8 @@
     "subject_label":"Subject",
     "save":"Save",
     "discard":"Discard",
-	"note_label":"Note"
+	"note_label":"Note",
+	"loadingText": "Please Wait...",
+	"did_not_understand_msg": "Unfortunately, I did not understand you."
 	
 }

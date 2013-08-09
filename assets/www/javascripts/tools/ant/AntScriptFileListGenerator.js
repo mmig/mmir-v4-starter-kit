@@ -29,9 +29,27 @@
  * Script for generating a JSON formatted String
  * of a file-list.
  * 
- * This script required to run in the context of an ANT build script.
+ * This script is required to run in the context of an ANT build script.
  * 
  * The generated JSON String is stored into the ANT property JSONDirString.
+ * 
+ * example (reformatted for better readability; the result is actually a String, not a JSON object!):
+<pre>{
+	"/controllers" : ["application.js", "calendar.js"],
+	"/views" : ["application", "calendar", "layouts"],
+	"/views/application" : ["login.ehtml", "registration.ehtml", "welcome.ehtml", "~languagemenu.ehtml"],
+	"/views/calendar" : ["create_appointment.ehtml"],
+	"/views/layouts" : ["application.ehtml"],
+	"/models" : ["calendarmodel.js", "user.js"],
+	"/config" : ["languages", "statedef", "configuration.json", "parsed_directories.json"],
+	"/config/languages" : ["de", "en"],
+	"/config/languages/de" : ["dictionary.dic", "grammar.json", "speaker.json"],
+	"/config/languages/en" : ["dictionary.dic", "speaker.json"],
+	"/config/statedef" : ["dialogDescription.xml", "dialogDescription.xml.MD5", "input_manager_scxml.xml", "input_manager_scxml.xml.MD5", "readme.txt"],
+	"/javascripts/plugins" : ["beepPlugin.js", "cookiePlugin.js", "directoryListing.js", "multitouchPlugin.js", "nativeTTS.js", "nuance.js", "queuePlugin.js", "softkeyboard.js", "video.js"],
+	"/helpers" : ["applicationHelper.js"]
+}</pre>
+ *   
  * 
  * TODO separate ANT accessing code from re-usable code
  */

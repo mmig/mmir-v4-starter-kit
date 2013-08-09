@@ -59,5 +59,10 @@ for(var arguments_i=0,arguments_size=arguments.length; arguments_i < arguments_s
 	console.log('RHINO.env.arguments ('+arguments_i+'): '+ arguments[arguments_i]);
 }
 
-var theJSONGrammarPath = arguments && arguments.length > 0? arguments[0] : null;
-var theCompiledGrammarTargetPath = arguments && arguments.length > 1? arguments[1] : null;
+
+var theJSONGrammarPath 				= arguments && arguments.length > 0? arguments[0] : null;
+var theJSONGrammarFileName			= arguments && arguments.length > 1? arguments[1] : null;
+//var theJSONGrammarPath 				= arguments && arguments.length > 0? arguments[0] : null;
+var theJSONGrammarLanguageStr	 	= arguments && arguments.length > 2? arguments[2] : null;
+var theCompiledGrammarTargetPath 	= arguments && arguments.length > 3? arguments[3] : null;
+var theCompiledGrammarTargetFileName= arguments && arguments.length > 4? arguments[4] : null;

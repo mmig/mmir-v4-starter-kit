@@ -59,6 +59,7 @@ tokens
 {
 //MODIFICATION: added tokens:
 	RENDER		= 'render';
+	AMPERSAT	= '@';
 // Reserved words
 	NULL		= 'null' ;
 	TRUE		= 'true' ;
@@ -198,7 +199,8 @@ tokens
 
 @lexer::members
 {
-//private Token
+
+//MODIFICATION: conter for keeping track of the nesting-level within brackets
   this.nesting = 0;
   
   var last;
@@ -570,6 +572,9 @@ this.nextToken = nextToken;
 
 @parser::members
 {
+//MODIFICATION: array for tracking ampersat-Identifiers
+this.ampersatIdentifiers = new Array();
+
 var theParser = ES3Parser;
 this.theParser = theParser;
 this.input = input;
@@ -631,6 +636,7 @@ function isLeftHandSideExpression(lhs)//RuleReturnScope lhs)
 		// primaryExpression
 			case theParser.THIS:
 			case theParser.Identifier:
+			case theParser.IdentifierNameAmpersatStart://MODIFICATION: do accept special amperat-Identifier as valid lhs
 			case theParser.NULL:
 			case theParser.TRUE:
 			case theParser.FALSE:
@@ -935,6 +941,13 @@ fragment IdentifierNameASCIIStart
 	: IdentifierStartASCII IdentifierPart*
 	;
 
+/* 
+	MODIFICATION: Additional special case for Identifier names
+ */
+IdentifierNameAmpersatStart
+	: AMPERSAT IdentifierPart*
+	;
+
 /*
 The second alternative acts as an action driven fallback to evaluate other characters in the unicode range than the ones in the ASCII subset.
 Due to the first alternative this grammar defines enough so that ANTLR can generate a lexer that correctly predicts identifiers with characters in the ASCII range.
@@ -1172,6 +1185,7 @@ RPAREN	: ')'
 primaryExpression
 	: THIS
 	| Identifier
+	| amp=IdentifierNameAmpersatStart { this.ampersatIdentifiers.push($amp); /*MODIFICATION: keep trac of additional special ampersat-Identifier */}
 	| literal
 	| arrayLiteral
 	| objectLiteral
@@ -1232,7 +1246,7 @@ arguments
 leftHandSideExpression
 	:
 	(
-		memberExpression 		-> memberExpression
+			memberExpression 		-> memberExpression
 	)
 	(
 		arguments			-> ^( CALL $leftHandSideExpression arguments )
@@ -1890,7 +1904,7 @@ options
 
 
 /*
-	 MODIFICATON:	rule for parsing the for-statement only, i.e. for(...), 
+	 MODIFICATION:	rule for parsing the for-statement only, i.e. for(...), 
 	 		wihtout the following expression-block
 	 		i.e. not: for(...){...}
 */
@@ -1902,7 +1916,7 @@ embeddedForControlStatement
 	-> ^(FOR forControl)
 	;
 /*
-	 MODIFICATON:	rule for parsing the if-expression only, i.e. if(...), 
+	 MODIFICATION:	rule for parsing the if-expression only, i.e. if(...), 
 	 		wihtout the following expression-block
 	 		i.e. not: if(...){...}
 */
@@ -1914,7 +1928,7 @@ embeddedIfExpressionFragment
 	-> ^(IF expression)
 	;
 /* 
-	MODIFICATON: Addtional special case.
+	MODIFICATION: Additional special case.
 	
 	parse a renderControlStatement which looks something like this:
 	
@@ -1934,7 +1948,7 @@ embeddedRenderControlStatement
 	-> ^( RENDER callParam callParam callData?)
 	;
 /* 
-	MODIFICATON: Addtional special case.
+	MODIFICATION: Additional special case.
  */
 embeddedCallStatement
 	: callParam EOF
@@ -1942,36 +1956,44 @@ embeddedCallStatement
 	;
 	
 /* 
-	MODIFICATON: Addtional special case.
+	MODIFICATION: Additional special case.
  */
 embeddedDataCallStatement
 	: callParam (COMMA callData)? EOF
 	-> ^( ARGS callParam callData?)
 	;
 /* 
-	MODIFICATON: Addtional special case.
+	MODIFICATION: Additional special case.
  */
 embeddedControllerCallStatement
 	: callParam COMMA callParam EOF
 	-> ^( ARGS callParam callParam)
 	;
 /* 
-	MODIFICATON: Addtional special case.
+	MODIFICATION: Additional special case.
  */
 embeddedControllerDataCallStatement
 	: callParam COMMA callParam (COMMA callData)? EOF
 	-> ^( ARGS callParam callParam callData?)
 	;
-	
 /* 
-	MODIFICATON: Addtional special case.
+	MODIFICATION: Additional special case.
  */
-callParam
-	: Identifier | StringLiteral
+embeddedStatementTail
+	: statementTail EOF
 	;
 /* 
-	MODIFICATON: Addtional special case.
+	MODIFICATION: Additional special case.
+ */
+callParam
+	: amp=IdentifierNameAmpersatStart { this.ampersatIdentifiers.push($amp); /*MODIFICATION: keep trac of additional special ampersat-Identifier */}
+	| id=Identifier { this.ampersatIdentifiers.push($id); /*MODIFICATION: keep trac of identifiers ("interpreted" ampersat-Identifier) */}
+	| StringLiteral  
+	;
+/* 
+	MODIFICATION: Additional special case.
  */
 callData
-	: objectLiteral | propertyName	;
+	: objectLiteral | callParam | numericLiteral
+	;
 

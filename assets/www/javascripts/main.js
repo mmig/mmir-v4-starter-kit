@@ -28,23 +28,6 @@
 var mobileDS = window.mobileDS ||
 {};
 
-//basePath = "";
-var basePath = "";
-var assetPath = "/../";
-if (!forBrowser){
-	basePath = "file:///android_asset/www/";
-	assetPath = "file:///android_asset/";
-}
-
-//several used paths
-var controllerPath = basePath+"controllers/";
-var languagePath = basePath+"config/languages/";
-var grammarPath = basePath+"config/grammars/";
-var modelPath = basePath+"models/";
-var layoutPath = basePath+"views/layouts/";
-var viewPath = basePath+"views/";
-var pluginsPath = basePath+"javascripts/plugins/";
-
 var commonUtils;
 var pm;
 var viewFactory;
@@ -65,6 +48,11 @@ var content = '';
 
 var IS_DEBUG_ENABLED = true;
 
+var ACTIVE_TEXT_ELEMENT = null;
+
+//devault time-duration for click-feedback vibration
+var CLICK_VIBRATE_DURATION = 50;//ms
+
 jQuery(document).ready(function(){
 	if (forBrowser) onDeviceReady();
 	else document.addEventListener("deviceready", onDeviceReady, false);
@@ -79,7 +67,14 @@ function fail(error) {
 function onDeviceReady(){
     console.log("device is ready");
 
+    //overwrite BACK-event for Android/cordova environment:
     document.addEventListener("backbutton", backKeyDown, true);
+    
+    if(forBrowser){
+	    //overwrite BACK-event in Browser environment:
+	    window.addEventListener("popstate", backKeyDown, true);
+    }
+    
     commonUtils = mobileDS.CommonUtils.getInstance().initialize(initializeApplication);
 }
 
@@ -98,7 +93,7 @@ function initializeApplication(){
     		if(IS_DEBUG_ENABLED) console.log("Network access is available.");
     	}
     	
-		mobileDS.CommonUtils.getInstance().loadAllPhonegapPlugins(pluginsPath, function(){
+		mobileDS.CommonUtils.getInstance().loadAllPhonegapPlugins(mobileDS.constants.getInstance(forBrowser).getPluginsPath(), function(){
 		        try {
 		            for (var prop in window.plugins) {
 		                console.log("Loaded plugin '" + prop + "'");
@@ -121,7 +116,7 @@ function loadManagers(){
     mobileDS.ConfigurationManager.getInstance();
     
     langManager = mobileDS.LanguageManager.getInstance(mobileDS.ConfigurationManager.getInstance().getLanguage());//applicationLanguage);
-    controllerManager = mobileDS.ControllerManager.initializeControllers(afterLoadingControllers);
+    
     semanticInterpreter = mobileDS.SemanticInterpreter.getInstance();
     if (forBrowser){
     	mobileDS.AudioInput.loadFile('javascripts/mediators/html5AudioInput.js', function(){
@@ -132,17 +127,32 @@ function loadManagers(){
         	audioOutput = mobileDS.AudioOutput.getInstance;
         	console.log('AudioOutput loaded');
         	});
+    	mobileDS.ConcurrentSCION.loadFile('javascripts/mediators/html5ConcurrentSCION.js', function(){
+        	console.log('ConcurrentSCION loaded');
+        	loadInputManager();
+        	});
     }
     else {
-    	mobileDS.AudioInput.loadFile(basePath+'javascripts/mediators/nuanceAudioInput.js', function(){
+    	mobileDS.AudioInput.loadFile(mobileDS.constants.getInstance(forBrowser).getBasePath()+'javascripts/mediators/nuanceAudioInput.js', function(){
     		audioInput = mobileDS.AudioInput.getInstance;
     		console.log('AudioInput loaded');
     		});
-    	mobileDS.AudioOutput.loadFile(basePath+'javascripts/mediators/nuanceAudioOutput.js', function(){
+    	mobileDS.AudioOutput.loadFile(mobileDS.constants.getInstance(forBrowser).getBasePath()+'javascripts/mediators/nuanceAudioOutput.js', function(){
         	audioOutput = mobileDS.AudioOutput.getInstance;
         	console.log('AudioOutput loaded');
         	});
+    	mobileDS.ConcurrentSCION.loadFile('javascripts/mediators/nativeConcurrentSCION.js', function(){
+        	console.log('ConcurrentSCION loaded');
+        	loadInputManager();
+        	});
     }
+    
+//    controllerManager = //NOTE: initializeControllers() has no return value any more! -> set controllerManager variable in callback
+    	mobileDS.ControllerManager.initializeControllers(afterLoadingControllers);
+
+}
+
+function loadInputManager(){
     inputManager = mobileDS.InputManager.getInstance();
 	inputManager.initializeDialog();
 
@@ -153,8 +163,16 @@ function loadManagers(){
    // cm.startWatch();
 }
 
-function backKeyDown(){
-    mobileDS.DialogEngine.getInstance().raiseEvent('back');
+function backKeyDown(event){
+	if(!forBrowser || (forBrowser && event.state)){//if(IS_BACK_ACTIVE){
+		
+		//FIX for browser-env.: to popstate-event is triggered not only when back-button is pressend in browser (however, in this case it seems, that the event.state is empty...)
+		if(forBrowser && !event.state){
+			return; /////////////////////////// EARLY EXIT ///////////////////////////////////
+		}
+		triggerClickFeedback({haptic : false});//vibration is already triggered by system for this back-button...
+		mobileDS.DialogEngine.getInstance().raiseEvent('back', { nativeBackButton : 'true'});
+	}
 }
 
 function showLoader(){
@@ -164,12 +182,15 @@ function showLoader(){
 
 
 function hideLoader(){
-	mobileDS.DialogEngine.getInstance().hide_wait_dialog();
+	mobileDS.DialogEngine.getInstance().close_wait_dialog();
 //    $('.ui-loader').css('display', 'none');
 }
 
 
-function afterLoadingControllers(){
+function afterLoadingControllers(ctrlManager){
+	
+	controllerManager = ctrlManager;
+	
     //$.mobile.page.prototype.options.backBtnText = "zur&uuml;ck";
     //$.mobile.page.prototype.options.backBtnTheme = "a";
     // $.mobile.page.prototype.options.addBackBtn = true;
@@ -214,37 +235,167 @@ function exectueAfterEachPageIsLoaded(ctrlName,viewName,data){
 	});
 }
 
+/**
+ * 
+ * @param config (optional) cofiguration object with fields
+ * 			config.audio BOOLEAN set if sound should be included in this feedback
+ * 			config.haptic BOOLEAN set if vibration should be included in this feedback
+ */
+function triggerClickFeedback(config){
+	
+	var isSound  = config && typeof config.sound  !== 'undefined'? config.sound  : true;
+	var isHaptic = config && typeof config.haptic !== 'undefined'? config.haptic : true;
+	
+	
+	//TODO haptic and sound feedback should be run in parallel, not sequential (... use 'threads'?)
+	if(isHaptic){
+		triggerHapticFeedback();
+	}
+	
+	if(isSound){
+		triggerSoundFeedback();
+	}
+}
+
+function triggerHapticFeedback(){
+	if( ! forBrowser){
+	    mobileDS.Notification.getInstance().vibrate(CLICK_VIBRATE_DURATION);
+	}
+}
+
+function triggerSoundFeedback(){
+    mobileDS.Notification.getInstance().beep(1);
+}
+
+function triggerErrorFeedback(){
+	triggerMulitpleVibrationFeedback(3);
+}
+
+function triggerMulitpleVibrationFeedback(number){
+	
+	var doTriggerErrorVibrateFeedback = function(){
+		setTimeout(function(){ 
+			triggerClickFeedback();
+			++count;
+			if(count < number){
+				doTriggerErrorVibrateFeedback();
+			}
+		}, 4*CLICK_VIBRATE_DURATION);
+	};
+	
+	triggerClickFeedback();
+	var count = 1;
+	if(count < number){
+		doTriggerErrorVibrateFeedback();
+	}
+}
+
 function micClick(){
 	var notification = mobileDS.Notification.getInstance();
 	if (!forBrowser) notification.vibrate(500);
 	
-	if ($('#mic_button').hasClass('footer_button_clicked')){
+	var isUseEndOfSpeechDetection = false;
+	
+	var successFunc = function recognizeSuccess (res){
+		
+		console.log("[AudioInput] finished recoginition: "  + JSON.stringify(res));
+
+		var asr_result = res;
+		if(res['result']){
+			asr_result = res['result'];
+		}
+		
+		setTimeout(function(){
+			mobileDS.AudioOutput.getInstance().textToSpeech(asr_result, function(){}, function(){});
+		}, 1000);
+
+		var result = mobileDS.SemanticInterpreter.getInstance().get_asr_semantic(asr_result);
+		var semantic;
+
 		$('#mic_button').removeClass('footer_button_clicked');
-		mobileDS.AudioInput.getInstance().stopGetRecord(function (e){});
+		
+//		//next 2 line only required when recognizing with end-of-speech-detection:
+//		if(isUseEndOfSpeechDetection){
+//			mobileDS.AudioInput.getInstance().stopRecord(function (status){}, function (err){});
+//		}
+		
+		if (result.semantic != null) {
+			semantic = JSON.parse(result.semantic);
+			semantic.phrase = res;
+			console.log("semantic : " + result.semantic);
+		}
+		else {
+			semantic = JSON.parse('{ "NoMatch": { "phrase": "'+asr_result+'" }}');
+		}
+		inputManager.raiseEvent("speech_input_event",  semantic);
+		if(ACTIVE_TEXT_ELEMENT && semantic && semantic.value){
+			var str = semantic.value;
+			var child = semantic.title;
+			while(child && child.value){
+				str += ' ' +child.value;
+				child = child.title;
+			}
+
+			ACTIVE_TEXT_ELEMENT.val(str);
+		}
+	};
+	
+	var errorFunc = function recognizeError (err){
+		$('#mic_button').removeClass('footer_button_clicked');
+		console.error('[AudioInput] Error while finishing recoginition: '+JSON.stringify(err));
+	};
+	
+	if(isUseEndOfSpeechDetection === false){
+
+		console.log("[AudioInput] start recoginition without automtic END OF SPEECH detection");
+		
+		//WITHOUT end-of-speech-detection (i.e. manual stop by user interaction):	
+		if ($('#mic_button').hasClass('footer_button_clicked')){
+			
+			mobileDS.AudioInput.getInstance().stopRecord(successFunc, errorFunc);
+	
+		}
+		else {
+			$('#mic_button').addClass('footer_button_clicked');
+			mobileDS.AudioInput.getInstance().startRecord(
+				function printResult(res){
+					console.log("[AudioInput] start recoginition: "  + res);
+				}, function(err){
+					$('#mic_button').removeClass('footer_button_clicked');
+					alert('tts failed: '+err);
+				}
+			);
+		}
+		
 	}
 	else {
-		$('#mic_button').addClass('footer_button_clicked');
-		mobileDS.AudioInput.getInstance().startRecord(function printResult(res){
-			console.log("[AudioInput] "  + res);
-			mobileDS.AudioOutput.getInstance().textToSpeach(res, function(){}, function(){});	
-			var asr_result = res;
-	
-			var result = mobileDS.SemanticInterpreter.getInstance().get_asr_semantic(asr_result);
-			var semantic;
+		//WITH end-of-speech-detection (i.e. automatic stop by silence detection):
+
+		console.log("[AudioInput] start recoginition with automtic END OF SPEECH detection");
+		
+		if ($('#mic_button').hasClass('footer_button_clicked')){
+
+			console.log("[AudioInput] start recoginition with automtic END OF SPEECH detection: already in progress, stopping now...");
+			
 			$('#mic_button').removeClass('footer_button_clicked');
-			mobileDS.AudioInput.getInstance().stopGetRecord(function (e){});
-			if (result.semantic != null) {
-			    semantic = JSON.parse(result.semantic);
-			    semantic.phrase = res;
-			    console.log("semantic : " + result.semantic);
-			}
-			else {
-			    semantic = JSON.parse('{ "NoMatch": { "phrase": "'+asr_result+'" }}');
-			}
-			inputManager.raiseEvent("speech_input_event",  semantic);
-  		 }, function(e){
-			alert('tts failed');
-  		 });
+			mobileDS.AudioInput.getInstance().stopRecord(
+				function printResult(res){
+					console.log("[AudioInput] stopped recoginition: "  + res);
+				}, function(err){
+					console.log("[AudioInput] failed to stop recoginition: "  + err);
+				}
+			);
+			
+		}
+		else {
+			
+			console.log("[AudioInput] starting recoginition with automtic END OF SPEECH detection now...");
+			
+			$('#mic_button').addClass('footer_button_clicked');
+			setTimeout(function(){
+				mobileDS.AudioInput.getInstance().recognize(successFunc, errorFunc);
+			}, 1000);
+		}
 	}
 }
 
@@ -276,5 +427,3 @@ jQuery(document).bind("mobileinit", function(){
     jQuery.mobile.ajaxEnabled = true;
     
 });
-
-

@@ -40,6 +40,8 @@ var mobileDS = window.mobileDS ||
  * @example <code>mobileDS.AccelerometerGestureDetector.getInstance()</code>
  * @class AccelerometerGestureDetector
  * @category core
+ * 
+ * @see mobileDS.AccelerometerGestureDetector#constructor
  */
 
 mobileDS.AccelerometerGestureDetector = (function(){
@@ -69,6 +71,8 @@ mobileDS.AccelerometerGestureDetector = (function(){
 	 * Sets the default behavior of the gesture detection.
 	 * 
 	 * @constructor constructor
+	 * @augments mobileDS.AccelerometerGestureDetector
+	 * @memberOf mobileDS.AccelerometerGestureDetector.prototype
 	 */
     //private methods
     function constructor(){
@@ -360,6 +364,7 @@ mobileDS.AccelerometerGestureDetector = (function(){
             
         }
         
+        /**  @lends mobileDS.AccelerometerGestureDetector.prototype */
         return { //public members and methods
             // Start watching the acceleration
         	/**
