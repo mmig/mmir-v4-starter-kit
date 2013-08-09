@@ -49,9 +49,10 @@
   
   Application.prototype.on_page_load_login = function (){
 		
-
 		var isUseAlphaMagLanguageSelection = mobileDS.ConfigurationManager.getInstance().get('ALPHA_MapLanguageSelection');
 
+		var self = this;
+		
 		//handle language selection:
 		$('#languageListView li')
 			.bind('vmousedown',           function(){	$(this).addClass(	'ui-focus ui-btn-active ui-btn-down-a');})
@@ -67,26 +68,26 @@
 			//		Using the click event here does not have this side effect, obviously.
 			//
 			.bind('click', function(event){
-//				event.preventDefault();
 		
 				var lang = $(this).attr('lang');
 		
 //				console.log('lang-clicked: ' + lang);
 		
-				mobileDS.LanguageManager.getInstance().changeLanguage(lang, true);
+				self.changeLanguage(lang, true);
+				
 				if(isUseAlphaMagLanguageSelection){
 					showLoader();//actually this does not really work, but at least something is shown...
-					mobileDS.DialogEngine.getInstance().perform_helper_method('GoogleMap', 'update_map_language');
+					//TODO: replace/set calendar's language specific resources
 				}
-				mobileDS.InputManager.getInstance().raiseEvent('touch_input_event');
-				mobileDS.InputManager.getInstance().raiseEvent('language_choosen');
+				mobileDS.InputEngine.getInstance().raise('touch_input_event');
+				mobileDS.InputEngine.getInstance().raise('language_choosen');
 				
 				return false;
 		});
 		
 //		if(isUseAlphaMagLanguageSelection){
 //			showLoader();//actually this does not really work, but at least something is shown...
-//			mobileDS.DialogEngine.getInstance().perform_helper_method('GoogleMap', 'update_map_language');
+//			mobileDS.DialogEngine.getInstance().performHelper('GoogleMap', 'update_map_language');
 //		}
 		
 	};
@@ -106,13 +107,11 @@
       var password = $('#passwordField #password').val();
       if(this.verify(email,password)){
     	  mobileDS.User.create(email);
-    	  //need to invoke this asynchronously, since this function is called from within the dialogEngine
-    	  setTimeout(function(){mobileDS.DialogEngine.getInstance().raiseEvent("user_logged_in");},0);
+    	  mobileDS.DialogEngine.getInstance().raise("user_logged_in");
       }
       else {
     	  alert('Wrong user name or password.\n\nDir you register?');
-    	  //need to invoke this asynchronously, since this function is called from within the dialogEngine
-    	  setTimeout(function(){mobileDS.DialogEngine.getInstance().raiseEvent("login_failed");},0);
+    	  mobileDS.DialogEngine.getInstance().raise("login_failed");
       }
   };
 
@@ -123,8 +122,7 @@
       this.registerUsers[email] = password;
       mobileDS.User.create(email);
  	  
-    //need to invoke this asynchronously, since this function is called from within the dialogEngine
-	  setTimeout(function(){mobileDS.DialogEngine.getInstance().raiseEvent("user_logged_in");},0);
+      mobileDS.DialogEngine.getInstance().raise("user_logged_in");
   };
   
   Application.prototype.verify = function(name, pw){
@@ -142,4 +140,38 @@
 
   Application.prototype.slide_up_language_menu = function() {
 	  $('#language-menu-panel').slideUp();
+  };
+
+  /**
+   * 
+   * 
+   * This function changes the application language and, if requested, renders the current view again, so that 
+   * the change of the language is applied to the currently displayed view. 
+   * <br>DISABLED: After changing the language (and re-rendering the view) an event "language_choosen" is raised
+   * on the DialogEngine.<br>
+   * 
+   * <div class="box important">
+   * <b>Note:</b>
+   * Momentarily this function is used by 'controllers/application.js' in the generated language menu, when the user selects a new language.<br>
+   * This should better be implemented as a partial.
+   * </div>
+   * 
+   * @function changeLanguage
+   * @param {String} newLang The new language which is to be used henceforth
+   * @param {Boolean} doReRenderView Should the currently displayed view be rendered again in the new language?
+   * @returns {String} The translation of the keyword
+   * @public
+   * 
+   * @see mobileDS.LanguageManager#setToCompatibilityMode#changeLanguage
+   */
+  Application.prototype.changeLanguage = function(newLang, doReRenderView) {
+
+	  if(IS_DEBUG_ENABLED) console.debug("[Language] selected " + newLang);//debug
+
+	  mobileDS.LanguageManager.getInstance().setLanguage(newLang);
+
+	  if (doReRenderView == true){
+		  mobileDS.PresentationManager.getInstance().reRenderView();
+	  }
+//	  mobileDS.DialogEngine.getInstance().raise("language_choosen", newLang);
   };

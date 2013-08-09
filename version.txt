@@ -1,7 +1,247 @@
 ﻿
-version notes for MMIG Starter Kit
+version notes for MMIG Starter Kit (v 2.1)
 
- * support for partial views
- * using Cordova 2.3.x library
- * using jQuery 1.8.x library
- * using jQuery Mobile 1.2.x library
+ * using Cordova 2.8.x library
+ * using jQuery 1.9.x library
+ * using jQuery Mobile 1.3.x library
+ 
+ 
+ --------------
+ Change Log
+ --------------
+ 
+ ##################
+ Version 2.1
+ ##################
+ 
+ * ModelManger:
+	- API change: now use create(callback) before first usage (instead of getInstance(callback))
+	- API change: removed getModels() [RETURNS: Array<Object>]; replaced with getModelNames() [RETURNS: Array<String>]
+ * API change:
+	- naming convetion for models: now names for model files must be analogous to controller files:
+		* model class name must correspond to file name (except for first letter: file name may be lower case (or upper case); the class name's first letter MUST be upper case)
+		* model classes must be specified within namespace mobileDS, e.g. model "CalendarModel": mobileDS.CalendarModel = ...
+ * multi-language support for speech grammars (incl. automated loading)
+ * generic loadImpl() function in CommonUtils for loading/executing JavaScript implementation files (with serial / paralell loading modes)
+ * updated res/xml/config.xml to new Cordova format
+ * modified event-handling in InputEngine/DialogEngine: changed from touch_end_on_XXX to click_on_XXX
+ * build.settings / build.properties: moved several propeties into build.properties
+ * added targets to build.xml
+  - clean (extended version: now removes all generated files)
+  - build (compile all necessary files, i.e. compile grammars, update directories.json file etc.)
+  - doc (generate HTML documentation for framework code; WINDOWS only)
+  - targets for compiling all available grammar.json files
+ 
+ ##################
+ Version 2.0
+ ##################
+----------------------
+TODO (changes that may effect application specific code)
+----------------------
+ * build.settings: update your build.settings file (see updated version of build.settingsDefault)
+ * mobileDS.AudioInput and mobileDS.AudioOutput are now merged into mobileDS.MediaManager
+ * renamed assets/www/javascripts/ to assets/www/mmirf/ (MMIR Framework)
+ * renamed parsed_directories.json: directories.json
+ * moved application specific JS-files into assets/www/appStarterKit/
+	- suggested file structure: application specific code should be placed into assets/www/app[ application name ]/...
+	
+ * changed behavior for file-/class-/view-names:
+	* names will now ALWAYS be treated case-sensitive & corresponding to the file-name, with the exception
+	* controllers: the controller-class must have the same name as the controller's file
+		* EXCEPTION if the first character of the file-name is lower-case, the controller-class (and if exists the controller-helper-class) name must be (in difference to the file-name) begin with upper-case
+		-> controller-class-names must ALWAYS start with an upper-case character (regardless of the controller's file name)
+		* e.g. for getLayout(controllerName): use getLayout("Application") instead of getLayout("application") even if controller file-name is application.js
+		(NOTE: the first character of file-names for layouts is treated case-insensitive analog to controller-file-names: regardless of the layout's file-name,
+				references must always use upper-case for the first character as in the example above)
+	* partials: partial file-names always start with the character "~"; however, when refering to partials (e.g. @render('Application','languageMenu')) the "~" SHOULD be omitted
+	* see also comments for PresentationManager
+	* NOTE: do not forget to update directories.json (default target in build.xml) after adding, removing, or renaming files
+ 
+ * restructured 3rd party JS files, libraries etc.:
+	- resources (JS-files, CSS-files, images, sounds etc) required by the framework itself are now located in mmirf/res/ (in the corresponding sub-directories)
+	- application specific JS-files are now located in assets/www/libs/
+	- other application specific resources are located in assets/www/content/ as before
+
+ * InputManager renamed to InputEngine
+  - initializeDialog: startEngine
+  - raiseEvent: raise
+  * changed API: now InputEngine must be created ( mobileDS.InputEngine.create( callback ) ), before it can be used (or its instance be accessed)
+  
+ * DialogEngine: renamed functions
+  - show_dialog: showDialog
+  - close_current_dialog: hideCurrentDialog
+  - show_wait_dialog:
+  - close_wait_dialog: 
+  - get_on_page_loaded: getOnPageRenderedHandler
+  - set_on_page_loaded: setOnPageRenderedHandler
+  - perform_helper_method: performHelper
+  - raiseEvent: raise
+  - initializeDialog: startEngine
+  * changed API: now DialogEngine must be created ( mobileDS.DialogEngine.create( callback ) ), before it can be used (or its instance be accessed)
+ 
+ * renamed functions in SemanticInterpreter:
+	- get_asr_semantic: getASRSemantic
+	- get_asr_semantic_alt: getASRSemantic_alt
+	- removeStopwordsAlt: removeStopwords_alt
+
+ * removed from global namespace
+   - asr_semantic_annotation
+   - asr_recognized_text
+   -> instead use: var asr_recognized_text = mobileDS.SemanticInterpreter.getInstance().getASRSemantic(asr_semantic_annotation);
+
+ * "renamed" stem_word: mobileDS.SnowballSimple.stem
+ 
+ * renamed in CommonUtils
+  - html_comment_regex: regexHTMLComment
+  - html_resize_font_to_fit_surrounding_box: resizeFitToSourroundingBox
+  - to_json_string_value: toJSONStringValue
+  - convert_to_json_value_HTML_string: convertJSONStringValueToHTML
+  - convert_json_to_HTML_string: convertJSONStringToHTML
+  - get_params_as_dict: parseParamsToDictionary
+
+ * removed deprecated/un-used functions/properties in CommonUtils:
+  - log
+  - ehtml2Html
+  - appendJsSrcToHeader
+  - partial_name_regex
+  - partial_parameter_regex
+  - partial_var_pattern_assignment_regex
+  - partial_var_pattern_dataobject_regex
+  - partial_var_pattern_regex
+  - partial_var_pattern_simpleobject_regex
+  - render_partial_regex
+  - value_of_path_regex
+  - value_of_regex
+  - get_params_as_dict
+
+  - get_date_as_string
+  - get_duration_as_string
+
+  -> NOTE: these can be made re-available by calling setToCompatibilityMode() on the CommonUtils object
+  
+ * in LanguageManager removed deprecated function:
+	- translateHTML
+	- changeLanguage (this was/is an application specific function; a "copy" is available in controller/application.js)
+	- getCurrentLanguage (same as getLanguage)
+    * renamed:
+	- existsGrammarForLanguage: existsGrammar
+	- existsDictionaryForLanguage: existsDictionary
+	- existsSpeakerForLanguage: existsSpeaker
+	- cycleLanguages: setNextLanguage
+    -> NOTE: these can be made re-available by calling setToCompatibilityMode() on the LanguageManager object
+ * in LanguageManager removed deprecated function:
+	- translateHTML
+	- changeLanguage (this was/is an application specific function; a "copy" is available in controller/application.js)
+	- getCurrentLanguage (same as getLanguage)
+  * renamed:
+	- existsGrammarForLanguage: existsGrammar
+	- existsDictionaryForLanguage: existsDictionary
+	- existsSpeakerForLanguage: existsSpeaker
+	- cycleLanguages: setNextLanguage
+  -> NOTE: these can be made re-available by calling setToCompatibilityMode() on the LanguageManager object
+
+ * in ControllerManager renamed:
+	- performAction: perform
+	- performHelperAction: performHelper
+	- initializeControllers: create
+  * API change:
+	- removed getControllers() (RETURNS: Array<Controller>); replaced by getControllerNames() (RETURNS: Array<String>)
+	
+ * in View renamed:
+  (NOTE these changes are unlikely to effect application specific code)
+	- performAction: perform
+	- performActionIfPresent: performIfPresent
+ 
+ * in Helper renamed:
+  (NOTE these changes are unlikely to effect application specific code)
+	- performAction: perform
+	
+ * mobileDS.constants:
+	- changed for interface:
+		* needs to initialized using mobileDS.constants.create(env-mode) (NOTE: backwards compatible, i.e. mobileDS.constants.getInstance(new-mode) can be used too)
+		* afterwards instance can be accessed with mobileDS.constants (i.e. no need for mobileDS.constants.getInstance())
+		* env-mode can be changed using mobileDS.constants.create(new-mode) or mobileDS.constants.getInstance(new-mode)
+		* NOTE: this change is backwards-compatible, i.e. can still be used with mobileDS.constants.getInstance(new-mode) as before
+	* renamed functions:
+		- getDictionaryFilename: getDictionaryFileName
+		- getSpeakerFilename: getSpeakerFileName
+		- getGrammarFilename: getGrammarFileName
+ 
+ * PresentationManager
+  - removed un-used functions/properties: getVisualComponent, visualComponents
+  - renamed
+	- show_dialog: showDialog
+	- close_current_dialog: hideCurrentDialog
+	- render_view_successor: doRenderView
+	- rerenderView: reRenderView
+  - changed function API (signature):
+	- addView(view): addView(controllerName, view)
+	- getView(viewName): getView(controllerName, viewName)
+	- getPartial(partialName, controller): getPartial(controllerName, partialName)
+	
+
+ * renamed functions in GrammarConverter: 
+  (NOTE these changes are unlikely to effect application specific code)
+	- load_grammar: loadGrammar
+	- convert_json_grammar: convertJSONGrammar
+	- set_stop_words: setStopWords
+	- get_stop_words: getStopWords
+	- parse_stop_words: parseStopWords
+	- parse_stop_words_alt: parseStopWords_alt
+	- get_stop_words_regexp: getStopWordsRegExpr
+	- get_stop_words_regexp_alt: getStopWordsRegExpr_alt
+	- get_jscc_grammar: getJSCCGrammar
+	- get_js_grammar: getJSGrammar
+	- set_js_grammar: setJSGrammar
+	- parse_tokes: parseTokens
+	- parse_utterances: parseUtterances
+	- parse_utterance: doParseUtterance
+	- get_semantic_interpretationt_of_utterance: doCreateSemanticInterpretationForUtterance
+	- get_semantic_interpretationt_of_phrase: doCreateSemanticInterpretationForPhrase
+	- set_compile_grammar: setGrammarFunction
+	- compiled_grammar: executeGrammar
+	- (field) asr_semantic_annotation: semanticAnnotationResult
+	
+----------------------
+Change Information (changes that mostly concern internal framework code)
+----------------------
+
+* index.html: 
+  NOTE: new SCRIPT tag order requirement: "javascripts/gen/grammar.js" must be loaded AFTER "javascripts/semantic/semantic_interpreter.js"
+
+* JSON Grammar files:
+ - now moved to config/languages/[language code]
+ - build.xml extended for generating grammar.js-files for JSON-grammar files
++ Compiled Grammar files (named: <language code>_grammar.js) in assets/www/gen/grammar/
+
+* SCION queue implementation moved to .../tools/extensions
+
+* all JS-files .../tools/xxxExtensions moved to sub-directory .../tools/extensions/
+
+* JS-files for building (i.e. used in build.xml) now moved to .../tools/build/
+
+* JS-files for testing (e.g. used in test.xml) now moved to .../tools/test/
+
+* renamed files with underscore naming scheme (now: CamelCase):
+ - grammar_converter.js: grammarConverter.js
+ - grammar_parser_template.js: grammarParserTemplate.js
+ - semantic_interpreter.js: semanticInterpreter.js
+ - input_manager_engine.js: inputEngine.js
+ - input_manager_scxml.xml: inputDescriptionSCXML.xml
+ - input_manager_state_chart.js: InputDescription.js
+ - dialogDescription.xml: dialogDescriptionSCXML.xml
+ - DialogEngine.js: dialogEngine.js
+ 
+ ##################
+ Version 1.0
+ ##################
+ 
+ * added support for Partial views
+ * extended support for template expressions:
+  - control structures: @if [@else], @for(;;), @for( in )
+  - partial view expression: @render
+  - comments: @* *@
+  - "code execution" expressions: @(), @{ }@
+ * added message queue for SCION: now raising events from within SCION event-processing code is supported (i.e. from within BIG STEP in SCION) 
+ * added JSDoc generation for framework documentation 
+   

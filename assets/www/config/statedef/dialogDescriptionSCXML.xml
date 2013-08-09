@@ -1,0 +1,131 @@
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0"
+	profile="ecmascript" id="scxmlRoot" initial="start">
+
+    <!--
+		Copyright (C) 2012-2013 DFKI GmbH
+		Deutsches Forschungszentrum fuer Kuenstliche Intelligenz
+		German Research Center for Artificial Intelligence
+		http://www.dfki.de
+
+		Permission is hereby granted, free of charge, to any person obtaining a 
+		copy of this software and associated documentation files (the 
+		"Software"), to deal in the Software without restriction, including 
+		without limitation the rights to use, copy, modify, merge, publish, 
+		distribute, sublicense, and/or sell copies of the Software, and to 
+		permit persons to whom the Software is furnished to do so, subject to 
+		the following conditions:
+
+		The above copyright notice and this permission notice shall be included 
+		in all copies or substantial portions of the Software.
+
+		THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
+		OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
+		MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+		IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
+		CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+	-->
+	
+	<state id="start" name="start">
+		<transition event="init" name="init" target="main_state" />
+	</state>
+
+	<state id="main_state" name="main_state">
+	    
+		<onentry>
+			<script>
+				dialogManager.render('Application', 'login');
+			</script>
+		</onentry>
+		
+		<transition event="click_on_login_btn" name="click_on_login_btn" target="login_user" />
+		<transition event="click_on_sign_up_btn" name="click_on_sign_up_btn" target="registration_form" />
+		
+		<transition name="click_on_language_btn" event="click_on_language_btn" >
+	        <script>
+		        dialogManager.perform('Application','slide_down_language_menu');
+	        </script>
+	    </transition>
+	
+	    <transition name="language_choosen" event="language_choosen" >
+	        <script>
+				dialogManager.perform('Application','slide_up_language_menu');
+	        </script>
+	    </transition>
+	    
+	</state>
+
+	<state id="registration_form" name="registration_form">
+		<onentry>
+			<script>
+				dialogManager.render('Application', 'registration');
+			</script>
+		</onentry>
+		<transition event="click_on_register_btn" name="click_on_register_btn" target="try_to_register_new_user" />
+		<transition event="back" name="back" target="main_state" />
+	</state>
+
+	<state id="try_to_register_new_user" name="try_to_register_new_user">
+		<onentry>
+			<script>
+				dialogManager.perform('Application', 'register');
+			</script>
+		</onentry>
+		<transition cond="mobileDS.User.getInstance() == null" target="main_state"></transition>
+		<transition cond="mobileDS.User.getInstance() != null" target="logged_in"></transition>
+	</state>
+
+	<state id="login_user" name="login_user">
+		<onentry>
+			<script>
+				dialogManager.perform('Application','login');
+			</script>
+		</onentry>
+		<transition event="login_failed" target="main_state" />
+		<transition event="user_logged_in" cond="mobileDS.User.getInstance() != null" target="logged_in" />
+		<transition event="user_logged_in" cond="mobileDS.User.getInstance() == null" target="main_state" />
+	</state>
+
+	<state id="logged_in" name="logged_in">
+		<onentry>
+			<script>
+				dialogManager.render('Application', 'welcome');
+			</script>
+		</onentry>
+		<transition event="click_on_appointment_btn" name="click_on_appointment_btn" target="create_appointment" />
+		<transition event="back" name="back" target="main_state" />
+
+	</state>
+
+	<state id="create_appointment" name="create_appointment">
+		<initial>
+			<onentry>
+				<script>
+					dialogManager.render('Calendar', 'create_appointment');
+				</script>
+			</onentry>
+		</initial>
+
+		<transition event="click_on_save_appointment_btn" name="click_on_save_appointment_btn" target="save_appointment">
+		</transition>
+		
+		<transition event="click_on_discard_appointment_btn" name="click_on_discard_appointment_btn" target="logged_in">
+		</transition>
+		
+		<transition event="back" name="back" target="logged_in">
+		</transition>
+		
+		<state id="save_appointment" name="save_appointment">
+			<onentry>
+				<script>
+					var data = jQuery.parseJSON('{"container_id":"create_appointment"}');
+					var result = dialogManager.perform('Calendar','create_appointment',data);
+				</script>
+			</onentry>
+			<transition target="logged_in" />
+		</state>
+
+	</state>
+
+</scxml>   

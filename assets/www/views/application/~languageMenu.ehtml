@@ -1,0 +1,44 @@
+<h2>@(mobileDS.LanguageManager.getInstance().getText('choose_language'))</h2>
+
+@var(par_available_languages)
+@var(size)
+@var(set_lang)
+@var(set_list_class)
+@var(set_list_theme)
+@{
+	@par_available_languages = mobileDS.LanguageManager.getInstance().getLanguages();
+}@
+
+<ul id="languageListView" class="ui-listview ui-listview-inset ui-corner-all ui-shadow" data-role="listview" data-theme="b" data-divider-theme="b" data-inset="true">
+
+@for(@i = 0, @size = @par_available_languages.length; @i < @size; @i ++){
+
+	@{ 
+		@set_lang = @par_available_languages[@i];
+		
+		@set_list_class = 'ui-li ui-li-static ';
+		if(@i == 0){
+			@set_list_class = 'ui-corner-top ';
+		}
+		else if(@i == @size - 1){
+			@set_list_class = 'ui-corner-bottom ';
+		}
+		
+		@set_list_theme = 
+			@set_lang == mobileDS.LanguageManager.getInstance().getLanguage()?
+				'e' : 'b';
+		
+		@set_list_class += 'ui-body-' + @set_list_theme;
+	}@
+	
+	<li style="padding: 0px;" class="@(@set_list_class)" data-theme="@(@set_list_theme)" lang="@(@set_lang)">
+		<div class="flagIconHeight" style="white-space: nowrap;">
+			<div id="flags-@(@set_lang)" class="flags" style="display: inline-block; vertical-align: middle; white-space: normal;"></div>
+			<div style="display: inline-block; text-align: center; vertical-align: middle; white-space: normal;">@(@set_lang)</div>
+			<div style="display: inline-block; vertical-align: middle; height: 100%;"></div>
+		</div>
+	</li>
+	
+}@
+
+</ul>

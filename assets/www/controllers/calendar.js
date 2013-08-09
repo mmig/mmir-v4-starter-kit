@@ -40,16 +40,16 @@
 
  //This method will be called only for view create_appointment, after on_page_load was called
  Calendar.prototype.on_page_load_create_appointment = function(){
-	 $('#create_appointment input').each(function(index, el) {
-		var tis = $(this);
-		if ('datebox' == tis.attr('data-role')) {
-			
-			tis.on('focus vclick', function(event) {
-				$('a', tis.parent()).trigger('click');
-			});
-			
-		}
-	});
+//	 $('#create_appointment input').each(function(index, el) {
+//		var tis = $(this);
+//		if ('datebox' == tis.attr('data-role')) {
+//			
+//			tis.on('focus vclick', function(event) {
+//				$('a', tis.parent()).trigger('click');
+//			});
+//			
+//		}
+//	});
  };
 
  Calendar.prototype.create_appointment = function (data){

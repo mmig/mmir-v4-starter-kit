@@ -12,8 +12,8 @@ echo.
 echo.
 
 SET _BASEPATH=%~dp0
-SET TARGETDIR=%_BASEPATH%..\assets\www\javascripts
-SET EXCLUDEDIRS="-E=gen|3rdParty|input_manager_state_chart|DialogDescription.js|grammar.js"
+SET TARGETDIR=%_BASEPATH%..\assets\www\mmirf
+SET EXCLUDEDIRS="-E=gen|libs"
 
 if -%1-==-- ( 
 echo no parameter specified, using default option X2...

@@ -106,7 +106,7 @@
 		<script language="javascript"
     		description="generates the browser parameter">
 		</script>
-		<script language="javascript" src="${jsSrcDirBase}tools/ant/AntTestGenerateBrowserParameter.js" />
+		<script language="javascript" src="${jsSrcDirBase}tools/test/AntTestGenerateBrowserParameter.js" />
  		<echo>var.browser-args: ${config.browser.args}</echo>
 	    		
 	</target>
@@ -160,6 +160,6 @@
 		<!--
 		* run the jstestdriver with given config file
 		-->
-		<script language="javascript" src="${jsSrcDirBase}tools/ant/AntTestRunTestdriver.js" />
+		<script language="javascript" src="${jsSrcDirBase}tools/test/AntTestRunTestdriver.js" />
 	</target>
 </project>

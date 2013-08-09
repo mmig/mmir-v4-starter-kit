@@ -32,41 +32,56 @@
 			SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		-->
 
-        <link rel="stylesheet" href="content/stylesheets/jquery.mobile-1.3.1.min.css" />
+	<!-- Stylesheets: -->
+        <link rel="stylesheet" href="mmirf/res/styles/jquery.mobile-1.3.1.min.css" />
+		
         <link rel="stylesheet" href="content/stylesheets/jqm-datebox-1.4.0.min.css"/>
-	    
-	    <script type="text/javascript" src="javascripts/3rdParty/jquery-1.9.1.min.js">
+        
+    <!-- JavaScript: jQuery and jQuery Plugins -->   
+	    <script type="text/javascript" src="mmirf/res/libs/jquery-1.9.1.min.js">
         </script>
-        <script type="text/javascript" src="javascripts/3rdParty/jquery.mobile-1.3.1.min.js">
+        <script type="text/javascript" src="mmirf/res/libs/jquery.mobile-1.3.1.min.js">
         </script>
-		<script type="text/javascript" src="javascripts/3rdParty/datebox/jqm-datebox-1.4.0.comp.flipbox.min.js">
-        </script>
-		<script type="text/javascript" src="javascripts/3rdParty/datebox/jquery.mobile.datebox.i18n.en.utf8.js">
-        </script>
-        <script type="text/javascript" src="javascripts/remoteAjax.js">
+		<script type="text/javascript" src="mmirf/res/libs/jquery.simplemodal.1.4.4.min.js">
         </script>
         
-        <script type="text/javascript" src="javascripts/remoteLogging.js">
+		<script type="text/javascript" src="libs/datebox/jqm-datebox-1.4.0.comp.flipbox.min.js">
+        </script>
+		<script type="text/javascript" src="libs/datebox/jquery.mobile.datebox.i18n.en.utf8.js">
+        </script>
+		<script type="text/javascript" src="libs/datebox/jquery.mobile.datebox.i18n.de.utf8.js">
         </script>
         
-        <script type="text/javascript" src="javascripts/tools/StringExtensions.js">
+     <!-- JavaScript: MMIR Framework -->
+     
+     <!--TODO integrate these into framework: 
+        <script type="text/javascript" src="mmirf/remoteAjax.js">
         </script>
-        <script type="text/javascript" src="javascripts/tools/FunctionExtensions.js">
+        <script type="text/javascript" src="mmirf/remoteLogging.js">
+        </script>
+     -->
+        
+        <script type="text/javascript" src="mmirf/tools/extensions/StringExtensions.js">
+        </script>
+        <script type="text/javascript" src="mmirf/tools/extensions/FunctionExtensions.js">
         </script>
         
-        <script type="text/javascript" src="javascripts/3rdParty/scion.js">
+        <script type="text/javascript" src="mmirf/res/libs/scion.js">
         </script>
         
-        <script type="text/javascript" src="javascripts/tools/constants.js">
+        <script type="text/javascript" src="mmirf/tools/constants.js">
+        </script>
+        
+        <script type="text/javascript" src="mmirf/tools/dictionary.js">
         </script>
 
-        <script type="text/javascript" src="javascripts/tools/commonUtils.js">
+        <script type="text/javascript" src="mmirf/tools/commonUtils.js">
         </script>
         
         <script type="text/javascript">
 	    	var forBrowser = true;
 	    	var initializeRuntimeEnvDetection = (function(){
-	    		var params = mobileDS.CommonUtils.getInstance().get_params_as_dict( window.location.search );
+	    		var params = mobileDS.CommonUtils.getInstance().parseParamsToDictionary( window.location.search );
 	    		if(params.has('env')){
 	    			var envSetting = params['env'];
 	    			if(envSetting === 'browser' || envSetting !== 'android'){
@@ -86,125 +101,123 @@
 	    <script type="text/javascript">
 	        //create script-element for cordova (only if run on Android):
 	        if(! forBrowser){
-	    		document.write('<'+'script type="text/javascript" src="javascripts/3rdParty/cordova-2.8.1.js"><'+'/script>');
+	    		document.write('<'+'script type="text/javascript" src="mmirf/res/libs/cordova-2.8.1.js"><'+'/script>');
 	    	}
 	    </script>
-	    
-	    <script type="text/javascript" src="javascripts/main.js">
-        </script>
         
-        <script type="text/javascript" src="javascripts/3rdParty/jpath.js">
+        <script type="text/javascript" src="mmirf/res/libs/jpath.js">
         </script>
-        <script type="text/javascript" src="javascripts/tools/InitJSCC.js">
+        <script type="text/javascript" src="mmirf/tools/initJSCC.js">
         </script>
-        <script type="text/javascript" src="javascripts/3rdParty/jscc.js">
+        <script type="text/javascript" src="mmirf/res/libs/jscc.js">
         </script>
 		
-		<script type="text/javascript" src="javascripts/3rdParty/timer.js">
-        </script>
-		
-        <script type="text/javascript" src="javascripts/tools/queue.js">
+		<script type="text/javascript" src="mmirf/res/libs/timer.js">
         </script>
         
-        <script type="text/javascript" src="javascripts/manager/settings/configurationManager.js">
+        <script type="text/javascript" src="mmirf/manager/settings/configurationManager.js">
         </script>
-      	<script type="text/javascript" src="javascripts/manager/settings/languageManager.js">
+      	<script type="text/javascript" src="mmirf/manager/settings/languageManager.js">
         </script>
         
-		<script type="text/javascript" src="javascripts/3rdParty/antlr3-all-min.js"></script>
-		<script type="text/javascript" src="javascripts/mvc/parser/parseElementTypes.js"></script>
-		<script type="text/javascript" src="javascripts/mvc/parser/parsingResult.js"></script>
-		<script type="text/javascript" src="javascripts/mvc/parser/templateProcessor.js"></script>
-		<script type="text/javascript" src="javascripts/gen/parser/MmirTemplateLexer.js"></script>
-		<!-- script type="text/javascript" src="javascripts/gen/parser/MmirTemplateParser.js"></script-->
-		<script type="text/javascript" src="javascripts/gen/parser/ES3Lexer.js"></script>
-		<script type="text/javascript" src="javascripts/gen/parser/ES3Parser.js"></script>
-		<script type="text/javascript" src="javascripts/gen/parser/MmirScriptBlockLexer.js"></script>
-		<script type="text/javascript" src="javascripts/gen/parser/MmirScriptBlockParser.js"></script>
-		<script type="text/javascript" src="javascripts/gen/parser/MmirScriptStatementLexer.js"></script>
-		<script type="text/javascript" src="javascripts/gen/parser/MmirScriptStatementParser.js"></script>
-		<script type="text/javascript" src="javascripts/gen/parser/MmirScriptContentLexer.js"></script>
-		<script type="text/javascript" src="javascripts/gen/parser/MmirScriptContentParser.js"></script>
-		<script type="text/javascript" src="javascripts/mvc/parser/templateParseUtils.js"></script>
-		<script type="text/javascript" src="javascripts/mvc/parser/templateRenderUtils.js"></script>
+		<script type="text/javascript" src="mmirf/res/libs/antlr3-all-min.js"></script>
+		<script type="text/javascript" src="mmirf/mvc/parser/parseElementTypes.js"></script>
+		<script type="text/javascript" src="mmirf/mvc/parser/parsingResult.js"></script>
+		<script type="text/javascript" src="mmirf/mvc/parser/templateProcessor.js"></script>
+		<script type="text/javascript" src="mmirf/gen/parser/MmirTemplateLexer.js"></script>
+		<!-- script type="text/javascript" src="mmirf/gen/parser/MmirTemplateParser.js"></script-->
+		<script type="text/javascript" src="mmirf/gen/parser/ES3Lexer.js"></script>
+		<script type="text/javascript" src="mmirf/gen/parser/ES3Parser.js"></script>
+		<script type="text/javascript" src="mmirf/gen/parser/MmirScriptBlockLexer.js"></script>
+		<script type="text/javascript" src="mmirf/gen/parser/MmirScriptBlockParser.js"></script>
+		<script type="text/javascript" src="mmirf/gen/parser/MmirScriptStatementLexer.js"></script>
+		<script type="text/javascript" src="mmirf/gen/parser/MmirScriptStatementParser.js"></script>
+		<script type="text/javascript" src="mmirf/gen/parser/MmirScriptContentLexer.js"></script>
+		<script type="text/javascript" src="mmirf/gen/parser/MmirScriptContentParser.js"></script>
+		<script type="text/javascript" src="mmirf/mvc/parser/templateParseUtils.js"></script>
+		<script type="text/javascript" src="mmirf/mvc/parser/templateRenderUtils.js"></script>
 
-        <script type="text/javascript" src="javascripts/mvc/views/contentElement.js">
+        <script type="text/javascript" src="mmirf/mvc/views/contentElement.js">
         </script>
-        <script type="text/javascript" src="javascripts/mvc/views/yield.js">
+        <script type="text/javascript" src="mmirf/mvc/views/yield.js">
         </script>
-        <script type="text/javascript" src="javascripts/mvc/views/layout.js">
+        <script type="text/javascript" src="mmirf/mvc/views/layout.js">
         </script>
-        <script type="text/javascript" src="javascripts/mvc/views/view.js">
+        <script type="text/javascript" src="mmirf/mvc/views/view.js">
         </script>
-        <script type="text/javascript" src="javascripts/mvc/views/partial.js">
+        <script type="text/javascript" src="mmirf/mvc/views/partial.js">
         </script>
-        <script type="text/javascript" src="javascripts/mvc/controllers/controller.js">
+        <script type="text/javascript" src="mmirf/mvc/controllers/controller.js">
         </script>
-		 <script type="text/javascript" src="javascripts/mvc/controllers/helper.js">
+		 <script type="text/javascript" src="mmirf/mvc/controllers/helper.js">
         </script>
-        <script type="text/javascript" src="javascripts/manager/controllerManager.js">
+        <script type="text/javascript" src="mmirf/manager/controllerManager.js">
         </script>
-        <script type="text/javascript" src="javascripts/mediators/audioInput.js">
+        <script type="text/javascript" src="mmirf/manager/mediaManager.js">
         </script>
-        <script type="text/javascript" src="javascripts/mediators/audioOutput.js">
+        <script type="text/javascript" src="mmirf/tools/extensions/SCIONExtension.js">
         </script>
-        <script type="text/javascript" src="javascripts/mediators/concurrentSCION.js">
+        <script type="text/javascript" src="mmirf/manager/modelManager.js">
         </script>
-        <script type="text/javascript" src="javascripts/manager/modelManager.js">
+        <script type="text/javascript" src="mmirf/manager/presentationManager.js">
         </script>
-        <script type="text/javascript" src="javascripts/manager/presentationManager.js">
+        <script type="text/javascript" src="mmirf/semantic/stemmer.js">
         </script>
-        <script type="text/javascript" src="javascripts/semantic/stemmer.js">
-        </script>
-	    <!-- script type="text/javascript" src="javascripts/gen/DialogDescription.js">
+	    <!-- script type="text/javascript" src="gen/scxml/DialogDescription.js">
         </script-->
-        <script type="text/javascript" src="javascripts/manager/dialog/DialogEngine.js">
+        <script type="text/javascript" src="mmirf/manager/dialog/dialogEngine.js">
         </script>
-		<script type="text/javascript" src="javascripts/plugins/multitouchPlugin.js">
-        </script>
-        <script type="text/javascript" src="javascripts/notification.js">
+        <script type="text/javascript" src="mmirf/notification.js">
         </script>
         
-        <script type="text/javascript" src="javascripts/semantic/grammar_converter.js">
+        <script type="text/javascript" src="mmirf/semantic/grammarConverter.js">
         </script>
-        <script type="text/javascript" src="javascripts/semantic/grammar_parser_template.js">
+        <script type="text/javascript" src="mmirf/semantic/grammarParserTemplate.js">
         </script>
-        <script type="text/javascript" src="javascripts/semantic/semantic_interpreter.js">
-        </script>
-        <!-- TODO load all grammars in gen/grammar dynamically instead of statically linking here! -->
-        <script type="text/javascript" src="gen/grammar/de_grammar.js">
+        <script type="text/javascript" src="mmirf/semantic/semanticInterpreter.js">
         </script>
         
-        <script type="text/javascript" src="javascripts/gesture/accelerometerGestureDetector.js">
+        <script type="text/javascript" src="mmirf/gesture/accelerometerGestureDetector.js">
         </script>
-        <script type="text/javascript" src="javascripts/gesture/compassHandler.js">
+        <script type="text/javascript" src="mmirf/gesture/compassHandler.js">
         </script>
-        <script type="text/javascript" src="javascripts/gesture/locationObserver.js">
+        <script type="text/javascript" src="mmirf/gesture/locationObserver.js">
         </script>
 
-        <!-- script type="text/javascript" src="javascripts/gen/input_manager_state_chart.js">
+        <!-- script type="text/javascript" src="gen/scxml/InputDescription.js">
         </script-->
-        <script type="text/javascript" src="javascripts/manager/dialog/input_manager_engine.js">
+        <script type="text/javascript" src="mmirf/manager/dialog/inputEngine.js">
         </script>
         
         <!-- 
       		IMPORTANT Notice:
-      		DirectoryListing Plugin loads ALL plugins in javascripts/plugins/*.js 
+      		DirectoryListing Plugin loads ALL plugins in mmirf/plugins/*.js 
       		so, no other plugin has to be included into the index.html
     	-->
-       <script type="text/javascript" src="javascripts/plugins/directoryListing.js">
+       <script type="text/javascript" src="mmirf/plugins/directoryListing.js">
+       </script>
+       
+       
+	<!-- JavaScript: main (application's main / start code): -->
+	   <script type="text/javascript" src="mmirf/main.js">
        </script>
 
       </head>
     <body>
        
        <!-- DEBUGGING: connection to remote weinre debugging-server -->
+       <!-- 
+       		ENABLE this for debugging with weinre on Android.
+       		(NOTE: need to replace scr-attribute the correct IP)
+       		
        <script type="text/javascript">
         //create script-element for weinre debugger (only if run on Android):
         if(! forBrowser){
     		document.write('<'+'script type="text/javascript" src="http://172.16.150.204:8888/target/target-script-min.js"><'+'/script>');
     	}
        </script>
+       
+       -->
        
 	   <div id="pageContainer" data-role="page" class="type-interior"
 			data-url="pageContainer" data-cache="false">

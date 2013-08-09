@@ -91,7 +91,7 @@ ApplicationHelper.prototype.get_language_menu = function(ctrl, data){
 			}
 			
 			// check if item is current language--- if so: mark by another theme
-			if (mobileDS.LanguageManager.getInstance().getCurrentLanguage() === par_available_languages[i]){
+			if (mobileDS.LanguageManager.getInstance().getLanguage() === par_available_languages[i]){
 				li.attr( "data-theme", self.listItemThemeCurrent );
 				class_li += "ui-body-"+self.listItemThemeCurrent;
 			} else {
@@ -102,8 +102,7 @@ ApplicationHelper.prototype.get_language_menu = function(ctrl, data){
 			li.addClass( class_li );
 			li.css("padding", "0px" );
 			
-			// add onclick actions
-//			li.attr( "onclick", "mobileDS.LanguageManager.getInstance().changeLanguage('"+par_available_languages[i]+"', true);mobileDS.InputManager.getInstance().raiseEvent('touch_input_event');mobileDS.InputManager.getInstance().raiseEvent('language_choosen');");
+			// add onclick actions: do register these in view's controller (in on_page_load_xxx)
 			
 			li.attr('lang',par_available_languages[i]);
 			

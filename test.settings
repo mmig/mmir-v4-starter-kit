@@ -18,9 +18,9 @@ jstestdriver.runnermode=QUIET
 #jstestdriver.config.dir=drivers
 jstestdriver.config.dir=test/drivers
 
-# Path to javascripts-dir of the project
-#jsSrcDirBase=../assets/www/javascripts/
-jsSrcDirBase=assets/www/javascripts/
+# Path to mmirf-dir of the project
+#jsSrcDirBase=../assets/www/mmirf/
+jsSrcDirBase=assets/www/mmirf/
 
 # Path top log-dir
 jstestdriver.log.dir=test/log

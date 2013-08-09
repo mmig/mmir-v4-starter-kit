@@ -5,97 +5,92 @@
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1,maximum-scale=1, user-scalable=no" />
 	
-	<link rel="stylesheet" href="content/stylesheets/jquery.mobile-1.3.1.min.css" />
+	<link rel="stylesheet" href="mmirf/res/styles/jquery.mobile-1.3.1.min.css" />
 	<link rel="stylesheet" href="content/stylesheets/jqm-datebox-1.4.0.min.css" />
 	
-	<script src="javascripts/3rdParty/jquery-1.9.1.min.js">
+	<script src="mmirf/res/libs/jquery-1.9.1.min.js">
 	</script>
-	<script src="javascripts/3rdParty/jquery.mobile-1.3.1.min.js">
+	<script src="mmirf/res/libs/jquery.mobile-1.3.1.min.js">
 	</script>
-	<script type="text/javascript" charset="utf-8" src="javascripts/3rdParty/cordova-2.8.1.js">
+	<script type="text/javascript" charset="utf-8" src="mmirf/res/libs/cordova-2.8.1.js">
 	</script>
-	<script src="javascripts/tools/commonUtils.js" type="text/javascript">
+	<script src="mmirf/tools/commonUtils.js" type="text/javascript">
 	</script>
-	<script src="javascripts/3rdParty/jpath.js">
+	<script src="mmirf/res/libs/jpath.js">
 	</script>
-	<script src="javascripts/tools/InitJSCC.js">
+	<script src="mmirf/tools/initJSCC.js">
     </script>
-	<script src="javascripts/3rdParty/jscc.js">
+	<script src="mmirf/res/libs/jscc.js">
 	</script>
-	<script src="javascripts/3rdParty/datebox/jqm-datebox-1.4.0.comp.flipbox.min.js">
+	<script src="libs/datebox/jqm-datebox-1.4.0.comp.flipbox.min.js">
 	</script>
-	<script src="javascripts/3rdParty/datebox/jquery.mobile.datebox.i18n.en.utf8.js">
+	<script src="libs/datebox/jquery.mobile.datebox.i18n.en.utf8.js">
 	</script>
-	<script type="text/javascript" src="javascripts/3rdParty/timer.js">
+	<script type="text/javascript" src="mmirf/res/libs/timer.js">
 	</script>
-	<script src="javascripts/tools/queue.js" type="text/javascript">
+	<script src="mmirf/mvc/views/contentElement.js">
 	</script>
-	<script src="javascripts/mvc/views/contentElement.js">
+	<script src="mmirf/mvc/views/layout.js">
 	</script>
-	<script src="javascripts/mvc/views/layout.js">
+	<script src="mmirf/mvc/views/view.js">
 	</script>
-	<script src="javascripts/mvc/views/view.js">
+	<script src="mmirf/mvc/controllers/controller.js">
 	</script>
-	<script src="javascripts/mvc/controllers/controller.js">
+	<script src="mmirf/mvc/controllers/helper.js">
 	</script>
-	<script src="javascripts/mvc/controllers/helper.js">
+	<script src="mmirf/manager/controllerManager.js">
 	</script>
-	<script src="javascripts/manager/controllerManager.js">
+	<script src="mmirf/manager/modelManager.js">
 	</script>
-	<script src="javascripts/manager/modelManager.js">
+	<script src="mmirf/manager/presentationManager.js" type="text/javascript">
 	</script>
-	<script src="javascripts/manager/presentationManager.js" type="text/javascript">
+	<script src="mmirf/manager/languageManager.js" type="text/javascript">
 	</script>
-	<script src="javascripts/manager/languageManager.js" type="text/javascript">
+	<script type="text/javascript" src="mmirf/semantic/stemmer.js">
 	</script>
-	<script type="text/javascript" src="javascripts/semantic/stemmer.js">
+	<script src="mmirf/main.js" type="text/javascript">
 	</script>
-	<script src="javascripts/main.js" type="text/javascript">
+	<script src="mmirf/gen/DialogDescription.js" type="text/javascript">
 	</script>
-	<script src="javascripts/gen/DialogDescription.js" type="text/javascript">
+	<script src="mmirf/manager/dialog/dialogEngine.js" type="text/javascript">
 	</script>
-	<script src="javascripts/manager/dialog/DialogEngine.js" type="text/javascript">
+	<script src="mmirf/plugins/directoryListing.js" type="text/javascript">
 	</script>
-	<script src="javascripts/plugins/directoryListing.js" type="text/javascript">
+	<script src="mmirf/plugins/multitouchPlugin.js" type="text/javascript">
 	</script>
-	<script src="javascripts/plugins/multitouchPlugin.js" type="text/javascript">
+	<script type="text/javascript" src="mmirf/tools/extensions/StringExtensions.js">
 	</script>
-	<script type="text/javascript" src="javascripts/tools/StringExtensions.js">
+	<script type="text/javascript" src="mmirf/notification.js">
 	</script>
-	<script type="text/javascript" src="javascripts/notification.js">
+	<script type="text/javascript" src="mmirf/semantic/grammarParserTemplate.js">
 	</script>
-	<script type="text/javascript" src="javascripts/semantic/grammar_parser_template.js">
+	<script type="text/javascript" src="mmirf/semantic/grammarConverter.js">
 	</script>
-	<script type="text/javascript" src="javascripts/semantic/grammar_converter.js">
+	<script type="text/javascript" src="mmirf/semantic/semanticInterpreter.js">
 	</script>
-	<script type="text/javascript" src="javascripts/semantic/semantic_interpreter.js">
+	<script type="text/javascript" src="mmirf/gesture/accelerometerGestureDetector.js">
 	</script>
-	<script type="text/javascript" src="javascripts/gesture/accelerometerGestureDetector.js">
+	<script type="text/javascript" src="mmirf/gesture/compassHandler.js">
 	</script>
-	<script type="text/javascript" src="javascripts/gesture/compassHandler.js">
+	<script type="text/javascript" src="mmirf/gesture/locationObserver.js">
 	</script>
-	<script type="text/javascript" src="javascripts/gesture/locationObserver.js">
+	<script type="text/javascript" src="mmirf/manager/dialog/inputEngine.js">
 	</script>
-	<script type="text/javascript" src="javascripts/gen/input_manager_state_chart.js">
+	<script type="text/javascript" src="mmirf/manager/settings/configurationManager.js">
 	</script>
-	<script type="text/javascript" src="javascripts/manager/dialog/input_manager_engine.js">
-	</script>
-	<script type="text/javascript" src="javascripts/manager/settings/configurationManager.js">
-	</script>
-	<script type="text/javascript" src="javascripts/manager/settings/languageManager.js">
+	<script type="text/javascript" src="mmirf/manager/settings/languageManager.js">
 	</script>
 	
-	<script type="text/javascript" src="file:///android_asset/www/javascripts/plugins/nativeTTS.js"></script>
-	<script type="text/javascript" src="file:///android_asset/www/javascripts/plugins/nuance.js"></script>
-	<script type="text/javascript" src="file:///android_asset/www/controllers/application.js"></script>
-	<script type="text/javascript" src="file:///android_asset/www/helpers/applicationHelper.js"></script>
-	<script type="text/javascript" src="file:///android_asset/www/controllers/calendar.js"></script>
-	<script type="text/javascript" src="file:///android_asset/www/helpers/calendarHelper.js"></script>
-	<link rel="stylesheet" href="content/stylesheets/jqm-extentions.css"/>
+	<script type="text/javascript" src="mmirf/plugins/nativeTTS.js"></script>
+	<script type="text/javascript" src="mmirf/plugins/nuance.js"></script>
+	<script type="text/javascript" src="controllers/application.js"></script>
+	<script type="text/javascript" src="applicationHelper.js"></script>
+	<script type="text/javascript" src="controllers/calendar.js"></script>
+	<script type="text/javascript" src="helpers/calendarHelper.js"></script>
+	<link rel="stylesheet" href="mmirf/res/styles/jqm-extentions.css"/>
 	<link rel="stylesheet" href="content/stylesheets/application.css"/>
-	<link rel="stylesheet" href="content/stylesheets/jquery.mobile-1.3.1.min.css"/>
-	<script type="text/javascript" src="file:///android_asset/www/models/calendarmodel.js"></script>
-	<script type="text/javascript" src="file:///android_asset/www/models/user.js"></script>
+	<script type="text/javascript" src="models/calendarmodel.js"></script>
+	<script type="text/javascript" src="models/user.js"></script>
 </head>
 <body>
 	<div class="ui-loader ui-corner-all ui-body-a ui-loader-default">

@@ -17,7 +17,21 @@
        specific language governing permissions and limitations
        under the License.
 -->
-<cordova>
+
+<widget xmlns = "http://www.w3.org/ns/widgets"
+        id = "de.dfki.iui.mmir.starterKit"
+        version = "1.0.0">
+    <name>MMIR StarterKit</name>
+
+    <description>
+        A sample Apache Cordova application for the MMIR StarterKit.
+    </description>
+
+    <author href="http://github.com/mmig/mmir-starter-kit" email="">
+        MMIG Team
+    </author>
+
+    
     <!--
     access elements control the Android whitelist.
     Domains are assumed blocked unless set otherwise
@@ -29,40 +43,107 @@
     <!-- <access origin="https://example.com" subdomains="true" /> such as above, but including subdomains, such as www -->
     <!-- <access origin=".*"/> Allow all domains, suggested development use only -->
 
-    <log level="DEBUG"/>
-    <preference name="classicRender" value="true" />
-<plugins>
-    <plugin name="App" value="org.apache.cordova.App"/>
-    <plugin name="Geolocation" value="org.apache.cordova.GeoBroker"/>
-    <plugin name="Device" value="org.apache.cordova.Device"/>
-    <plugin name="Accelerometer" value="org.apache.cordova.AccelListener"/>
-    <plugin name="Compass" value="org.apache.cordova.CompassListener"/>
-    <plugin name="Media" value="org.apache.cordova.AudioHandler"/>
-    <plugin name="Camera" value="org.apache.cordova.CameraLauncher"/>
-    <plugin name="Contacts" value="org.apache.cordova.ContactManager"/>
-    <plugin name="File" value="org.apache.cordova.FileUtils"/>
-    <plugin name="NetworkStatus" value="org.apache.cordova.NetworkManager"/>
-    <plugin name="Notification" value="org.apache.cordova.Notification"/>
-    <plugin name="Storage" value="org.apache.cordova.Storage"/>
-    <plugin name="Temperature" value="org.apache.cordova.TempListener"/>
-    <plugin name="FileTransfer" value="org.apache.cordova.FileTransfer"/>
-    <plugin name="Capture" value="org.apache.cordova.Capture"/>
-    <plugin name="Battery" value="org.apache.cordova.BatteryListener"/>
-    <plugin name="SplashScreen" value="org.apache.cordova.SplashScreen"/>
-    <plugin name="Echo" value="org.apache.cordova.Echo" />
-    <plugin name="Globalization" value="org.apache.cordova.Globalization"/>
-    <plugin name="InAppBrowser" value="org.apache.cordova.InAppBrowser"/>
-    
-    
-    <plugin name="NativeTTS" 			value="de.dfki.iui.mmig.plugins.NativeTTS"/>
-    <plugin name="DirectoryListing" 	value="de.dfki.iui.mmig.plugins.DirectoryListing"/>
-    <plugin name="MultitouchPlugin" 	value="de.dfki.iui.mmig.plugins.MultitouchPlugin"/>
-	<plugin name="CookiePlugin" 		value="de.dfki.iui.mmig.plugins.CookiePlugin"/>
-	<plugin name="QueuePlugin" 			value="de.dfki.iui.mmig.plugins.QueuePlugin"/>
+    <!-- <content src="http://mysite.com/myapp.html" /> for external pages -->
+    <!-- <content src="index.html?env=android" /> -->
 
-    <plugin name="VideoPlayer" 			value="com.phonegap.plugins.video.VideoPlayer"/>
-	<plugin name="SoftKeyBoard"         value="com.cordova.plugin.softkeyboard.SoftKeyBoard"/>
+    <preference name="loglevel" value="DEBUG" />
     
-</plugins>
-</cordova>
+    <preference name="classicRender" value="true" />
+    
+    <!--
+<preference name="splashscreen" value="resourceName" />
+<preference name="backgroundColor" value="0xFFF" />
+<preference name="loadUrlTimeoutValue" value="20000" />
+<preference name="InAppBrowserStorageEnabled" value="true" />
+<preference name="disallowOverscroll" value="true" />
+-->
+    <!-- This is required for native Android hooks -->
+    <feature name="App" >
+        <param name="android-package" value="org.apache.cordova.App" />
+    </feature>
+    <feature name="Geolocation" >
+        <param name="android-package" value="org.apache.cordova.GeoBroker" />
+    </feature>
+    <feature name="Device" >
+        <param name="android-package" value="org.apache.cordova.Device" />
+    </feature>
+    <feature name="Accelerometer" >
+        <param name="android-package" value="org.apache.cordova.AccelListener" />
+    </feature>
+    <feature name="Compass" >
+        <param name="android-package" value="org.apache.cordova.CompassListener" />
+    </feature>
+    <feature name="Media" >
+        <param name="android-package" value="org.apache.cordova.AudioHandler" />
+    </feature>
+    <feature name="Camera" >
+        <param name="android-package" value="org.apache.cordova.CameraLauncher" />
+    </feature>
+    <feature name="Contacts" >
+        <param name="android-package" value="org.apache.cordova.ContactManager" />
+    </feature>
+    <feature name="File" >
+        <param name="android-package" value="org.apache.cordova.FileUtils" />
+    </feature>
+    <feature name="NetworkStatus" >
+        <param name="android-package" value="org.apache.cordova.NetworkManager" />
+    </feature>
+    <feature name="Notification" >
+        <param name="android-package" value="org.apache.cordova.Notification" />
+    </feature>
+    <feature name="Storage" >
+        <param name="android-package" value="org.apache.cordova.Storage" />
+    </feature>
+    <feature name="Temperature" >
+        <param name="android-package" value="org.apache.cordova.TempListener" />
+    </feature>
+    <feature name="FileTransfer" >
+        <param name="android-package" value="org.apache.cordova.FileTransfer" />
+    </feature>
+    <feature name="Capture" >
+        <param name="android-package" value="org.apache.cordova.Capture" />
+    </feature>
+    <feature name="Battery" >
+        <param name="android-package" value="org.apache.cordova.BatteryListener" />
+    </feature>
+    <feature name="SplashScreen" >
+        <param name="android-package" value="org.apache.cordova.SplashScreen" />
+    </feature>
+    <feature name="Echo" >
+        <param name="android-package" value="org.apache.cordova.Echo" />
+    </feature>
+    <feature name="Globalization" >
+        <param name="android-package" value="org.apache.cordova.Globalization" />
+    </feature>
+    <feature name="InAppBrowser" >
+        <param name="android-package" value="org.apache.cordova.InAppBrowser" />
+    </feature>
+    
+    
+    <feature name="NativeTTS" >
+        <param name="android-package" value="de.dfki.iui.mmig.plugins.NativeTTS" />
+    </feature>
+    <feature name="DirectoryListing" >
+        <param name="android-package" value="de.dfki.iui.mmig.plugins.DirectoryListing" />
+    </feature>
+    <feature name="MultitouchPlugin" >
+        <param name="android-package" value="de.dfki.iui.mmig.plugins.MultitouchPlugin" />
+    </feature>
+    <feature name="CookiePlugin" >
+        <param name="android-package" value="de.dfki.iui.mmig.plugins.CookiePlugin" />
+    </feature>
+    <feature name="QueuePlugin" >
+        <param name="android-package" value="de.dfki.iui.mmig.plugins.QueuePlugin" />
+    </feature>
+    <feature name="BeepPlugin" >
+        <param name="android-package" value="de.dfki.iui.mmig.plugins.BeepPlugin" />
+    </feature>
+    <feature name="VideoPlayer" >
+        <param name="android-package" value="com.phonegap.plugins.video.VideoPlayer" />
+    </feature>
+    <feature name="SoftKeyBoard" >
+        <param name="android-package" value="com.cordova.plugin.softkeyboard.SoftKeyBoard" />
+    </feature>
+	
+</widget>
 

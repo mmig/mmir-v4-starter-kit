@@ -15,8 +15,8 @@ jstestdriver.runnermode=QUIET
 # jstestdriver.config.dir - wheere to look for config files
 jstestdriver.config.dir=drivers
 
-# Path to javascripts-dir of the project
-jsSrcDirBase=../assets/www/javascripts/
+# Path to mmirf-dir of the project
+jsSrcDirBase=../assets/www/mmirf/
 
 
 # paths to browser binaries

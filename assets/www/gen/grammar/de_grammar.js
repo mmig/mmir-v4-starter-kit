@@ -8749,7 +8749,7 @@ switch( match )
 
 
 function __parse( src, err_off, err_la )
-{ theGrammarConverterInstance.asr_semantic_annotation={};
+{ theGrammarConverterInstance.semanticAnnotationResult={};
 	var		sstack			= new Array();
 	var		vstack			= new Array();
 	var 	err_cnt			= 0;
@@ -9715,7 +9715,7 @@ switch( act )
 	break;
 	case 1:
 	{
-		  _$result['semantic'] = _$result['semantic'].replace(/"{/g,'{').replace(/}"/g,'}'); console.log(_$result);  theGrammarConverterInstance.asr_semantic_annotation = _$result
+		  _$result['semantic'] = _$result['semantic'].replace(/"{/g,'{').replace(/}"/g,'}'); console.log(_$result);  theGrammarConverterInstance.semanticAnnotationResult = _$result
 	}
 	break;
 	case 2:

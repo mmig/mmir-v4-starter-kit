@@ -21,4 +21,3 @@ The StarterKit provides basic capabilities for recognizing speech input (ASR, us
 ----
 
 If not stated otherwise, the code, resource files etc. is provided under the MIT license (see the license file).
-

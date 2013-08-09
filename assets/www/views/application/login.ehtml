@@ -44,7 +44,7 @@
 }@
 
 @contentFor("footer"){    
-    <div id="lang_button" class="footer_button" style="width: 56px; height: 100%; display: table; float: right;" onclick="mobileDS.InputManager.getInstance().raiseEvent('touch_input_event'); mobileDS.InputManager.getInstance().raiseEvent('click_on_language_btn');">
+    <div id="lang_button" class="footer_button" style="width: 56px; height: 100%; display: table; float: right;" onclick="mobileDS.InputEngine.getInstance().raise('touch_input_event'); mobileDS.InputEngine.getInstance().raise('click_on_language_btn');">
 		<div id='flags-@localize("current_language")' style="display: table-cell; vertical-align: middle;width: 100%; height:100%;" class="flags footer_button">
 			<div style="display: table; width: 100%; height:100%;">
 	    		<div class="center_element lang_button_text footer_button_line_height" style="display: table-cell; vertical-align:middle; text-align: center;">
@@ -58,7 +58,7 @@
 @contentFor("dialogs"){
   
   <blockquote id="language-menu-panel" class='ui-language-panel login_background_gradient ui-body-a ui-corner-all'>
-  	@helper('get_language_menu') @*render('application', 'languagemenu')*@
+  	@helper('get_language_menu') @*render('Application', 'languageMenu')*@
   </blockquote>
   
 }@
