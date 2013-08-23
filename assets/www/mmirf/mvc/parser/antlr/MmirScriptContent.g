@@ -195,3 +195,6 @@ UNICODE_ESC
     :   '\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
     ;
 
+// "catch all" for potential template expressions:
+ScriptVar	:	 '@' theText= ~('\t'|' '|'('|')'|'['|']'|'{'|'}'|'\r'|'\n')+ {$channel=HIDDEN;};
+

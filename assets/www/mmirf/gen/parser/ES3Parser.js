@@ -1,4 +1,4 @@
-// $ANTLR 3.3 Nov 30, 2010 12:50:56 ../ES3.g3 2013-04-12 13:42:09
+// $ANTLR 3.3 Nov 30, 2010 12:50:56 ../ES3.g3 2013-08-13 18:04:04
 
 var ES3Parser = function(input, state) {
     if (!state) {
@@ -2674,7 +2674,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
                     // AST REWRITE
-                    // elements: arguments, leftHandSideExpression
+                    // elements: leftHandSideExpression, arguments
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2718,7 +2718,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
                     // AST REWRITE
-                    // elements: expression, leftHandSideExpression
+                    // elements: leftHandSideExpression, expression
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -2756,7 +2756,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
                     // AST REWRITE
-                    // elements: leftHandSideExpression, Identifier
+                    // elements: Identifier, leftHandSideExpression
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -6281,7 +6281,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
             // AST REWRITE
-            // elements: VAR, variableDeclaration
+            // elements: variableDeclaration, VAR
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -6712,7 +6712,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
             // AST REWRITE
-            // elements: expression, IF, statement
+            // elements: IF, statement, expression
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -6946,7 +6946,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
             // AST REWRITE
-            // elements: expression, statement, DO
+            // elements: DO, expression, statement
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -7359,7 +7359,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
                     // AST REWRITE
-                    // elements: variableDeclarationNoIn, expression, VAR
+                    // elements: expression, variableDeclarationNoIn, VAR
                     // token labels: 
                     // rule labels: retval
                     // token list labels: 
@@ -7494,7 +7494,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
                     // AST REWRITE
-                    // elements: ex1, variableDeclarationNoIn, ex2, VAR
+                    // elements: ex2, ex1, VAR, variableDeclarationNoIn
                     // token labels: 
                     // rule labels: retval, ex2, ex1
                     // token list labels: 
@@ -7676,7 +7676,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
                     // AST REWRITE
-                    // elements: ex1, ex2
+                    // elements: ex2, ex1
                     // token labels: 
                     // rule labels: retval, ex2, ex1
                     // token list labels: 
@@ -7781,7 +7781,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
                     // AST REWRITE
-                    // elements: ex3, ex2, ex1
+                    // elements: ex1, ex3, ex2
                     // token labels: 
                     // rule labels: retval, ex3, ex2, ex1
                     // token list labels: 
@@ -7959,7 +7959,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
             // AST REWRITE
-            // elements: ex2, ex1
+            // elements: ex1, ex2
             // token labels: 
             // rule labels: retval, ex2, ex1
             // token list labels: 
@@ -8488,7 +8488,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
             // AST REWRITE
-            // elements: defaultClause, expression, caseClause, SWITCH
+            // elements: caseClause, defaultClause, SWITCH, expression
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -9210,7 +9210,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
             // AST REWRITE
-            // elements: formalParameterList, name, functionBody, FUNCTION
+            // elements: functionBody, formalParameterList, name, FUNCTION
             // token labels: name
             // rule labels: retval
             // token list labels: 
@@ -9329,7 +9329,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
             // AST REWRITE
-            // elements: formalParameterList, FUNCTION, name, functionBody
+            // elements: functionBody, name, FUNCTION, formalParameterList
             // token labels: name
             // rule labels: retval
             // token list labels: 
@@ -10209,7 +10209,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
             // AST REWRITE
-            // elements: callParam, RENDER, callData, callParam
+            // elements: callParam, callParam, RENDER, callData
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -10344,7 +10344,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
             // AST REWRITE
-            // elements: callData, callParam, callParam
+            // elements: callParam, callParam, callData
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -10553,7 +10553,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
             // AST REWRITE
-            // elements: callData, callParam
+            // elements: callParam, callData
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -10787,7 +10787,7 @@ org.antlr.lang.augmentObject(ES3Parser.prototype, {
 
 
             // AST REWRITE
-            // elements: callParam, callParam, callData
+            // elements: callData, callParam, callParam
             // token labels: 
             // rule labels: retval
             // token list labels: 

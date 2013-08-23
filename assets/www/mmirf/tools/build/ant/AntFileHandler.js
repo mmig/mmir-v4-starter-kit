@@ -27,7 +27,14 @@
 
 /*
  * This JavaScript is expected to run in the Rhino environment 
- * (i.e. with access to Java classes).
+ * (or the default ANT JavaScript environment)
+ * 
+ * -> requires access to Java classes
+ * 
+ * 
+ * SETTINGS:
+ *  - isDebugOutput: disable debugging output (console) by setting global variable isDebugOutput to FALSE
+ * 
  */
 
 importClass(java.io.File);
@@ -35,11 +42,19 @@ importClass(java.io.FileReader);
 importClass(java.io.FileWriter);
 importClass(java.io.LineNumberReader);
 
-function loadLocalFile(path){
+
+var isDebugOutput = typeof isDebugOutput !== 'undefined'? isDebugOutput : true; 
+
+/*
+ * see loadLocalFile in IFileHandler.js
+ */
+function loadLocalFile(path, type){
 	
 	var f = new File(path);
 	
-	console.log('reading: json file exists? '+f.exists());
+	if(f.exists() === false){
+		throw new Error('error reading file '+path+': file does not exist!');
+	}
 	
 	var r = new LineNumberReader(new FileReader(f));
 	
@@ -50,12 +65,15 @@ function loadLocalFile(path){
 	}
 	r.close();
 	
-	console.log('read contents from file: '+path);
+	if(isDebugOutput) console.log('read contents from file: '+path);
 	
 	return JSON.parse(theJSONgrammarString);
 }
 
-function saveToFile(str, path){
+/*
+ * see saveToFile in IFileHandler.js
+ */
+function saveToFile(str, path, doNotOverWrite){
 	
 	if(typeof str !== 'string'){
 		str = JSON.stringify(str, null, '  ');
@@ -63,7 +81,11 @@ function saveToFile(str, path){
 	
 	var f = new File(path);
 	
-	console.log('writing: file exists (overwriting)? '+f.exists());
+	if(isDebugOutput) console.log('writing: file exists (overwriting)? '+f.exists());
+	
+	if(doNotOverWrite && f.exists()){
+		return;//////////////////////// EARLY EXIT ///////////////////////
+	}
 	
 	var r = new FileWriter(f, false);
 	
@@ -71,5 +93,5 @@ function saveToFile(str, path){
 	
 	r.close();
 	
-	console.log('wrote String (len '+str.length+') to file: '+path);
+	if(isDebugOutput) console.log('wrote String (len '+str.length+') to file: '+path);
 }

@@ -32,9 +32,12 @@
  *  TODO add entries for used JS files
  *  
  * Libraries:
- *  - jQuery (>= v1.6.2)
- *  - SimpleModal (jQuery plugin, >= v1.4.2)
+ *  - jQuery (>= v1.6.2); ajax, each, bind
+ *  - jQuery Mobile (jQuery plugin, >= 1.2.0); $.mobile
+ *  - SimpleModal (jQuery plugin, >= v1.4.2); $.modal
  *  TODO check for other dependencies on 3rd party libraries (& add missing entries)
+ *  
+ *  @depends document (DOM object)
  */
 var mobileDS = window.mobileDS ||
 {};
@@ -169,7 +172,41 @@ mobileDS.PresentationManager = (function(){
 //         * @private
 //         */
 //        var partialIndex = 0;
-
+        
+        /**
+         * List of elements (jQuery objects)
+         * that should be remove from DOM after
+         * a page has loaded (loaded: after all contents
+         *  inserted into the DOM and after all page
+         *  transitions have been executed).
+         */
+        var afterViewLoadRemoveList = [];
+        
+        //function for removing "old" content from DOM (-> remove old, un-used page content)
+        var doRemoveElementsAfterViewLoad = function(event, data){
+        	//data.toPage: {String|Object} page to which view was changed
+        	//data.options: the configuration for the page change
+        	
+        	//do remove previous/old content from page:
+        	var size = afterViewLoadRemoveList.length;
+        	for(var i=size-1; i >= 0; --i){
+        		//remove element from DOM via jQuery method:
+        		afterViewLoadRemoveList[i].remove();
+        	}
+        	if(size > 0){
+        		//remove all elements from array
+        		afterViewLoadRemoveList.splice(0, size);
+        	}
+        };
+        //may run in window-/DOM-less environment (e.g. nodejs) 
+        //  -> only add listener, if document object is present:
+        if(typeof document !== 'undefined'){
+        	$( document ).bind( "pagechange", doRemoveElementsAfterViewLoad);
+        }
+        
+        //set jQuery Mobile's default transition to "none":
+    	$.mobile.defaultPageTransition = 'none';
+        
         
         /**
          * An object containing data for the currently displayed view.<br>
@@ -237,7 +274,7 @@ mobileDS.PresentationManager = (function(){
             var ctrlNames = mobileDS.ControllerManager.getInstance().getControllerNames();
             for(var i=0, size = ctrlNames.length; i < size; ++i){
                 var ctrl = mobileDS.ControllerManager.getInstance().getController( ctrlNames[i] );
-                var layoutDef = ctrl.def.json.layout;
+                var layoutDef = ctrl.getLayout();
                 if(layoutDef){
 	                $.ajax({
 	                    async: false,
@@ -264,33 +301,33 @@ mobileDS.PresentationManager = (function(){
 		 * @async
 		 */
         function loadViews(){
-        	function getViewPath(name, controller){
-        		var returnpath = "";
-        		$.each(controller.def.query("views"), function(index, view){
-        			if (name === view["name"]) {
-        				returnpath = view["path"];
-        				return false;
-        			}
-        		});
-        		return returnpath;
-        	}
+//        	function getViewPath(name, controller){
+//        		var returnpath = "";
+//        		$.each(controller.getViews(), function(index, view){
+//        			if (name === view["name"]) {
+//        				returnpath = view["path"];
+//        				return false;
+//        			}
+//        		});
+//        		return returnpath;
+//        	}
         	
         	$.each(mobileDS.ControllerManager.getInstance().getControllerNames(), function(ctrlIndex, controllerName){
         		var controller = mobileDS.ControllerManager.getInstance().getController(controllerName);  
         		$.each(controller.getViews(), function(index, view){
         			
         			$.ajax({
-        				async: false,
+        				async: true,
         				dataType: "text",
-        				url: getViewPath(view, controller),
+        				url: view.path,//getViewPath(view, controller),
         				success: function(data){
-        					var ctrlView = new View(controller, view , data);
-        					views.put( createViewKey( controller.getName(), view), ctrlView);//[viewIndex++] = ctrlView;
+        					var ctrlView = new View(controller, view.name , data);
+        					views.put( createViewKey( controller.getName(), view.name), ctrlView);//[viewIndex++] = ctrlView;
         				}
         			}).fail(function(jqxhr, settings, err){
         				// print out an error message
 						var errMsg = err && err.stack? err.stack : err;
-        				console.error("[" + settings + "] Could not load '" + getViewPath(view, controller) + "': "+errMsg); //failure
+        				console.error("[" + settings + "] Could not load '" + view.path + "': "+errMsg); //failure
         				
         				if(IS_DEBUG_ENABLED) console.debug("[" + settings + "] " + JSON.stringify(jqxhr)); //debug failure
         			});
@@ -312,32 +349,32 @@ mobileDS.PresentationManager = (function(){
 		 * @async
 		 */
         function loadPartials(){
-            function getPartialPath(name, controller){
-                var returnpath = "";
-                $.each(controller.def.query("partials"), function(index, partial){
-                    if (name === partial["name"]) {
-                        returnpath = partial["path"];
-                        return false;
-                    }
-                });
-                return returnpath;
-            }
+//            function getPartialPath(name, controller){
+//                var returnpath = "";
+//                $.each(controller.getPartials(), function(index, partial){
+//                    if (name === partial["name"]) {
+//                        returnpath = partial["path"];
+//                        return false;
+//                    }
+//                });
+//                return returnpath;
+//            }
             
         	$.each(mobileDS.ControllerManager.getInstance().getControllerNames(), function(ctrlIndex, controllerName){
         		var controller = mobileDS.ControllerManager.getInstance().getController(controllerName); 
             	$.each(controller.getPartials(), function(index, partial){
                     $.ajax({
-                        async: false,
+                        async: true,
                         dataType: "text",
-                        url: getPartialPath(partial, controller),
+                        url: partial.path,//getPartialPath(partial, controller),
                         success: function(data){
-					        var ctrlPartial = new Partial(controller, partial, data);
-					        partials.put(createPartialKey( controller.getName(), partial), ctrlPartial);//[partialIndex++] = ctrlPartial;
+					        var ctrlPartial = new Partial(controller, partial.name, data);
+					        partials.put(createPartialKey( controller.getName(), partial.name), ctrlPartial);//[partialIndex++] = ctrlPartial;
                         }
                     }).fail(function(jqxhr, settings, err){
                         // print out an error message
 						var errMsg = err && err.stack? err.stack : err;
-                        console.error("[" + settings + "] " + JSON.stringify(jqxhr) + " -- " + getPartialPath(partial, controller) + ": "+errMsg); //failure
+                        console.error("[" + settings + "] " + JSON.stringify(jqxhr) + " -- " + partial.path + ": "+errMsg); //failure
                     });
                 });
             });
@@ -658,9 +695,22 @@ mobileDS.PresentationManager = (function(){
                 var pg = new RegExp("pageContainer", "ig");
                 var oldId = "#pageContainer" + pageIndex;
                 
-                pageIndex++;
+                // get old content from page
+                var oldContent = $(oldId);
+                if(oldContent.length < 1 && oldId == '#pageContainer0'){
+                	//the ID of the first page (pageIndex 0) may have no number postfix
+                	// -> try without numer:
+                	if(IS_DEBUG_ENABLED) console.debug('PresentationManager.doRenderView: removing old content: no old centent found for old ID "'+oldId+'", trying "#pageContainer" instead...');//debug
+                	oldContent = $('#pageContainer');
+                }
+                
+                //mark old content for removal
+                afterViewLoadRemoveList.push(oldContent);
+                
+                ++pageIndex;
                 var newId = "pageContainer" + pageIndex;
                 
+                //TODO detect ID-attribute of content-TAG when layout is initialized instead of here
                 layoutBody = layoutBody.replace(pg, newId);
                 
                 if(typeof $.parseHTML !== 'undefined'){
@@ -670,22 +720,30 @@ mobileDS.PresentationManager = (function(){
                 
                 //'load' new content into the page (using jQuery mobile)
                 newPage.appendTo($.mobile.pageContainer);
+                
+                //set transition options, if present:
+                var changeOptions;
+                if(data && typeof data.transition !== 'undefined'){
+                	changeOptions = {
+                			transition: data.transition
+                	};
+                }
+                if(data && typeof data.reverse !== 'undefined'){
+                	if(!changeOptions){
+                    	changeOptions = {
+                    			reverse: data.reverse
+                    	};
+                	}
+                	else {
+                		changeOptions.reverse = data.reverse; 
+                	}
+                }
 
                 //change visible page from old to new one (using jQuery mobile)
-                $.mobile.changePage("#" + newId, {
-                    transition: "none"
-                });
+                $.mobile.changePage("#" + newId, changeOptions);
                 
-                // remove old content from page
-                var oldContent = $(oldId);
-                if(oldContent.length < 1 && oldId == '#pageContainer0'){
-                	//the ID of the first page (pageIndex 0) may have no number postfix
-                	// -> try without numer:
-                	if(IS_DEBUG_ENABLED) console.debug('PresentationManager.doRenderView: removing old content: no old centent found for old ID "'+oldId+'", trying "#pageContainer" instead...');//debug
-                	oldContent = $('#pageContainer');
-                }
-                
-                oldContent.remove();
+                //remove old content:
+//                oldContent.remove();
                 
                 ctrl.perform('on_page_load', data);
                 

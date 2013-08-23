@@ -382,7 +382,7 @@ mobileDS.SemanticInterpreter = (function(){
     		}
         	
             var asr_recognized_text = encodeSpecialChars( phrase.toLowerCase() );
-            asr_recognized_text = stopwordFunc(phrase.toLowerCase(), langCode);
+            asr_recognized_text = stopwordFunc(asr_recognized_text.toLowerCase(), langCode);
            
             if(IS_DEBUG_ENABLED) console.debug('SemanticInterpreter.process_asr_semantic('+langCode+'): removed stopwords, now parsing phrase "'+asr_recognized_text+'"');//debug
             

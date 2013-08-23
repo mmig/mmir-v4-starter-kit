@@ -55,7 +55,7 @@ mobileDS.constants = (function() {
 
 	// needed basepath
     var basePath = "";
-	var assetPath = "/../";
+//	var assetPath = "/../";
 	
 	// Paths
 	var frameworkBasePath = "mmirf/";
@@ -77,6 +77,7 @@ mobileDS.constants = (function() {
 	var mediaPluginPath = "mmirf/env/media/";
 	
 	var configurationFileUrl = "config/configuration.json";
+	var directoriesFileUrl = "config/directories.json";
 	
 	var language = "en";
 	
@@ -86,13 +87,16 @@ mobileDS.constants = (function() {
 	
 	function setBasePath(isBrowserEnvParam){
 		// if not on browser: basepath must be different
-		if (isBrowserEnvParam){
+		if(typeof isBrowserEnvParam === 'string'){
+			basePath = isBrowserEnvParam;
+		}
+		else if (isBrowserEnvParam){
 			basePath = "";
-			assetPath = "/../";
+//			assetPath = "/../";
 		}
 		else {
 			basePath = "file:///android_asset/www/";
-			assetPath = "file:///android_asset/";
+//			assetPath = "file:///android_asset/";
 		}
 	}
 	
@@ -225,6 +229,15 @@ mobileDS.constants = (function() {
 			 */
 			getConfigurationFileUrl: function(){
 				return basePath+configurationFileUrl;
+			},
+			/**
+			 * Returns a string with the path to the directories file (directory-strucure / file-list).
+			 * @function getDirectoriesFileUrl
+			 * @public
+			 * @returns {String} path to directories file
+			 */
+			getDirectoriesFileUrl: function(){
+				return basePath+directoriesFileUrl;
 			},
 			/**
 			 * Returns a string with the path to the beep audio-file.

@@ -89,7 +89,12 @@ function Helper(ctrl, name){
 Helper.prototype.perform = function(actionName, data){
 	
 	if(IS_DEBUG_ENABLED) console.debug("should perform '" + actionName + "' of '" + this.name + "'" + ((typeof data !== 'undefined' && data !== null)? " with data: "+JSON.stringify(data): ""));//debug
-
-    return this.script[actionName](this.controller, data);
+	
+	if(arguments.length > 2){
+	    return this.script[actionName](this.controller, data, arguments[2]);
+	}
+	else {
+	    return this.script[actionName](this.controller, data);
+	}
 };
 

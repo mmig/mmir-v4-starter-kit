@@ -44,6 +44,10 @@ var mobileDS = window.mobileDS ||
  * @category core
  * 
  * @see mobileDS.LanguageManager#constructor
+ * 
+ * @depends mobileDS.constants
+ * @depends mobileDS.CommonUtils
+ * @depends mobileDS.SemanticInterpreter
  */
 mobileDS.LanguageManager = (function(){
 	

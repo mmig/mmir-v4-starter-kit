@@ -298,3 +298,20 @@ mobileDS.parser.ParsingResult.prototype.isEscapeExit = function(){
 mobileDS.parser.ParsingResult.prototype.isEscape = function(){
 	return this.isEscapeEnter() || this.isEscapeExit();
 };
+
+mobileDS.parser.ParsingResult.prototype.hasCallData = function(){
+	return typeof this.dataPos !== 'undefined';
+};
+
+mobileDS.parser.ParsingResult.prototype.getCallDataStart = function(){
+	return this.dataPos.start;
+};
+
+mobileDS.parser.ParsingResult.prototype.getCallDataEnd = function(){
+	return this.dataPos.end;
+};
+
+mobileDS.parser.ParsingResult.prototype.getCallDataType = function(){
+	return this.dataType;
+};
+

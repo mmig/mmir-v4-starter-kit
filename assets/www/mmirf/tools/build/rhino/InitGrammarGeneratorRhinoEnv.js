@@ -25,41 +25,15 @@
  */
 
 
+/*
+ * Initializer for Standalone Grammar Generator script (StandaloneSemanticParserCompileExec.js)
+ * in Rhino environment.
+ * 
+ */
 
-if (!window) {
-	var window = module;
-}
-
-if(!console.debug){
-	console.debug = function (text){
-		console.log('[DEBUG] '+text);
-	};
-}
-if(!console.info){
-	console.info = function (text){
-		console.log('[INFO] '+text);
-	};
-}
-if(!console.warn){
-	console.warn = function (text){
-		console.log('[WARN] '+text);
-	};
-}
-if(!console.error){
-	console.error = function (text){
-		console.log('[ERROR] '+text);
-	};
-}
-
-var theArguments = process.argv;
-for(var arguments_i=0,arguments_size=theArguments.length; arguments_i < arguments_size; ++arguments_i){
-	console.log('node.js.env.arguments ('+arguments_i+'): '+ theArguments[arguments_i]);
-}
-
-
-var theJSONGrammarPath 					= theArguments && theArguments.length > 2? theArguments[2] : null;
-var theJSONGrammarFileName				= theArguments && theArguments.length > 3? theArguments[3] : null;
-//var theJSONGrammarPath 					= theArguments && theArguments.length > 2? theArguments[2] : null;
-var theJSONGrammarLanguageStr 			= theArguments && theArguments.length > 4? theArguments[4] : null;
-var theCompiledGrammarTargetPath		= theArguments && theArguments.length > 5? theArguments[5] : null;
-var theCompiledGrammarTargetFileName	= theArguments && theArguments.length > 6? theArguments[6] : null;
+var theJSONGrammarPath 				= arguments && arguments.length > 0? arguments[0] : null;
+var theJSONGrammarFileName			= arguments && arguments.length > 1? arguments[1] : null;
+//var theJSONGrammarPath 				= arguments && arguments.length > 0? arguments[0] : null;
+var theJSONGrammarLanguageStr	 	= arguments && arguments.length > 2? arguments[2] : null;
+var theCompiledGrammarTargetPath 	= arguments && arguments.length > 3? arguments[3] : null;
+var theCompiledGrammarTargetFileName= arguments && arguments.length > 4? arguments[4] : null;

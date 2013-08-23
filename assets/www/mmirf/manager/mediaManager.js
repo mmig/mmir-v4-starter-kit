@@ -56,10 +56,13 @@ mobileDS.MediaManager = (function(){
 							if (successCallback) successCallback();
 	    			});
 	    		}
+	    		else {
+	        		console.error('Error loading MediaPlugin '+filePath + ' - no newMediaPlugin set!');
+	    			if (failureCallback) failureCallback();
+	    		}
 			});
     	}catch (e){
-    		console.log('Error loading MediaPlugin '+filePath);
-    		console.log(e);
+    		console.error('Error loading MediaPlugin '+filePath+': '+e);
     		if (failureCallback) failureCallback();
     	}
 	

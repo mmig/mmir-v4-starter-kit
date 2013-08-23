@@ -62,7 +62,12 @@ function ContentElement(group, view, parser, renderer){
 	    this.definition = group[2];
 	}
 	
-	var parsingResult = parser.parse(this.definition, this.view);
+	if(typeof group.start !== 'undefined' && typeof group.end !== 'undefined'){
+		this.start = group.start;
+		this.end = group.end;
+	}
+	
+	var parsingResult = parser.parse(this.definition, this);
 	
 	this.definition 	= parsingResult.rawTemplateText;
 	
@@ -162,11 +167,12 @@ function ContentElement(group, view, parser, renderer){
 		
 		//for @render(ctrl,name, DATA):
 		//  initialize the DATA-argument, if present:
-		if(typeof renderPartialsElement.dataPos !== 'undefined'){
+		if( renderPartialsElement.hasCallData() ){
 			//TODO use original parser/results instead of additional parsing pass
 			parsedJS = parser.parseJS( 
-				this.definition.substring( renderPartialsElement.dataPos.getStart(),  renderPartialsElement.dataPos.getEnd() ),
-				this.getView()
+				this.definition.substring( renderPartialsElement.getCallDataStart(),  renderPartialsElement.getCallDataEnd() ),
+				'embeddedStatementTail',//<- "internal" parser rule for parsing fragments: >>JS_STATEMENT EOF<<
+				this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then renderPartialsElement.rawResult and .dataPos contain the information, where exactly this element is located...
 			);
 			preparedJSCode = renderer.renderJS(parsedJS.rawTemplateText, parsedJS.varReferences, true);
 			renderPartialsElement.argsEval = createJSEvalFunction('return ('+preparedJSCode+');', 'argsEval');
@@ -179,11 +185,12 @@ function ContentElement(group, view, parser, renderer){
 		
 		//for @helper(name, DATA):
 		//  initialize the DATA-argument, if present:
-		if(typeof helperElement.dataPos !== 'undefined'){
+		if( helperElement.hasCallData() ){
 			//TODO use original parser/results instead of additional parsing pass
 			parsedJS = parser.parseJS( 
-				this.definition.substring( helperElement.dataPos.getStart(),  helperElement.dataPos.getEnd() ),
-				this.getView()
+				this.definition.substring( helperElement.getCallDataStart(),  helperElement.getCallDataEnd() ),
+				'embeddedStatementTail',//<- "internal" parser rule for parsing fragments: >>JS_STATEMENT EOF<<
+				this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located... 
 			);
 			preparedJSCode = renderer.renderJS(parsedJS.rawTemplateText, parsedJS.varReferences, true);
 			helperElement.argsEval = createJSEvalFunction('return ('+preparedJSCode+');', 'argsEval');
@@ -195,7 +202,10 @@ function ContentElement(group, view, parser, renderer){
 		ifElement = this.ifs[i];
 		
 		//TODO use original parser/results instead of additional parsing pass
-		parsedJS = parser.parseJS(ifElement.ifExpr, this.getView());
+		parsedJS = parser.parseJS(
+				ifElement.ifExpr, 
+				this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located... 
+		);
 		preparedJSCode = renderer.renderJS(parsedJS.rawTemplateText, parsedJS.varReferences);
 		ifElement.ifEval = createJSEvalFunction('return ('+preparedJSCode+');', 'ifEval');
 	}
@@ -260,15 +270,24 @@ function ContentElement(group, view, parser, renderer){
 		else {
 			
 			//TODO use original parser/results instead of additional parsing pass
-			parsedJS = parser.parseJS(forElement.forInitExpr, this.getView());
+			parsedJS = parser.parseJS(
+					forElement.forInitExpr, 
+					this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located... 
+			);
 			preparedJSCode = renderer.renderJS(parsedJS.rawTemplateText, parsedJS.varReferences, true);
 			forElement.forInitEval = createJSEvalFunction(preparedJSCode+';', 'forInitEval');
 			
-			parsedJS = parser.parseJS(forElement.forConditionExpr, this.getView());
+			parsedJS = parser.parseJS(
+					forElement.forConditionExpr, 
+					this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located... 
+			);
 			preparedJSCode = renderer.renderJS(parsedJS.rawTemplateText, parsedJS.varReferences, true);
 			forElement.forConditionEval = createJSEvalFunction('return ('+preparedJSCode+');', 'forConditionEval');
 			
-			parsedJS = parser.parseJS(forElement.forIncrementExpr, this.getView());
+			parsedJS = parser.parseJS(
+					forElement.forIncrementExpr,
+					this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located... 
+			);
 			preparedJSCode = renderer.renderJS(parsedJS.rawTemplateText, parsedJS.varReferences, true);
 			forElement.forIncrementEval = createJSEvalFunction(preparedJSCode+';', 'forIncrementEval');
 		}
@@ -284,10 +303,17 @@ function ContentElement(group, view, parser, renderer){
 			
 			var parsedJS; 
 			if(isScriptStatement===true){
-				parsedJS = parser.parseJS(subContentElement.scriptContent, 'embeddedStatementTail', this.getView());
+				parsedJS = parser.parseJS(
+						subContentElement.scriptContent, 
+						'embeddedStatementTail',
+						this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located... 
+				);
 			}
 			else {
-				parsedJS = parser.parseJS(subContentElement.scriptContent, this.getView());
+				parsedJS = parser.parseJS(
+						subContentElement.scriptContent,
+						this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located... 
+				);
 			}
 			
 			subContentElement.scriptContent = parsedJS;
@@ -382,6 +408,18 @@ ContentElement.prototype.toStrings = function(renderingBuffer, data){
 
 ContentElement.prototype.getRawText = function(){
     return this.definition;
+};
+
+ContentElement.prototype.getDefinition = function(){
+    return this.definition;
+};
+
+ContentElement.prototype.getStart = function(){
+    return this.start;
+};
+
+ContentElement.prototype.getEnd = function(){
+    return this.end;
 };
 
 ContentElement.prototype.hasDynamicContent = function(){

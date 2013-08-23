@@ -342,7 +342,12 @@ mobileDS.ControllerManager = (function(){
 
 				var ctrl = mobileDS.ControllerManager.getInstance().getController(ctrlName);
                 if (ctrl != null) {
-                    return ctrl.performHelper(actionName, data);
+                	if(arguments.length > 3){
+                		return ctrl.performHelper(actionName, data, arguments[3]);
+                	}
+                	else {
+                		return ctrl.performHelper(actionName, data);
+                	}
                 }
                 else {
                 	console.error('ControllerManager.performHelper: the controller could not be found "'+ctrlName+'"');

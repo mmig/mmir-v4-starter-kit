@@ -73,14 +73,14 @@
 		
 //				console.log('lang-clicked: ' + lang);
 		
-				self.changeLanguage(lang, true);
+				var isChanged = self.changeLanguage(lang, false);
 				
 				if(isUseAlphaMagLanguageSelection){
 					showLoader();//actually this does not really work, but at least something is shown...
 					//TODO: replace/set calendar's language specific resources
 				}
 				mobileDS.InputEngine.getInstance().raise('touch_input_event');
-				mobileDS.InputEngine.getInstance().raise('language_choosen');
+				mobileDS.InputEngine.getInstance().raise('language_choosen', {changed: isChanged});
 				
 				return false;
 		});
@@ -168,10 +168,12 @@
 
 	  if(IS_DEBUG_ENABLED) console.debug("[Language] selected " + newLang);//debug
 
-	  mobileDS.LanguageManager.getInstance().setLanguage(newLang);
+	  var currLang = mobileDS.LanguageManager.getInstance().getLanguage();
+	  var newLang = mobileDS.LanguageManager.getInstance().setLanguage(newLang);
 
 	  if (doReRenderView == true){
 		  mobileDS.PresentationManager.getInstance().reRenderView();
 	  }
 //	  mobileDS.DialogEngine.getInstance().raise("language_choosen", newLang);
+	  return currLang != newLang;
   };

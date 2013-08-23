@@ -341,7 +341,13 @@ function StatechartExecutionContext() {
                     preemptedBasicStates: {},
                     action: function() {
                         //transition action
-                        dialogManager.perform('Application', 'slide_up_language_menu');
+                        var isChanged = _event.data && _event.data.changed ? _event.data.changed : false;
+                        if (isChanged) {
+                            dialogManager.render('Application', 'login');
+                        }
+                        else {
+                            dialogManager.perform('Application', 'slide_up_language_menu');
+                        }
                         for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                         N10000_iterator < N10000_hoist;
                         N10000_iterator++) {
@@ -419,7 +425,13 @@ function StatechartExecutionContext() {
                         preemptedBasicStates: {},
                         action: function() {
                             //transition action
-                            dialogManager.perform('Application', 'slide_up_language_menu');
+                            var isChanged = _event.data && _event.data.changed ? _event.data.changed : false;
+                            if (isChanged) {
+                                dialogManager.render('Application', 'login');
+                            }
+                            else {
+                                dialogManager.perform('Application', 'slide_up_language_menu');
+                            }
                             for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                             N10000_iterator < N10000_hoist;
                             N10000_iterator++) {

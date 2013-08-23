@@ -60,15 +60,19 @@ var GrammarConverter = function(){
 	
 };
 
-GrammarConverter.prototype.loadGrammar = function(successCallback, errorCallback, grammarUrl){
+GrammarConverter.prototype.loadGrammar = function(successCallback, errorCallback, grammarUrl, doLoadSynchronously){
 	var grammar = '';
 	var self = this;
 	var theUrl = grammarUrl;
 	if(!theUrl){
 		theUrl = 'content/grammar.json'; 
 	}
+	var isLoadAsync = false;
+	if(typeof doLoadSynchronously !== 'undefined' && doLoadSynchronously === false){
+		isLoadAsync = true;
+	}
 	$.ajax({
-		async: false,
+		async: isLoadAsync,
 		dataType: 'json',
 		url:theUrl,
 		success: function(data){

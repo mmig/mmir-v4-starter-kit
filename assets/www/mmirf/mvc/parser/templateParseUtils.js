@@ -52,16 +52,206 @@ var parserPrintError = function(prefix, msg){//FIXME
 	console.error(parserCreatePrintMessage(prefix,msg));
 };
 
+/** TODO move this function
+ *
+ * Get the index in the String str, where line number lineNo
+ * starts.
+ * 
+ * New lines begin after \n, \r\n, or \r.
+ * 
+ * If lineNo is <= 1, the function returns always 0.
+ * 
+ * If the lineNo is greater than the count of lins in str, the string length itself is returned. 
+ * 
+ * @function getIndexForLine
+ * @param {String} str the string
+ * @param {Number} lineNo the line number (first line is 1)
+ */
+var getIndexForLine = (function(){
+	var detectLinebreak = /(\r?\n|\r)/igm;
+	return function(str, lineNo){
+		if(lineNo <= 1){
+			return 0;
+		}
+		var match;
+		var count = 1;
+		while(match = detectLinebreak.exec(str)){
+			//ASSERT: lineNo >= 2
+			if(++count == lineNo){
+				break;
+			}
+		}
+		if(match){
+			return match.index + match[1].length;
+		}
+		//request line-no. >= 2 AND loop "detect enough" linebreaks => the request line index starts after strings ends => return string's length
+		return str.length;
+	};
+})();
+
+/** TODO move this function
+ *
+ * Get the line in the String str, in which the char at index is included.
+ * 
+ * New lines begin after \n, \r\n, or \r,
+ * e.g. for line X: 
+ * <pre>
+ *  ...\r\n
+ *        ^
+ * </pre>
+ * the line number will be X (i.e. the line-break itself is still included in the current line).
+ * 
+ * If index is < 0, the function returns always 1.
+ * 
+ * If the index is greater than str.length, -1 is returned. 
+ * 
+ * @function getLineForIndex
+ * @param {String} str the string
+ * @param {Number} index the char index for which to find the line number (first line is 1)
+ */
+var getLineForIndex = (function(){
+	var detectLinebreak = /(\r?\n|\r)/ig;
+	return function(str, index){
+		if(index < 0){
+			return 1;
+		}
+		if(index >= str.length){
+			return -1;
+		}
+		//ASSERT index is at least within line 1
+		var match;
+		var count = 1;
+		var isNextLineFound = false;
+		while(match = detectLinebreak.exec(str)){
+			if(match.index + match[1].length > index){
+				isNextLineFound = true;
+				break;
+			}
+			++count;
+		}
+		if(match){
+			//need to reset regexpr for next call:
+			detectLinebreak.test(str);
+		}
+		if(!isNextLineFound){
+			//loop ended prematurely: fix line-count
+			return count - 1;
+		}
+		return count;
+	};
+})();
+
+/** TODO move this function
+ *
+ * @function extractErrorPosition
+ */
+extractErrorPosition = (function(){
+	var detectLine = /line (\d+):(\d+)/i;
+	return function extractErrorPositionImpl(msg, offset, originalContent){
+//		console.log('\nTEST1_extractErrorPositionImpl with arguments '+arguments.length+'\n');
+		var result = detectLine.exec(msg);
+//		console.log('\nTEST2_result for "'+msg+'": '+result+'\n');
+		var pos = null;
+		if(result){
+			pos = {
+					line: parseInt(result[1],10),
+					index: parseInt(result[2],10)
+			};
+//			console.log('\nTEST3_pos: '+JSON.stringify(pos)+', offset: '+offset+'\n');
+			
+			if(offset && offset !== 0){
+//				console.log('\nTEST4_offset: '+offset+'\n');
+				var lineOffset = getLineForIndex(originalContent, offset);
+				var newLine = lineOffset + pos.line - 1;
+				var fixed = msg.substring(0,result.index + 'line '.length) + newLine + ':' + pos.index + msg.substring(result.index + result[0].length);
+				pos.text = fixed;
+				pos.originalLine = pos.line;
+				pos.line = newLine;
+//				pos.originalContent = originalContent;
+//				pos.offset = offset + pos.index;
+			}
+			else {
+				pos.text = msg;
+			}
+		}
+		return pos;
+	}
+})();
+
 var CURRENT_PARSED_VIEW = null;//FIXME
 var parserCreatePrintMessage = function(prefix, msg){//FIXME
 	if(CURRENT_PARSED_VIEW != null){
 		
-		var details = CURRENT_PARSED_VIEW.constructor.name;
-		if(CURRENT_PARSED_VIEW.getName){
-			details += '(' + CURRENT_PARSED_VIEW.getName() + ')';
-		}
+		var rootView = null;
+		var details = '';
 		if(CURRENT_PARSED_VIEW.getController){
-			details += '_CTRL[' + CURRENT_PARSED_VIEW.getController().getName() + ']';
+			details += 'CTRL("' + CURRENT_PARSED_VIEW.getController().getName() + '")';
+		}
+		
+		if(CURRENT_PARSED_VIEW.getView){
+			if(details.length > 0){
+				details += '->';
+			}
+			details += 'VIEW("' + CURRENT_PARSED_VIEW.getView().getName() + '")';
+			rootView = CURRENT_PARSED_VIEW.getView();
+		}
+		
+		if(details.length > 0){
+			details += '->';
+		}
+		details += CURRENT_PARSED_VIEW.constructor.name;
+		
+		if(CURRENT_PARSED_VIEW.getName){
+			details += '("' + CURRENT_PARSED_VIEW.getName() + '")';
+		}
+		
+		if(rootView && typeof CURRENT_PARSED_VIEW.getStart !== 'undefined'){
+			
+			var pos = extractErrorPosition(msg, CURRENT_PARSED_VIEW.getStart(), rootView.getDefinition());
+//			console.log('\nTEST_A_pos: '+JSON.stringify(pos)+', offset: '+CURRENT_PARSED_VIEW.getStart() +'\n');
+			if(pos){
+
+				msg = pos.text;
+				
+				//msg += '\n\t at line '+pos.line+', index '+pos.index;
+				var content = rootView.getDefinition();
+				var line = null;
+				var offset = CURRENT_PARSED_VIEW.getStart();
+
+				
+				if(content){
+					var start = getIndexForLine(content, pos.line);
+					var end = start;
+					var len = content.length;
+					while(end < len && (content[end] != '\r' && content[end] != '\n')){
+						++end;
+					}
+					
+					line = content.substring(start,end);
+				}
+				
+				if(line){
+					
+					//marker for "pointing" the error
+					var marker = [];
+					for(var i=0; i < pos.index; ++i){
+						if(line[i] == '\t'){
+							//need to include tabs themselves, since they
+							//  take more than 1 char-positions when displayed:
+							marker.push('\t');
+						}
+						else {
+							marker.push(' ');
+						}
+					}
+					//add marker symbol, that points to error in the line above:
+					marker.push('^');
+	
+					msg += ' at line '+pos.line+':';
+					msg += '\n "'+line+'"';        //<- the line with the error
+					msg += '\n  '+marker.join(''); //<- the marker line (will only be correctly aligned for fixed-width fonts)
+				}
+			}
 		}
 		
 		return prefix + 'in ' + details + ' - ' + msg;

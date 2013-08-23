@@ -1,5 +1,5 @@
 ﻿
-version notes for MMIG Starter Kit (v 2.1)
+version notes for MMIG Starter Kit (v 2.2)
 
  * using Cordova 2.8.x library
  * using jQuery 1.9.x library
@@ -9,7 +9,31 @@ version notes for MMIG Starter Kit (v 2.1)
  --------------
  Change Log
  --------------
+ ##################
+ Version 2.2
+ ##################
  
+ * added transitions (animations) for views: now jQuery Mobile page transitions can be used in render(..., {transition: 'jqm transition name', reverse: [true|false]})
+   - default transition now set in PresentationManager (to: 'none'), instead of in main.js::afterLoadingControllers()
+   - added example dialogDescriptionSCXML.xml that uses transitions
+ * BUGFIX for template (.ehtml) parser: avoid false-negative error-messages (i.e. reported errors that are not errors)
+ * re-factored build.xml: renaming of targets/variables for SemanticInterpreter/Parser (to GrammarParser / -Generator)
+ * "normalized" Controller interface:
+  - added getLayout function (and corresponding property)
+  - added getLayoutName function
+  - renamed: getViews to getViewNames
+  - added: getViews [returns a list of the view info/JSON objects]
+  - renamed: getPartials to getPartialNames
+  - added: getPartials [returns a list of the partial info/JSON objects]
+* added ANT file parser.xml for parsing template files (*.ehtml): layouts, views, partials (as listed in directories.json)
+* renamed JavaScript files for ANT build tasks:
+  - InitForAntRhinoScriptEnv.js -> InitRhinoEnv.js
+  - AntScriptFileHandler.js -> AntFileHandler.js
+  - InitForAntNodeJsScriptEnv.js -> InitNodeJsEnv.js
+  - InitForAntDefaultScriptEnv.js -> InitAntDefaultEnv.js
+* updated HTML test page for grammar generation/testing (for new multi-language support of grammars)
+* some updates in user-guide.pdf
+  
  ##################
  Version 2.1
  ##################

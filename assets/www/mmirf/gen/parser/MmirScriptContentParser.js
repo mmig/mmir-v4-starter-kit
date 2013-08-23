@@ -1,4 +1,4 @@
-// $ANTLR 3.3 Nov 30, 2010 12:50:56 ../MmirScriptContent.g 2013-04-12 13:42:08
+// $ANTLR 3.3 Nov 30, 2010 12:50:56 ../MmirScriptContent.g 2013-08-13 18:04:03
 
 var MmirScriptContentParser = function(input, state) {
     if (!state) {
@@ -59,11 +59,12 @@ org.antlr.lang.augmentObject(MmirScriptContentParser, {
     UNICODE_ESC: 25,
     OCTAL_ESC: 26,
     ESC_SEQ: 27,
-    T__32: 32,
+    T__33: 33,
     DoExit: 28,
     WS: 29,
     STRING: 30,
-    SSTRING: 31
+    SSTRING: 31,
+    ScriptVar: 32
 });
 
 (function(){
@@ -93,11 +94,12 @@ var EOF= -1,
     UNICODE_ESC= 25,
     OCTAL_ESC= 26,
     ESC_SEQ= 27,
-    T__32= 32,
+    T__33= 33,
     DoExit= 28,
     WS= 29,
     STRING= 30,
-    SSTRING= 31;
+    SSTRING= 31,
+    ScriptVar= 32;
 
 // public instance methods/vars
 org.antlr.lang.extend(MmirScriptContentParser, org.antlr.runtime.Parser, {
@@ -351,7 +353,7 @@ org.antlr.lang.augmentObject(MmirScriptContentParser.prototype, {
                 }
             } while (true);
 
-            start=this.match(this.input,32,MmirScriptContentParser.FOLLOW_32_in_content153); 
+            start=this.match(this.input,33,MmirScriptContentParser.FOLLOW_33_in_content153); 
             // ../MmirScriptContent.g:78:3: ( NL | CHAR | COMMENT | DoEnterBlock | DoEnterYieldContent | DoEnterIfStatement | DoEnterElseStatement | DoEnterForStatement )*
             loop6:
             do {
@@ -523,15 +525,15 @@ org.antlr.lang.augmentObject(MmirScriptContentParser.prototype, {
 
 // public class variables
 org.antlr.lang.augmentObject(MmirScriptContentParser, {
-    tokenNames: ["<invalid>", "<EOR>", "<DOWN>", "<UP>", "CHAR", "NL", "END", "EscapeExit", "ESC_DoEnter", "COMMENT", "DoEnterBlock", "DoEnterStatement", "DoEnterIncludeScript", "DoEnterIncludeStyle", "DoEnterLocalize", "DoEnterYieldDeclaration", "DoEnterYieldContent", "DoEnterIfStatement", "DoEnterElseStatement", "DoEnterForStatement", "DoEnterDeclareVar", "DoEnterHelper", "DoEnterRender", "END_SCRIPT", "HEX_DIGIT", "UNICODE_ESC", "OCTAL_ESC", "ESC_SEQ", "DoExit", "WS", "STRING", "SSTRING", "'{'"],
+    tokenNames: ["<invalid>", "<EOR>", "<DOWN>", "<UP>", "CHAR", "NL", "END", "EscapeExit", "ESC_DoEnter", "COMMENT", "DoEnterBlock", "DoEnterStatement", "DoEnterIncludeScript", "DoEnterIncludeStyle", "DoEnterLocalize", "DoEnterYieldDeclaration", "DoEnterYieldContent", "DoEnterIfStatement", "DoEnterElseStatement", "DoEnterForStatement", "DoEnterDeclareVar", "DoEnterHelper", "DoEnterRender", "END_SCRIPT", "HEX_DIGIT", "UNICODE_ESC", "OCTAL_ESC", "ESC_SEQ", "DoExit", "WS", "STRING", "SSTRING", "ScriptVar", "'{'"],
     FOLLOW_text_in_main63: new org.antlr.runtime.BitSet([0x00000022, 0x00000000]),
     FOLLOW_NL_in_main68: new org.antlr.runtime.BitSet([0xD00002B0, 0x00000000]),
     FOLLOW_text_in_main72: new org.antlr.runtime.BitSet([0x00000022, 0x00000000]),
     FOLLOW_set_in_text88: new org.antlr.runtime.BitSet([0xD0000292, 0x00000000]),
     FOLLOW_other_in_text103: new org.antlr.runtime.BitSet([0xD0000292, 0x00000000]),
     FOLLOW_set_in_text105: new org.antlr.runtime.BitSet([0xD0000292, 0x00000000]),
-    FOLLOW_set_in_content144: new org.antlr.runtime.BitSet([0x20000020, 0x00000001]),
-    FOLLOW_32_in_content153: new org.antlr.runtime.BitSet([0x000F0632, 0x00000000]),
+    FOLLOW_set_in_content144: new org.antlr.runtime.BitSet([0x20000020, 0x00000002]),
+    FOLLOW_33_in_content153: new org.antlr.runtime.BitSet([0x000F0632, 0x00000000]),
     FOLLOW_set_in_content159: new org.antlr.runtime.BitSet([0x000F0632, 0x00000000]),
     FOLLOW_COMMENT_in_other225: new org.antlr.runtime.BitSet([0x00000002, 0x00000000]),
     FOLLOW_STRING_in_other233: new org.antlr.runtime.BitSet([0x00000002, 0x00000000]),

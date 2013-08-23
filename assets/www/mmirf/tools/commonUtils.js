@@ -42,6 +42,11 @@ var mobileDS = window.mobileDS ||
  * @category core
  * 
  * @see mobileDS.CommonUtils#constructor
+ * 
+ * @depends StringExtensions
+ * 
+ * For directories.json:
+ * @depends DirectoryListing
  */
 mobileDS.CommonUtils = (function(){
 

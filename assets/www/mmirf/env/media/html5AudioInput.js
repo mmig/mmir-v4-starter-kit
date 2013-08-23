@@ -164,7 +164,7 @@ newMediaPlugin = {
     			audio_context = new webkitAudioContext;
     		} 
     		catch (e) {
-    			console.error('No web audio support in this browser!');
+    			console.error('No web audio support in this browser! Error: '+(e.stack? e.stack : e));
     			nonFunctional = true;
     		}
     		

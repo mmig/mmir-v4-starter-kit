@@ -709,7 +709,7 @@ mobileDS.parser.extendMmirTemplateProcessor = function(theLexerInstance){
 	
 	theLexerInstance.processEscape = function (replacementText, msg){
 		
-		if(msg && self.isDebug){//debug
+		if(msg && typeof self !== 'undefined' && self.isDebug){//debug
 			printInfo(msg);
 		}
 		
@@ -722,7 +722,7 @@ mobileDS.parser.extendMmirTemplateProcessor = function(theLexerInstance){
 	
 	theLexerInstance.processComment = function (msg){
 		
-		if(msg && self.isDebug){//debug
+		if(msg && typeof self !== 'undefined' && self.isDebug){//debug
 			printInfo(msg);
 		}
 		

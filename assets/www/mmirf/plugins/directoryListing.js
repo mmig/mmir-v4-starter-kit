@@ -127,8 +127,10 @@ DirectoryListing.prototype.getDirectoryStructure = function(directories, success
 		
 		if(IS_DEBUG_ENABLED) console.log("[getDirectoryStructure] called, reading directory structure file...");
 		
-		// the URL to the configuration file (in JSON format) TODO this should come from constants.js
-    	var directoryFileUrl = "config/directories.json";
+		// the URL to the directories file 
+		//  file has JSON format: 
+		//  <direcotry-name>: [array of file-names in directory]
+    	var directoryFileUrl = mobileDS.constants.getInstance(forBrowser).getDirectoriesFileUrl();
     
    		 //load configuration file asynchronously: 
     	$.ajax({
@@ -138,7 +140,7 @@ DirectoryListing.prototype.getDirectoryStructure = function(directories, success
 			success: function(data){
 				if(IS_DEBUG_ENABLED) console.log("DirectoryListing.getDirectoryStructure: loaded file from "+directoryFileUrl);
 			
-				if(data){ 
+				if(data){
 					var jsonData = data;//jQuery.parseJSON( data );
 					if(IS_DEBUG_ENABLED) console.log("DirectoryListing.getDirectoryStructure: Succeeded to load directory structure from '"+directoryFileUrl+"'! Data: "+ JSON.stringify(data));
 					

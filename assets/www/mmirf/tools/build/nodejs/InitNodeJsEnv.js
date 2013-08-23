@@ -24,42 +24,36 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 /*
- * Initializer for ANT default JavaScript environment 
+ * General initializer for NodeJS JavaScript environment 
  */
 
-if (!console) {
-	
-	var console = new Object();
-	 
-	console.log = function (text){
-		var echo = project.createTask("echo");
-		echo.setMessage(text);
-		echo.perform();
-	};
+if (!window) {
+	var window = module;
+}
+
+if(!console.debug){
 	console.debug = function (text){
 		console.log('[DEBUG] '+text);
 	};
+}
+if(!console.info){
 	console.info = function (text){
 		console.log('[INFO] '+text);
 	};
+}
+if(!console.warn){
 	console.warn = function (text){
 		console.log('[WARN] '+text);
 	};
+}
+if(!console.error){
 	console.error = function (text){
 		console.log('[ERROR] '+text);
 	};
 }
 
-if (!window) {
-	
-	var window = this;
+var theArguments = process.argv;
+for(var arguments_i=0,arguments_size=theArguments.length; arguments_i < arguments_size; ++arguments_i){
+	console.log('node.js.env.arguments ('+arguments_i+'): '+ theArguments[arguments_i]);
 }
-
-//retrieve values for input-path & output-file from the ANT project-object
-var theJSONGrammarPath 				= project.getProperty('grammarDefinitionJsonDir');
-var theJSONGrammarFileName			= project.getProperty('grammarDefinitionJsonFile');
-var theJSONGrammarLanguageStr 		= project.getProperty('grammarLanguageCode');
-var theCompiledGrammarTargetPath 	= project.getProperty('outDirCompiledGrammar');
-var theCompiledGrammarTargetFileName= project.getProperty('outFileCompiledGrammar');

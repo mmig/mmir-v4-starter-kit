@@ -437,12 +437,23 @@ mobileDS.parser.RenderUtils = (function(){
     		var name = elem.getValue(elem.helper, elem.helperType, data);
     		
     		//set arguments, if helper-statement was given a data-argument:
+    		var prevArgs = null;
     		if(typeof elem.argsEval !== 'undefined'){
-	    		//TODO handle scope & collisions
-	    		data[PARAM_ARGS_NAME] = elem.argsEval(data); 
+	    		//TODO handle scope & collisions more elaborately?
+    			if(typeof data[PARAM_ARGS_NAME] !== 'undefined'){
+    				prevArgs = data[PARAM_ARGS_NAME];
+    			}
+	    		data[PARAM_ARGS_NAME] = elem.argsEval(data);
     		}
     		
     		var text = containingContentElement.getController().performHelper(name, data[PARAM_DATA_NAME], data[PARAM_ARGS_NAME]);
+    		
+    		//clean-up: handle scope for ARGS
+    		delete data[PARAM_ARGS_NAME];
+    		if(prevArgs !== null){
+    			data[PARAM_ARGS_NAME] = prevArgs;
+    		}
+    		
     		if(!text){
     			console.warn('RenderUtils.renderHelper: no result for '+containingContentElement.getController().getName()+'-helper >'+name+'<');
     		}
@@ -465,9 +476,13 @@ mobileDS.parser.RenderUtils = (function(){
     		var partialName = elem.getValue(elem.partial, elem.partialType, data);
     		
     		//set arguments, if render-statement was given a data-argument:
+    		var prevArgs = null;
     		if(typeof elem.argsEval !== 'undefined'){
-	    		//TODO handle scope & collisions
-	    		data[PARAM_ARGS_partialName] = elem.argsEval(data); 
+	    		//TODO handle scope & collisions more elaborately?
+    			if(typeof data[PARAM_ARGS_NAME] !== 'undefined'){
+    				prevArgs = data[PARAM_ARGS_NAME];
+    			}
+	    		data[PARAM_ARGS_NAME] = elem.argsEval(data); 
     		}
     		
     		//get the Controller object:
@@ -483,13 +498,19 @@ mobileDS.parser.RenderUtils = (function(){
     		}
     		
     		//TODO (?) move getPartial-method from PresentationManager (i.e. remove dependency here)?
-    		var partial = mobileDS.PresentationManager.getInstance().getPartial(partialName, ctrl);
+    		var partial = mobileDS.PresentationManager.getInstance().getPartial(ctrl, partialName);
 
     		if(!partial){
     			console.warn('RenderUtils.renderPartial: no partial for controller '+containingContentElement.getController().getName()+', with name >'+partialName+'<');
     		}
     		else {
     			renderContentElement(partial.getContentElement(), renderingBuffer, data);
+    		}
+    		
+    		//clean-up: handle scope for ARGS
+    		delete data[PARAM_ARGS_NAME];
+    		if(prevArgs !== null){
+    			data[PARAM_ARGS_NAME] = prevArgs;
     		}
     		
     		return renderingBuffer;

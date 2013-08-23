@@ -65,7 +65,7 @@ function Controller(name, jsonDef){
      * @type Object
      * @public
      */
-    this.def = new JPath(jsonDef);
+    this.def = jsonDef;//new JPath(jsonDef);
 
     /**
      * The name of the controller. 
@@ -76,7 +76,7 @@ function Controller(name, jsonDef){
      */
     this.name = name;
     
-    var viewDefs = this.def.query('views');
+    var viewDefs = this.def.views;//.query('views');
 
     /**
      * An array holding the names of all views associated with the controller.  
@@ -89,7 +89,7 @@ function Controller(name, jsonDef){
     this.parseViews(viewDefs);
 
     // parsing the partials and saving the names in an array
-    var partialDefs = this.def.query('partials');
+    var partialDefs = this.def.partials;//.query('partials');
     
 
     /**
@@ -111,7 +111,13 @@ function Controller(name, jsonDef){
      * @public
      */
     this.helper;
-//	this.loadHelper(this.name+"Helper", "helpers/googleMapHelper.js");
+    
+    /**
+     * The layout for this controller (if undefined, the default layout should be used)
+     * @property layout
+     * @type Object
+     */
+    this.layout = this.def.layout;
 }
 
 
@@ -233,8 +239,12 @@ Controller.prototype.performIfPresent = function(actionName, data){
  * @public
  */
 Controller.prototype.performHelper = function(actionName, data){
-
-	return  this.helper.perform(actionName, data);
+	if(arguments.length > 2){
+		return  this.helper.perform(actionName, data, arguments[2]);
+	}
+	else {
+		return  this.helper.perform(actionName, data);
+	}
 };
 
 
@@ -293,28 +303,95 @@ Controller.prototype.parsePartials = function(partialDefs){
 
 
 /**
- * Returns the views of the controller instance.
+ * Returns the view names for the controller instance.
  * 
- * @function getViews
- * @returns {Array} An array of the controllers views 
+ * @function getViewNames
+ * @returns {Array<String>} An array of the controllers views 
  * @public
  */
-Controller.prototype.getViews = function(){
+Controller.prototype.getViewNames = function(){
 	return this.views;
 };
 
-
 /**
- * Returns the partials of the controller instance.
+ * Returns the view names for the controller instance.
  * 
- * @function getPartials
- * @returns {Array} An array of the controllers partials 
+ * TODO should this be private/hidden? -> provides "internal" JSON-details object (used in PresentationManager)
+ * 
+ * Each info object has properties:
+ * {String} name
+ * {String} path
+ * 
+ * @function getViews
+ * @returns {Array<Object>} An array of the controllers views 
  * @public
  */
-Controller.prototype.getPartials = function(){
+Controller.prototype.getViews = function(){
+	return this.def.views;
+};
+
+/**
+ * Returns the partial names for the controller instance.
+ * 
+ * @function getPartialNames
+ * @returns {Array<String>} An array of the controllers partials 
+ * @public
+ */
+Controller.prototype.getPartialNames = function(){
     return this.partials;
 };
 
+/**
+ * Returns the partial info object for the controller instance.
+ * 
+ * TODO should this be private/hidden? -> provides "internal" JSON-details object (used in PresentationManager)
+ * 
+ * Each info object has properties:
+ * {String} name
+ * {String} path
+ * 
+ * @function getPartials
+ * @returns {Array<Object>} An array of the controllers partials 
+ * @public
+ */
+Controller.prototype.getPartials = function(){
+    return this.def.partials;
+};
+
+/**
+ * Returns the layout of the controller instance.
+ * 
+ * If undefined, the default layout should be used.
+ * 
+ * TODO should this be private/hidden? -> provides "internal" JSON-details object (used in PresentationManager)
+ * 
+ * The info object has properties:
+ * {String} name
+ * {String} path
+ * {String} fileName
+ * 
+ * @function getLayout
+ * @returns {Object} The controller's layout (may be undefined) 
+ * @public
+ */
+Controller.prototype.getLayout = function(){
+    return this.layout;
+};
+
+/**
+ * Returns the layout name for the controller instance.
+ * 
+ * This is equal to the controller name.
+ * 
+ * If undefined, the default layout should be used.
+ * 
+ * @function getLayoutName
+ * @returns {String} The controller's layout name (may be undefined) 
+ * @public
+ */
+Controller.prototype.getLayoutName = function(){
+    return this.layout? this.layout.name : this.layout;
+};
 
 /**
  * Returns the name of the controller instance.

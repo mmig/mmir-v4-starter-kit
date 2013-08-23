@@ -369,7 +369,12 @@ mobileDS.DialogEngine = (function(){
 	    		 * @public
 	    		 */
   	            performHelper: function(ctrlName, helper_method_name, data){
-  	            	return mobileDS.ControllerManager.getInstance().performHelper(ctrlName, helper_method_name, data);
+                	if(arguments.length > 3){
+      	            	return mobileDS.ControllerManager.getInstance().performHelper(ctrlName, helper_method_name, data, arguments[3]);
+                	}
+                	else {
+      	            	return mobileDS.ControllerManager.getInstance().performHelper(ctrlName, helper_method_name, data);
+                	}
   	            },
   	            
 

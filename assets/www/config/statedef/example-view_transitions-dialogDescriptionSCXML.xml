@@ -27,6 +27,11 @@
 		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	-->
 	
+	<datamodel>
+	    <data expr="false" id="navigation_backwards_direction"></data>
+	    <data expr="'pop'" id="navigation_transition"></data>
+	</datamodel>
+	
 	<state id="start" name="start">
 		<transition event="init" name="init" target="main_state" />
 	</state>
@@ -35,8 +40,10 @@
 	    
 		<onentry>
 			<script>
-				dialogManager.render('Application', 'login');
+				dialogManager.render('Application', 'login', {transition: navigation_transition, reverse: navigation_backwards_direction});
 			</script>
+   			<assign expr="false" location="navigation_backwards_direction"></assign>
+   			<assign expr="'slide'" location="navigation_transition"></assign>
 		</onentry>
 		
 		<transition event="click_on_login_btn" name="click_on_login_btn" target="login_user" />
@@ -49,15 +56,17 @@
 	    </transition>
 	
 	    <transition name="language_choosen" event="language_choosen" >
+   			<assign expr="'slidedown'" location="navigation_transition"></assign>
 	        <script>
-				var isChanged = _event.data &amp;&amp; _event.data.changed ? _event.data.changed : false;
+	            var isChanged = _event.data &amp;&amp; _event.data.changed ? _event.data.changed : false;
 	            if(isChanged){
-					dialogManager.render('Application', 'login');
+					dialogManager.render('Application', 'login', {transition: navigation_transition, reverse: navigation_backwards_direction});
 				}
 				else {
 					dialogManager.perform('Application','slide_up_language_menu');
 				}
 	        </script>
+   			<assign expr="'slide'" location="navigation_transition"></assign>
 	    </transition>
 	    
 	</state>
@@ -65,11 +74,14 @@
 	<state id="registration_form" name="registration_form">
 		<onentry>
 			<script>
-				dialogManager.render('Application', 'registration');
+				dialogManager.render('Application', 'registration', {transition: navigation_transition, reverse: navigation_backwards_direction});
 			</script>
+   			<assign expr="false" location="navigation_backwards_direction"></assign>
 		</onentry>
 		<transition event="click_on_register_btn" name="click_on_register_btn" target="try_to_register_new_user" />
-		<transition event="back" name="back" target="main_state" />
+		<transition event="back" name="back" target="main_state">
+   			<assign expr="true" location="navigation_backwards_direction"></assign>
+		</transition>
 	</state>
 
 	<state id="try_to_register_new_user" name="try_to_register_new_user">
@@ -85,8 +97,9 @@
 	<state id="login_user" name="login_user">
 		<onentry>
 			<script>
-				dialogManager.perform('Application','login');
+				dialogManager.perform('Application','login', {transition: navigation_transition, reverse: navigation_backwards_direction});
 			</script>
+   			<assign expr="false" location="navigation_backwards_direction"></assign>
 		</onentry>
 		<transition event="login_failed" target="main_state" />
 		<transition event="user_logged_in" cond="mobileDS.User.getInstance() != null" target="logged_in" />
@@ -96,11 +109,14 @@
 	<state id="logged_in" name="logged_in">
 		<onentry>
 			<script>
-				dialogManager.render('Application', 'welcome');
+				dialogManager.render('Application', 'welcome', {transition: navigation_transition, reverse: navigation_backwards_direction});
 			</script>
+   			<assign expr="false" location="navigation_backwards_direction"></assign>
 		</onentry>
 		<transition event="click_on_appointment_btn" name="click_on_appointment_btn" target="create_appointment" />
-		<transition event="back" name="back" target="main_state" />
+		<transition event="back" name="back" target="main_state">
+   			<assign expr="true" location="navigation_backwards_direction"></assign>
+		</transition>
 
 	</state>
 
@@ -108,18 +124,22 @@
 		<initial>
 			<onentry>
 				<script>
-					dialogManager.render('Calendar', 'create_appointment');
+					dialogManager.render('Calendar', 'create_appointment', {transition: navigation_transition, reverse: navigation_backwards_direction});
 				</script>
+   				<assign expr="false" location="navigation_backwards_direction"></assign>
 			</onentry>
 		</initial>
 
 		<transition event="click_on_save_appointment_btn" name="click_on_save_appointment_btn" target="save_appointment">
+   			<assign expr="true" location="navigation_backwards_direction"></assign>
 		</transition>
 		
 		<transition event="click_on_discard_appointment_btn" name="click_on_discard_appointment_btn" target="logged_in">
+   			<assign expr="true" location="navigation_backwards_direction"></assign>
 		</transition>
 		
 		<transition event="back" name="back" target="logged_in">
+   			<assign expr="true" location="navigation_backwards_direction"></assign>
 		</transition>
 		
 		<state id="save_appointment" name="save_appointment">

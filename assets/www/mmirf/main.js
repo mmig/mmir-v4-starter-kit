@@ -182,7 +182,6 @@ function afterLoadingControllers(ctrlManager){
     //$.mobile.page.prototype.options.backBtnTheme = "a";
     // $.mobile.page.prototype.options.addBackBtn = true;
     //$.mobile.useFastClick = false;
-	$.mobile.defaultPageTransition = 'slide';
 	
     pm = mobileDS.PresentationManager.getInstance();
     

@@ -30,11 +30,22 @@
 		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	-->
-		
+	
+    <link rel="stylesheet" href="mmirf/res/styles/jquery.mobile-1.3.1.min.css" />
+    
 	<script src="mmirf/res/libs/jquery-1.9.1.min.js" type="text/javascript">
 	</script>
-	<!-- script src="mmirf/res/libs/jquery.mobile-1.3.1.js" type="text/javascript">
-	</script-->
+	<script type="text/javascript">
+		//disable jQuery Mobiles navigation/history handling (-> allow simple # links within page)
+		//NOTE this needs to be done, before jQuery Mobile JS is loaded!
+		$(document).on("mobileinit", function(){
+			$.mobile.hashListeningEnabled = false;
+			$.mobile.pushStateEnabled = false;
+			$.mobile.linkBindingEnabled = false;
+		});
+	</script>
+	<script src="mmirf/res/libs/jquery.mobile-1.3.1.js" type="text/javascript">
+	</script>
 
 
 	<script src="mmirf/res/libs/jpath.js" type="text/javascript">
@@ -47,21 +58,39 @@
 	<script src="mmirf/semantic/grammarConverter.js" type="text/javascript">
 	</script>
 	
+	<script src="mmirf/tools/extensions/StringExtensions.js" type="text/javascript">
+	</script>
+	<script src="mmirf/tools/constants.js" type="text/javascript">
+	</script>
+	<script src="mmirf/plugins/directoryListing.js" type="text/javascript">
+	</script>
+	<script src="mmirf/tools/CommonUtils.js" type="text/javascript">
+	</script>
+	<script src="mmirf/manager/settings/languageManager.js" type="text/javascript">
+	</script>
+	
 	<script src="mmirf/semantic/grammarParserTemplate.js" type="text/javascript">
 	</script>
 	<script src="mmirf/semantic/semanticInterpreter.js" type="text/javascript">
-	</script>
-	<script type="text/javascript">
-		mobileDS.SemanticInterpreter.getInstance().get_json_grammar_url = function(id) { return 'config/languages/'+id+'/grammar.json'; };
-		
-		//TODO: (1) load directory_strucutre file and detect available JSON grammars, (2) create drop-down menu for languages
-		mobileDS.SemanticInterpreter.getInstance().setCurrentGrammar('de');
 	</script>
 	
 	<!-- script src="mmirf/gen/grammar.js" type="text/javascript">
 	</script-->
 		
 	<style type="text/css">
+		
+		.grid {
+			display: inline-table;
+		}
+		.grid-cell {
+			display: table-cell;
+			vertical-align: bottom;
+		}
+		
+		#language-selection-area .ui-select {
+			display: inline;
+		}
+		
 		#outputBox {
 			font-family:monospace;
 			font-size:12px;
@@ -141,7 +170,14 @@
 	{};
 
 
-	var semanticInterpreter;
+	var forBrowser = true;
+	
+	var semanticInterpreter = mobileDS.SemanticInterpreter.getInstance();
+	semanticInterpreter.get_json_grammar_url = function(id) { return 'config/languages/'+id+'/grammar.json'; };
+	
+	//TODO: (1) load directory_strucutre file and detect available JSON grammars, (2) create drop-down menu for languages
+	semanticInterpreter.setCurrentGrammar('de');
+
 	var inputElement;
 	var interpretElement;
 	var stopwordElement;
@@ -149,10 +185,93 @@
 	var compiledParser;
 	var compileCount = 0;
 	
-	var theJSONGrammarURL = 'content/grammar.json';
+	var theJSONGrammarURL = semanticInterpreter.get_json_grammar_url('de');
 	var theJSONgrammar = 'un-initialized';
+	
+	var optionGrammarFromFile = 'file-option';
+	
+	var initPage = function initPageImpl(){
+		var languageManager = mobileDS.LanguageManager.getInstance();
+		
+		//alert('langs: '+languageManager.getLanguages().join(', '));
+		
+		
+		var langs = languageManager.getLanguages();// ['de','en'];//TODO get lang-array from LanguageManager (check for "JSON existing"); default from constants
+		var defLang = languageManager.getLanguage();//'de';
+		if( ! languageManager.existsGrammar(defLang)){
+			for(var i=0, size = langs.length; i < size ; ++i){
+				
+				if(languageManager.existsGrammar(langs[i])){
+					defLang = langs[i];
+					break;
+				}
+			}
+		} 
+		var langMenu = createLanguageMenu(langs, defLang);
+		var isLang = function(id){
+			for(var i=0,size=langs.length; i < size; ++i){
+				if(langs[i] === id){
+					return true;
+				}
+				return false;
+			}
+		};
+		
+		$('#grammar-id').val(defLang);
+		
+		$('#lang-selector-manual-input').hide();
+		$('#lang-selector').replaceWith($.parseHTML(langMenu));
+		$('#lang-selector').selectmenu({ inline: true });
 
-	jQuery(document).ready(function(){
+		$("#lang-selector").on( "change", function(event, ui) {
+			
+			var prevLang = $('#grammar-id').val();
+			
+			var currentLangSelection = $(this).val();
+			$('#grammar-id').val(currentLangSelection);
+			
+			theJSONGrammarURL = semanticInterpreter.get_json_grammar_url(currentLangSelection);
+			
+			var callback = function (isSuccess){
+				if(isSuccess){
+					
+					//if previous selection was loaded-from-file -> remove file entry
+					//	 (a new one will be created, next time a grammar is loaded from file)
+					if( !isLang(prevLang) ){
+						$('#lang-selector option[value="'+optionGrammarFromFile+'"]').remove();
+					}
+					
+					clearInput();
+					clearOut();
+					clearInterpret();
+					clearStopword();
+					
+					initPageWithJsonGrammar();
+				}
+				else {
+					// loading failed -> "revert" selection
+					$('#lang-selector option[value="'+currentLangSelection+'"]').prop('selected', null);
+					if( isLang(prevLang) ){
+						$('#lang-selector option[value="'+prevLang+'"]').prop('selected', 'selected');
+					}
+					else {
+						$('#lang-selector option[value="'+optionGrammarFromFile+'"]').prop('selected', 'selected');
+					}
+					
+					$('#lang-selector').selectmenu('refresh', true);
+					currentLangSelection = prevLang;
+					
+					$('#grammar-id').val(prevLang);
+					
+				}
+			};
+			loadJsonGrammar(callback);
+			
+		});
+		//overwrite default-impl. for getLanguage (-> use grammar-ID-field value instead of input-field's)
+		getLanguage = function(){
+			return $('#grammar-id').val();
+		}
 		
 		initFileApi();
 		
@@ -166,19 +285,26 @@
 			stopwordElement = document.getElementById("stopwordInputBox");
 			
 
-		var succ = loadJsonGrammar();
-		
-		if(succ){
-			initPageWithJsonGrammar();
-		} 
-		else {
-			$('#file-selector').trigger('click');
+		var callback = function(isSuccess){
+			if(isSuccess){
+				initPageWithJsonGrammar();
+			} 
+			else {
+				$('#file-selector').trigger('click');
+			}
 		}
 		
+		loadJsonGrammar(callback);
+	};
+
+	jQuery(document).ready(function(){
+		mobileDS.CommonUtils.getInstance().initialize(initPage);
 	});
 	
 	function getLanguage(){
-		return $('#lang-selector').val();
+		var id = $('#lang-selector-field').val();
+		$('#grammar-id').val(id);
+		return id;
 	}
 	
 	function initPageWithJsonGrammar(){
@@ -196,29 +322,53 @@
 		processInterpretation();
 	}
 	
-	function loadJsonGrammar(){
+	function loadJsonGrammar(cb){
 		if(!semanticInterpreter){
 			semanticInterpreter = mobileDS.SemanticInterpreter.getInstance();
 		}
 		
-		var success = false;
 		var successFunc = function(gcInstance){
 			if(gcInstance.json_grammar_definition){
 				
 				theJSONgrammar = gcInstance.json_grammar_definition;
-				
-				success = true;
+				if(theJSONgrammar['comment_license']){
+					delete theJSONgrammar['comment_license'];
+				}
+				cb(true)
+			}
+			else{
+				cb(false);
 			}
 		};
 		var errorFunc =  function(gcInstance){
-			alert("Initialize:\n failed to load configuration from\n '"+theJSONGrammarURL+"'!");
+			alert("Initialize:\n failed to load JSON grammar file from\n '"+theJSONGrammarURL+"'!");
+			cb(false);
 		};
 		
 		var gc = new GrammarConverter();
 		
-		gc.loadGrammar(successFunc, errorFunc, theJSONGrammarURL);
+		var doLoadGrammar = function(){
+			
+			gc.loadGrammar(successFunc, errorFunc, theJSONGrammarURL, false);
+			
+			if($.mobile){
+				$.mobile.loading( 'hide' );
+			}
+		};
 		
-		return success;
+		setTimeout(function(){
+			if($.mobile){
+				$.mobile.loading( 'show', {
+					text: 'Loading JSON Grammar...',
+					textVisible: true
+				});
+				setTimeout(function(){ doLoadGrammar(); }, 50);
+			}
+			else {
+				doLoadGrammar();
+			}
+		},50);
+		
 	}
 
 	function initFileApi() {
@@ -232,27 +382,69 @@
 	}
 
 	function loadJsonGrammarFromFile(evt) {
+		
+		if($.mobile){
+			$.mobile.loading( 'show', {
+				text: 'Loading JSON Grammar from file...',
+				textVisible: true
+			});
+		}
+		
 	    var files = evt.target.files; // FileList object
 	    
 	    // Loop through the FileList (should be only one, since "multiple" is not set)
 	    for (var i = 0, f; f = files[i]; i++) {
 
 	      var reader = new FileReader();
-
+	      var theFileName = f.name;
+	      
 	      // Closure to capture the file information.
 	      reader.onload = function(theFileEvent) {
-
-				theJSONgrammar = $.parseJSON( theFile.target.result );
 				
-				clearInput();
-				clearOut();
-				clearInterpret();
-				clearStopword();
 
+				var theGrammarId = prompt('Please enter an ID for the grammar:', theFileName);
+				if(theGrammarId === null){
+					//cancel selected -> do nothing
+					return;///////////////////////////// EARLY EXIT ////////////////////////
+				}
+				
+				var prevSel = $('#grammar-id').val();
+				$('#grammar-id').val(theGrammarId);
+				
+				//update selection menu:
+				//	* (if previous selection was a file too: remove the previous entry)
+				//	* create an entry for the file selection
+				//	* de-select previous entry
+				//	* select the new file-entry (and update selection menu)
+				$('#lang-selector  option[value="'+optionGrammarFromFile+'"]').remove();
+				var fileOptionEntry = createLanguageMenuEntry(theGrammarId, null, null, optionGrammarFromFile);//lang, menuElem, defaultSelection, value);
+				$('#lang-selector').append( $.parseHTML(fileOptionEntry.join('')) );
+				
+				if(prevSel !== optionGrammarFromFile){
+					$('#lang-selector option[value="'+prevSel+'"]').prop('selected',null);
+				}
+				$('#lang-selector option[value="'+optionGrammarFromFile+'"]').prop('selected', 'selected');
+				$('#lang-selector').selectmenu('refresh', true);
+				
+		        clearInput();
+		        clearOut();
+		        clearInterpret();
+		        clearStopword();
+		        
+				theJSONgrammar = $.parseJSON( theFileEvent.target.result );
+				
+				if(theJSONgrammar['comment_license']){
+					delete theJSONgrammar['comment_license'];
+				}
+				
 				$('#inputBox').val(JSON.stringify(theJSONgrammar, null, 2));
 				
 				initPageWithJsonGrammar();
 				$('#file-selector').val(null);
+				
+				if($.mobile){
+					$.mobile.loading( 'hide' );
+				}
 	      };
 
 	      reader.onerror = function(theFileEvent) {
@@ -302,12 +494,41 @@
 		
 		var langCode = getLanguage();
 		if( semanticInterpreter.hasGrammar(langCode) ){
-			alert('About to replace grammar for:\n'+langCode);
+			langCode = prompt('About to replace grammar for:\n'
+					+langCode
+					+'\n\n\nIf you do not want to replace the grammar\n'
+					+      'please enter a different ID:'
+				, langCode);
+			
+			if(langCode === null){
+				//-> cancel selected
+				return;///////////////////////////// EARLY EXIT ////////////////////////
+			}
 		}
+
+		var doParseAndCompile = function(){
+			semanticInterpreter.createGrammar(theJSONgrammar, langCode);//'theGeneratedTestParser' + (++compileCount));
+			printGrammarDefinition();
+			printCompiledParserDefinition();
+			
+			if($.mobile){
+				$.mobile.loading( 'hide' );
+			}
+		};
 		
-		semanticInterpreter.createGrammar(theJSONgrammar, langCode);//'theGeneratedTestParser' + (++compileCount));
-		printGrammarDefinition();
-		printCompiledParserDefinition();
+		setTimeout(function(){
+			if($.mobile){
+				$.mobile.loading( 'show', {
+					text: 'Parsing and Compiling JSON Grammar...',
+					textVisible: true
+				});
+				setTimeout(function(){ doParseAndCompile(); }, 50);
+			}
+			else {
+				doParseAndCompile();
+			}
+		},50);
+
 	}
 	
 	function processInterpretation(){
@@ -332,28 +553,69 @@
 		var res2 = semanticInterpreter.getASRSemantic_alt(asr_result.toLowerCase());
 		clearInterpret();
 		
-		var iterations = 10000;
+		var DEFAULT_ITERATIONS = 10000;
+		var iterations = DEFAULT_ITERATIONS;
 		
-		var startTime = new Date();
-		for(var i=0; i < iterations; ++i){
-			semanticInterpreter.getASRSemantic(asr_result.toLowerCase());
+		iterations = prompt('Starting Benchmark for evaluting Stopword-Processing implementations.'
+				+'\n\nWARNING: This may take several minutes.'
+				+'\n\nSpecifiy loops for repeat:'
+			,iterations
+		);
+		
+		//was cancel selected?
+		if(iterations === null){
+			return;///////////////////////////// EARLY EXIT ////////////////////////
 		}
-		var diffTime = new Date() - startTime;
 		
-		var startTimeAlt = new Date();
-		for(var i=0; i < iterations; ++i){
-			semanticInterpreter.getASRSemantic_alt(asr_result.toLowerCase());
+		iterations = parseInt(iterations);
+		
+		if(isNaN(iterations)){
+			iterations = DEFAULT_ITERATIONS;
 		}
-		var diffTimeAlt = new Date() - startTimeAlt;
 		
-		$('#time').text(iterations + ' interations in ' + diffTime + ' ms');
-		$('#time-mod').text(
-				iterations + ' interations in ' + diffTimeAlt
-						+ ' ms (alt. method)');
 		
-		printInterpretation(res);
-		printInterpretationAlt(res2);
-		stopword(asr_result);
+		var doStartBenchmark = function(){
+
+			var startTime = new Date();
+			for(var i=0; i < iterations; ++i){
+				semanticInterpreter.getASRSemantic(asr_result.toLowerCase());
+			}
+			var diffTime = new Date() - startTime;
+			
+			var startTimeAlt = new Date();
+			for(var i=0; i < iterations; ++i){
+				semanticInterpreter.getASRSemantic_alt(asr_result.toLowerCase());
+			}
+			var diffTimeAlt = new Date() - startTimeAlt;
+			
+			$('#time').text(iterations + ' interations in ' + diffTime + ' ms');
+			$('#time-mod').text(
+					iterations + ' interations in ' + diffTimeAlt
+							+ ' ms (alt. method)');
+			
+			printInterpretation(res);
+			printInterpretationAlt(res2);
+			stopword(asr_result);
+			
+			if($.mobile){
+				$.mobile.loading( 'hide' );
+			}
+		};
+		
+		setTimeout(function(){
+				if($.mobile){
+					$.mobile.loading( 'show', {
+						text: 'Benchmarking ('+iterations+' loops)...',
+						textVisible: true
+					});
+					setTimeout(function(){ doStartBenchmark(); }, 500);
+				}
+				else {
+					doStartBenchmark();
+				}
+			}, 50
+		);
+		
 	}
 	
 	function stopword(text){
@@ -536,6 +798,15 @@
 			//text = text.replace(/[^\r]\n/g, "\r\n");
 			if (!outputBox)
 				outputBox = document.getElementById("inputBox");
+			
+			if(typeof text !== "string") {
+				text = text.join('\r\n');				
+			}
+			
+			$(outputBox).val(text+'\r\n');
+			return;
+			
+			/*
 			if(typeof text == "string") {
 				outputBox.appendChild(document.createTextNode(text + "\r\n"));
 			} else {
@@ -544,6 +815,7 @@
 							+ "\r\n"));
 				}
 			}
+			*/
 		};
 	})();
 	
@@ -576,6 +848,52 @@
 			outputBox.select();
 		};
 	})();
+	
+	
+	function createLanguageMenu (arrayLang, defaultSelection){
+		
+		var menuElem = ['<label for="lang-selector" data-inline="true">Lanuage: </label>',
+							'<select name="lang-selector" id="lang-selector">'
+						];
+		
+		if(!defaultSelection){
+			menuElem.push('<option>Lanuage</option>');
+		}
+		
+		for(var i=0,size = arrayLang.length; i < size; ++i){
+			var lang = arrayLang[i];
+			
+			createLanguageMenuEntry(lang, menuElem, defaultSelection);
+		}
+		
+		menuElem.push('</select>');
+		
+		return menuElem.join('');
+	}
+	
+	function createLanguageMenuEntry (lang, menuElem, defaultSelection, value){
+		if(!menuElem){
+			menuElem = [];
+		}
+		
+		menuElem.push('<option value="');
+		if(value){
+			menuElem.push(value);
+		}
+		else {
+			menuElem.push(lang);
+		}
+		
+		menuElem.push('"');
+		//if(defaultSelection === lang){//for defaultSelection -> initial selection
+			//menuElem.push(' data-placeholder="true"');
+		//}
+		menuElem.push('>');
+		menuElem.push(lang);
+		menuElem.push('</option>');
+		
+		return menuElem;
+	}
 	</script>
 	
 
@@ -588,18 +906,26 @@
     
     <div style="font-size: 0.9em;width: 100%; white-space: normal !important;">
     <strong>NOTE:</strong>
-		On initial load of the page, the grammar definition in JSON 
-    	format is loaded from the file <code>content/grammar.json</code>.<br/>
-    	This path (URL) is defined in the JavaScript variable <code>theJSONGrammarURL</code>.<br/>
+		On initial load of the page, the <tt>Language</tt> list 
+    	is loaded from the file <code>config/directories.json</code>: for each found language
+    	directory (<code>config/languages/</code>),	an entry is generated -- on selection, the
+    	corresponing JSON file is attempted to be read and compiled.<br/>
+    	<i>Note, that there may not be a JSON file for the lanuage available -- in this case an
+    	 error message will be shown on selection.</i><br/>
+    	
+    	<p>You can use the file selector, for loading a JSON grammar from  the local file system</p>
+    	
+    	<p>Alternatively, you can enter (e.g. copy&paste) a JSON-formatted grammar into the 
+    	<i>JSON Grammar Definition</i> field and then press the <i>parse</i> button.</p>
     	<br/>
     </div>
     
     <hr/>
     <div>
     TOC: 		<a href="#json-grammer">JSON Grammar</a> | 
-    			<a href="#jsjc-grammar">JS/JC Grammar</a> | 
     			<a href="#interpreter-tester">TEST interpretation</a> | 
     			<a href="#stopword-tester">TEST stopword processing</a> |
+    			<a href="#jsjc-grammar">JS/JC Grammar</a> | 
     			<a href="#compiled-parser">Compiled parser code</a>  
     </div>
     <hr/>
@@ -617,15 +943,25 @@
 		</div>
 		
 		<div style="float:right;">
-			Language: 
-			<input type="text" id="lang-selector" value="de" />
-		</div>
-		<div style="float:right;">
-			<input type="file" id="file-selector" accept="text" name="files[]" />
+			<div class="grid">
+				<div id="language-selection-area" class="grid-cell">
+					<div id="lang-selector-manual-input">
+						Language: 
+						<input type="text" id="lang-selector-field" value="de" />
+					</div>
+					<div id="lang-selector" style="display:none;"></div>
+				</div>
+				<div class="grid-cell">
+					<input type="file" id="file-selector" accept="text" name="files[]" />
+				</div>
+				<div class="grid-cell">
+					Grammar ID: <input id="grammar-id" type="text" value="de" data-inline="true"/>
+				</div>
+			</div>
 		</div>
 		<div style="clear:both;"></div>
 		
-		<textarea id="inputBox" rows="20" style="width: 100%;"></textarea><br/>
+		<textarea id="inputBox" rows="20" style="width: 100%;height:300px;" data-enhance="false"></textarea><br/>
 		
 		<div style="float:left;">
 			<input type="button" onclick="selectJsonGrammar();" value="Select All" style="right:0;"/>
@@ -637,12 +973,6 @@
 		<!-- input type="button" onclick="clearOut();" value="Clear"/-->
 		
 		<br/>
-    	<a href="#top">top</a>  
-		<a name="jsjc-grammar"></a>
-	    <p>JS/JC Grammar Definition (generated from JSON grammar):</p>
-		<textarea  id="compileOutBox" readonly="readonly"></textarea>
-		
-		<input type="button" onclick="selectJsjcGrammar();" value="Select All"/>  
     </div>
     <div style="float:right; width: 27%;">
     	<br/>
@@ -710,6 +1040,17 @@
 				</td>
 			</tr>
 		</table>
+		
+		<hr/>
+		
+		<div>
+			<a href="#top">top</a>  
+			<a name="jsjc-grammar"></a>
+		    <p>JS/JC Grammar Definition (generated from JSON grammar):</p>
+			<textarea  id="compileOutBox" readonly="readonly"></textarea>
+			
+			<input type="button" onclick="selectJsjcGrammar();" value="Select All"/>  
+		</div>
 		
 		<hr/>
 		

@@ -27,30 +27,53 @@
 
 /*
  * This JavaScript is expected to run in the node.js environment
+ * 
+ * SETTINGS:
+ *  - isDebugOutput: disable debugging output (console) by setting global variable isDebugOutput to FALSE
+ *  
+ * EXPORTS:
+ * 	- creates global variable FILE_SYSTEM that hold the NodeJS file-system module reference (module js).
  */
 
 var FILE_SYSTEM = require('fs');
 
-function loadLocalFile(path){
-	
-	console.log('reading: json file exists? '+FILE_SYSTEM.existsSync(path));
-	
-	var theJSONgrammarString = FILE_SYSTEM.readFileSync(path, 'utf8');
+var isDebugOutput = typeof isDebugOutput !== 'undefined'? isDebugOutput : true; 
 
-	console.log('read contents from file: '+path);
+/*
+ * see loadLocalFile in IFileHandler.js
+ */
+function loadLocalFile(path, type){
 	
-	return JSON.parse(theJSONgrammarString);
+	if(FILE_SYSTEM.existsSync(path) === false){
+		throw new Error('error reading file '+path+': file does not exist!');
+	}
+	
+	var fileContent = FILE_SYSTEM.readFileSync(path, 'utf8');
+
+	if(isDebugOutput) console.log('read contents from file: '+path);
+	
+	if(type && type === 'text'){
+		return fileContent;
+	}
+	
+	return JSON.parse(fileContent);
 }
 
-function saveToFile(str, path){
+/*
+ * see saveToFile in IFileHandler.js
+ * 
+ */
+function saveToFile(str, path, doNotOverWrite){
 	
 	if(typeof str !== 'string'){
 		str = JSON.stringify(str, null, '  ');
 	}
 //	
-	console.log('writing: file exists (overwriting)? '+FILE_SYSTEM.existsSync(path));
+	if(isDebugOutput) console.log('writing: file exists (overwriting)? '+FILE_SYSTEM.existsSync(path));
 	
-//	var r = new FileWriter(f, false);
+	if(doNotOverWrite && FILE_SYSTEM.existsSync(path)){
+		return;//////////////////////// EARLY EXIT ///////////////////////
+	}
 	
 	var r = FILE_SYSTEM.createWriteStream(path
 			//default options:

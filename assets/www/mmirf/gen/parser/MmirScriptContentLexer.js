@@ -1,4 +1,4 @@
-// $ANTLR 3.3 Nov 30, 2010 12:50:56 ../MmirScriptContent.g 2013-04-12 13:42:08
+// $ANTLR 3.3 Nov 30, 2010 12:50:56 ../MmirScriptContent.g 2013-08-13 18:04:03
 
 var MmirScriptContentLexer = function(input, state) {
 // alternate constructor @todo
@@ -15,7 +15,7 @@ var MmirScriptContentLexer = function(input, state) {
 
     }).call(this);
 
-    this.dfa11 = new MmirScriptContentLexer.DFA11(this);
+    this.dfa12 = new MmirScriptContentLexer.DFA12(this);
     MmirScriptContentLexer.superclass.constructor.call(this, input, state);
 
 
@@ -47,11 +47,12 @@ org.antlr.lang.augmentObject(MmirScriptContentLexer, {
     UNICODE_ESC: 25,
     OCTAL_ESC: 26,
     ESC_SEQ: 27,
-    T__32: 32,
+    T__33: 33,
     DoExit: 28,
     WS: 29,
     STRING: 30,
-    SSTRING: 31
+    SSTRING: 31,
+    ScriptVar: 32
 });
 
 (function(){
@@ -83,18 +84,19 @@ org.antlr.lang.extend(MmirScriptContentLexer, org.antlr.runtime.Lexer, {
     UNICODE_ESC : 25,
     OCTAL_ESC : 26,
     ESC_SEQ : 27,
-    T__32 : 32,
+    T__33 : 33,
     DoExit : 28,
     WS : 29,
     STRING : 30,
     SSTRING : 31,
+    ScriptVar : 32,
     getGrammarFileName: function() { return "../MmirScriptContent.g"; }
 });
 org.antlr.lang.augmentObject(MmirScriptContentLexer.prototype, {
-    // $ANTLR start T__32
-    mT__32: function()  {
+    // $ANTLR start T__33
+    mT__33: function()  {
         try {
-            var _type = this.T__32;
+            var _type = this.T__33;
             var _channel = org.antlr.runtime.BaseRecognizer.DEFAULT_TOKEN_CHANNEL;
             // ../MmirScriptContent.g:13:7: ( '{' )
             // ../MmirScriptContent.g:13:9: '{'
@@ -108,7 +110,7 @@ org.antlr.lang.augmentObject(MmirScriptContentLexer.prototype, {
         finally {
         }
     },
-    // $ANTLR end "T__32",
+    // $ANTLR end "T__33",
 
     // $ANTLR start EscapeExit
     mEscapeExit: function()  {
@@ -1069,14 +1071,79 @@ org.antlr.lang.augmentObject(MmirScriptContentLexer.prototype, {
     },
     // $ANTLR end "UNICODE_ESC",
 
+    // $ANTLR start ScriptVar
+    mScriptVar: function()  {
+        try {
+            var _type = this.ScriptVar;
+            var _channel = org.antlr.runtime.BaseRecognizer.DEFAULT_TOKEN_CHANNEL;
+            var theText;
+
+            // ../MmirScriptContent.g:199:11: ( '@' (theText=~ ( '\\t' | ' ' | '(' | ')' | '[' | ']' | '{' | '}' | '\\r' | '\\n' ) )+ )
+            // ../MmirScriptContent.g:199:14: '@' (theText=~ ( '\\t' | ' ' | '(' | ')' | '[' | ']' | '{' | '}' | '\\r' | '\\n' ) )+
+            this.match('@'); if (this.state.failed) return ;
+            // ../MmirScriptContent.g:199:25: (theText=~ ( '\\t' | ' ' | '(' | ')' | '[' | ']' | '{' | '}' | '\\r' | '\\n' ) )+
+            var cnt11=0;
+            loop11:
+            do {
+                var alt11=2;
+                var LA11_0 = this.input.LA(1);
+
+                if ( ((LA11_0>='\u0000' && LA11_0<='\b')||(LA11_0>='\u000B' && LA11_0<='\f')||(LA11_0>='\u000E' && LA11_0<='\u001F')||(LA11_0>='!' && LA11_0<='\'')||(LA11_0>='*' && LA11_0<='Z')||LA11_0=='\\'||(LA11_0>='^' && LA11_0<='z')||LA11_0=='|'||(LA11_0>='~' && LA11_0<='\uFFFF')) ) {
+                    alt11=1;
+                }
+
+
+                switch (alt11) {
+                case 1 :
+                    // ../MmirScriptContent.g:199:25: theText=~ ( '\\t' | ' ' | '(' | ')' | '[' | ']' | '{' | '}' | '\\r' | '\\n' )
+                    theText= this.input.LA(1);
+                    if ( (this.input.LA(1)>='\u0000' && this.input.LA(1)<='\b')||(this.input.LA(1)>='\u000B' && this.input.LA(1)<='\f')||(this.input.LA(1)>='\u000E' && this.input.LA(1)<='\u001F')||(this.input.LA(1)>='!' && this.input.LA(1)<='\'')||(this.input.LA(1)>='*' && this.input.LA(1)<='Z')||this.input.LA(1)=='\\'||(this.input.LA(1)>='^' && this.input.LA(1)<='z')||this.input.LA(1)=='|'||(this.input.LA(1)>='~' && this.input.LA(1)<='\uFFFF') ) {
+                        this.input.consume();
+                    this.state.failed=false;
+                    }
+                    else {
+                        if (this.state.backtracking>0) {this.state.failed=true; return ;}
+                        var mse = new org.antlr.runtime.MismatchedSetException(null,this.input);
+                        this.recover(mse);
+                        throw mse;}
+
+
+
+                    break;
+
+                default :
+                    if ( cnt11 >= 1 ) {
+                        break loop11;
+                    }
+                    if (this.state.backtracking>0) {this.state.failed=true; return ;}
+                        var eee = new org.antlr.runtime.EarlyExitException(11, this.input);
+                        throw eee;
+                }
+                cnt11++;
+            } while (true);
+
+            if ( this.state.backtracking===0 ) {
+              _channel=HIDDEN;
+            }
+
+
+
+            this.state.type = _type;
+            this.state.channel = _channel;
+        }
+        finally {
+        }
+    },
+    // $ANTLR end "ScriptVar",
+
     mTokens: function() {
-        // ../MmirScriptContent.g:1:8: ( T__32 | EscapeExit | DoEnterBlock | DoEnterYieldContent | DoEnterRender | DoEnterIfStatement | DoEnterElseStatement | DoEnterForStatement | DoExit | NL | WS | CHAR | COMMENT | STRING | SSTRING )
-        var alt11=15;
-        alt11 = this.dfa11.predict(this.input);
-        switch (alt11) {
+        // ../MmirScriptContent.g:1:8: ( T__33 | EscapeExit | DoEnterBlock | DoEnterYieldContent | DoEnterRender | DoEnterIfStatement | DoEnterElseStatement | DoEnterForStatement | DoExit | NL | WS | CHAR | COMMENT | STRING | SSTRING | ScriptVar )
+        var alt12=16;
+        alt12 = this.dfa12.predict(this.input);
+        switch (alt12) {
             case 1 :
-                // ../MmirScriptContent.g:1:10: T__32
-                this.mT__32(); if (this.state.failed) return ;
+                // ../MmirScriptContent.g:1:10: T__33
+                this.mT__33(); if (this.state.failed) return ;
 
 
                 break;
@@ -1161,6 +1228,12 @@ org.antlr.lang.augmentObject(MmirScriptContentLexer.prototype, {
             case 15 :
                 // ../MmirScriptContent.g:1:167: SSTRING
                 this.mSSTRING(); if (this.state.failed) return ;
+
+
+                break;
+            case 16 :
+                // ../MmirScriptContent.g:1:175: ScriptVar
+                this.mScriptVar(); if (this.state.failed) return ;
 
 
                 break;
@@ -1268,25 +1341,44 @@ org.antlr.lang.augmentObject(MmirScriptContentLexer.prototype, {
 }, true); // important to pass true to overwrite default implementations
 
 org.antlr.lang.augmentObject(MmirScriptContentLexer, {
-    DFA11_eotS:
-        "\u0002\uffff\u0002\u000c\u0001\u0016\u0005\uffff\u0002\u000c\u0002"+
-    "\uffff\u0001\u001b\u000d\uffff",
-    DFA11_eofS:
-        "\u001c\uffff",
-    DFA11_minS:
-        "\u0001\u0000\u0001\uffff\u0001\u0040\u0001\u002a\u0001\u000a\u0005"+
-    "\uffff\u0002\u0000\u0002\uffff\u0001\u0040\u000d\uffff",
-    DFA11_maxS:
-        "\u0001\uffff\u0001\uffff\u0001\u0040\u0001\u007b\u0001\u000a\u0005"+
-    "\uffff\u0002\uffff\u0002\uffff\u0001\u0040\u000d\uffff",
-    DFA11_acceptS:
+    DFA12_eotS:
+        "\u0002\uffff\u0002\u000c\u0001\u0017\u0005\uffff\u0002\u000c\u0002"+
+    "\uffff\u0001\u001c\u0001\uffff\u0006\u0016\u0007\uffff\u0007\u0016\u0001"+
+    "\uffff\u0002\u0016\u0001\uffff\u0002\u0016\u0001\u0024\u0002\u0016\u0001"+
+    "\u0031\u0001\uffff\u0002\u0016\u0001\uffff\u0003\u0016\u0001\uffff\u0003"+
+    "\u0016\u0001\uffff",
+    DFA12_eofS:
+        "\u003a\uffff",
+    DFA12_minS:
+        "\u0001\u0000\u0001\uffff\u0001\u0040\u0001\u0000\u0001\u000a\u0005"+
+    "\uffff\u0002\u0000\u0002\uffff\u0001\u0040\u0001\uffff\u0001\u006f\u0001"+
+    "\u0065\u0001\u0066\u0001\u006c\u0001\u006f\u0001\u0000\u0007\uffff\u0002"+
+    "\u006e\u0001\u0028\u0001\u0073\u0001\u0072\u0002\u0000\u0001\uffff\u0001"+
+    "\u0074\u0001\u0064\u0001\uffff\u0001\u0065\u0001\u0028\u0001\u0000\u0002"+
+    "\u0065\u0001\u0000\u0001\uffff\u0001\u006e\u0001\u0072\u0001\uffff\u0001"+
+    "\u0074\u0001\u0028\u0001\u0046\u0001\uffff\u0001\u006f\u0001\u0072\u0001"+
+    "\u0028\u0001\uffff",
+    DFA12_maxS:
+        "\u0001\uffff\u0001\uffff\u0001\u0040\u0001\uffff\u0001\u000a\u0005"+
+    "\uffff\u0002\uffff\u0002\uffff\u0001\u0040\u0001\uffff\u0001\u006f\u0001"+
+    "\u0065\u0001\u0066\u0001\u006c\u0001\u006f\u0001\uffff\u0007\uffff\u0002"+
+    "\u006e\u0001\u0028\u0001\u0073\u0001\u0072\u0002\uffff\u0001\uffff\u0001"+
+    "\u0074\u0001\u0064\u0001\uffff\u0001\u0065\u0001\u0028\u0001\uffff\u0002"+
+    "\u0065\u0001\uffff\u0001\uffff\u0001\u006e\u0001\u0072\u0001\uffff\u0001"+
+    "\u0074\u0001\u0028\u0001\u0046\u0001\uffff\u0001\u006f\u0001\u0072\u0001"+
+    "\u0028\u0001\uffff",
+    DFA12_acceptS:
         "\u0001\uffff\u0001\u0001\u0003\uffff\u0003\u000a\u0002\u000b\u0002"+
-    "\uffff\u0001\u000c\u0001\u0001\u0001\uffff\u0001\u0003\u0001\u0004\u0001"+
-    "\u0005\u0001\u0006\u0001\u0007\u0001\u0008\u0001\u000d\u0001\u000a\u0001"+
-    "\u000b\u0001\u000e\u0001\u000f\u0001\u0002\u0001\u0009",
-    DFA11_specialS:
-        "\u0001\u0002\u0009\uffff\u0001\u0000\u0001\u0001\u0010\uffff}>",
-    DFA11_transitionS: [
+    "\uffff\u0001\u000c\u0001\u0001\u0001\uffff\u0001\u0003\u0006\uffff\u0001"+
+    "\u0010\u0001\u000a\u0001\u000b\u0001\u000e\u0001\u000f\u0001\u0002\u0001"+
+    "\u0009\u0007\uffff\u0001\u000d\u0002\uffff\u0001\u0006\u0006\uffff\u0001"+
+    "\u0008\u0002\uffff\u0001\u0007\u0003\uffff\u0001\u0005\u0003\uffff\u0001"+
+    "\u0004",
+    DFA12_specialS:
+        "\u0001\u0006\u0002\uffff\u0001\u0007\u0006\uffff\u0001\u0008\u0001"+
+    "\u0000\u0009\uffff\u0001\u0005\u000c\uffff\u0001\u0001\u0001\u0003\u0006"+
+    "\uffff\u0001\u0002\u0002\uffff\u0001\u0004\u000c\uffff}>",
+    DFA12_transitionS: [
             "\u0009\u000c\u0001\u0009\u0001\u0005\u0002\u000c\u0001\u0004"+
             "\u0012\u000c\u0001\u0008\u0001\u000c\u0001\u000a\u0004\u000c"+
             "\u0001\u000b\u0018\u000c\u0001\u0003\u003a\u000c\u0001\u0001"+
@@ -1294,20 +1386,33 @@ org.antlr.lang.augmentObject(MmirScriptContentLexer, {
             "\udfd6\u000c",
             "",
             "\u0001\u000e",
-            "\u0001\u0015\u0038\uffff\u0001\u0010\u0001\uffff\u0001\u0013"+
-            "\u0001\u0014\u0002\uffff\u0001\u0012\u0008\uffff\u0001\u0011"+
-            "\u0008\uffff\u0001\u000f",
+            "\u0009\u0016\u0002\uffff\u0002\u0016\u0001\uffff\u0012\u0016"+
+            "\u0001\uffff\u0007\u0016\u0002\uffff\u0001\u0015\u0030\u0016"+
+            "\u0001\uffff\u0001\u0016\u0001\uffff\u0005\u0016\u0001\u0010"+
+            "\u0001\u0016\u0001\u0013\u0001\u0014\u0002\u0016\u0001\u0012"+
+            "\u0008\u0016\u0001\u0011\u0008\u0016\u0001\u000f\u0001\u0016"+
+            "\u0001\uffff\uff82\u0016",
             "\u0001\u0005",
             "",
             "",
             "",
             "",
             "",
-            "\u0000\u0018",
             "\u0000\u0019",
+            "\u0000\u001a",
             "",
             "",
-            "\u0001\u001a",
+            "\u0001\u001b",
+            "",
+            "\u0001\u001d",
+            "\u0001\u001e",
+            "\u0001\u001f",
+            "\u0001\u0020",
+            "\u0001\u0021",
+            "\u0009\u0023\u0002\u0024\u0002\u0023\u0001\u0024\u0012\u0023"+
+            "\u0001\u0024\u0007\u0023\u0002\u0024\u0001\u0022\u0030\u0023"+
+            "\u0001\u0024\u0001\u0023\u0001\u0024\u001d\u0023\u0001\u0024"+
+            "\u0001\u0023\u0001\u0024\uff82\u0023",
             "",
             "",
             "",
@@ -1315,54 +1420,89 @@ org.antlr.lang.augmentObject(MmirScriptContentLexer, {
             "",
             "",
             "",
+            "\u0001\u0025",
+            "\u0001\u0026",
+            "\u0001\u0027",
+            "\u0001\u0028",
+            "\u0001\u0029",
+            "\u0009\u0023\u0002\u0024\u0002\u0023\u0001\u0024\u0012\u0023"+
+            "\u0001\u0024\u0007\u0023\u0002\u0024\u0001\u0022\u0015\u0023"+
+            "\u0001\u002a\u001a\u0023\u0001\u0024\u0001\u0023\u0001\u0024"+
+            "\u001d\u0023\u0001\u0024\u0001\u0023\u0001\u0024\uff82\u0023",
+            "\u0009\u0023\u0002\u0024\u0002\u0023\u0001\u0024\u0012\u0023"+
+            "\u0001\u0024\u0007\u0023\u0002\u0024\u0001\u0022\u0030\u0023"+
+            "\u0001\u0024\u0001\u0023\u0001\u0024\u001d\u0023\u0001\u0024"+
+            "\u0001\u0023\u0001\u0024\uff82\u0023",
             "",
+            "\u0001\u002b",
+            "\u0001\u002c",
             "",
+            "\u0001\u002d",
+            "\u0001\u002e",
+            "\u0009\u0023\u0002\uffff\u0002\u0023\u0001\uffff\u0012\u0023"+
+            "\u0001\uffff\u0007\u0023\u0002\uffff\u0001\u0022\u0030\u0023"+
+            "\u0001\uffff\u0001\u0023\u0001\uffff\u001d\u0023\u0001\uffff"+
+            "\u0001\u0023\u0001\uffff\uff82\u0023",
+            "\u0001\u002f",
+            "\u0001\u0030",
+            "\u0009\u0016\u0002\uffff\u0002\u0016\u0001\uffff\u0012\u0016"+
+            "\u0001\uffff\u0007\u0016\u0002\uffff\u0031\u0016\u0001\uffff"+
+            "\u0001\u0016\u0001\uffff\u001d\u0016\u0001\uffff\u0001\u0016"+
+            "\u0001\uffff\uff82\u0016",
             "",
+            "\u0001\u0032",
+            "\u0001\u0033",
             "",
+            "\u0001\u0034",
+            "\u0001\u0035",
+            "\u0001\u0036",
             "",
+            "\u0001\u0037",
+            "\u0001\u0038",
+            "\u0001\u0039",
             ""
     ]
 });
 
 org.antlr.lang.augmentObject(MmirScriptContentLexer, {
-    DFA11_eot:
-        org.antlr.runtime.DFA.unpackEncodedString(MmirScriptContentLexer.DFA11_eotS),
-    DFA11_eof:
-        org.antlr.runtime.DFA.unpackEncodedString(MmirScriptContentLexer.DFA11_eofS),
-    DFA11_min:
-        org.antlr.runtime.DFA.unpackEncodedStringToUnsignedChars(MmirScriptContentLexer.DFA11_minS),
-    DFA11_max:
-        org.antlr.runtime.DFA.unpackEncodedStringToUnsignedChars(MmirScriptContentLexer.DFA11_maxS),
-    DFA11_accept:
-        org.antlr.runtime.DFA.unpackEncodedString(MmirScriptContentLexer.DFA11_acceptS),
-    DFA11_special:
-        org.antlr.runtime.DFA.unpackEncodedString(MmirScriptContentLexer.DFA11_specialS),
-    DFA11_transition: (function() {
+    DFA12_eot:
+        org.antlr.runtime.DFA.unpackEncodedString(MmirScriptContentLexer.DFA12_eotS),
+    DFA12_eof:
+        org.antlr.runtime.DFA.unpackEncodedString(MmirScriptContentLexer.DFA12_eofS),
+    DFA12_min:
+        org.antlr.runtime.DFA.unpackEncodedStringToUnsignedChars(MmirScriptContentLexer.DFA12_minS),
+    DFA12_max:
+        org.antlr.runtime.DFA.unpackEncodedStringToUnsignedChars(MmirScriptContentLexer.DFA12_maxS),
+    DFA12_accept:
+        org.antlr.runtime.DFA.unpackEncodedString(MmirScriptContentLexer.DFA12_acceptS),
+    DFA12_special:
+        org.antlr.runtime.DFA.unpackEncodedString(MmirScriptContentLexer.DFA12_specialS),
+    DFA12_transition: (function() {
         var a = [],
             i,
-            numStates = MmirScriptContentLexer.DFA11_transitionS.length;
+            numStates = MmirScriptContentLexer.DFA12_transitionS.length;
         for (i=0; i<numStates; i++) {
-            a.push(org.antlr.runtime.DFA.unpackEncodedString(MmirScriptContentLexer.DFA11_transitionS[i]));
+            a.push(org.antlr.runtime.DFA.unpackEncodedString(MmirScriptContentLexer.DFA12_transitionS[i]));
         }
         return a;
     })()
 });
 
-MmirScriptContentLexer.DFA11 = function(recognizer) {
+MmirScriptContentLexer.DFA12 = function(recognizer) {
     this.recognizer = recognizer;
-    this.decisionNumber = 11;
-    this.eot = MmirScriptContentLexer.DFA11_eot;
-    this.eof = MmirScriptContentLexer.DFA11_eof;
-    this.min = MmirScriptContentLexer.DFA11_min;
-    this.max = MmirScriptContentLexer.DFA11_max;
-    this.accept = MmirScriptContentLexer.DFA11_accept;
-    this.special = MmirScriptContentLexer.DFA11_special;
-    this.transition = MmirScriptContentLexer.DFA11_transition;
+    this.decisionNumber = 12;
+    this.eot = MmirScriptContentLexer.DFA12_eot;
+    this.eof = MmirScriptContentLexer.DFA12_eof;
+    this.min = MmirScriptContentLexer.DFA12_min;
+    this.max = MmirScriptContentLexer.DFA12_max;
+    this.accept = MmirScriptContentLexer.DFA12_accept;
+    this.special = MmirScriptContentLexer.DFA12_special;
+    this.transition = MmirScriptContentLexer.DFA12_transition;
 };
 
-org.antlr.lang.extend(MmirScriptContentLexer.DFA11, org.antlr.runtime.DFA, {
+org.antlr.lang.extend(MmirScriptContentLexer.DFA12, org.antlr.runtime.DFA, {
     getDescription: function() {
-        return "1:1: Tokens : ( T__32 | EscapeExit | DoEnterBlock | DoEnterYieldContent | DoEnterRender | DoEnterIfStatement | DoEnterElseStatement | DoEnterForStatement | DoExit | NL | WS | CHAR | COMMENT | STRING | SSTRING );";
+        return "1:1: Tokens : ( T__33 | EscapeExit | DoEnterBlock | DoEnterYieldContent | DoEnterRender | DoEnterIfStatement | DoEnterElseStatement | DoEnterForStatement | DoExit | NL | WS | CHAR | COMMENT | STRING | SSTRING | ScriptVar );";
     },
     specialStateTransition: function(s, input) {
         var _s = s;
@@ -1370,52 +1510,142 @@ org.antlr.lang.extend(MmirScriptContentLexer.DFA11, org.antlr.runtime.DFA, {
         var retval = (function(s, input) {
             switch ( s ) {
                         case 0 : 
-                            var LA11_10 = input.LA(1);
+                            var LA12_11 = input.LA(1);
 
                             s = -1;
-                            if ( ((LA11_10>='\u0000' && LA11_10<='\uFFFF')) ) {s = 24;}
+                            if ( ((LA12_11>='\u0000' && LA12_11<='\uFFFF')) ) {s = 26;}
 
                             else s = 12;
 
                             if ( s>=0 ) return s;
                             break;
                         case 1 : 
-                            var LA11_11 = input.LA(1);
+                            var LA12_34 = input.LA(1);
 
                             s = -1;
-                            if ( ((LA11_11>='\u0000' && LA11_11<='\uFFFF')) ) {s = 25;}
+                            if ( (LA12_34=='@') ) {s = 42;}
+
+                            else if ( (LA12_34=='*') ) {s = 34;}
+
+                            else if ( ((LA12_34>='\u0000' && LA12_34<='\b')||(LA12_34>='\u000B' && LA12_34<='\f')||(LA12_34>='\u000E' && LA12_34<='\u001F')||(LA12_34>='!' && LA12_34<='\'')||(LA12_34>='+' && LA12_34<='?')||(LA12_34>='A' && LA12_34<='Z')||LA12_34=='\\'||(LA12_34>='^' && LA12_34<='z')||LA12_34=='|'||(LA12_34>='~' && LA12_34<='\uFFFF')) ) {s = 35;}
+
+                            else if ( ((LA12_34>='\t' && LA12_34<='\n')||LA12_34=='\r'||LA12_34==' '||(LA12_34>='(' && LA12_34<=')')||LA12_34=='['||LA12_34==']'||LA12_34=='{'||LA12_34=='}') ) {s = 36;}
+
+                            else s = 22;
+
+                            if ( s>=0 ) return s;
+                            break;
+                        case 2 : 
+                            var LA12_42 = input.LA(1);
+
+                            s = -1;
+                            if ( (LA12_42=='*') ) {s = 34;}
+
+                            else if ( ((LA12_42>='\u0000' && LA12_42<='\b')||(LA12_42>='\u000B' && LA12_42<='\f')||(LA12_42>='\u000E' && LA12_42<='\u001F')||(LA12_42>='!' && LA12_42<='\'')||(LA12_42>='+' && LA12_42<='Z')||LA12_42=='\\'||(LA12_42>='^' && LA12_42<='z')||LA12_42=='|'||(LA12_42>='~' && LA12_42<='\uFFFF')) ) {s = 35;}
+
+                            else s = 36;
+
+                            if ( s>=0 ) return s;
+                            break;
+                        case 3 : 
+                            var LA12_35 = input.LA(1);
+
+                            s = -1;
+                            if ( (LA12_35=='*') ) {s = 34;}
+
+                            else if ( ((LA12_35>='\u0000' && LA12_35<='\b')||(LA12_35>='\u000B' && LA12_35<='\f')||(LA12_35>='\u000E' && LA12_35<='\u001F')||(LA12_35>='!' && LA12_35<='\'')||(LA12_35>='+' && LA12_35<='Z')||LA12_35=='\\'||(LA12_35>='^' && LA12_35<='z')||LA12_35=='|'||(LA12_35>='~' && LA12_35<='\uFFFF')) ) {s = 35;}
+
+                            else if ( ((LA12_35>='\t' && LA12_35<='\n')||LA12_35=='\r'||LA12_35==' '||(LA12_35>='(' && LA12_35<=')')||LA12_35=='['||LA12_35==']'||LA12_35=='{'||LA12_35=='}') ) {s = 36;}
+
+                            else s = 22;
+
+                            if ( s>=0 ) return s;
+                            break;
+                        case 4 : 
+                            var LA12_45 = input.LA(1);
+
+                            s = -1;
+                            if ( ((LA12_45>='\u0000' && LA12_45<='\b')||(LA12_45>='\u000B' && LA12_45<='\f')||(LA12_45>='\u000E' && LA12_45<='\u001F')||(LA12_45>='!' && LA12_45<='\'')||(LA12_45>='*' && LA12_45<='Z')||LA12_45=='\\'||(LA12_45>='^' && LA12_45<='z')||LA12_45=='|'||(LA12_45>='~' && LA12_45<='\uFFFF')) ) {s = 22;}
+
+                            else s = 49;
+
+                            if ( s>=0 ) return s;
+                            break;
+                        case 5 : 
+                            var LA12_21 = input.LA(1);
+
+                            s = -1;
+                            if ( (LA12_21=='*') ) {s = 34;}
+
+                            else if ( ((LA12_21>='\u0000' && LA12_21<='\b')||(LA12_21>='\u000B' && LA12_21<='\f')||(LA12_21>='\u000E' && LA12_21<='\u001F')||(LA12_21>='!' && LA12_21<='\'')||(LA12_21>='+' && LA12_21<='Z')||LA12_21=='\\'||(LA12_21>='^' && LA12_21<='z')||LA12_21=='|'||(LA12_21>='~' && LA12_21<='\uFFFF')) ) {s = 35;}
+
+                            else if ( ((LA12_21>='\t' && LA12_21<='\n')||LA12_21=='\r'||LA12_21==' '||(LA12_21>='(' && LA12_21<=')')||LA12_21=='['||LA12_21==']'||LA12_21=='{'||LA12_21=='}') ) {s = 36;}
+
+                            else s = 22;
+
+                            if ( s>=0 ) return s;
+                            break;
+                        case 6 : 
+                            var LA12_0 = input.LA(1);
+
+                            s = -1;
+                            if ( (LA12_0=='{') ) {s = 1;}
+
+                            else if ( (LA12_0=='}') ) {s = 2;}
+
+                            else if ( (LA12_0=='@') ) {s = 3;}
+
+                            else if ( (LA12_0=='\r') ) {s = 4;}
+
+                            else if ( (LA12_0=='\n') ) {s = 5;}
+
+                            else if ( (LA12_0=='\u2028') ) {s = 6;}
+
+                            else if ( (LA12_0=='\u2029') ) {s = 7;}
+
+                            else if ( (LA12_0==' ') ) {s = 8;}
+
+                            else if ( (LA12_0=='\t') ) {s = 9;}
+
+                            else if ( (LA12_0=='\"') ) {s = 10;}
+
+                            else if ( (LA12_0=='\'') ) {s = 11;}
+
+                            else if ( ((LA12_0>='\u0000' && LA12_0<='\b')||(LA12_0>='\u000B' && LA12_0<='\f')||(LA12_0>='\u000E' && LA12_0<='\u001F')||LA12_0=='!'||(LA12_0>='#' && LA12_0<='&')||(LA12_0>='(' && LA12_0<='?')||(LA12_0>='A' && LA12_0<='z')||LA12_0=='|'||(LA12_0>='~' && LA12_0<='\u2027')||(LA12_0>='\u202A' && LA12_0<='\uFFFF')) ) {s = 12;}
+
+                            if ( s>=0 ) return s;
+                            break;
+                        case 7 : 
+                            var LA12_3 = input.LA(1);
+
+                            s = -1;
+                            if ( (LA12_3=='{') ) {s = 15;}
+
+                            else if ( (LA12_3=='c') ) {s = 16;}
+
+                            else if ( (LA12_3=='r') ) {s = 17;}
+
+                            else if ( (LA12_3=='i') ) {s = 18;}
+
+                            else if ( (LA12_3=='e') ) {s = 19;}
+
+                            else if ( (LA12_3=='f') ) {s = 20;}
+
+                            else if ( (LA12_3=='*') ) {s = 21;}
+
+                            else if ( ((LA12_3>='\u0000' && LA12_3<='\b')||(LA12_3>='\u000B' && LA12_3<='\f')||(LA12_3>='\u000E' && LA12_3<='\u001F')||(LA12_3>='!' && LA12_3<='\'')||(LA12_3>='+' && LA12_3<='Z')||LA12_3=='\\'||(LA12_3>='^' && LA12_3<='b')||LA12_3=='d'||(LA12_3>='g' && LA12_3<='h')||(LA12_3>='j' && LA12_3<='q')||(LA12_3>='s' && LA12_3<='z')||LA12_3=='|'||(LA12_3>='~' && LA12_3<='\uFFFF')) ) {s = 22;}
 
                             else s = 12;
 
                             if ( s>=0 ) return s;
                             break;
-                        case 2 : 
-                            var LA11_0 = input.LA(1);
+                        case 8 : 
+                            var LA12_10 = input.LA(1);
 
                             s = -1;
-                            if ( (LA11_0=='{') ) {s = 1;}
+                            if ( ((LA12_10>='\u0000' && LA12_10<='\uFFFF')) ) {s = 25;}
 
-                            else if ( (LA11_0=='}') ) {s = 2;}
-
-                            else if ( (LA11_0=='@') ) {s = 3;}
-
-                            else if ( (LA11_0=='\r') ) {s = 4;}
-
-                            else if ( (LA11_0=='\n') ) {s = 5;}
-
-                            else if ( (LA11_0=='\u2028') ) {s = 6;}
-
-                            else if ( (LA11_0=='\u2029') ) {s = 7;}
-
-                            else if ( (LA11_0==' ') ) {s = 8;}
-
-                            else if ( (LA11_0=='\t') ) {s = 9;}
-
-                            else if ( (LA11_0=='\"') ) {s = 10;}
-
-                            else if ( (LA11_0=='\'') ) {s = 11;}
-
-                            else if ( ((LA11_0>='\u0000' && LA11_0<='\b')||(LA11_0>='\u000B' && LA11_0<='\f')||(LA11_0>='\u000E' && LA11_0<='\u001F')||LA11_0=='!'||(LA11_0>='#' && LA11_0<='&')||(LA11_0>='(' && LA11_0<='?')||(LA11_0>='A' && LA11_0<='z')||LA11_0=='|'||(LA11_0>='~' && LA11_0<='\u2027')||(LA11_0>='\u202A' && LA11_0<='\uFFFF')) ) {s = 12;}
+                            else s = 12;
 
                             if ( s>=0 ) return s;
                             break;
@@ -1426,7 +1656,7 @@ org.antlr.lang.extend(MmirScriptContentLexer.DFA11, org.antlr.runtime.DFA, {
         }
         if (this.recognizer.state.backtracking>0) {this.recognizer.state.failed=true; return -1;}
         var nvae =
-            new org.antlr.runtime.NoViableAltException(this.getDescription(), 11, _s, input);
+            new org.antlr.runtime.NoViableAltException(this.getDescription(), 12, _s, input);
         this.error(nvae);
         throw nvae;
     },
