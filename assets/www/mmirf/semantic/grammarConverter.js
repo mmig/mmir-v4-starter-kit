@@ -54,6 +54,13 @@ var GrammarConverter = function(){
 	this.stop_words_regexp;
 	
 	this.semanticAnnotationResult = {};
+	
+	//default setting for masking value Strings in JSON values (see maskJSON() / unmaskJSON)
+	this.maskValues = true;
+	//default setting for masking property-name Strings in JSON values (see maskJSON() / unmaskJSON)
+	// WARNING: this is acutally EXPERIMENTAL; it should be set to false, since JS/CC may not be able to handle masked ID names...
+	this.maskNames = false;
+	
 
 	//alternative reg-exp for stop-words (a different method for detecting/removing stopwords must be used!)
 	this.stop_words_regexp_alt;
@@ -102,11 +109,13 @@ GrammarConverter.prototype.loadGrammar = function(successCallback, errorCallback
 };
 
 GrammarConverter.prototype.convertJSONGrammar = function(){
+	
+	this.json_grammar_definition = this.maskJSON(this.json_grammar_definition);
+	
 	this.parseTokens();
 	this.parseUtterances();
 	this.parseStopWords();
 	
-
 	this.jscc_grammar_definition = this.token_variables
 			+ "*]\n\n"
 			+ this.grammar_tokens
@@ -118,6 +127,8 @@ GrammarConverter.prototype.convertJSONGrammar = function(){
 			+ this.variable_prefix + "result);  "+this.THE_INTERNAL_GRAMMAR_CONVERTER_INSTANCE_NAME+".semanticAnnotationResult = "
 			+ this.variable_prefix + "result*] ;\n\n" + this.grammar_utterances
 			+ "\n" + this.grammar_phrases + ";";
+
+	this.json_grammar_definition = this.unmaskJSON(this.json_grammar_definition);
 };
 
 GrammarConverter.prototype.setStopWords = function(stopWordArray){
@@ -142,21 +153,29 @@ GrammarConverter.prototype.parseStopWords = function(){
 
 	//create RegExp for stop words:
 	var json_stop_words = this.json_grammar_definition.stop_word;
-	var stop_words = "(";
+	var size = json_stop_words.length;
+	var stop_words = "";
 	
-	//the RegExp matches each stopword (and optionally followed by one white-character)
-	for(var index=0, size = json_stop_words.length; index < size ; ++index){
-		var stop_word = json_stop_words[index];
-		if (index > 0){
-			stop_words +=	"|" 		//... OR match ...: 
-							+ stop_word //... the stopword "stop_word"
+	if(size > 0){
+		stop_words += "(";
+		
+		//the RegExp matches each stopword (and optionally followed by one white-character)
+		for(var index=0; index < size ; ++index){
+			var stop_word = json_stop_words[index];
+			if (index > 0){
+				stop_words +=	"|"; 		//there is already a previous stopword-entry: do add OR-matching ...
+			}
+	
+			stop_words +=	stop_word //... the stopword "stop_word"
 							+ "\\s?";	//... and optionally one white-character that follows the stopword
-		}else{
-			stop_words += stop_word + " ";//if there is no entry in the stopword list: only match space-character as stopword
 		}
+		
+		stop_words += ")";
 	}
-	
-	stop_words += ")";
+	else {
+		//this will never match:
+		stop_words += '^[.]';
+	}
 	this.stop_words_regexp = new RegExp(stop_words,"igm");	//RegExp options: 
 															// ignore-case (i),
 															// match globally i.e. all occurrences in the String (g), 
@@ -170,19 +189,28 @@ GrammarConverter.prototype.parseStopWords = function(){
 GrammarConverter.prototype.parseStopWords_alt = function(){
 	
 	var json_stop_words = this.json_grammar_definition.stop_word;
-	var stop_words = "(";
-
-	for(var index=0, size = json_stop_words.length; index < size ; ++index){
-		var stop_word = json_stop_words[index];
-		if (index > 0) {
-			stop_words += "|";
-		}
-		//create match pattern for: (1) stopword enclosed in spaces, (2) the stopword at 'line end' preceded by a space, (3) the stopword at 'line start' followed by a space
-		stop_words += " " + stop_word + " | " + stop_word + "$|^" + stop_word
-				+ " ";
-	}
+	var size = json_stop_words.length;
+	var stop_words = "";
 	
-	stop_words += ")";
+	if(size > 0){
+		stop_words += "(";
+
+		for(var index=0; index < size ; ++index){
+			var stop_word = json_stop_words[index];
+			if (index > 0) {
+				stop_words += "|";
+			}
+			//create match pattern for: (1) stopword enclosed in spaces, (2) the stopword at 'line end' preceded by a space, (3) the stopword at 'line start' followed by a space
+			stop_words += " " + stop_word + " | " + stop_word + "$|^" + stop_word
+					+ " ";
+		}
+		
+		stop_words += ")";
+	}
+	else {
+		//this will never match:
+		stop_words += '^[.]';
+	}
 	this.stop_words_regexp_alt = new RegExp(stop_words,"igm");
 };
 
@@ -394,4 +422,239 @@ GrammarConverter.prototype.setGrammarFunction = function(func){
  */
 GrammarConverter.prototype.executeGrammar = function(text){
 	console.warn('GrammarConverter.executeGrammar: this is only a stub. No grammar implementation set yet...');
+};
+
+/**
+ * Masks unicoded characters strings.
+ * 
+ * Unicode characters are mask by replaceing them with
+ * <code>~~XXXX~~</code>
+ * where <code>XXXX</code> is the four digit unicode HEX number.
+ * 
+ * <p>
+ * NOTE that this function is <em>stable</em> with regard of
+ * multiple applications:
+ * 
+ * If the function is invoked on the returned String again, the
+ * returned String will be the same, i.e. unchanged. 
+ * </p>
+ * 
+ * @param {String} str
+ * @returns {String} the masked string
+ */
+GrammarConverter.prototype.maskString = function (str) {
+	var i, s, ch, peek, result,
+		next, endline, push, mask,
+		spaces, source = str;
+	
+	var ESC_START = '~~';
+	var ESC_END   = '~~';
+	
+	// Stash the next character and advance the pointer
+	next = function () {
+		peek = source.charAt(i);
+		i += 1;
+	};
+	
+	// Start a new "line" of output, to be joined later by <br />
+	endline = function () {
+		result.push('\n');
+	};
+	
+	function mask(theChar) {
+		
+		result.push(ESC_START);
+		
+		var theUnicode = theChar.charCodeAt(0).toString(16).toUpperCase();
+		var j = theUnicode.length;
+		while (j < 4) {
+//			theUnicode = '0' + theUnicode;
+			result.push('0');
+			++j;
+		}
+		result.push(theUnicode);
+
+		result.push(ESC_END);
+	};
+	
+	// Push a character or its entity onto the current line
+	push = function () {
+		
+		//handle NEWLINE:
+		if (ch === '\r' || ch === '\n') {
+			if (ch === '\r') {
+				if (peek === '\n') {
+					next();
+				}
+				endline();
+			}
+			if (ch === '\n') {
+				if (peek === '\r') {
+					next();
+				}
+				endline();
+			}
+		}
+		//handle tabs
+		else if (ch === '\t') {
+			result.push(ch);
+		}
+		//handle NON-ASCII
+		else if (ch < ' ' || ch > '~') {
+			result.push( mask( ch ));
+		} 
+		//handle normal chars
+		else {
+			result.push(ch);
+		}
+	};
+	
+	
+	result = [];
+
+	i = 0;
+	next();
+	while (i <= source.length) { // less than or equal, because i is always one ahead
+		ch = peek;
+		next();
+		
+		push();
+	}
+	
+	return result.join('');
+};
+
+/**
+ * Unmasks <i>masked unicoded characters</i> in a string.
+ * 
+ * Masked unicode characters are assumed to have the pattern:
+ * <code>~~XXXX~~</code>
+ * where <code>XXXX</code> is the four digit unicode HEX number.
+ * 
+ * <p>
+ * NOTE that this function is <em>stable</em> with regard of
+ * multiple applications, <b>IF</b> the original String <tt>str</tt> did not
+ * contain a sub-string that conforms to the encoding pattern (see above):
+ * 
+ * If the function is invoked on the returned String again, the
+ * returned String will be the same, i.e. unchanged. 
+ * </p>
+ * 
+ * @param {String} str
+ * @returns {String} the unmasked string
+ */
+GrammarConverter.prototype.unmaskString = function (str) {
+	var match, source = str, result = [], pos = 0, i, len = str.length;
+	
+	//RegExpr for: ~~XXXX~~
+	// where XXXX is the unicode HEX number
+	var REGEXPR_ESC = /~~([0-9|A-F|a-f]{4})~~/igm;
+	
+	while(match = REGEXPR_ESC.exec(source)){
+		i =  match.index;
+		//add previous:
+		if(i > pos){
+			result.push(source.substring(pos, i));
+		}
+		
+		//add matched ESC as UNICODE:
+		result.push(String.fromCharCode(  parseInt(match[1], 16) ));
+		
+		//update position:
+		pos = i + match[0].length;
+	}
+	
+	if(pos < len-1){
+		result.push(source.substring(pos));
+	}
+
+	return result.join('');
+};
+
+
+GrammarConverter.prototype.maskJSON = function (json, isMaskValues, isMaskNames) {
+	return this.recodeJSON(json, this.maskString, isMaskValues, isMaskNames);
+};
+
+GrammarConverter.prototype.unmaskJSON = function (json, isMaskValues, isMaskNames) {
+	return this.recodeJSON(json, this.unmaskString, isMaskValues, isMaskNames);
+};
+
+/**
+ * Recodes Strings of a JSON object.
+ * 
+ * @param {Object} json the JSON object
+ * @param {Function} recodeFunc the "recoding" function for modifying String values:
+ * 								 must accecpt a String argument and return a String
+ * 									<code>String recodeFunc(String)</code>.
+ * 								The <tt></tt> function is invoked in context of the GrammarConverter object.
+ * 								Example: this.maskString() .
+ * @param {Boolean} [isMaskValues] OPTIONAL if true, the object's property String values will be processed (DEFAULT: see self.maskValues)
+ * @param {Boolean} [isMaskNames]  OPTIONAL if true, the property names will be processed (DEFAULT: see self.maskNames)
+ * @returns the recoded JSON object
+ * 
+ * @requires {mobileDS.CommonUtils} or {Array.isArray}
+ */
+GrammarConverter.prototype.recodeJSON = function (json, recodeFunc, isMaskValues, isMaskNames) {
+	
+	//evalate arguments:
+	if(typeof isMaskValues === 'undefined'){
+		isMaskValues = this.maskValues;
+	}
+	if(typeof isMaskNames === 'undefined'){
+		isMaskNames = this.maskNames;
+	}
+	
+	var self = this;
+	var isArray;
+	if(typeof mobileDS !== 'undefined' && typeof mobileDS.CommonUtils !== 'undefined'){
+		isArray = mobileDS.CommonUtils.getInstance().isArray;
+	} 
+	else { 
+		isArray = Array.isArray;
+	
+	}
+	
+	//recursiv processing for an object
+	//returns: the processed object
+	var processJSON = function(obj){
+		
+		//different treatments for: STRING, ARRAY, OBJECT types (and 'REST' type, i.e. all ohters)
+		if(typeof obj === 'string' && isMaskValues){
+			//STRING: encode the string
+			return recodeFunc.call(self, obj);
+		}
+		else if( isArray(obj) ) {
+			//ARRAY: process all entries:
+			for(var i=0, size = obj.length; i < size; ++i){
+				obj[i] = processJSON(obj[i]);
+			}
+			
+			return obj;
+		}
+		else if(typeof obj === 'object') {
+			//OBJECT: process all the object's properties (but only, if they are not inherited)
+			for(var p in obj){
+				if(obj.hasOwnProperty(p)){
+					
+					obj[p] = processJSON(obj[p]);
+					
+					//if the property-name should also be encoded:
+					if(typeof p === 'string' && isMaskNames){
+						var masked = recodeFunc.call(self, p);
+						if(masked !== p){
+							obj[masked] = obj[p];
+							delete obj[p];
+						}
+					}
+				}
+			}
+			return obj;
+		}
+		else {
+			return obj;
+		}
+	};
+	
+	return processJSON(json);
 };

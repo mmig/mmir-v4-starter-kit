@@ -26,94 +26,156 @@
 
 
 newMediaPlugin = {
-		initialize: function(callBack){
-					
-					var audio_context=null;							    				
-	    			try {
-				        // unify the different kinds of HTML5 implementations
-		    			//window.AudioContext = window.AudioContext || window.webkitAudioContext;
-		    			//window.URL = window.URL || window.webkitURL;
-		    			audio_context = new webkitAudioContext;
-		    		} 
-		    		catch (e) {
-		    			console.error('No web audio support in this browser!');
-		    		}
-		    		
-		    		callBack({
-		    			playWAV: function(blob, successCallback, failureCallback){
-		    				try {
-			    				blobURL = window.webkitURL.createObjectURL(blob);
-			    				var my_audio = new Audio(blobURL,null,failureCallback);
-			    				if(successCallback){
-			    					my_audio.addEventListener('ended', successCallack, false);
-			    				}
-			    				my_audio.play();
-					    	} catch (e){
-					    		if(failureCallBack){
-					    			failureCallBack(e);
-					    		}
-					    	}
-		    			},
-					    playURL: function(url, onEnd, failureCallBack, successCallback){
-					    	try {
-					    		
-					    		 var my_media = new Audio(url,null,failureCallback);
-					    		 my
-					    		 if(successCallback){
-					    			 my_media.addEventListener('ended', onEnd, false);
-						    		 my_media.addEventListener('canplay', successCallback, false);
-					    		 }
-					                my_media.play();
-					    	} catch (e){
-					    		if(failureCallback){
-					    			failureCallback(e);
-					    		}
-					    	}
-					    },
-		    			getURLAsAudio: function(url, onEnd,  failureCallback, successCallback){
-					    	try {
-					    		var ready = false;
-					    		 var my_media = new Audio(url,null,failureCallback);
-					    		 if (onEnd){
-					    			 my_media.addEventListener('ended', onEnd, false);
-					    		 }
+		initialize: function(callBack, mediaManagerInstance){
 
-					    		 my_media.addEventListener('canplay', function(){
-					    			 	ready = true;
-					    			 	console.log("sound is ready!");
-					    			 	if (successCallback) successCallback();
-					    			 }, false);
-				    			 var enabled = true;
-					    		 return {
-					    			 play: function(){
-					    				 if (enabled){
-					    					// if (ready){
-							    				 my_media.play();
-					    					// } else {
-					    					//	 my_media.addEventListener('canplay', my_media.play, false);
-					    				// }
+			callBack({
+				playWAV: function(blob, successCallback, failureCallback){
+					try {
+						blobURL = window.webkitURL.createObjectURL(blob);
+						var my_audio = new Audio(blobURL,null,failureCallback);
+						if(successCallback){
+							my_audio.addEventListener('ended', successCallack, false);
+						}
+						my_audio.play();
+					} catch (e){
+						if(failureCallBack){
+							failureCallBack(e);
+						}
+					}
+				},
+				playURL: function(url, onEnd, failureCallBack, successCallback){
+					try {
 
-					    				 };
-					    			 },
-					    			 enable: function(){
-					    				 enabled = true;
-					    			 },
-					    			 disable: function(){
-					    				 my_media.stop();
-					    				 enabled = false;
-					    			 },
-					    			 release: function(){
-					    				 enabled= false;
-					    				 my_media=null;
-					    			 }
-					    		 };
-					    	} catch (e){
-					    		if(failureCallback){
-					    			failureCallback(e);
-					    		}
-					    	}
-					    }
-		    		});
+						var my_media = new Audio(url,null,failureCallback);
+
+						if(successCallback){
+							my_media.addEventListener('ended', onEnd, false);
+							my_media.addEventListener('canplay', successCallback, false);
+						}
+						my_media.play();
+					} catch (e){
+						if(failureCallback){
+							failureCallback(e);
+						}
+					}
+				},
+				getURLAsAudio: function(url, onEnd,  failureCallback, successCallback){
+					try {
+
+						var enabled = true;
+						var ready = false;
+						var my_media = new Audio(url,null,failureCallback);
+
+						my_media.addEventListener('ended', function(){
+
+							//only proceed if we have a media-object (may have already been released)
+							if(enabled & mediaImpl){
+								mediaImpl.stop();
+							}
+							if (onEnd){
+								onEnd.apply(mediaImpl, arguments);
+							}
+						}, false);
+
+						var canPlayCallback = function(){
+							ready = true;
+//							console.log("sound is ready!");
+
+							//FIX: remove this listener after first invocation 
+							//     (this is meant as "on-init" listener, but "canplay" 
+							//      may be triggered multiple times during the lifetime of the audio object).
+							this.removeEventListener('canplay', canPlayCallback);
+
+							if (enabled && successCallback){
+								successCallback.apply(mediaImpl, arguments);
+							}
+						};
+						my_media.addEventListener('canplay', canPlayCallback, false);
+
+
+						var mediaImpl = {
+								play: function(){
+									if (enabled){
+										// if (ready){
+										my_media.play();
+										// } else {
+										//	 my_media.addEventListener('canplay', my_media.play, false);
+										// }
+
+									};
+								},
+								stop: function(){
+									if(enabled){
+										if(my_media.stop){
+											//TODO really we should check first, if the audio is playing...
+											my_media.stop();
+										}
+										else {
+											my_media.pause();
+											//apparently, browser treat pause() differently: Chrome pauses, Firefox seems to stop... -> add try-catch-block in case, pause was really stop...
+											try{
+												my_media.currentTime=0;
+
+												//HACK: for non-seekable audio in Chrome
+												//      -> if currentTime cannot be set, we need to re-load the data
+												//         (otherwise, the audio cannot be re-played!) 
+												if(my_media.currentTime != 0){
+													my_media.load();
+												}
+											}catch(e){};
+										}
+									}
+								},
+								enable: function(){
+									if(my_media != null){
+										enabled = true;
+									}
+									return enabled;
+								},
+								disable: function(){
+									if(enabled){
+										this.stop();
+										enabled = false;
+									}
+								},
+								release: function(){
+									if(enabled && ! this.isPaused()){
+										this.stop();
+									}
+									enabled= false;
+									my_media=null;
+								},
+								setVolume: function(value){
+									if(my_media){
+										my_media.volume = value;
+									}
+								},
+								getDuration: function(){
+									if(my_media){
+										return my_media.duration;
+									}
+									return -1;
+								},
+								isPaused: function(){
+									if(my_media){
+										return my_media.paused;
+									}
+									return false;
+								},
+								isEnabled: function(){
+									return enabled;
+								}
+						};
+
+						return mediaImpl;
+
+					} catch (e){
+						if(failureCallback){
+							failureCallback(e);
+						}
+					}
+				}
+			});
 		}
 };
-		
+

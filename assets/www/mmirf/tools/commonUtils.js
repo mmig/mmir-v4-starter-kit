@@ -233,17 +233,13 @@ mobileDS.CommonUtils = (function(){
             	return this.directoryStructure;
             },
             /**
-             * extracts all the strings from a string Array into a single string
+             * extracts all the strings from a String-Array into a single string
              * @function concatArray
              * @public
              * @returns {string} text
              */
            concatArray: function(array){
-            	var text = "";
-            	array.forEach(function (e){
-            		text = text + ', '+e;
-            	});
-            	return text;
+            	return array.join(', ');
             },
             /**
              * Regular Expression for matching HTML comments.<br>
@@ -592,10 +588,18 @@ mobileDS.CommonUtils = (function(){
             	script = document.createElement('script');
             	script.type = 'text/javascript';
             	script.src = scriptUrl;
-            	script.onload = function() { success && success(); };
-            	script.onerror = function(e) { 
-            		if(IS_DEBUG_ENABLED) console.info("Insert Script Failed - " + scriptUrl + ": " + e); 
-            		fail && fail(e); 
+            	script.onload = function() {
+            		if(success){
+            			success.apply(this, arguments);
+            		} 
+            	};
+            	script.onerror = function(e) {
+            		if(fail){
+            			fail.apply(this, arguments);
+            		}
+            		else {
+            			console.error("Insert Script Failed - " + scriptUrl + ": " + e);
+            		}
             	};
             	head.appendChild(script);
         	},
@@ -903,8 +907,27 @@ mobileDS.CommonUtils = (function(){
          	 */
         	checkNetworkConnection: function() {
         		console.log("Check network status.");
+//        		console.log("Check network status.");
+        		
+        		if(typeof navigator === 'undefined'){
+        			console.error('Cannot check network status: navigator object is not available!');
+        			return 'UNKNOWN';
+        		}
+        		
+        		//ASSERT: navigator exists
+        		
+        		if(!navigator.connection){
+        			console.warn('Cannot check network status: object navigator.connection is not available');
+        			if(typeof navigator.onLine !== 'undefined'){
+        				return navigator.onLine;
+        			}
+        			else {
+        				return 'UNKNOWN';
+        			}
+        		}
         	    var networkState = navigator.connection.type;
 
+        	    //TODO make states-obj a 'private' field of CommonUtils 
         	    var states = {};
         	    states[Connection.UNKNOWN]  = 'Unknown connection';
         	    states[Connection.ETHERNET] = 'Ethernet connection';
@@ -912,6 +935,7 @@ mobileDS.CommonUtils = (function(){
         	    states[Connection.CELL_2G]  = 'Cell 2G connection';
         	    states[Connection.CELL_3G]  = 'Cell 3G connection';
         	    states[Connection.CELL_4G]  = 'Cell 4G connection';
+        	    states[Connection.CELL]     = 'Cell generic connection';
         	    states[Connection.NONE]     = 'No network connection';
 
         	    if (Connection.NONE === networkState){
@@ -923,30 +947,34 @@ mobileDS.CommonUtils = (function(){
         	/**
 			 * Parses the directory structure - paths given by property {@link mobileDS.CommonUtils-constructor-directoriesToParse} - and storing the result in the class-property {@link mobileDS.CommonUtils-directoryStructure}
 			 * @function initialize
-			 * @param {Function} cb The function that should be executed after the diretories are parsed - it's best to include all following functions inside the callback-function. 
+			 * @param {Function} [success] The function that should be executed after the diretories are parsed - it's best to include all following functions inside the callback-function.
+			 * @param {Function} [errorFunc] callback function that is invoked if an error occured during initialization. 
 			 * @async
 			 * @public
 			 */
-            initialize: function(cb){
+            initialize: function(success, errorFunc){
             	var self = this;
             	
             	window.plugins.directoryListing.getDirectoryStructure(
             		directoriesToParse,
             		function(dirStruct){
             			
-            			if(IS_DEBUG_ENABLED) console.debug(JSON.stringify(dirStruct));//debug
-            			
             			self.directoryStructure = dirStruct;
             			
-            			if(IS_DEBUG_ENABLED) console.debug("[getDirectoryStructure] finished.");//debug
-            			if(IS_DEBUG_ENABLED) console.debug(JSON.stringify(dirStruct));//debug
-            			
-            			if ((cb) && (typeof cb == 'function')){
-            				cb.call();
+            			if (success){
+            				success(instance);
+            			}
+            			else {
+            				console.info("[getDirectoryStructure] finished: " + JSON.stringify(dirStruct));//debug
             			}
                     }, 
                     function(e){
-                    	console.error("[ERROR] " + e);
+                    	if (errorFunc){
+                    		errorFunc(e);
+            			}
+                    	else {
+                        	console.error("ERROR [getDirectoryStructure]: " + e);
+                    	}
                     }
                 );
             }
@@ -1414,7 +1442,7 @@ mobileDS.CommonUtils = (function(){
          */
     	getInstance: function(){
             if (instance === null) {
-                instance = constructor();
+                instance = new constructor();
             }
             return instance;
         }

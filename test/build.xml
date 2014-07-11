@@ -1,0 +1,33 @@
+<project default="test">
+
+  <property name="a" value="a"/>
+  <property name="b" value=""/>
+
+  <target name="test" depends="test4,test2,test3,test1">
+
+    <condition property="a.set" else="false">
+      <isset property="a"/>
+    </condition>
+
+    <condition property="b.set" else="false">
+      <isset property="b"/>
+    </condition>
+
+    <echo message="a set ? ${a.set}"/>
+    <echo message="b set ? ${b.set}"/>
+
+  </target>
+  <target name="test1">
+    <echo message="1"/>
+  </target>
+  <target name="test2">
+    <echo message="2"/>
+  </target>
+  <target name="test3">
+    <echo message="3"/>
+  </target>
+  <target name="test4">
+    <echo message="4"/>
+  </target>
+      
+</project>

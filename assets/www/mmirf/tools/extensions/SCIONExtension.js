@@ -38,28 +38,30 @@ var mobileDS = window.mobileDS ||
 mobileDS.SCIONExtension = (function(){
 	var initializers = {
 			browser: function(){
-				
-			return {
-			    	newSCIONExtension: function(scion, failureCallBack){
-			    		var newWorker = new Worker(mobileDS.constants.getInstance().getWorkerPath()+'ScionQueueWorker.js');
-			    		newWorker.onmessage= function(e){
-			    			if	(e.data.command == "toDo"){
-			    				console.log('raising:'+ e.data.toDo.event);
-			    				var generatedState = scion.gen(e.data.toDo.event, e.data.toDo.eventData);
-			    				newWorker.postMessage({command: 'readyForJob'});
-			    			};
-			    		};
-			    		return {gen: function (event, eventData){
-			    			console.log('new Job:'+ event);
-			    			newWorker.postMessage(
-			    				{command: 'newJob', 
-			    				job: {event: event, eventData: eventData}
-			    				});
-			    			}
-			    		};
-			    	}
-				};
-			},
+
+				return {
+					newSCIONExtension: function(scion, failureCallBack){
+						var newWorker = new Worker(mobileDS.constants.getInstance().getWorkerPath()+'ScionQueueWorker.js');
+						newWorker.onmessage= function(e){
+							if	(e.data.command == "toDo"){
+//								console.log('raising:'+ e.data.toDo.event);
+								var generatedState = scion.gen(e.data.toDo.event, e.data.toDo.eventData);
+								//console.info('processed event '+ e.data.toDo.event+' -> new state: '+JSON.stringify(generatedState));
+								newWorker.postMessage({command: 'readyForJob'});
+							};
+						};
+						return {
+							gen: function (event, eventData){
+								console.log('new Job:'+ event);
+								newWorker.postMessage({
+									command: 'newJob', 
+									job: {event: event, eventData: eventData}
+								});
+							}
+						};
+					}//END: newSCIONExtension
+				};//END: return
+			},//END: browser
 			android: function(){
 				var callBackList = [];
 				function successCallBackHandler(args){
@@ -71,21 +73,22 @@ mobileDS.SCIONExtension = (function(){
 			    	newSCIONExtension: function(scion, failureCallBack){
 			    		var id = callBackList.length;
 			    		callBackList.push(function(data){
-			    			//	console.log('raising:'+ data.event);
+//			    				console.log('raising:'+ data.event);
 			    				var generatedState = scion.gen(data.event, data.eventData);
+			    				//console.info('processed event '+ e.data.toDo.event+' -> new state: '+JSON.stringify(generatedState));
 			    				plugins.queuePlugin.readyForJob(id, successCallBackHandler, failureCallBack);
 			    		});
 			    		plugins.queuePlugin.newQueue(id, function(args){console.log('Queue '+id+' created.');},failureCallBack);
 			    		
 			    		return {
 			    			gen: function (event, eventData){
-				    		//	console.log('new Job:'+ event);
+//				    			console.log('new Job:'+ event);
 				    			plugins.queuePlugin.newJob(id, {event: event, eventData: eventData}, successCallBackHandler,failureCallBack);
-				    			}
+				    		}
 			    		};
 			    	}
-				};
-			},
+				};//END: return
+			},//END: android
 			fallBack: function(){
 				return {
 					newSCIONExtension: function(scion, failureCallback){

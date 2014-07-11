@@ -259,9 +259,14 @@ mobileDS.DialogEngine = (function(){
 	    		 * @function raise
 	    		 * @param {String} eventName The name of the event which is to be raised
 	    		 * @param {Object} data Data belonging to the event
+	    		 * @throws {Error} if invoked when the internal event/state engine is not initialized yet
 	    		 * @public
 	    		 */
-	            raise: function(eventName, data){		
+	            raise: function(eventName, data){	
+	            	
+	            	if(!isInitialized){
+	            		throw new Error('DialogEngine is not initialized yet, cannot process event "'+eventName+'"!');
+	            	}
 	            	
 	            	if ((typeof data !== 'undefined') && (typeof data.Data === 'undefined')) {
 	            		// Has data but didn't go through inputmanager
@@ -273,13 +278,15 @@ mobileDS.DialogEngine = (function(){
 	            	// if (!(typeof data === "undefined")) {
 	                        // alert("data " + data);
 	                // } else
-	                if (eventName == 'exit') {
-	                	if (navigator != null) {
-	                		if(IS_DEBUG_ENABLED) console.debug('[DEBUG] now app is exiting!');//debug
-	                		
-	                        navigator.app.exitApp();
-	                	}
-	                }
+	            	
+//	                if (eventName == 'exit') {
+//	                	if (navigator != null) {
+//	                		if(IS_DEBUG_ENABLED) console.debug('[DEBUG] now app is exiting!');//debug
+//	                		
+//	                        navigator.app.exitApp();
+//	                	}
+//	                }
+	            	
 //	                else if (!(typeof dialogStateChartInstance[eventName] === 'undefined')) {
 //	                	if (typeof data !== 'undefined' && typeof data.Data !== 'undefined' && typeof data.Data.data !== 'undefined') {
 //	                		dialogStateChartInstance[eventName](data.Data.data);  
@@ -294,7 +301,8 @@ mobileDS.DialogEngine = (function(){
 //  	                }
 
 					//TODO is there a way to check, if eventName is defined in interpreter-model?
-	                else if (typeof data !== 'undefined' && typeof data.Data !== 'undefined' && typeof data.Data.data !== 'undefined') {
+//	                else 
+	                	if (typeof data !== 'undefined' && typeof data.Data !== 'undefined' && typeof data.Data.data !== 'undefined') {
 	                	eventGenerator.gen(eventName, data.Data.data);
                 	}
                 	else {

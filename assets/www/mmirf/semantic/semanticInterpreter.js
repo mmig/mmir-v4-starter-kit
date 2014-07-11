@@ -314,6 +314,7 @@ mobileDS.SemanticInterpreter = (function(){
             	gc.json_grammar_definition = doRecompile;
             	build_grammar(gc);
             } else {
+            	//try to use the GrammarConvert's default settings for retrieving a JSON grammar definition
             	gc.loadGrammar();
             	doAddGrammar(generatedParserLanguageCode, gc);
             	if(callback){
@@ -386,9 +387,17 @@ mobileDS.SemanticInterpreter = (function(){
            
             if(IS_DEBUG_ENABLED) console.debug('SemanticInterpreter.process_asr_semantic('+langCode+'): removed stopwords, now parsing phrase "'+asr_recognized_text+'"');//debug
             
-    		grammarConverter.executeGrammar(asr_recognized_text);
+    		grammarConverter.executeGrammar( grammarConverter.maskString(asr_recognized_text) );
             		
             grammarConverter.semanticAnnotationResult = decodeSpecialChars(grammarConverter.semanticAnnotationResult);
+            
+            //FIXME
+            grammarConverter.semanticAnnotationResult = JSON.parse(
+            		grammarConverter.unmaskString(
+            				JSON.stringify(grammarConverter.semanticAnnotationResult) 
+            		)
+            );
+            
 //            	JSON.parse((JSON.stringify(grammarConverter.semanticAnnotationResult).replace(/__oe__/g,'ö').replace(/__ae__/g,'ä').replace(/__ue__/g,'ü').replace(/__ss__/g,'ß')));
             
             return grammarConverter.semanticAnnotationResult;//TODO return copy instead of original instance? 

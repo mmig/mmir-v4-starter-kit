@@ -43,13 +43,13 @@ var mobileDS = window.mobileDS ||
  */ 
 function YieldDeclaration(parsingElement, contentAreaType){
 	
-	this.name     = parsingElement.name;
-	this.nameType = parsingElement.nameType;
-
-	this.getValue = parsingElement.getValue;
-	
-	this.start    = parsingElement.start;
-	this.end      = parsingElement.end;
+	if(parsingElement){
+		this.name     = parsingElement.name;
+		this.nameType = parsingElement.nameType;
+		
+		this.start    = parsingElement.start;
+		this.end      = parsingElement.end;
+	}
 	
 	this.contentAreaType = contentAreaType;
     
@@ -103,4 +103,53 @@ YieldDeclaration.prototype.getStart = function(){
  */ 
 YieldDeclaration.prototype.getEnd = function(){
     return this.end;
+};
+
+/**
+ * Get the value for property <code>name</code> with the proper type
+ * (as specified by <code>nameType</code>).
+ * This may be neccessary, if the nameType is not e.g. STRING but a VARIABLE, 
+ * in which case <code>name</code> does not reference the value itself, but the name 
+ * for the variable
+ * 
+ * This is a shortcut to the function 
+ * mobileDS.parser.ParsingResult.prototype.getValue
+ * 
+ * I.e. for YieldDeclration yield with a nameType of VARIABLE, to not use:
+ * <s><code>yield.getName()</code></s>
+ * 
+ * but
+ * 
+ * <code>yield.getValue(yield.getName(), yield.getNameType(), theRenderingData)</code>
+ * where theRenderingData is an object that contains a property from which the variable value can be retrieved, i.e.
+ * where <em>theRenderingData[yield.getName()]</em> contains the YieldDeclaration's name.
+ * 
+ */
+YieldDeclaration.prototype.getValue = mobileDS.parser.ParsingResult.prototype.getValue; 
+
+YieldDeclaration.prototype.stringify = function(){
+	
+	// "plain properties" list
+	var propList = [
+   	     'name', 
+   	     'nameType',
+   	     'start',
+   	     'end',
+   	     'contentAreaType'
+   	];
+
+   	//function for iterating over the property-list and generating JSON-like entries in the string-buffer
+   	var appendStringified = mobileDS.parser.appendStringified;
+   	
+   	var sb = ['mobileDS.parser.restoreObject({ classConstructor: ["YieldDeclaration"]', ','];
+   	
+   	appendStringified(this, propList, sb);
+   	
+   	//if last element is a comma, remove it
+   	if(sb[sb.length - 1] === ','){
+   		sb.splice( sb.length - 1, 1);
+   	}
+   	
+   	sb.push(' })');
+   	return sb.join('');
 };

@@ -54,8 +54,16 @@ function loadLocalFile(path, type){}
  * 											   not be created if it already exists
  * 									 DEFAULT: <code>false</code>, i.e. file will be
  * 										      overwritten, if it exists.
+ * @param {Boolean} [doCreateMissingDirectories] OPTIONAL:  if <code>true</code> missing directories
+ * 												for the target path are created before
+ * 												  writing the file.
+ * 												if <code>false</code> missing
+ * 												  directories will prove an error
+ * 									DEFAULT: <code>true</code>
  * 
- * @function loadLocalFile
+ * @returns {Boolean} <code>true</code> if file was written
+ * 
+ * @function saveToFile
  * @public
  */
-function saveToFile(str, path, doNotOverWrite){}
+function saveToFile(str, path, doNotOverWrite, doCreateMissingDirectories){}

@@ -1,0 +1,196 @@
+<?xml version="1.0"?>
+<!-- 
+	This Ant-Build-File is for the generation of the directory structure in json format.generate
+	It generates - for the directories specified in the property 'directoriesToParse' - a file (property 'outputDirectoryParseFileJson') with a json string.
+-->
+<project name="Mobile DialogSystem - Parse eHTML" default="parseTemplatesNodeJsEnv">
+	
+	<import file="build.xml"/>
+
+	<!--  ############# Build Targets: tasks for Templates (.ehtml) #############  -->
+			 
+	<target name="createTemplateParserFile" depends="generateFileListJSONFile">
+	    <echo message="Building script file ${exec.js.compile.template.parser} for parsing templates (.ehtml)..." />
+	    <mkdir dir="${buildDir}" />
+	    <mkdir dir="${buildDirBin}" />
+	    <mkdir dir="${buildDirTempJS}" />
+	    <concat destfile="${exec.js.compile.template.parser}" fixlastline="true" overwrite="true">
+	    	<!-- TODO make generalized init-file for rhino (current file is really for creating GrammarParserGenerator) -->
+	    	<!--fileset dir="${jsSrcDirBase}tools/build/rhino" includes="InitForAntRhinoScriptEnv.js" />
+	    	<fileset dir="${jsSrcDirBase}tools/build/ant"  includes="AntFileHandler.js" /-->
+	    	<fileset dir="${jsSrcDirBase}tools/build/nodejs" includes="InitNodeJsEnv.js" />
+	    	<fileset dir="${jsSrcDirBase}tools/build/nodejs" includes="NodeJsFileHandler.js" />
+	    	<fileset dir="${jsSrcDirBase}tools/build/nodejs" includes="InitTemplateParserNodeJsEnv.js" />
+	    	<string>
+	    		
+	    		function init(){
+	    			return [ function(){
+			    		
+			    		org = {};
+	    				window.org = org;
+			    		if (typeof org.antlr === "undefined" || !org.antlr) {
+			    		    org.antlr = {};
+			    		}
+	    				if (typeof org.antlr.runtime == "undefined" || !org.antlr.runtime) {
+	    					org.antlr.runtime = {};
+	    				}
+						if (typeof org.antlr.runtime.tree == "undefined" || !org.antlr.runtime.tree) {
+							org.antlr.runtime.tree = {};
+						}
+	    	</string>
+            <fileset dir="${jsSrcDirBase}res/libs"         includes="antlr3-all.js" />
+	    	<string>
+	    			return ['org', org];
+	    		}, function(){
+	    	</string>
+
+            <!--fileset dir="${jsSrcDirBase}res/libs"         includes="jpath.js" />
+	    	<string>
+	    			return ['jpath', JPath];
+	    		}, function(){
+	    	</string-->
+	    	
+	    	<fileset dir="${jsSrcDirBase}res/libs"         includes="md5.js" />
+	    	<string>
+	    	    	return ['md5', CryptoJS];
+	    		}, function(){
+	    	</string>
+	    	<fileset dir="${jsSrcDirBase}tools"            includes="checksumUtils.js" />
+	    	<string>
+	    		}, function(){
+	    	</string>
+	        <fileset dir="${jsSrcDirBase}mvc/parser"       includes="parseElementTypes.js" />
+	    	<string>
+	    		}, function(){
+	    	</string>
+	        <fileset dir="${jsSrcDirBase}mvc/parser"       includes="parsingResult.js" />
+	    	<string>
+	    		}, function(){
+	    	</string>
+	        <fileset dir="${jsSrcDirBase}mvc/parser"       includes="templateProcessor.js" />
+	    	<string>
+	    		}, function(){
+	    	</string>
+	    	<fileset dir="${jsSrcDirBase}mvc/parser"       includes="storageUtils.js" />
+	    	<string>
+	    		}, function(){
+	    	</string>
+	        <fileset dir="${jsSrcDirBase}gen/parser"       includes="*.js" excludes="MmirTemplateParser.js" />
+	    	<string>
+	    			return [ "template-parser",
+	    				ES3Lexer, ES3Parser, MmirScriptBlockLexer, MmirScriptBlockParser,
+	    				MmirScriptContentLexer, MmirScriptContentParser, MmirScriptStatementLexer,
+	    				MmirScriptStatementParser, MmirTemplateLexer //, MmirTemplateParser
+	    			];
+	    		}, function(){
+	    	</string>
+	    	<fileset dir="${jsSrcDirBase}tools/extensions" includes="StringExtensions.js" />
+	    	<string>
+	    		}, function(){
+	    	</string>
+	        <fileset dir="${jsSrcDirBase}tools"            includes="constants.js" />
+	    	<string>
+	    			var path = mobileDS.constants.getInstance(forBrowser).getBasePath();
+	    			console.log('base path: '+path);
+	    		}, function(){
+	    	</string>
+	        <fileset dir="${jsSrcDirBase}plugins"          includes="directoryListing.js" />
+	    	<string>
+	    		}, function(){
+	    	</string>
+	        <fileset dir="${jsSrcDirBase}tools"            includes="commonUtils.js" />
+	    	<string>
+	    		
+	    			return ['commonUtils', mobileDS.CommonUtils.getInstance()];
+	    		
+	    		}, function(){
+	    	</string>
+	        <fileset dir="${jsSrcDirBase}manager/settings"            includes="configurationManager.js" />
+	    	<string>
+	    		
+	    			return ['configurationManager', mobileDS.ConfigurationManager.getInstance()];
+	    		
+	    		}, function(){
+	    	</string>
+	        <fileset dir="${jsSrcDirBase}tools"            includes="dictionary.js" />
+	    	<string>
+	    			return ['dictionary', Dictionary];
+	    		}, function(){
+	    	</string>
+	        <fileset dir="${jsSrcDirBase}mvc/parser"       includes="templateParseUtils.js" />
+	    	<string><![CDATA[
+		    		
+	    			return ['parseUtils', this,
+	    				print, printInfo, parserPrintDebug, parserPrintInfo, 
+	    				parserPrintWarning, parserPrintError, parserCreatePrintMessage
+	    			];
+	    		}, function(){
+	    	]]></string>
+	        <fileset dir="${jsSrcDirBase}mvc/parser"       includes="templateRenderUtils.js" />
+	    	<string>
+	    		}, function(){
+	    	</string>
+	    	
+	    	<fileset dir="${jsSrcDirBase}mvc/controllers" includes="*.js"/>
+	    	<fileset dir="${jsSrcDirBase}mvc/views"       includes="*.js"/>
+	    	<string>
+	    			return ['mvc',
+	    				Controller, Helper, ContentElement, Layout, View, Partial, YieldDeclaration
+	    			];
+	    		}, function(){
+	    	</string>
+	    	
+	        <fileset dir="${jsSrcDirBase}manager"          includes="controllerManager.js" />
+	    	<string>
+	    		}, function(){
+	    	</string>
+	        <fileset dir="${jsSrcDirBase}manager"          includes="presentationManager.js" />
+	    	<string>
+	    		
+	    		}];
+	    	}//end of init()
+	    	
+	    	//stored ANT property for target storage-path (target location for storing compiled views); 	
+	    	var compiledViewGenPath = '${jsGenDirBase}';
+	    	</string>
+	        <!-- fileset dir="${jsSrcDirBase}res/libs"     includes="jquery-1.9.1.js" /-->
+	        <fileset dir="${jsSrcDirBase}tools/build/ant"  includes="StandaloneTemplateParserExec.js" />
+
+	    </concat>
+	    <echo message="${exec.js.compile.template.parser} built." />
+	</target>
+	
+	<target name="parseTemplatesRhinoEnv"
+		depends="createTemplateParserFile"
+			description="Parse eHTML Template files with Rhino environment (slow)">
+			
+		<echo message="Running Rhino environment with script file ${exec.js.compile.template.parser} ..." />
+		<exec executable="java" failonerror="true">
+            <arg line="-jar ${pathRhinoJar} -opt -1 ${exec.js.compile.template.parser} ${baseDir}" />
+        </exec>
+        
+		<!-- Need to re-create filelist, since new files may have been created (or deleted).
+			 NOTE that inheritAll needs to be false in order to force re-reading of directories/files.
+		 -->
+		<antcall target="generateFileListJSONFile" inheritAll="false" />
+		<echo>Finished parsing templates (RHINO).</echo>
+	</target>
+	
+	<target name="parseTemplatesNodeJsEnv"
+			depends="createTemplateParserFile"
+			description="Parse eHTML Template files with NodeJS environment">
+		
+		<echo message="Running node.js environment with script file ${exec.js.compile.template.parser} and argument ${baseDir}..." />
+		<exec executable="${exec.nodejs}" failonerror="true">
+            <arg value="${exec.js.compile.template.parser}"/>
+            <arg value="${baseDir}"/>
+        </exec>
+        
+		<!-- Need to re-create filelist, since new files may have been created (or deleted).
+			 NOTE that inheritAll needs to be false in order to force re-reading of directories/files.
+		 -->
+		<antcall target="generateFileListJSONFile" inheritAll="false" />
+		<echo>Finished parsing templates (NODEJS).</echo>
+	</target>
+	
+</project>

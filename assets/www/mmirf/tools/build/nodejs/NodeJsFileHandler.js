@@ -63,29 +63,69 @@ function loadLocalFile(path, type){
  * see saveToFile in IFileHandler.js
  * 
  */
-function saveToFile(str, path, doNotOverWrite){
+function saveToFile(str, path, doNotOverWrite, doCreateMissingDirectories){
 	
 	if(typeof str !== 'string'){
 		str = JSON.stringify(str, null, '  ');
 	}
-//	
+	
+	var isCreateMissingDirs = doCreateMissingDirectories === false? false: true;
+	if(isCreateMissingDirs){
+		var mkDirList = [];
+		var lastIndex = path.lastIndexOf('/');
+		if(lastIndex !== -1){
+			var dirPath = path.substring(0,lastIndex);
+			var isDirExisting = FILE_SYSTEM.existsSync(dirPath);
+			if(isDebugOutput) console.log('    writing: dir "'+dirPath+'" for file exists? -> '+isDirExisting);
+			if( ! isDirExisting){
+				
+				mkDirList.push(dirPath);
+				
+				lastIndex = dirPath.lastIndexOf('/');
+				while(lastIndex !== -1){
+					dirPath = path.substring(0,lastIndex);
+					
+					if( ! FILE_SYSTEM.existsSync(dirPath)){
+						mkDirList.push(dirPath);
+						lastIndex = dirPath.lastIndexOf('/');
+					}
+					else {
+						lastIndex = -1;
+					}
+				}
+			}
+		}
+		
+		if(mkDirList.length > 0){
+			if(isDebugOutput) console.log('  creating missing dirs before writing file '+path+': '+mkDirList.join(', '));
+			for(var i=mkDirList.length-1; i >= 0; --i){
+				var dirPath = mkDirList[i];
+				if(isDebugOutput) console.log('    writing: creating dir for '+dirPath);
+				FILE_SYSTEM.mkdirSync(dirPath);
+			}
+		}
+	}
+	
 	if(isDebugOutput) console.log('writing: file exists (overwriting)? '+FILE_SYSTEM.existsSync(path));
 	
 	if(doNotOverWrite && FILE_SYSTEM.existsSync(path)){
-		return;//////////////////////// EARLY EXIT ///////////////////////
+		return false;//////////////////////// EARLY EXIT ///////////////////////
 	}
 	
 	var r = FILE_SYSTEM.createWriteStream(path
 			//default options:
-//			,{	flags: 'w',
-//				encoding: null,
-//				mode: 0666
-//			}
+			,{	
+				flags: 'w'
+				, encoding: 'utf8'
+//				, mode: 0666
+			}
 	);
-	
+
+//	r.write('\ufeff');//<- manually add BOM for indicating UTF-8 encoding
 	r.write(str);
 	r.end();
 	r.destroySoon();
 	
 	console.log('wrote String (len '+str.length+') to file: '+path);
+	return true;
 }

@@ -54,7 +54,36 @@ console.info('Created target/output path for JavaScript grammar file (for langua
 
 var theJSONgrammar = 'un-initialized';
 
-theJSONgrammar = loadLocalFile(theJSONGrammarURL);
+var text = loadLocalFile(theJSONGrammarURL, 'text');
+try{
+	theJSONgrammar = JSON.parse(text);
+} catch(error){
+	var errStr = error.stack? error.stack : error;
+	var msg = 'Error parsing "'+theJSONGrammarURL+'" to a JSON object: '+ errStr;
+	console.error(msg);
+
+	//try to trigger a more detailed error
+	try{
+		var result = jsl.parser.parse(text);
+	
+		//this should not happen (error should be trigger above)
+		if (result) {
+			//THIS SHOULD NOT HAPPEN, since we already encountered an error when parsing a string to JSON
+			throw new Error(result.toString());
+		} else {
+			//THIS SHOULD NOT HAPPEN -> instead catch-block below should be executed
+			throw new Error(msg);
+		}
+	} catch(parseError){
+		msg = msg + '\n' + parseError.toString().replace(/\r/igm,' ');
+		console.error(msg);
+		throw new Error(msg);
+	}
+}
+
+//var checksumUtils = mobileDS.ChecksumUtils.init();
+checksumUtils.getFileExt();
+
 semanticInterpreter = mobileDS.SemanticInterpreter.getInstance();
 semanticInterpreter.createGrammar(theJSONgrammar, theJSONGrammarLanguage, function(){
 	var compiledParser = semanticInterpreter.getGrammarParserText( theJSONGrammarLanguage );
@@ -71,6 +100,13 @@ semanticInterpreter.createGrammar(theJSONgrammar, theJSONGrammarLanguage, functi
 	console.log('------------------------------------------------ finished compiling ---------------------------');
 
 	saveToFile(compiledParser, theCompiledOutputFile);
+	
+	//generate checksum-info for the original JSON-grammar and store it to a checksum-file:
+	// (in order to allow up-to-date checking in reference to the JSON-definition file)
+	var checksumInfo = checksumUtils.createContent(text);
+	//store checksum-file along with the compiled grammar-file:
+	var checksumFilePath = theCompiledOutputFile.replace(/\.[^\.]+$/im, '');//<- remove grammar's file extension
+	saveToFile(checksumInfo, checksumFilePath + checksumUtils.getFileExt() );
 
 	console.log('------------------------------------------------ finished! ---------------------------');	
 });

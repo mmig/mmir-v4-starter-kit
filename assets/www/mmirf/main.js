@@ -119,9 +119,39 @@ function initializeApplication(){
 function loadManagers(){
     mobileDS.ConfigurationManager.getInstance();
     
-    langManager = mobileDS.LanguageManager.getInstance(mobileDS.ConfigurationManager.getInstance().getLanguage());
+    langManager = mobileDS.LanguageManager.getInstance(mobileDS.ConfigurationManager.getInstance().get('language'));
     
     semanticInterpreter = mobileDS.SemanticInterpreter.getInstance();
+    
+    //this is a "dummy" listener for the on allowrecording event -> triggered when user allows getUserMedia (HTML5)
+    // we need this, in case the browser has a permanent "allow" permission
+    // -> 	then the event i striggered as soon as teh MediaManager (or more precisely html5AudioInput)
+    //		is loaded/executed, i.e. before the "real" implementation for the listener in controller/application
+    //		is loaded
+    //		... so we use this "dummy" listener to catch the data that is delivered by the event, and use
+    //			it later in controller/application (if this dummy was not triggered by then, it will be removed
+    //			and discarded)
+    MEDIA_ON_ALLOW_RECORD_LISTENER = function(recordingStream, audioContextImpl, recorderInstance){
+		if(recordingStream){
+			MEDIA_RECORDING_STREAM = recordingStream;
+		}
+		if(audioContextImpl){
+			MEDIA_AUDIO_CONTEXT = audioContextImpl;
+		}
+		if(recorderInstance){
+			MEDIA_RECORDER_INSTANCE = recorderInstance;
+		}
+		
+		if(typeof MEDIA_RECORDING_STREAM !== 'undefined' && typeof MEDIA_AUDIO_CONTEXT !== 'undefined'){
+			return {
+				recordingStream : MEDIA_RECORDING_STREAM,
+				audioContext : MEDIA_AUDIO_CONTEXT,
+				recorderInstance: MEDIA_RECORDER_INSTANCE
+			};
+		}
+		return null;
+    };
+    
     mobileDS.MediaManager.create(function(){
     		console.log('All Media-Plugins Loaded');
     		 mobileDS.SCIONExtension.getInstance();
@@ -131,23 +161,11 @@ function loadManagers(){
     	}, function (e) {
     		console.log('Error loading Media plugins');
     		if (e) console.log(e);
-    	});
+	},
+		[{ name: 'onallowrecord', listener: MEDIA_ON_ALLOW_RECORD_LISTENER }]
+	);
    
     	
-}
-
-function loadInputEngine(){
-	
-	mobileDS.InputEngine.create(function(engineInstance){
-	    inputManager = engineInstance;
-		inputManager.startEngine();
-	
-	    console.log("initialization finished");
-	    /// callback end
-	   
-//	    var cm = mobileDS.CompassHandler.getInstance();
-//	    cm.startWatch();
-	});
 }
 
 function backKeyDown(event){
@@ -175,31 +193,43 @@ function hideLoader(){
 
 
 function afterLoadingControllers(ctrlManager){
-	loadInputEngine();
-	controllerManager = ctrlManager;
 	
-    //$.mobile.page.prototype.options.backBtnText = "zur&uuml;ck";
-    //$.mobile.page.prototype.options.backBtnTheme = "a";
-    // $.mobile.page.prototype.options.addBackBtn = true;
-    //$.mobile.useFastClick = false;
+	mobileDS.InputEngine.create(function(engineInstance){
+	    inputManager = engineInstance;
+		inputManager.startEngine();
 	
-    pm = mobileDS.PresentationManager.getInstance();
-    
-    mobileDS.DialogEngine.create(function(engineInstance){
-	    dialogManager = engineInstance;
+	    console.log("initialization finished");
+	    /// callback end
+	   
+//	    var cm = mobileDS.CompassHandler.getInstance();
+//	    cm.startWatch();
+
+	
+		controllerManager = ctrlManager;
+		
+		mobileDS.Notification.getInstance().initBeep();
+		
+	    pm = mobileDS.PresentationManager.getInstance();
 	    
-	    mobileDS.ModelManager.create(function(modelManagerInstance){
-	    	modelManager = modelManagerInstance;
-	    	
-		    dialogManager.setOnPageRenderedHandler(exectueAfterEachPageIsLoaded);
-		    dialogManager.startEngine();
-		    var appLayout = pm.getLayout("Application");
-		    var headerContents = appLayout.getHeaderContents();
-		    var header = $("head");
-		    header.append(headerContents);
-		    $('#applications_dialogs').appendTo($.mobile.pageContainer).css({});
-	    });
-    });
+	    mobileDS.DialogEngine.create(function(engineInstance){
+		    dialogManager = engineInstance;
+		    
+		    mobileDS.ModelManager.create(function(modelManagerInstance){
+		    	modelManager = modelManagerInstance;
+		    	
+			    dialogManager.setOnPageRenderedHandler(exectueAfterEachPageIsLoaded);
+			    dialogManager.startEngine();
+			    var appLayout = pm.getLayout("Application");
+			    var headerContents = appLayout.getHeaderContents();
+			    var header = $("head");
+			    header.append(headerContents);
+			    $('#applications_dialogs').appendTo($.mobile.pageContainer).css({});
+			    
+		    });
+		    
+	    });//END: DialogEngine.create()
+	    
+	});//END: InputEngine.create()
     
 }
 
@@ -215,20 +245,23 @@ function exectueAfterEachPageIsLoaded(ctrlName,viewName,data){
 	      mobileDS.InputEngine.getInstance().raise(eventName);
 	  });
 	  tis.bind('vclick', function(event){
+		  event.preventDefault();
 		  triggerClickFeedback();
 	      eventName = "click_on_" + tis.attr("name");
 	      mobileDS.InputEngine.getInstance().raise("touch_input_event");
 	      mobileDS.InputEngine.getInstance().raise(eventName);
 	  });
 	  tis.bind('vmouseup', function(event){
-		  	tis.parent().removeClass('ui-focus ui-btn-active ui-btn-down-a');
-	      	eventName = "touch_end_on_" + tis.attr("name");
-	      	mobileDS.InputEngine.getInstance().raise("touch_input_event");
-	      	mobileDS.InputEngine.getInstance().raise(eventName);
+		  tis.parent().removeClass('ui-focus ui-btn-active ui-btn-down-a');
+		  eventName = "touch_end_on_" + tis.attr("name");
+		  mobileDS.InputEngine.getInstance().raise("touch_input_event");
+		  mobileDS.InputEngine.getInstance().raise(eventName);
 	  });
 	});
 }
 
+var IS_SOUND_FEEDBACK  = true;
+var IS_HAPTIC_FEEDBACK = true;
 /**
  * 
  * @param config (optional) cofiguration object with fields
@@ -242,23 +275,29 @@ function triggerClickFeedback(config){
 	
 	
 	//TODO haptic and sound feedback should be run in parallel, not sequential (... use 'threads'?)
-	if(isHaptic){
+	if(isHaptic && IS_HAPTIC_FEEDBACK){
 		triggerHapticFeedback();
 	}
 	
-	if(isSound){
+	if(isSound && IS_SOUND_FEEDBACK){
 		triggerSoundFeedback();
 	}
 }
 
 function triggerHapticFeedback(){
-	if( ! forBrowser){
-	    mobileDS.Notification.getInstance().vibrate(CLICK_VIBRATE_DURATION);
-	}
+//	if( ! forBrowser){
+		//do not block function, return immediatly using setTimeout
+		setTimeout(function(){
+	    	mobileDS.Notification.getInstance().vibrate(CLICK_VIBRATE_DURATION);
+		},0);
+//	}
 }
 
 function triggerSoundFeedback(){
-    mobileDS.Notification.getInstance().beep(1);
+	//do not block function, return immediatly using setTimeout
+	setTimeout(function(){
+    	mobileDS.Notification.getInstance().beep(1);
+	},0);
 }
 
 function triggerErrorFeedback(){
@@ -338,15 +377,19 @@ function micClick(){
 	
 	if(isUseEndOfSpeechDetection === false){
 
-		console.log("[AudioInput] start recoginition without automtic END OF SPEECH detection");
 		
 		//WITHOUT end-of-speech-detection (i.e. manual stop by user interaction):	
 		if ($('#mic_button').hasClass('footer_button_clicked')){
+
+			console.log("[AudioInput] stop recoginition without automtic END OF SPEECH detection");
 			
 			mobileDS.MediaManager.getInstance().stopRecord(successFunc, errorFunc);
 	
 		}
 		else {
+			
+			console.log("[AudioInput] start recoginition without automtic END OF SPEECH detection");
+			
 			$('#mic_button').addClass('footer_button_clicked');
 			mobileDS.MediaManager.getInstance().startRecord(
 				function printResult(res){
@@ -367,7 +410,7 @@ function micClick(){
 		
 		if ($('#mic_button').hasClass('footer_button_clicked')){
 
-			console.log("[AudioInput] start recoginition with automtic END OF SPEECH detection: already in progress, stopping now...");
+			console.log("[AudioInput] speech recoginition with automtic END OF SPEECH detection: already in progress, stopping now...");
 			
 			
 			mobileDS.MediaManager.getInstance().stopRecord(

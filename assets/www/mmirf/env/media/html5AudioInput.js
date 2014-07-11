@@ -27,21 +27,28 @@
 
 newMediaPlugin = {
 		
-	initialize: function(callBack){
+	initialize: function(callBack, mediaManagerInstance){
 		
 		function htmlAudioConstructor(){
 			// variable that describes if recording is in process
 			var recording = false;
+			var freeIds = [true];
+			var hasActiveId = false;
 			var webSocket = null;
 			var nonFunctional = false;
-			var inputId = 1;
+			var lastBlob = false;
+			var isUseIntermediateResults = false;
+			var inputId = 0;
 			var audio_context=null;
 			var stream = null;
     		var recorder=null;
+    		var totalText = '';
     		//the function that is called on the recognized text that came back from the server
     		var textProcessor = function(e,id){};
     		var silenceDetection = null;
     		var silenceDetectionInput = null;
+    		var endOfSpeechDetection = false;
+    		var currentFailureCallback = null;
     		
     		//for gathering partial ASR results when using startRecord:
     		var recordAsrResultCache = [];
@@ -54,6 +61,16 @@ newMediaPlugin = {
     			}
     			return sb.join('');
     		};
+    		function findLowestFreeId(){
+    			for (var i=0;i<freeIds.length;i++){
+    				if (freeIds[i]){
+    					freeIds[i] = false;
+    					return i;
+    				}
+    			}
+    			freeIds.push(false);
+    			return freeIds.length-1;
+    		}
     		var recordAsrResultAggregator = function printResult(res,id){
     			recordAsrResultCache.push({
     				text: res,
@@ -62,54 +79,142 @@ newMediaPlugin = {
     			recordAsrResultCache.sort(recordAsrResultSorter);
 
     			//FIXME debug output:
-    			console.debug( asrResultCacheToString(recordAsrResultCache) );
+//    			console.debug( asrResultCacheToString(recordAsrResultCache) );
     		};
     		
+    		function webSocketSend(msg){
+    			if(!webSocket || webSocket.readyState >= 2){//INVALID or CLOSING/CLOSED
+    				webSocket = null;//<- avoid close() call in initializer
+    				initializeWebSocket( function(){ webSocket.send(msg); });
+    			}
+    			else if(webSocket.readyState == 0){//CONNECTING
+    				if(webSocket.onInitStack){
+    					webSocket.onInitStack.push(msg);
+    				}
+    				else {
+    					webSocket.onInitStack = [msg];
+    				}
+    			}
+    			else{
+    				try{//FIXME this should not be necessary...
+    					webSocket.send(msg);
+    				} catch(err){
+    					console.error(err);
+    				}
+    			}
+    			
+    		}
     		/** initializes the connection to the googleMediator-server, 
     		 * where the audio will be sent in order to be recognized. **/
-      		 function initializeWebSocket(){
+      		 function initializeWebSocket(oninit){ 
+      			 if (webSocket){
+      				 webSocket.close();
+      			 }
       			 webSocket = new WebSocket(mobileDS.ConfigurationManager.getInstance().get("HTML5InputWebSocketAddress"));
+      			
+      			 
       			 webSocket.onopen = function () {
-      				 if(IS_DEBUG_ENABLED) console.log("Openened connection to websocket");
+      				if(oninit){
+      					console.log("invoking on-init callback for websocket");
+      					oninit();
+      				}
+      				
+      				if(this.onInitStack){
+      					for(var i=0, size = this.onInitStack; i < size; ++i){
+      						this.send(this.onInitStack[i]);
+      					}
+      					delete this.onInitStack;
+      				}
       			 };
-
+      			 
       			 webSocket.onmessage = function(e) {
-      				 var id = e.data.substring(0,e.data.indexOf("_"));
-      				 var jsonText = e.data.substring(e.data.indexOf("_")+1, e.data.length);
-      				 var jsonResponse = jQuery.parseJSON(jsonText );
-      				 if (jsonResponse.hypotheses.length>0){
-      					 if(textProcessor){
-      						 textProcessor(jsonResponse.hypotheses[0].utterance, id);
-      					 }
-      					 
-      					 //aggregate / gather text-parts into the recordAsrResultCache:
-      					 recordAsrResultAggregator(jsonResponse.hypotheses[0].utterance, id);
+      				 if (e.data.substring(0,5) == 'ERROR'){
+      					 console.error('Serverside Error '+e.data.substring(6));  	
+      					 return;/////////////////// EARLY EXIT ////////////////////
       				 }
+      				 var id = e.data.substring(0,e.data.indexOf("_"));
+      				 this.send("clear "+ id);
+      				 freeIds[id] = true;
+      				 var jsonText = e.data.substring(e.data.indexOf("_")+1, e.data.length);
+
+          			//FIXME debug output:
+          			console.debug('HTML5-Speech-Recoginition_received ASR: '+jsonText );
+		      		if(jsonText && jsonText.length > 0){//FIXME
+		      				 var jsonResponse = jQuery.parseJSON(jsonText );
+		      				 if (jsonResponse.hypotheses.length>0){
+		      					 if(textProcessor){
+		      						 textProcessor(jsonResponse.hypotheses[0].utterance, id);
+		      					 }
+		      					 
+		      					 //aggregate / gather text-parts into the recordAsrResultCache:
+		      					 recordAsrResultAggregator(jsonResponse.hypotheses[0].utterance, id);
+		      				 }
+		//      				 //ELSE: empty result (nothing was recognized)
+		//      				 //		-> still need to notify the the textProcessor
+		//      				 //		FIXME really, this is only necessary when stopping the ASR/recording (but would need to recoginze this case...)
+		//      				 else if(textProcessor){
+		//  						 textProcessor('', id);
+		//      				 }    				 
+		     				 else if(lastBlob || isUseIntermediateResults){
+		  						 textProcessor('');
+		      				 }
+		      				 lastBlob = false;
+		      		}
+		      		else if(lastBlob || isUseIntermediateResults){
+						 textProcessor('');
+					 }
+					 lastBlob = false;
       			 };	
       			 webSocket.onerror = function(e) {
-      				 console.log('Websocket Error: '+e);
-      				 // initializeWebSocket();
-      			 };
+       				
+       				recorder && recorder.stop();
+       				lastBlob=false;
+     				silenceDetection && silenceDetection.postMessage({command: 'cancel'});
+
+       				 if (currentFailureCallback){
+       					 currentFailureCallback(e);
+       				 }
+       				 else {
+       				 	console.error('Websocket Error: '+e  + (e.code? ' CODE: '+e.code : '')+(e.reason? ' REASON: '+e.reason : ''));
+       				 }
+       			 };
+       			webSocket.onclose = function(e) {
+       				console.info('Websocket closed!'+(e.code? ' CODE: '+e.code : '')+(e.reason? ' REASON: '+e.reason : ''));
+       			};
       		 }
+      		 
+      		 function createAudioScriptProcessor(audioContext, bufferSize, numberOfInputChannels, numberOfOutputChannels){
+      		    	if(audioContext.context.createJavaScriptNode){
+      		    		return audioContext.context.createJavaScriptNode(bufferSize, numberOfInputChannels, numberOfOutputChannels);
+      		    	}
+      		    	else if(audioContext.context.createScriptProcessor){
+      		    		return audioContext.context.createScriptProcessor(bufferSize, numberOfInputChannels, numberOfOutputChannels);
+      		    	}
+      		    	else {
+      		    		throw Error('Could not create script-processor for AudioContext: context provides no function for generating processor!');
+      		    	}
+      		    
+      		 }
+      		 
 		    /**
 		     * creates a new AudioNode, that communicates sound to the silence detector
 		     */
 		    function startNewInputNode(){
-		    	if (silenceDetectionInput) {
-		    		silenceDetectionInput.onaudioprocess= function(e){};
-		    	}
-		    	var input = audio_context.createMediaStreamSource(stream); 	    		    
-		    	silenceDetectionInput = input.context.createJavaScriptNode(mobileDS.ConfigurationManager.getInstance().get("HTML5InputSoundPackageSize"), 2, 2);
-		    	silenceDetectionInput.onaudioprocess = function(e){
-		    		if (recording){
-		    			silenceDetection.postMessage({
-		    				command: 'isSilent',
-		    				buffer: e.inputBuffer.getChannelData(0)
-		    			});
-		    		}
-		    	};
-		    	input.connect(silenceDetectionInput);
-		    	silenceDetectionInput.connect(input.context.destination);    
+//		    	if (silenceDetectionInput) {
+//		    		silenceDetectionInput.onaudioprocess= function(e){};
+//		    	}
+//		    	var input = audio_context.createMediaStreamSource(stream); 	    		    
+//		    	silenceDetectionInput = createAudioScriptProcessor(input, mobileDS.ConfigurationManager.getInstance().get("HTML5InputSoundPackageSize"), 2, 2);
+//		    	silenceDetectionInput.onaudioprocess = function(e){
+//		    		if (recording){
+//		    			silenceDetection.postMessage({
+//		    				command: 'isSilent',
+//		    				buffer: e.inputBuffer.getChannelData(0)
+//		    			});
+//		    		}
+//		    	};
+//		    	input.connect(silenceDetectionInput);
+//		    	silenceDetectionInput.connect(input.context.destination);    
 
 		    }
     		
@@ -118,41 +223,189 @@ newMediaPlugin = {
     		 * @param inputstream
     		 */
     		function startUserMedia(inputstream){
+    			var buffer = 0;
     			stream = inputstream;
-    			var input = audio_context.createMediaStreamSource(stream); 	    		    
-    			recorder = new Recorder(input);   		    
-    			silenceDetection = new Worker(mobileDS.ConfigurationManager.getInstance().get("HTML5InputSilenceDetectorPath"));
-    			silenceDetection.onmessage = function (e){
+    			var input = audio_context.createMediaStreamSource(stream);
+    			var recorderWorkerPath = mobileDS.constants.getWorkerPath()+'recorderWorkerExt.js';
+    			recorder = new Recorder(input, {workerPath: recorderWorkerPath});
+    			
+    			//FIXME experimental callback/listener for on-start-record -> API may change!
+    			var onStartRecordListeners = mediaManagerInstance.getListeners('onallowrecord');
+    			for(var i=0, size = onStartRecordListeners.length; i < size; ++i){
+    				onStartRecordListeners[i](input, audio_context, recorder);
+    			}
+    			
+    			
+//    			silenceDetection = new Worker(mobileDS.ConfigurationManager.getInstance().get("HTML5InputSilenceDetectorPath"));
+//    			silenceDetection.onmessage = function (e){
+//    				if(IS_DEBUG_ENABLED) console.log(e.data);
+//    				if (e.data=='Send partial!'){
+//    					recorder && recorder.exportWAV(function(blob, id){
+//    						if(IS_DEBUG_ENABLED) console.log("wav exported");
+//    						if(blob.size>2000000) {
+//    							alert("Message too large. You need to pause from time to time.");
+//    							console.log("Message too large. You need to pause from time to time.");
+//    						} else {
+//    							//mobileDS.MediaManager.getInstance().playWAV(blob,function(){},function(){alert("could not play blob");});
+//    	    					if (!hasActiveId) {
+//			   						
+//    	    						webSocketSend("language "+mobileDS.ConfigurationManager.getInstance().getLanguage());//FIXME
+//			   					
+//    	    						inputId = findLowestFreeId();
+//    	    						hasActiveId = true;
+//    	    						webSocketSend("start "+ inputId);
+//    	    						buffer = mobileDS.ConfigurationManager.getInstance().get("HTML5InputSilenceBuffer");
+//    	    					}	else {
+//    	    						buffer = 0;
+//    	    					}
+//    	    					webSocketSend(blob);
+//    						}
+//    					}, buffer,inputId);
+//    				}
+//    				if (e.data=='Silence detected!'){
+//    					// send record to server!
+//    					recorder && recorder.exportWAV(function(blob, id){
+//    						if(IS_DEBUG_ENABLED) console.log("wav exported");
+//    						if(blob.size>2000000) {
+//    							alert("Message too large. You need to pause from time to time.");
+//    							console.log("Message too large. You need to pause from time to time.");
+//    						} else {
+//    							//mobileDS.MediaManager.getInstance().playWAV(blob,function(){},function(){alert("could not play blob");});
+//    	    					if (!hasActiveId) {
+//    	    						inputId = findLowestFreeId();
+//    	    						hasActiveId = true;
+//    	    						webSocketSend("start "+ inputId);
+//    	    						buffer = mobileDS.ConfigurationManager.getInstance().get("HTML5InputSilenceBuffer");
+//    	    					}	else {
+//    	    						buffer = 0;
+//    	    					}
+//    	    					webSocketSend(blob);
+//    	    					webSocketSend("stop");
+//    	    					webSocketSend("analyze "+ inputId);
+//    	    					hasActiveId = false;
+//
+//    	              			//FIXME debug output:
+//    	              			console.debug('HTML5-Speech-Recoginition_sent audio to recognizer... ');
+//    	              			
+//    	              			//FIXME test
+//    	              			Recorder.forceDownload( blob, "myRecording" + ((inputId<10)?"0":"") + inputId + ".wav" );
+//    						}
+//    					}, buffer,inputId);
+//    					if (endOfSpeechDetection){
+//    	    				recorder && recorder.stop();
+//    	    				silenceDetection && silenceDetection.postMessage({command: 'stop'});
+//    					}
+//    				}
+//    				if (e.data=='clear'){
+//    					recorder.clear(mobileDS.ConfigurationManager.getInstance().get("HTML5InputSilenceBuffer"));
+//    				}
+//    			};
+//    			silenceDetection.postMessage({
+//    				command: 'init',
+//    				config: {
+//    					sampleRate: input.context.sampleRate,
+//    					noiseTreshold : mobileDS.ConfigurationManager.getInstance().get("SilenceDetectorNoiseTreshold"),
+//    					pauseCount : mobileDS.ConfigurationManager.getInstance().get("SilenceDetectorPauseCount"),
+//    					resetCount : mobileDS.ConfigurationManager.getInstance().get("SilenceDetectorResetCount")
+//    				}
+//    			});
+    			
+    			silenceDetection = recorder.processor;
+    			recorder.beforeonmessage = function (e){
     				if(IS_DEBUG_ENABLED) console.log(e.data);
-    				if (e.data=='Silence detected!'){
+    				
+    				var isProcessed = false;
+    				if (e.data=='Send partial!'){
+    					
+    					isProcessed = true;
+    					
+    					recorder && recorder.exportWAV(function(blob, id){
+    						if(IS_DEBUG_ENABLED) console.log("wav exported");
+//    						if(blob.size>2000000) {
+//    							alert("Message too large. You need to pause from time to time.");
+//    							console.log("Message too large. You need to pause from time to time.");
+//    						} else {
+    							//mobileDS.MediaManager.getInstance().playWAV(blob,function(){},function(){alert("could not play blob");});
+    	    					if (!hasActiveId) {
+			   						
+    	    						webSocketSend("language "+mobileDS.LanguageManager.getInstance().getLanguage());//FIXME
+			   					
+    	    						inputId = findLowestFreeId();
+    	    						hasActiveId = true;
+    	    						webSocketSend("start "+ inputId);
+    	    						buffer = mobileDS.ConfigurationManager.getInstance().get("HTML5InputSilenceBuffer");
+    	    					}	else {
+    	    						buffer = 0;
+    	    					}
+    	    					webSocketSend(blob);
+//    						}
+    					}, buffer,inputId);
+    				}
+    				else if (e.data=='Silence detected!'){
+    					
+    					isProcessed = true;
+    					
     					// send record to server!
     					recorder && recorder.exportWAV(function(blob, id){
     						if(IS_DEBUG_ENABLED) console.log("wav exported");
     						if(blob.size>2000000) {
+    							//TODO trigger callback / listener instead of aler-box
+    							alert("Message too large. You need to pause from time to time.");
     							console.log("Message too large. You need to pause from time to time.");
-    						} else  
-    						{
+    	    					recorder.clear();
+    						} else {
     							//mobileDS.MediaManager.getInstance().playWAV(blob,function(){},function(){alert("could not play blob");});
-    							webSocket.send("clear");
-    							webSocket.send("language "+mobileDS.ConfigurationManager.getInstance().getLanguage());
-    							webSocket.send("start "+inputId);
-    							webSocket.send(blob);
-    							webSocket.send("analyze "+inputId++);
+    	    					if (!hasActiveId) {
+    	    						inputId = findLowestFreeId();
+    	    						hasActiveId = true;
+    	    						webSocketSend("start "+ inputId);
+    	    						buffer = mobileDS.ConfigurationManager.getInstance().get("HTML5InputSilenceBuffer");
+    	    					}	else {
+    	    						buffer = 0;
+    	    					}
+    	    					webSocketSend(blob);
+    	    					webSocketSend("stop");
+    	    					webSocketSend("analyze "+ inputId);
+    	    					hasActiveId = false;
+
+    	              			//FIXME experimental callback/listener for on-detect-sentence -> API may change!
+    	            			var onDetectSentenceListeners = mediaManagerInstance.getListeners('ondetectsentence');
+    	            			for(var i=0, size = onDetectSentenceListeners.length; i < size; ++i){
+    	            				onDetectSentenceListeners[i](blob, inputId);
+    	            			}
     						}
-    					}, mobileDS.ConfigurationManager.getInstance().get("HTML5InputSilenceBuffer"),inputId);
+    					}, buffer,inputId);
+    					if (endOfSpeechDetection){
+    	    				recorder && recorder.stop();
+    	    				silenceDetection && silenceDetection.postMessage({command: 'stop'});
+    					}
     				}
-    				if (e.data=='clear'){
-    					recorder.clear(mobileDS.ConfigurationManager.getInstance().get("HTML5InputSilenceBuffer"));
+    				else if (e.data=='clear'){
+    					
+    					isProcessed = true;
+    					
+    					recorder.clear();
+    				}
+    				else if(e.data=='Silence Detection initialized' || e.data=='Silence Detection started' || e.data=='Silence Detection stopped'){
+    					
+    					isProcessed = true;
+    					
+    				}
+    				
+    				
+    				if(isProcessed === true){
+    					return false;
     				}
     			};
+    			var silenceDetectionConfig = {
+					sampleRate: input.context.sampleRate,
+					noiseTreshold : mobileDS.ConfigurationManager.getInstance().get("SilenceDetectorNoiseTreshold"),
+					pauseCount : mobileDS.ConfigurationManager.getInstance().get("SilenceDetectorPauseCount"),
+					resetCount : mobileDS.ConfigurationManager.getInstance().get("SilenceDetectorResetCount")
+				};
     			silenceDetection.postMessage({
-    				command: 'init',
-    				config: {
-    					sampleRate: input.context.sampleRate,
-    					noiseTreshold : mobileDS.ConfigurationManager.getInstance().get("SilenceDetectorNoiseTreshold"),
-    					pauseCount : mobileDS.ConfigurationManager.getInstance().get("SilenceDetectorPauseCount"),
-    					resetCount : mobileDS.ConfigurationManager.getInstance().get("SilenceDetectorResetCount")
-    				}
+    				command: 'initDetection',
+    				config: silenceDetectionConfig
     			});
     		}//END: startUserMedia
     		
@@ -161,11 +414,20 @@ newMediaPlugin = {
     			//window.AudioContext = window.AudioContext || window.webkitAudioContext;
     			html5Navigator.getUserMedia = html5Navigator.getUserMedia || html5Navigator.webkitGetUserMedia || html5Navigator.mozGetUserMedia;
     			//window.URL = window.URL || window.webkitURL;
-    			audio_context = new webkitAudioContext;
+//		    	audio_context = new webkitAudioContext;
+
+    			if(typeof AudioContext !== 'undefined'){
+    				audio_context = new AudioContext;
+    			}
+    			else {//if(typeof webkitAudioContext !== 'undefined'){
+    				audio_context = new webkitAudioContext;
+    			}
     		} 
     		catch (e) {
     			console.error('No web audio support in this browser! Error: '+(e.stack? e.stack : e));
     			nonFunctional = true;
+ 				 if (currentFailureCallback) 
+  					 currentFailureCallback(e);
     		}
     		
     		if( nonFunctional !== true ) try {
@@ -173,6 +435,8 @@ newMediaPlugin = {
     		} catch (e) {
     			console.error('Could not reach the voice recognition server!');
     			nonFunctional = true;
+ 				 if (currentFailureCallback) 
+  					 currentFailureCallback(e);
     		}
 
     		if (nonFunctional) {
@@ -180,56 +444,87 @@ newMediaPlugin = {
     		}
 
     		// get audioInputStream
-    		html5Navigator.webkitGetUserMedia({audio: true}, startUserMedia, function(e) {});
+    		html5Navigator.getUserMedia({audio: true}, startUserMedia, function(e) {});
 
     		return {
-    			startRecord: function(callBack){
-    				textProcessor = callBack;
+    			startRecord: function(successCallback, failureCallback, intermediateResults){
+    				lastBlob = false;
+    				for (var k = 0; i < freeIds.length; i++){
+    					webSocketSend("clear "+k);
+    				}
+					totalText = '';
+					isUseIntermediateResults = intermediateResults? true : false;
+    				if(intermediateResults){
+        				textProcessor = successCallback;
+    				} else {
+    					textProcessor = function(e, onEnd){
+    						totalText = totalText + ' '+e;
+    					};
+    				}
+    				endOfSpeechDetection = false;
+    				if (failureCallback){
+    					currentFailureCallback = failureCallback;
+    				}
     				silenceDetection && startNewInputNode();
     				recording=true;
     				recorder && recorder.clear();
     				recorder && recorder.record();
     				silenceDetection && silenceDetection.postMessage({command: 'start'});
     			},
-    			stopRecord: function(successCallBack,failureCallBack){//blobHandler){
-    				recording=false;
-    				recorder && recorder.stop();
-    				recorder && recorder.exportWAV(function (blob) {
-    					webSocket.send("clear");
-    					webSocket.send("start "+inputId);
-    					webSocket.send(blob);
-    					webSocket.send("stop");
-    					webSocket.send("analyze "+inputId++);
-    					webSocket.send("clear");
-//		    					blobHandler(blob);
-    					if(successCallBack){
-    						successCallBack( recordAsrResultCache.join('') );
-    					}
-
-    					//reset result-cache:
-    					recordAsrResultCache = [];
-    				});
-    				silenceDetection && silenceDetection.postMessage({command: 'stop'});
+    			stopRecord: function(successCallback,failureCallback){//blobHandler){
+    				if (failureCallback){
+    					currentFailureCallback = failureCallback;
+    				}
+    				setTimeout(function(){
+    					recorder && recorder.stop();
+        				if (successCallback){
+        					textProcessor = function(e){
+        						if (lastBlob) {
+        							successCallback(totalText+ ' ' + e);
+        						}
+        						lastBlob = false;
+        					};
+        				}
+        				lastBlob = true;
+        				silenceDetection && silenceDetection.postMessage({command: 'stop'});
+    				}, 100);
+    				
     			},
-    			recognize: function(successCallBack,failureCallBack){
-    				textProcessor = successCallBack;
-    				recorder && recorder.stop();
+    			recognize: function(successCallback,failureCallback){
+    				lastBlob = false;
+    				totalText='';
+    				if (successCallback){
+    					textProcessor = successCallback;
+    				}
+    				if (failureCallback){
+    					currentFailureCallback = failureCallback;
+    				}
+    				endOfSpeechDetection = true;
+    				silenceDetection && startNewInputNode();
+    				recording=true;
+    				recorder && recorder.clear();
+    				recorder && recorder.record();
+    				silenceDetection && silenceDetection.postMessage({command: 'start'});
+
+    			},
+    			cancelRecognition: function(successCallback,failureCallback){
+    				if (failureCallback){
+    					currentFailureCallback = failureCallback;
+    				}
+    				
+					recorder && recorder.stop();
+    				lastBlob = true;
     				silenceDetection && silenceDetection.postMessage({command: 'stop'});
-    				recorder && recorder.exportWAV(function(blob){		   					 
-    					webSocket.send("clear");
-    					webSocket.send("start "+ inputId);
-    					webSocket.send(blob);
-    					webSocket.send("stop");
-    					webSocket.send("analyze "+ inputId++);
-    					webSocket.send("clear");
-    				});
+    				if (successCallback){
+    					successCallback();
+    				}
     			}
     		};//END: return
 		};//END: htmlAudioConstructor()
 			
 		// the code starts here, loads the necessary scripts and then calls htmlAudioConstructor
-		mobileDS.CommonUtils.getInstance().loadScript(mobileDS.constants.getInstance().getWorkerPath()+'recorderWorker.js',function(){
-			mobileDS.CommonUtils.getInstance().loadScript('mmirf/env/media/recorder.js', function(){
+		mobileDS.CommonUtils.getInstance().loadScript(mobileDS.constants.getWorkerPath()+'recorderWorkerExt.js',function(){
+			mobileDS.CommonUtils.getInstance().loadScript(mobileDS.constants.getMediaPluginPath()+'recorderExt.js', function(){
 				callBack(htmlAudioConstructor());
 			});
 		});

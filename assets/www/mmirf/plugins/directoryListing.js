@@ -36,8 +36,11 @@
  * @returns {Object} Instance of DirectoryListing
  * @constructor
  * @category core
+ * 
+ * @requires jQuery.ajax
  */
-var DirectoryListing = function() { 
+var DirectoryListing = function() {
+	this.isDebugEnabled = typeof IS_DEBUG_ENABLED !== 'undefined'? IS_DEBUG_ENABLED : false;
 };
 
 
@@ -121,28 +124,29 @@ var DirectoryListing = function() {
  */
 DirectoryListing.prototype.getDirectoryStructure = function(directories, successCallback, failureCallback) {
 	
-	if(IS_DEBUG_ENABLED) console.log('DirectoryListing.getDirectoryStructure for directories: '+directories.join(', '));
+	var self = this;
+	if(self.isDebugEnabled) console.log('DirectoryListing.getDirectoryStructure for directories: '+directories.join(', '));
 	
 	if (true){
 		
-		if(IS_DEBUG_ENABLED) console.log("[getDirectoryStructure] called, reading directory structure file...");
+		if(self.isDebugEnabled) console.log("[getDirectoryStructure] called, reading directory structure file...");
 		
 		// the URL to the directories file 
 		//  file has JSON format: 
 		//  <direcotry-name>: [array of file-names in directory]
     	var directoryFileUrl = mobileDS.constants.getInstance(forBrowser).getDirectoriesFileUrl();
-    
+
    		 //load configuration file asynchronously: 
-    	$.ajax({
+    	jQuery.ajax({
 			async: false,
 			dataType: "json",
 			url: directoryFileUrl,
 			success: function(data){
-				if(IS_DEBUG_ENABLED) console.log("DirectoryListing.getDirectoryStructure: loaded file from "+directoryFileUrl);
+				if(self.isDebugEnabled) console.log("DirectoryListing.getDirectoryStructure: loaded file from "+directoryFileUrl);
 			
 				if(data){
 					var jsonData = data;//jQuery.parseJSON( data );
-					if(IS_DEBUG_ENABLED) console.log("DirectoryListing.getDirectoryStructure: Succeeded to load directory structure from '"+directoryFileUrl+"'! Data: "+ JSON.stringify(data));
+					if(self.isDebugEnabled) console.log("DirectoryListing.getDirectoryStructure: Succeeded to load directory structure from '"+directoryFileUrl+"'! Data: "+ JSON.stringify(data));
 					
 					if(successCallback){
 						successCallback(jsonData);
@@ -151,7 +155,7 @@ DirectoryListing.prototype.getDirectoryStructure = function(directories, success
 				}
 			},
 			error: function(jqXHR, textStatus, errorThrown){
-				if(IS_DEBUG_ENABLED) console.log("DirectoryListing.getDirectoryStructure: failed to load file from '"+directoryFileUrl+"'! Status "+textStatus+": "+ errorThrown+ ", "+JSON.stringify(jqXHR));
+				if(self.isDebugEnabled) console.log("DirectoryListing.getDirectoryStructure: failed to load file from '"+directoryFileUrl+"'! Status "+textStatus+": "+ errorThrown+ ", "+JSON.stringify(jqXHR));
 				
 				if(failureCallback){
 					failureCallback(textStatus+": failed to load file from '"+directoryFileUrl+"' - "+ errorThrown);
@@ -162,7 +166,7 @@ DirectoryListing.prototype.getDirectoryStructure = function(directories, success
 			}
 		});
 	} else {//DISABLED: use native Android plugin for reading directories...
-		if(IS_DEBUG_ENABLED) console.log("[getDirectoryStructure] called, ");
+		if(self.isDebugEnabled) console.log("[getDirectoryStructure] called, ");
 	
 		return cordova.exec(successCallback,    //Callback which will be called when directory listing is successful
 			failureCallback,     //Callback which will be called when directory listing encounters an error

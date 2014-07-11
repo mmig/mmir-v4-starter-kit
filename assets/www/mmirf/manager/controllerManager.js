@@ -171,6 +171,13 @@ mobileDS.ControllerManager = (function(){
     }
     
 
+    function removeFileExt(fileName){
+    	return fileName.replace(/\.[^.]+$/g,'');
+    }
+    function firstToUpperCase(name){
+    	return name[0].toUpperCase()+name.substr(1);
+    }
+    
     /**
 	 * This function gets the controller file names and builds a json object containing the controllers, views and partials and their paths.
 	 * 
@@ -179,82 +186,112 @@ mobileDS.ControllerManager = (function(){
 	 * @private
 	 */
     function getViewsAndPartialsForController(controllerName, controllerPath){
-    	var tmpJSON = Object();
     	
-    	controllerPath = controllerPath + controllerName;
+    	var utils = mobileDS.CommonUtils.getInstance();
+    	var consts = mobileDS.constants.getInstance(forBrowser);
     	
-    	controllerName=controllerName.replace(/\.[^.]+$/g,"");//remove file-extension
-    	tmpJSON["fileName"]=controllerName;
-    	var tmpViewPath = mobileDS.constants.getInstance(forBrowser).getViewPath() + controllerName;
-    	controllerName=controllerName[0].toUpperCase()+controllerName.substr(1);
+    	var partialsPrefix = utils.getPartialsPrefix();
+    	var controllerFilePath = controllerPath + controllerName;
     	
-    	tmpJSON["name"]=controllerName;
-    	tmpJSON["path"]=controllerPath;
+    	var rawControllerName= removeFileExt(controllerName);
+    	controllerName = rawControllerName;
     	
     	
-//    	tmpViews = mobileDS.CommonUtils.getInstance().getDirectoryContentsWithFilter(tmpViewPath, "[^"+mobileDS.CommonUtils.getInstance().getPartialsPrefix()+"]*.ehtml");
-    	var tmpViews = mobileDS.CommonUtils.getInstance().getDirectoryContentsWithFilter(tmpViewPath, "(?!"+mobileDS.CommonUtils.getInstance().getPartialsPrefix()+")*.ehtml");
+    	var viewsPath = consts.getViewPath() + controllerName;
+    	
+    	controllerName = firstToUpperCase(controllerName);
+    	
+    	var viewsFileList = utils.getDirectoryContentsWithFilter(viewsPath, "(?!"+partialsPrefix+")*.ehtml");
 
-    	var tmpViewArray = Array();
-    	var tmpViewJSON = null;
     	var i, size;
-    	for (i=0, size = tmpViews.length; i < size; ++i){
-    		tmpViewJSON = Object();
-    		tmpViewJSON["name"]=tmpViews[i].replace(/\.[^.]+$/g,"");
-    		tmpViewJSON["path"]=tmpViewPath+"/"+tmpViews[i];
-    		tmpViewArray.push(tmpViewJSON);
+    	var viewsList = [];
+    	if(viewsFileList != null){
+    		for (i=0, size = viewsFileList.length; i < size; ++i){
+    		
+	    		viewsList.push({
+	    			name: removeFileExt(viewsFileList[i]),
+	    			path: viewsPath+"/"+viewsFileList[i]
+	    		});
+	    	}
     	}
-    	tmpJSON["views"]=tmpViewArray;
 
-//    	tmpPartials = mobileDS.CommonUtils.getInstance().getDirectoryContentsWithFilter(tmpViewPath, mobileDS.CommonUtils.getInstance().getPartialsPrefix()+"*.ehtml");
-    	var tmpPartials = mobileDS.CommonUtils.getInstance().getDirectoryContentsWithFilter(tmpViewPath, mobileDS.CommonUtils.getInstance().getPartialsPrefix()+"*.ehtml");
+    	var partialsFileList = utils.getDirectoryContentsWithFilter(viewsPath, partialsPrefix+"*.ehtml");
 
-    	var tmpPartialArray = Array();
-    	var tmpPartialJSON = null;
-    	for (i=0, size = tmpPartials.length; i < size; ++i){
-    		tmpPartialJSON = Object();
-    		// remove leading "$" indicating it is a partial
-    		tmpPartialJSON["name"]=tmpPartials[i].replace(mobileDS.CommonUtils.getInstance().getPartialsPrefix(),"").replace(/\.[^.]+$/g,"");
-        	tmpPartialJSON["path"]=tmpViewPath+"/"+tmpPartials[i];
-        	tmpPartialArray.push(tmpPartialJSON);
+    	var partialsInfoList = [];
+    	if(partialsFileList != null) {
+    		for (i=0, size = partialsFileList.length; i < size; ++i){
+    		
+	    		partialsInfoList.push({
+			    		// remove leading "~" indicating it is a partial
+			    		name: removeFileExt( partialsFileList[i].replace(partialsPrefix,'') ),
+			        	path: viewsPath+"/"+partialsFileList[i]
+				});
+	        }
+    	}
+
+    	var helpersPath = consts.getHelperPath();
+    	helpersPath = helpersPath.substring(0, helpersPath.length-1);//remove trailing slash
+    	var helpersFileList = utils.getDirectoryContentsWithFilter(helpersPath, "(?!"+partialsPrefix+")*.js");
+
+    	var helperSuffix = mobileDS.constants.getInstance().getHelperSuffix();
+    	var helperInfo = null;
+    	if(helpersFileList != null){
+    		
+    		for(i=0, size = helpersFileList.length; i < size; ++i){
+	    		if(helpersFileList[i].startsWith(controllerName, true) && helpersFileList[i].endsWith(helperSuffix+'.js', true)){
+	    	    	
+	    			var name = removeFileExt(helpersFileList[i]);
+	    			helperInfo = {
+	    	    			fileName: name,
+	    	    			name: firstToUpperCase(name),
+	    	    			path: helpersPath+"/"+helpersFileList[i]
+	    	    	};
+	    		}
+	    	}
+    		
         }
-        tmpJSON["partials"]=tmpPartialArray;
-        
     	
+    	var layoutsPath = consts.getLayoutPath();
+    	layoutsPath = layoutsPath.substring(0, layoutsPath.length-1);//remove trailing slash
+    	var layoutsFileList = utils.getDirectoryContentsWithFilter(layoutsPath, "(?!"+partialsPrefix+")*.ehtml");
 
-    	var tmpHelperPath = mobileDS.constants.getInstance(forBrowser).getHelperPath();
-    	tmpHelperPath = tmpHelperPath.substring(0, tmpHelperPath.length-1);//remove trailing slash
-    	var tmpHelpers = mobileDS.CommonUtils.getInstance().getDirectoryContentsWithFilter(tmpHelperPath, "(?!"+mobileDS.CommonUtils.getInstance().getPartialsPrefix()+")*.js");
-
-    	var tmpHelperJSON = null;
-    	for(i=0, size = tmpHelpers.length; i < size; ++i){
-    		if(tmpHelpers[i].startsWith(tmpJSON["fileName"], true) && tmpHelpers[i].endsWith(mobileDS.constants.getInstance().getHelperSuffix()+'.js', true)){
-    	    	tmpHelperJSON = {};
-	    		tmpHelperJSON["fileName"]= tmpHelpers[i].replace(/\.[^.]+$/g,"");
-	    		tmpHelperJSON["name"] = tmpHelperJSON["fileName"][0].toUpperCase()+tmpHelperJSON["fileName"].substr(1);
-	        	tmpHelperJSON["path"]=tmpHelperPath+"/"+tmpHelpers[i];
+    	var layoutInfo = null;
+    	for(i=0, size = layoutsFileList.length; i < size; ++i){
+    		
+    		if( layoutsFileList[i].startsWith(controllerName, true) ){
+    			
+    			var layoutName = removeFileExt(layoutsFileList[i]);
+    	    	layoutInfo = {
+		    		fileName: layoutName,
+		    		name: layoutName,
+		        	path: layoutsPath+"/"+layoutsFileList[i],
+    	    	};
+	        	
+	        	break;
     		}
         }
-    	tmpJSON["helper"]=tmpHelperJSON;
     	
+    	var ctrlInfo = {
+    		fileName: rawControllerName,
+    		name:     controllerName,
+    		path:     controllerFilePath,
+    		
+    		views:    viewsList,
+    		partials: partialsInfoList,
+    		helper:   helperInfo,
+    		layout:   layoutInfo
+    	};
     	
-    	
-    	var tmpLayoutPath = mobileDS.constants.getInstance(forBrowser).getLayoutPath();
-    	tmpLayoutPath = tmpLayoutPath.substring(0, tmpLayoutPath.length-1);//remove trailing slash
-    	var tmpLayouts = mobileDS.CommonUtils.getInstance().getDirectoryContentsWithFilter(tmpLayoutPath, "(?!"+mobileDS.CommonUtils.getInstance().getPartialsPrefix()+")*.ehtml");
-
-    	var tmpLayoutJSON = null;
-    	for(i=0, size = tmpLayouts.length; i < size; ++i){
-    		if( tmpLayouts[i].startsWith(tmpJSON["fileName"], true) ){
-    	    	tmpLayoutJSON = {};
-	    		tmpLayoutJSON["fileName"]= tmpLayouts[i].replace(/\.[^.]+$/g,"");
-	    		tmpLayoutJSON["name"] = tmpLayoutJSON["fileName"];
-	        	tmpLayoutJSON["path"]=tmpLayoutPath+"/"+tmpLayouts[i];
-    		}
-        }
-    	tmpJSON["layout"]=tmpLayoutJSON;
+    	//TEST compare info with "reference" result from original impl.:
+//    	var test ={
+//    			application: '{"fileName":"application","name":"Application","path":"controllers/application.js","views":[{"name":"login","path":"views/application/login.ehtml"},{"name":"registration","path":"views/application/registration.ehtml"},{"name":"welcome","path":"views/application/welcome.ehtml"}],"partials":[{"name":"languageMenu","path":"views/application/~languageMenu.ehtml"}],"helper":{"fileName":"applicationHelper","name":"ApplicationHelper","path":"helpers/applicationHelper.js"},"layout":{"fileName":"application","name":"application","path":"views/layouts/application.ehtml"}}',
+//    			calendar: '{"fileName":"calendar","name":"Calendar","path":"controllers/calendar.js","views":[{"name":"create_appointment","path":"views/calendar/create_appointment.ehtml"}],"partials":[],"helper":null,"layout":null}'
+//    	};
+//    	
+//    	var isEqual = (JSON.stringify(ctrlInfo) === test[ctrlInfo.fileName]);
+//    	console[isEqual? 'info':'error']('compliance-test: isEual? '+  isEqual);
         
-        return tmpJSON;
+        return ctrlInfo;
     }
     
 	/**

@@ -36,10 +36,10 @@
 if (!Array.prototype.each) {
 	
 	var eachImpl;
-	if ($ && $.each) {
+	if (typeof jQuery !== 'undefined' && jQuery.each) {
 		
 		eachImpl = function(collection, callback) {
-			$.each(collection, callback);
+			jQuery.each(collection, callback);
 		};
 		
 	}
@@ -62,4 +62,27 @@ if (!Array.prototype.each) {
 	}
 	
 	Array.prototype.each = eachImpl;
+}
+
+if(!Array.isArray){
+	var isArrayHelper = function(obj){
+		
+		//this is the initializer: the following will overwrite the isArray-function
+		// with the appropriate version (use jQuery method, if present, otherwise use alternative)
+		
+		//if present, use jQuery method:
+		if(typeof jQuery !== 'undefined' && typeof jQuery.isArray === 'function'){
+			isArrayHelper = jQuery.isArray; 
+		}
+		else {
+			//use the toString method with well-defined return-value from Object:
+			var staticToString = Object.prototype.toString;
+			
+			isArrayHelper = function(obj){
+				return staticToString.call(obj) === '[object Array]';
+			};
+		}
+	};
+	
+	Array.isArray = isArrayHelper();
 }

@@ -39,7 +39,9 @@
 
 importClass(java.io.File);
 importClass(java.io.FileReader);
-importClass(java.io.FileWriter);
+//importClass(java.io.FileWriter);
+importClass(java.io.OutputStreamWriter);
+importClass(java.io.FileOutputStream);
 importClass(java.io.LineNumberReader);
 
 
@@ -67,13 +69,17 @@ function loadLocalFile(path, type){
 	
 	if(isDebugOutput) console.log('read contents from file: '+path);
 	
+	if(type && type === 'text'){
+		return theJSONgrammarString;
+	}
+	
 	return JSON.parse(theJSONgrammarString);
 }
 
 /*
  * see saveToFile in IFileHandler.js
  */
-function saveToFile(str, path, doNotOverWrite){
+function saveToFile(str, path, doNotOverWrite, doCreateMissingDirectories){
 	
 	if(typeof str !== 'string'){
 		str = JSON.stringify(str, null, '  ');
@@ -81,17 +87,32 @@ function saveToFile(str, path, doNotOverWrite){
 	
 	var f = new File(path);
 	
+	var isCreateMissingDirs = doCreateMissingDirectories === false? false: true;
+	if(isCreateMissingDirs){
+		var parentDir = f.getParentFile();
+		if(!parentDir.exists()){
+			if(isDebugOutput) console.log('  writing: creating missing dir '+parentDir.getAbsolutePath());
+			parentDir.mkdirs();
+		}
+	}
+	
+	
 	if(isDebugOutput) console.log('writing: file exists (overwriting)? '+f.exists());
 	
 	if(doNotOverWrite && f.exists()){
-		return;//////////////////////// EARLY EXIT ///////////////////////
+		return false;//////////////////////// EARLY EXIT ///////////////////////
 	}
 	
-	var r = new FileWriter(f, false);
+//	var r = new FileWriter(f, false);
+
+	var r = new OutputStreamWriter( new FileOutputStream(f, false), 'UTF-8');
 	
+//	r.write('\ufeff');//<- manually add BOM for indicating UTF-8 encoding
 	r.write(str);
 	
 	r.close();
 	
 	if(isDebugOutput) console.log('wrote String (len '+str.length+') to file: '+path);
+	
+	return true;
 }

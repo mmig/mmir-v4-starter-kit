@@ -26,13 +26,16 @@
 
 
 var silenceCount = 0, //how many silent blobs have there been in a row now?
-	speachCount = 0, //how many blobs have been loud in a row now?
+	speechCount = 0, //how many blobs have been loud in a row now?
 	lastInput = 0, // how long has there been no good loud input?
 	recording= false,
 	noiseTreshold = 0.1, //the bigger, the more is counted as silent
 	sampleRate = 0,
 	pauseCount = 3,
-	resetCount = 15;
+	resetCount = 15,
+	maxBlobSize = 15,
+	blobSizeCount = 0,
+	blobNumber = 0;
   
 self.onmessage = function(e){
   switch(e.data.command){
@@ -58,7 +61,7 @@ function init(config){
   if (config.sampleRate)sampleRate = config.sampleRate;
   if (config.noiseTreshold) noiseTreshold = config.noiseTreshold;
   if (config.pauseCount) pauseCount = config.pauseCount;
-  if (config.resetCount) resetCount = config.restCount;
+  if (config.resetCount) resetCount = config.resetCount;
   self.postMessage('Silence Detection initialized');
 }
 
@@ -70,6 +73,10 @@ function init(config){
  */
 function isSilent(inputBuffer){
 	if (recording){
+		blobNumber++;
+		if (blobNumber==3){
+			self.postMessage('Silence detected!');
+		}
 		var thisSilent = true;
 		var bound = 0;
 		for (var i = 0; i < inputBuffer.length; i++) {
@@ -81,29 +88,38 @@ function isSilent(inputBuffer){
 		if (thisSilent){
 			if (silenceCount>=pauseCount){
 				self.postMessage('Silence detected!');
-				speachCount = 0;
+				speechCount = 0;
 				silenceCount = 0;
 				lastInput = 0;
+				blobsizeCount = 0;
 			}
-			if (speachCount>=pauseCount){
+			if (speechCount>=pauseCount){
+				blobSizeCount++;
 				silenceCount++;
 			} 
 			else {
-				speachCount = 0;
+				speechCount = 0;
 				lastInput++;
 			}
 		} 
 		else {
-			if (speachCount>=pauseCount){
+			if (speechCount>=pauseCount){
 				silenceCount=0;
+				blobSizeCount++;
 			} 
 			else {
-				speachCount++;
+				speechCount++;
 				lastInput++;
 			}
 		}
-		
-		if (speachCount==0 && lastInput>resetCount){
+		if (speechCount>pauseCount){
+			
+		}
+		if (blobSizeCount >= maxBlobSize){
+			self.postMessage('Send partial!');
+			blobSizeCount = 0;
+		}
+		if (speechCount==0 && lastInput>resetCount){
 			this.postMessage('clear');
 			lastInput= 0;
 		}
@@ -116,13 +132,21 @@ function isSilent(inputBuffer){
  */
 function start(){
 	silenceCount=0;
-	speachCount =0;
+	speechCount =0;
 	lastInput = 0;
 	recording = true;
 	self.postMessage('Silence Detection started');
+	blobNumber = 0;
 }
 function stop(){
 	recording = false;
+	if (speechCount>0){
+		self.postMessage('Silence detected!');
+		speechCount = 0;
+		silenceCount = 0;
+		lastInput = 0;
+		blobsizeCount = 0;
+	}
 	self.postMessage('Silence Detection stopped');
 }
 

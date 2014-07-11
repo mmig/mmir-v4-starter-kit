@@ -61,7 +61,7 @@ var parserPrintError = function(prefix, msg){//FIXME
  * 
  * If lineNo is <= 1, the function returns always 0.
  * 
- * If the lineNo is greater than the count of lins in str, the string length itself is returned. 
+ * If the lineNo is greater than the count of lines in str, the string length itself is returned. 
  * 
  * @function getIndexForLine
  * @param {String} str the string
@@ -81,6 +81,10 @@ var getIndexForLine = (function(){
 				break;
 			}
 		}
+		
+		//reset regexpr:
+		detectLinebreak.lastIndex = 0;
+		
 		if(match){
 			return match.index + match[1].length;
 		}
@@ -129,6 +133,10 @@ var getLineForIndex = (function(){
 			}
 			++count;
 		}
+		
+		//reset regexpr:
+		detectLinebreak.lastIndex = 0;
+		
 		if(match){
 			//need to reset regexpr for next call:
 			detectLinebreak.test(str);
@@ -150,6 +158,10 @@ extractErrorPosition = (function(){
 	return function extractErrorPositionImpl(msg, offset, originalContent){
 //		console.log('\nTEST1_extractErrorPositionImpl with arguments '+arguments.length+'\n');
 		var result = detectLine.exec(msg);
+		
+		//reset regexpr:
+		detectLine.lastIndex = 0;
+		
 //		console.log('\nTEST2_result for "'+msg+'": '+result+'\n');
 		var pos = null;
 		if(result){
@@ -175,7 +187,7 @@ extractErrorPosition = (function(){
 			}
 		}
 		return pos;
-	}
+	};
 })();
 
 var CURRENT_PARSED_VIEW = null;//FIXME

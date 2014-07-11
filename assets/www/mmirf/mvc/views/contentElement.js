@@ -38,11 +38,16 @@
  * @category core
  */
 function ContentElement(group, view, parser, renderer){
+
+	this.localizer  = mobileDS.LanguageManager.getInstance();
+	
+	if(arguments.length === 0){
+		return this;
+	}
 	
 	//TODO externalize as constant
 	var SUB_ELEMENT_NAME = "@fragment";
 	
-	this.localizer  = mobileDS.LanguageManager.getInstance();
 	this.parser     = parser;
 	this.renderer   = renderer;
 	this.view       = view;
@@ -147,9 +152,60 @@ function ContentElement(group, view, parser, renderer){
 //		var func = new Function(mobileDS.parser.element.DATA_NAME, strFuncBody);
 //		func.name = strFuncName;
 		
-		//NOTE: need a dummy variable to catch and return the create function-definition in the eval-statement
-		//      (the awkward 'var dummy=...;dummy'-construction avoids leaking the dummy-var into the 
-		//       global name-space, where the last ';dummy' represent the the return-statement for eval(..) )
+		
+//		//TEST use import/export VARs instead of data-object access:
+//		//
+//		//IMPORT
+//		// * make properties of DATA available as local variables
+//		// * synchronize the DATA properties to local variables (with property getters/setters)
+//		//EXPORT
+//		// * on exit: commit values of local variables to their corresponding DATA-fields (and remove previously set "sync"-code)
+//		//
+//		var dataFieldName = mobileDS.parser.element.DATA_NAME;
+//		
+//		//TODO do static "import" without eval(): only import VARs that were declared by @var() before!
+//		//     ... also (OPTIMIZATION): during JS-parsing, gather/detect VARIABLE occurrences -> only import VAR if it gets "mentioned" in the func-body! (need to detect arguments vs. variables for this!)		
+//		var iteratorName = '__$$ITER$$__';//<- iterator name (for iterating over DATA fields)
+//		var varIteratorStartSrc = 'for(var '+iteratorName+' in '+dataFieldName+'){\
+//	          if('+dataFieldName+'.hasOwnProperty('+iteratorName+')){';//<- TODO? add check, if field-name starts with @?
+//		var varIteratorEndSrc = '}}';
+//		
+//		var importDataSrc = varIteratorStartSrc
+//					//create local variable, initialized with the DATA's value 
+//					+ 'eval("var "+'+iteratorName+'.substring(1)+" = '+dataFieldName+'[\'"+'+iteratorName+'+"\'];");'
+//					//"synchronize" the DATA object to to the created local variable 
+//					+ 'Object.defineProperty('+dataFieldName+', '+iteratorName+',{\
+//		                    configurable : true,\
+//		                    enumerable : true,\
+//		    				set: eval("var dummy1 = function set(value){\\n "+'+iteratorName+'.substring(1)+" = value;\\n };dummy1"),\
+//		    				get: eval("var dummy2 = function get(){\\n return "+'+iteratorName+'.substring(1)+";\\n };dummy2")\
+//		    			});'
+//					+ varIteratorEndSrc;
+//		
+//		//TODO do not define "export" with the function itself, since there may be problems due to return statements etc.
+//		//     ... instead: do the "export" after the function was invoked, i.e. obj.evalScript() etc. in renderer
+//		var exportDataSrc = varIteratorStartSrc
+//					//DISABLED: use defineProperty() instead (see below) ... this would use the "proxy"/"sync" mechanism..
+////					+ 'eval("'+dataFieldName+'[\'"+'+iteratorName+'+"\'] = "+'+iteratorName+'.substring(1)+";");'
+//		
+//					//reset to DATA property to normal behavior 
+//					// i.e. remove proxy-behavior by removing the getter/setter
+//					// and setting to current value
+//					+ 'Object.defineProperty('+dataFieldName+', '+iteratorName+',{\
+//							value : '+dataFieldName+'['+iteratorName+'],\
+//                    		writable : true,\
+//		                    configurable : true,\
+//		                    enumerable : true\
+//		    			});'
+//					+ varIteratorEndSrc;
+//		
+//		var func = eval( 'var dummy=function '+strFuncName+'('+mobileDS.parser.element.DATA_NAME+'){'
+//				+ importDataSrc + strFuncBody +';'+exportDataSrc+'};dummy' );//<- FIXME WARING: export does not work correctly, if there is a return-statement in the outermost scope of the strFuncBody!
+		
+		
+//		//NOTE: need a dummy variable to catch and return the create function-definition in the eval-statement
+//		//      (the awkward 'var dummy=...;dummy'-construction avoids leaking the dummy-var into the 
+//		//       global name-space, where the last ';dummy' represent the the return-statement for eval(..) )
 		var func = eval( 'var dummy=function '+strFuncName+'('+mobileDS.parser.element.DATA_NAME+'){'+strFuncBody+'};dummy' );
 		
 		return func;
@@ -376,7 +432,7 @@ ContentElement.prototype.getView = function(){
  * @public
  */ 
 ContentElement.prototype.getController = function(){
-    return this.view.getController();
+    return this.getView().getController();
 };
 
 /**
@@ -424,6 +480,134 @@ ContentElement.prototype.getEnd = function(){
 
 ContentElement.prototype.hasDynamicContent = function(){
     return this.internalHasDynamicContent; 
+};
+
+ContentElement.prototype.stringify = function(){
+	
+	//TODO use constants for lists
+		
+	//primitive-type properties:
+	// write values 'as is' for these properties
+	var propList = [
+	     'name',
+   	     'definition',
+	     'start',
+	     'end',
+	     'internalHasDynamicContent'
+	];
+	
+	//Array-properties
+	var arrayPropList = [
+   	     'allContentElements' //element type: ParsingResult (stringify-able)
+   	];
+	
+
+//	//SPECIAL: store view by getter function initView: use the view's name view {View} -> 'viewName' {String}, 'ctrlName' {String}
+//	
+//	//USED BY RENDERER:
+////	allContentElements
+////	definition
+////	getRawText() == definition
+////	getController() (by view)
+//
+//	//SPECIAL: store renderer by getter function initRenderer
+//	
+//	//function properties:
+//	var funcPropList = [
+//   	     'initView',
+//   	     'initRenderer'
+//   	];
+	
+
+	//function for iterating over the property-list and generating JSON-like entries in the string-buffer
+	var appendStringified = mobileDS.parser.appendStringified;
+	
+	var sb = ['mobileDS.parser.restoreObject({ classConstructor: ["ContentElement"]', ','];
+	
+	appendStringified(this, propList, sb);
+	
+	//non-primitives array-properties with stringify() function:
+	appendStringified(this, arrayPropList, sb, null, function arrayValueExtractor(name, arrayValue){
+		
+		var buf =['['];
+		for(var i=0, size = arrayValue.length; i < size; ++i){
+			buf.push(arrayValue[i].stringify());
+			buf.push(',');
+		}
+		//remove last comma
+		if(arrayValue.length > 0){
+			buf.splice( buf.length - 1, 1);
+		}
+		buf.push(']');
+		
+		return buf.join('');
+	});
+	
+	//TODO is there a better way to store the view? -> by its name and its contoller's name, and add a getter function...
+	if(this['view']){
+		//getter/setter function for the view/controller
+		//  (NOTE: needs to be called before view/controller can be accessed!)
+		sb.push( 'initView: function(){');
+		
+		// store view-name:
+		sb.push( ' var viewName = ');
+		sb.push( JSON.stringify(this.getView().getName()) );
+		
+		// store controller-name:
+		sb.push( '; var ctrlName = ');
+		sb.push( JSON.stringify(this.getController().getName()) );
+		
+		// ... and the getter/setter code:
+		sb.push( '; this.view = mobileDS.PresentationManager.getInstance().get');
+		sb.push(this['view'].constructor.name);//<- insert getter-name dependent on the view-type (e.g. View, Partial)
+		sb.push('(ctrlName, viewName); this.getView = function(){return this.view;}; return this.view; },' );
+		
+		
+		sb.push( 'getView: function(){ return this.initView();}');
+		
+		//NOTE: need to add comma in a separate entry 
+		//      (-> in order to not break the removal method of last comma, see below)
+		sb.push( ',' );
+	}
+	
+	//TODO is there a better way to store the renderer? -> by a getter function...
+	if(this['renderer']){
+		//getter/setter function for the (default) renderer
+		//  (NOTE: needs to be called before view/controller can be accessed!)
+		sb.push( 'initRenderer: function(){');
+		// ... and the getter/setter code:
+		sb.push( ' this.renderer = mobileDS.parser.RenderUtils.getInstance(); }' );
+		
+		//NOTE: need to add comma in a separate entry 
+		//      (-> in order to not break the removal method of last comma, see below)
+		sb.push( ',' );
+	}
+	
+	if(this['renderer'] || this['view']){
+		//add initializer function
+		//  (NOTE: needs to be called before view/controller or renderer can be accessed!)
+		sb.push( 'init: function(){');
+		
+		if(this['renderer']){
+			sb.push( ' this.initRenderer(); ' );
+		}
+//		if(this['view']){
+//			sb.push( ' this.initView(); ' );
+//		}
+		sb.push( ' }' );
+		
+		//NOTE: need to add comma in a separate entry 
+		//      (-> in order to not break the removal method of last comma, see below)
+		sb.push( ',' );
+	}
+	
+	//if last element is a comma, remove it
+	if(sb[sb.length - 1] === ','){
+		sb.splice( sb.length - 1, 1);
+	}
+	
+	sb.push(' })');
+	return sb.join('');
 };
 
 //MOVED to renderContentElement in ParserUtils

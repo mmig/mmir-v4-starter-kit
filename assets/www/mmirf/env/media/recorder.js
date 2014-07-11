@@ -1,9 +1,16 @@
 ﻿/*
- * 	Copyright (C) 2012-2013 DFKI GmbH
+ * License (MIT)
+ *
+ * modifications:
+ * 
+ * 	Copyright (C) 2013 DFKI GmbH
  * 	Deutsches Forschungszentrum fuer Kuenstliche Intelligenz
  * 	German Research Center for Artificial Intelligence
  * 	http://www.dfki.de
- * 
+ *  
+ * based on
+ * 	Copyright (C) 2013 Matt Diamond (MIT License)
+ *
  * 	Permission is hereby granted, free of charge, to any person obtaining a 
  * 	copy of this software and associated documentation files (the 
  * 	"Software"), to deal in the Software without restriction, including 
@@ -33,13 +40,30 @@
     var config = cfg || {};
     var bufferLen = config.bufferLen || 4096;
     this.context = source.context;
-    this.node = this.context.createJavaScriptNode(bufferLen, 2, 2);
+//    this.createScriptProcessor = function(contextObj, bufferSize, numberOfInputChannels, numberOfOutputChannels){
+//    	if(contextObj.createJavaScriptNode){
+//    		return contextObj.createJavaScriptNode(bufferSize, numberOfInputChannels, numberOfOutputChannels);
+//    	}
+//    	else if(contextObj.createScriptProcessor){
+//    		return contextObj.createScriptProcessor(bufferSize, numberOfInputChannels, numberOfOutputChannels);
+//    	}
+//    	else {
+//    		throw Error('Could not create script-processor for AudioContext: context provides no function for generating processor!');
+//    	}
+//    };
+//    this.node = this.createScriptProcessor(this.context, bufferLen, 2, 2);
+    if(!this.context.createScriptProcessor){
+    	this.node = this.context.createJavaScriptNode(bufferLen, 2, 2);
+    }
+    else {
+    	this.node = this.context.createScriptProcessor(bufferLen, 2, 2);
+    }
     var worker = new Worker(config.workerPath || WORKER_PATH);
     worker.postMessage({
-      command: 'init',
-      config: {
-        sampleRate: this.context.sampleRate
-      }
+    	command: 'init',
+    	config: {
+    		sampleRate: this.context.sampleRate
+    	}
     });
     var recording = false,
       currCallback;
@@ -75,28 +99,38 @@
       worker.postMessage({ command: 'clear' });
     }
 
-    this.getBuffer = function(cb) {
+    this.getBuffers = function(cb) {
       currCallback = cb || config.callback;
-      worker.postMessage({ command: 'getBuffer' })
+      worker.postMessage({ command: 'getBuffers' })
     }
 
     this.exportWAV = function(cb, type){
-      currCallback = cb || config.callback;
-      type = type || config.type || 'audio/wav';
-      if (!currCallback) throw new Error('Callback not set');
-      worker.postMessage({
-        command: 'exportWAV',
-        type: type
-      });
+    	currCallback = cb || config.callback;
+    	type = type || config.type || 'audio/wav';
+    	if (!currCallback) throw new Error('Callback not set');
+    	worker.postMessage({
+    		command: 'exportWAV',
+    		type: type
+    	});
+    }
+
+    this.exportMonoWAV = function(cb, type){
+    	currCallback = cb || config.callback;
+    	type = type || config.type || 'audio/wav';
+    	if (!currCallback) throw new Error('Callback not set');
+    	worker.postMessage({
+    		command: 'exportMonoWAV',
+    		type: type
+    	});
     }
 
     worker.onmessage = function(e){
-      var blob = e.data;
-      currCallback(blob);
+    	var blob = e.data;
+    	currCallback(blob);
     }
 
     source.connect(this.node);
-    this.node.connect(this.context.destination);    //this should not be necessary
+    this.node.connect(this.context.destination);    // if the script node is not connected to an output the "onaudioprocess" event is not triggered in chrome.
   };
 
   Recorder.forceDownload = function(blob, filename){

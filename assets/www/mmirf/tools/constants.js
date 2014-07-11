@@ -70,6 +70,8 @@ mobileDS.constants = (function() {
 	var modelPath = "models/";
 	var layoutPath = "views/layouts/";
 	var viewPath = "views/";
+	var genViewPath = "gen/views/";
+	var genLayoutPath = "gen/views/layouts/";
 	var genGrammarsPath = "gen/grammar/";
 	var speakerFileName = "speaker.json";
 	var grammarFileName = "grammar.json";
@@ -140,6 +142,9 @@ mobileDS.constants = (function() {
 			getLayoutPath: function(){
 				return basePath+layoutPath;
 			},
+			getCompiledLayoutPath: function(){
+				return basePath+genLayoutPath;
+			},
 			/**
 			 * Returns a string with the path to the models.
 			 * @function getModelPath
@@ -157,6 +162,10 @@ mobileDS.constants = (function() {
 			 */
 			getViewPath: function(){
 				return basePath+viewPath;
+			},
+			
+			getCompiledViewPath: function(){
+				return basePath + genViewPath;
 			},
 			/**
 			 * Returns a string with the path to the languages.

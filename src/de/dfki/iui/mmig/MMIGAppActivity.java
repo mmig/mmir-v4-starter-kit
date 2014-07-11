@@ -40,7 +40,9 @@ public class MMIGAppActivity extends DroidGap {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-				
+		
+		NuanceEngine.createInstance(this.getContext());
+		
 //		CookieManager.setAcceptFileSchemeCookies(true);
 		
 		//INCREASE TIMEOUT if you get the error message
@@ -84,6 +86,8 @@ public class MMIGAppActivity extends DroidGap {
 
 	@Override
 	public void onDestroy() {
+		
+		NuanceEngine.getInstance().releaseResources();
 		
 		super.onDestroy();
 	}

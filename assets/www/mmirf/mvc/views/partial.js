@@ -43,23 +43,28 @@ var mobileDS = window.mobileDS ||
  * @category core
  */
 function Partial(ctrl, name, definition){
+	
 //    var HTMLCommentRegExp = /<!--[\s\S]*?-->/g;
-    
-	definition = definition.replace(mobileDS.CommonUtils.getInstance().regexHTMLComment, '');//remove HTML comments!  .replace(HTMLCommentRegExp,"");
+	if(definition){
+    	definition = definition.replace(mobileDS.CommonUtils.getInstance().regexHTMLComment, '');//remove HTML comments!  .replace(HTMLCommentRegExp,"");
+    }
+	
     this.controller = ctrl;
     this.def = definition;
     this.name = name;
 //    console.log("[Partial] parsed Partial '" +this.controller + "-"+this.name+ "'.");
     
-    var parser = mobileDS.parser.ParserUtils.getInstance();
-    var renderer = mobileDS.parser.RenderUtils.getInstance();
-    
-    var contentElementInfo = {
-    		//this name is purely informational:
-    		name : this.controller.getName() + 'Partial',
-    		content : this.def
-    	};
-    this.contentElement = new ContentElement(contentElementInfo, this, parser, renderer);
+    if(definition){
+	    var parser = mobileDS.parser.ParserUtils.getInstance();
+	    var renderer = mobileDS.parser.RenderUtils.getInstance();
+	    
+	    var contentElementInfo = {
+	    		//this name is purely informational:
+	    		name : this.controller.getName() + 'Partial',
+	    		content : this.def
+	    	};
+	    this.contentElement = new ContentElement(contentElementInfo, this, parser, renderer);
+    }
 }
 
 /**
@@ -100,4 +105,67 @@ Partial.prototype.getController = function(){
  */
 Partial.prototype.getContentElement = function(){
     return this.contentElement;
+};
+
+Partial.prototype.stringify = function(){
+
+	// "plain properties" list
+	var propList = [
+	     'name', 
+	     'def'
+	];
+
+	//Array-properties
+	var stringifyablePropList = [
+   	     'contentElement' //element type: ContentElement (stringify-able)
+   	];
+
+	//function for iterating over the property-list and generating JSON-like entries in the string-buffer
+	var appendStringified = mobileDS.parser.appendStringified;
+	
+	var sb = ['mobileDS.parser.restoreObject({ classConstructor: ["Partial"]', ','];
+	
+	appendStringified(this, propList, sb);
+	
+	//non-primitives properties with stringify() function:
+	appendStringified(this, stringifyablePropList, sb, null, function arrayValueExtractor(name, stringifyableValue){
+		return stringifyableValue.stringify();
+	});
+	
+	sb.push( 'initPublish: function(){ mobileDS.PresentationManager.getInstance().addPartial(this.getController(), this); }');
+	sb.push(',');
+	
+	//TODO is there a better way to store the controller? -> by its contoller's name, and add a getter function...
+	if(this['controller']){
+		
+		//getter/setter function for controller
+		//  (NOTE: this init-function needs to be called before controller can be accessed!)
+		sb.push( 'initController: function(){');
+
+		// store controller-name:
+		sb.push( ' var ctrlName = ');
+		sb.push( JSON.stringify(this.getController().getName()) );
+		
+		// ... and the getter/setter code:
+		sb.push( '; this.controller = mobileDS.ControllerManager.getInstance().getController(ctrlName); },' );
+		
+		
+		//add initializer function
+		//  (NOTE: needs to be called before controller or renderer can be accessed!)
+		sb.push( 'init: function(){');
+		sb.push( ' this.initController(); ' );
+		sb.push( ' }' );
+		
+		//NOTE: need to add comma in a separate entry 
+		//      (-> in order to not break the removal method of last comma, see below)
+		sb.push( ',' );
+	}
+	
+	//if last element is a comma, remove it
+	if(sb[sb.length - 1] === ','){
+		sb.splice( sb.length - 1, 1);
+	}
+	
+	sb.push(' }, true);');
+	return sb.join('');
 };

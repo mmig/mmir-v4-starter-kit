@@ -29,8 +29,21 @@ newMediaPlugin = {
 		initialize: function(callBack){
 			
 			callBack({
-				    textToSpeech: function (text, successCallBack, failureCallBack, startCallBack){
+				    textToSpeech: function (parameter, successCallBack, failureCallBack, startCallBack){
 				    	try{
+				    		
+				    		var text;
+				    		if((typeof parameter !== 'undefined')&& mobileDS.CommonUtils.getInstance().isArray(parameter) ){
+				    			//TODO implement pausing similar to maryTextToSpeech.js (i.e. in JS code); use XML?
+				    			
+				    			text = parameter.join('\n');//FIXME may need 2 newlines here: in some cases the Nuance TTS does not make pause, when there is only 1 newline (why?!?...)
+				    			
+				    		}
+				    		else {
+				    			//FIXME implement evaluation / handling the parameter similar to treatment in maryTextToSpeech.js
+				    			text = parameter;
+				    		}
+				    		
 					    	window.plugins.nuancePlugin.speak(
 					    			text, 
 					    			successCallBack, 
@@ -50,14 +63,13 @@ newMediaPlugin = {
 				    	
 				    },
 	    			cancelSpeech: function(successCallBack,failureCallBack){
-	    				 
 	    				//FIXME currently, NuancePlugin returns failure on successful cancel-performance, so we call the function with switched failure, success arguments...
 	    				//			-> switch back, when NuancePlugin returns PluginResults correctly... 
 	    				window.plugins.nuancePlugin.cancel(failureCallBack, successCallBack);
 	    			},
-	    			longTTS: function(sentences, onEnd, failureCallBack){
-	    				
-	    			}
+					setTextToSpeechVolume: function(newValue){
+	    				//FIXME implement this? how? Nuance library gives no access to audio volume (we could set the Android volume level ...)
+					}
 			});	
 		}
 };

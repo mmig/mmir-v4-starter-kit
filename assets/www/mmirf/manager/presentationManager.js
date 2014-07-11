@@ -42,8 +42,6 @@
 var mobileDS = window.mobileDS ||
 {};
 
-var pageIndex = 0;
-
 
 /**
  * A class to manage the displayed content by using views and partials. <br>
@@ -81,6 +79,20 @@ mobileDS.PresentationManager = (function(){
      * @constant
      */
     var DEFAULT_CONTROLLER_NAME = 'Application';
+    
+    /**
+     * Counter that keeps track of the number of times, that a view is rendered
+     * 
+     * NOTE: for implementation specific reasons, jQuery Mobile requires that
+     * 		 each page has a different ID. This pageIndex is used to generating
+     * 		 such a unique ID, by increasing the number on each page-change
+     * 		 (i.e. by rendering a view) and appending it to the page's ID/name.
+     * 
+     * @property pageIndex
+     * @type Integer
+     * @private
+     */
+    var pageIndex = 0;
     
 	/**
 	 * Constructor-Method of Class {@link mobileDS.PresentationManager}<br>
@@ -261,6 +273,61 @@ mobileDS.PresentationManager = (function(){
         	return createLookupKey(ctrl, partial, partialSeparator);
         }
         
+        
+        function loadPrecompiledView(rawViewData, targetpath, fail){
+        	
+        	if(! isUpToDate(rawViewData, targetpath)){
+        		if(fail) fail('Precompiled view file is outdated!');
+        		else console.warn('Outdated pre-compiled view at: '+targetpath);
+        	}
+        	
+        	console.error('Loading pre-compiled view: '+targetpath);//FIXME DEBUG
+        	
+        	mobileDS.CommonUtils.getInstance().getLocalScript( //scriptUrl, success, fail)
+        			targetpath, null, fail
+        	);
+        }
+        
+        var isUsePreCompiledViews = mobileDS.ConfigurationManager.getInstance().get('usePrecompiledViews');
+        isUsePreCompiledViews = typeof isUsePreCompiledViews === 'undefined' ? false : isUsePreCompiledViews === 'false'? false : isUsePreCompiledViews? true : false;
+
+        var checksumUtils = mobileDS.ChecksumUtils.init();
+        /**
+         * Read the checksum file that was created when the pre-compiled view was created:
+         * 
+         * it contains the view's size (the length of its String representation) and MD5 hash.
+         */
+        function isUpToDate(viewContent, preCompiledViewPath){
+        	//'.js' -> '.checksum.txt'
+        	var  viewVerificationInfoPath = 
+        				preCompiledViewPath.substring(0, preCompiledViewPath.length - 3) 
+        				+ checksumUtils.getFileExt();
+        	
+
+			console.error('verifying that pre-compiled view is up-to-date at '+preCompiledViewPath);//FIXME DEBUG
+        	
+			var isCompiledViewUpToDate = false;
+			
+        	$.ajax({
+				async: false,//<-- use "SYNC" modus here
+				dataType: "text",
+				url: viewVerificationInfoPath,
+				success: function(data){
+					
+					//compare raw String to checksum-data from file
+					isCompiledViewUpToDate = checksumUtils.isSame(viewContent, data);
+				}
+			}).fail(function(jqxhr, settings, err){
+				// print out an error message
+				var errMsg = err && err.stack? err.stack : err;
+				console.error("[" + settings + "] Could not load '" + viewVerificationInfoPath + "': "+errMsg); //failure
+			});
+        	
+
+			console.error((isCompiledViewUpToDate? '+++++++++':'--------')+'pre-compiled view is NOT up-to-date! -> '+preCompiledViewPath);//FIXME DEBUG
+        	return isCompiledViewUpToDate;
+        }
+        
 		/**
 		 * This function loads the layouts for every controller and puts the name of the layouts into the <b>layouts</b> array.
 		 * 
@@ -274,21 +341,42 @@ mobileDS.PresentationManager = (function(){
             var ctrlNames = mobileDS.ControllerManager.getInstance().getControllerNames();
             for(var i=0, size = ctrlNames.length; i < size; ++i){
                 var ctrl = mobileDS.ControllerManager.getInstance().getController( ctrlNames[i] );
-                var layoutDef = ctrl.getLayout();
-                if(layoutDef){
+                var layoutInfo = ctrl.getLayout();
+                
+
+                if(layoutInfo){
+                	
+	                var genPath = mobileDS.constants.getInstance().getCompiledLayoutPath()//TODO add compiled-path to view-info object (and read it from file-structure/JSON) 
+									+ layoutInfo.fileName + '.js';
+
 	                $.ajax({
 	                    async: false,
 	                    dataType: "text",
-	                    url: mobileDS.constants.getInstance(forBrowser).getLayoutPath() + layoutDef["fileName"] + '.ehtml',
+	                    url: mobileDS.constants.getInstance(forBrowser).getLayoutPath() + layoutInfo.fileName + '.ehtml',
 	                    success: function(data){
-						    var layout = new Layout(ctrl.getName(), data);
-	                        layouts.put(layout.getName(), layout);//[layoutIndex++] = layout;
+	                    	
+	                    	if(isUsePreCompiledViews){
+	                    		
+	                    		loadPrecompiledView(data, genPath, function(err){
+        							console.error('Could not load precompiled layout from "'+genPath+'", because: '+err);
+        							
+        							var layout = new Layout(ctrl.getName(), data);
+			                        layouts.put(layout.getName(), layout);
+        						});
+	                    		
+        					}
+	                    	else {
+							    var layout = new Layout(ctrl.getName(), data);
+		                        layouts.put(layout.getName(), layout);
+	                    	}
 	                    }
 	                });
+		                
+//	                });//FIXME TEST
+					
                 }
             }
         }
-        
 
         /**
 		 * This function actually loads the views for every controller, creates an instance of a view class and puts the view instance in the <b>views</b> array.<br>
@@ -301,28 +389,37 @@ mobileDS.PresentationManager = (function(){
 		 * @async
 		 */
         function loadViews(){
-//        	function getViewPath(name, controller){
-//        		var returnpath = "";
-//        		$.each(controller.getViews(), function(index, view){
-//        			if (name === view["name"]) {
-//        				returnpath = view["path"];
-//        				return false;
-//        			}
-//        		});
-//        		return returnpath;
-//        	}
         	
         	$.each(mobileDS.ControllerManager.getInstance().getControllerNames(), function(ctrlIndex, controllerName){
         		var controller = mobileDS.ControllerManager.getInstance().getController(controllerName);  
         		$.each(controller.getViews(), function(index, view){
         			
+        			var genPath = mobileDS.constants.getInstance().getCompiledViewPath()//TODO add compiled-path to view-info object (and read it from file-structure/JSON)
+        							+ controllerName + '/' + view.name + '.js';
+        			
         			$.ajax({
         				async: true,
         				dataType: "text",
-        				url: view.path,//getViewPath(view, controller),
+        				url: view.path,
         				success: function(data){
-        					var ctrlView = new View(controller, view.name , data);
-        					views.put( createViewKey( controller.getName(), view.name), ctrlView);//[viewIndex++] = ctrlView;
+        					
+        					if(isUsePreCompiledViews){
+	                    		
+	                    		loadPrecompiledView(data, genPath, function(err){
+        							console.error('Could not load precompiled view from '+genPath+'", because: '+err);
+        							
+        							var ctrlView = new View(controller, view.name , data);
+    	        					views.put( createViewKey( controller.getName(), view.name), ctrlView);
+    	        					
+        						});
+	                    		
+        					}
+        					else {
+        					
+	        					var ctrlView = new View(controller, view.name , data);
+	        					views.put( createViewKey( controller.getName(), view.name), ctrlView);
+	        					
+        					}
         				}
         			}).fail(function(jqxhr, settings, err){
         				// print out an error message
@@ -349,33 +446,42 @@ mobileDS.PresentationManager = (function(){
 		 * @async
 		 */
         function loadPartials(){
-//            function getPartialPath(name, controller){
-//                var returnpath = "";
-//                $.each(controller.getPartials(), function(index, partial){
-//                    if (name === partial["name"]) {
-//                        returnpath = partial["path"];
-//                        return false;
-//                    }
-//                });
-//                return returnpath;
-//            }
             
         	$.each(mobileDS.ControllerManager.getInstance().getControllerNames(), function(ctrlIndex, controllerName){
         		var controller = mobileDS.ControllerManager.getInstance().getController(controllerName); 
             	$.each(controller.getPartials(), function(index, partial){
-                    $.ajax({
+                    
+            		var prefix = mobileDS.CommonUtils.getInstance().getPartialsPrefix();
+            		var genPath = mobileDS.constants.getInstance().getCompiledViewPath()//TODO add compiled-path to view-info object (and read it from file-structure/JSON) 
+									+ controllerName + '/' +prefix+ partial.name + '.js';
+            		
+            		$.ajax({
                         async: true,
                         dataType: "text",
-                        url: partial.path,//getPartialPath(partial, controller),
+                        url: partial.path,
                         success: function(data){
-					        var ctrlPartial = new Partial(controller, partial.name, data);
-					        partials.put(createPartialKey( controller.getName(), partial.name), ctrlPartial);//[partialIndex++] = ctrlPartial;
+                        	
+                        	if(isUsePreCompiledViews){
+	                    		
+	                    		loadPrecompiledView(data, genPath, function(err){
+        							console.error('Could not load precompiled partial from '+genPath+'", because: '+err);
+        							
+        							var ctrlPartial = new Partial(controller, partial.name, data);
+    						        partials.put(createPartialKey( controller.getName(), partial.name), ctrlPartial);
+        						});
+	                    		
+        					}
+                        	else {
+						        var ctrlPartial = new Partial(controller, partial.name, data);
+						        partials.put(createPartialKey( controller.getName(), partial.name), ctrlPartial);
+                        	}
                         }
                     }).fail(function(jqxhr, settings, err){
                         // print out an error message
 						var errMsg = err && err.stack? err.stack : err;
                         console.error("[" + settings + "] " + JSON.stringify(jqxhr) + " -- " + partial.path + ": "+errMsg); //failure
                     });
+            		
                 });
             });
             
@@ -384,24 +490,12 @@ mobileDS.PresentationManager = (function(){
         loadLayouts();
         loadViews();
         loadPartials();
-        
 
     	/** @lends mobileDS.PresentationManager.prototype */
         return { 
         	//public members
             
             addLayout: function(layout){
-//            	var layout_replaced = false;
-//            	$.each(layouts, function(index, l){
-//                	if (layouts[index].getName() == layout.getName()) {
-//                		layouts[index] = layout;
-//                        layout_replaced = true;
-//                        return false;
-//                    }
-//                });
-//            	if (layout_replaced == false){
-//                    layouts.push(layout);
-//            	}
             	layouts.put(layout.getName(), layout);
             },
             /**
@@ -435,19 +529,9 @@ mobileDS.PresentationManager = (function(){
             },
 
             addView: function(ctrlName, view){
-//            	var view_replaced = false;
-//            	$.each(views, function(index, v){
-//                	if (views[index].getName() == view.getName()) {
-//                		views[index] = view;
-//                		view_replaced = true;
-//                        return false;
-//                    }
-//                });
-//            	if (view_replaced == false){
-//            		views.push(view);
-//            	}
             	views.put(createViewKey(ctrlName, view), view);
             },
+            
             /**
     		 * This function returns a view object by name.<br>
     		 * 
@@ -460,12 +544,6 @@ mobileDS.PresentationManager = (function(){
             getView: function(controllerName, viewName){
             	viewName = createViewKey(controllerName, viewName);
             	var view = false;
-//            	$.each(views, function(index, v){
-//            		if (v.getName() == viewName) {
-//            			view = v;
-//            			return false;
-//            		}
-//            	});
             	view = views.get(viewName);
             	
             	if(!view){
@@ -475,6 +553,9 @@ mobileDS.PresentationManager = (function(){
             	return view;
             },
 
+            addPartial: function(ctrlName, partial){
+            	partials.put(createPartialKey(ctrlName, partial), partial);
+            },
             
             /**
     		 * This function returns a partial object by name.<br>
@@ -497,15 +578,6 @@ mobileDS.PresentationManager = (function(){
             		return false;
             	}
             	
-//				console.log("[PresentationManager] looking for " + partialName);
-//            	for(var i=0, size = partials.length; i < size; ++i){
-////					console.log("partialName: " + p.getName());
-//            		if (partials[i].getName() == partialName) {
-////						console.log("found " + partials[i].getName());
-//            			partial = partials[i];
-//                        break;
-//                    }
-//            	}
             	partial = partials.get(partialKey);
             	if(!partial){
             		console.error('[PresentationManager.getPartial]: could not find partial "'+partialName+'" for controller "'+ (controllerName?controllerName.getName():'undefined') +'"!');
@@ -585,17 +657,28 @@ mobileDS.PresentationManager = (function(){
 			},
 
             
-            /**
+			/**
 			 * Gets the view for a controller, then executes helper methods on the view data.
 			 * The Rendering of the view is done by the {@link mobileDS.PresentationManager#doRenderView} method.
-    		 * Also stores the previous and current view with parameters.<br>
-    		 * 
-    		 * @function renderView
-    		 * @param {String} ctrlName Name of the controller 
-    		 * @param {String} viewName Name of the view to render
-    		 * @param {Object} data Optionally data for the view
-    		 * @public
-    		 */
+			 * Also stores the previous and current view with parameters.<br>
+			 * 
+			 * @function renderView
+			 * @param {String} ctrlName Name of the controller 
+			 * @param {String} viewName Name of the view to render
+			 * @param {Object}
+			 *            [data] optional data for the view.
+			 *            Currently same jQuery Mobile specific properties are supported: <br>
+			 *            When these are present, they will be used for animating the 
+			 *            page transition upon rendering.
+			 *            
+			 *            <pre>{transition: STRING, reverse: BOOLEAN}</pre>
+			 *            where<br>
+			 *            <code>transition</code>: the name for the transition (see jQuery Mobile Doc for possible values)
+			 *            							DEFAULT: "none".
+			 *            <code>reverse</code>: whether the animation should in "forward" (FALSE) direction, or "backwards" (TRUE)
+			 *            						DEFAULT: FALSE
+			 * @public
+			 */
             renderView: function(ctrlName, viewName, data){
                 var ctrl = mobileDS.ControllerManager.getInstance().getController(ctrlName);
 
@@ -653,22 +736,33 @@ mobileDS.PresentationManager = (function(){
            
             
             /**
-			 * Actually renders the View.<br>
-			 * Fetches the layout for the controller, then fills the layout-template with the view content, while incorporating 
-			 * partials and contents that helper methods have provided. Then Dialogs are created and the pageContainer id is updated.
-			 * At last all the content is localized using {@link mobileDS.LanguageManager#translateHTML}, and appended to the
-			 * HTML document of the application, while the old one is removed - is probably not a good idea to use '<b>$("div[data-role='page']").first().remove()</b>' to
-			 * remove the old page content: it's not robust.<br>
-			 * At the end the <b>on_page_load</b> action is performed.
-    		 * 
-    		 * @function doRenderView
-    		 * @param {String} ctrlName Name of the controller 
-    		 * @param {String} viewName Name of the view to render
-    		 * @param {Object} view View object that is to be rendered
-    		 * @param {Object} ctrl Controller object of the view to render
-    		 * @param {Object} [data] optional data for the view
-    		 * @public
-    		 */
+             * Actually renders the View.<br>
+             * Fetches the layout for the controller, then fills the layout-template with the view content, while incorporating 
+             * partials and contents that helper methods have provided. Then Dialogs are created and the pageContainer id is updated.
+             * At last all the content is localized using {@link mobileDS.LanguageManager#translateHTML}, and appended to the
+             * HTML document of the application, while the old one is removed - is probably not a good idea to use '<b>$("div[data-role='page']").first().remove()</b>' to
+             * remove the old page content: it's not robust.<br>
+             * At the end the <b>on_page_load</b> action is performed.
+             * 
+             * @function doRenderView
+             * @param {String} ctrlName Name of the controller 
+             * @param {String} viewName Name of the view to render
+             * @param {Object} view View object that is to be rendered
+             * @param {Object} ctrl Controller object of the view to render
+             * @param {Object}
+             *            [data] optional data for the view.
+             *            Currently same jQuery Mobile specific properties are supported: <br>
+             *            When these are present, they will be used for animating the 
+             *            page transition upon rendering.
+             *            
+             *            <pre>{transition: STRING, reverse: BOOLEAN}</pre>
+             *            where<br>
+             *            <code>transition</code>: the name for the transition (see jQuery Mobile Doc for possible values)
+             *            							DEFAULT: "none".
+             *            <code>reverse</code>: whether the animation should in "forward" (FALSE) direction, or "backwards" (TRUE)
+             *            						DEFAULT: FALSE
+             * @public
+             */
 			doRenderView: function(ctrlName, viewName, view, ctrl, data){
 			    var layout = instance.getLayout(ctrlName, true);
                 
@@ -693,8 +787,8 @@ mobileDS.PresentationManager = (function(){
                	//TODO do localization rendering for layout (i.e. none-body- or dialogs-content)
                 
                 var pg = new RegExp("pageContainer", "ig");
-                var oldId = "#pageContainer" + pageIndex;
-                
+                var oldId = "#pageContainer" + pageIndex;//TODO make "pageContainer" a CONSTANT
+                                
                 // get old content from page
                 var oldContent = $(oldId);
                 if(oldContent.length < 1 && oldId == '#pageContainer0'){
@@ -718,6 +812,9 @@ mobileDS.PresentationManager = (function(){
                 }
                 var newPage = $(layoutBody);
                 
+                ctrl.performIfPresent('before_page_load', data);//MODIFICATION for lever: added before_page_load hook!
+//                ctrl.performIfPresent('before_page_load_'+viewName, data);
+
                 //'load' new content into the page (using jQuery mobile)
                 newPage.appendTo($.mobile.pageContainer);
                 

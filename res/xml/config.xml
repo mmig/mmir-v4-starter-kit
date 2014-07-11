@@ -144,6 +144,10 @@
     <feature name="SoftKeyBoard" >
         <param name="android-package" value="com.cordova.plugin.softkeyboard.SoftKeyBoard" />
     </feature>
+    
+    <feature name="VolumeControl" >
+        <param name="android-package" value="de.dfki.iui.mmig.plugins.AppVolumeControl" />
+    </feature>
 	
 </widget>
 

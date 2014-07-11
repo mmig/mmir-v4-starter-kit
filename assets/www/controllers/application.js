@@ -90,6 +90,102 @@
 //			mobileDS.DialogEngine.getInstance().performHelper('GoogleMap', 'update_map_language');
 //		}
 		
+		
+		var isAsrActive = false;
+		
+		var setActive = function(button, setToActive){
+			var label = 'start';
+			var theming = 'c';//<- jQuery UI theme
+			if(setToActive === true){
+				label = 'stop';
+				theming = 'b';
+			}
+			
+			//use jQuery Mobile function to change button-label:
+			button.val(label).button('refresh');
+
+			//change theme (actually, we need to change the button's parent theme)
+			button.parent().buttonMarkup({theme: theming});
+		};
+		
+		$('#asr').on('vclick', function(event) {
+			
+			//switch ASR activation state
+			
+			
+			//set text in textarea
+			var textElement = $('#asr-text');
+			
+			
+			//text += ' set-ASR-to_'+(isAsrActive? 'active' : 'INactive');
+			if (!isAsrActive){
+				mobileDS.MediaManager.getInstance().startRecord(function(text, idInfo){
+						var textSoFar = textElement.val();
+						textSoFar += ' '+ text;
+						textElement.val( textSoFar );
+					}, function(e){
+						console.error('Error using startRecord: '+ e);
+					}
+					, false //isUseIntermediateResultsMode
+					);
+			} else {
+				mobileDS.MediaManager.getInstance().stopRecord(function(text, idInfo){
+						var textSoFar = textElement.val();
+						textSoFar += ' '+ text;
+						textElement.val( textSoFar );
+					}, function(e){
+					console.error('Error using stopGetRecord: '+e);
+				});
+					
+			}
+			
+			
+			isAsrActive = ! isAsrActive;
+			//change button in order to indicate active/inactive ASR state
+			setActive( $('#asr'), isAsrActive);
+		});
+		
+		$('#asr-normal').on('vclick', function(event) {
+			
+			//switch ASR activation state
+			
+			
+			//set text in textarea
+			var textElement = $('#asr-text');
+			
+			
+			//text += ' set-ASR-to_'+(isAsrActive? 'active' : 'INactive');
+			if (!isAsrActive){
+				mobileDS.MediaManager.getInstance().startRecord(function(text, idInfo){
+						var textSoFar = textElement.val();
+						textSoFar += ' '+ text;
+						textElement.val( textSoFar );
+					}, function(e){
+						console.error('Error using startRecord: '+ e);
+					}
+					, true //isUseIntermediateResultsMode
+					);
+			} else {
+				mobileDS.MediaManager.getInstance().stopRecord(function(text, idInfo){
+						var textSoFar = textElement.val();
+						textSoFar += ' '+ text;
+						textElement.val( textSoFar );
+					}, function(e){
+					console.error('Error using stopGetRecord: '+e);
+				});
+					
+			}
+			
+			
+			isAsrActive = ! isAsrActive;
+			//change button in order to indicate active/inactive ASR state
+			setActive( $('#asr-normal'), isAsrActive);
+		});
+		
+		$('#clear').on('vclick', function(event) {
+			$('#asr-text').val('');
+		});
+		
 	};
 
 	//DISABLED: now a @-statement within the template-definition is used

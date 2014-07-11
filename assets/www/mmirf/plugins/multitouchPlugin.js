@@ -35,11 +35,12 @@ var MultitouchPlugin = function() {
 };
 
 /**
- * @param eventtype - type of the event - see enum EventType... "Pinch"
- * @param eventname - name of the event
- * @param eventsource - where to raise the event - id
- * @param frequency - how often to send events in ms
- * @param failureCallback The callback which will be called when directory listing encouters an error
+ * @param {String} eventtype - type of the event - see enum EventType... "Pinch"
+ * @param {String} eventname - name of the event
+ * @param {String} eventsource - where to raise the event - id
+ * @param {String} frequency - how often to send events in ms
+ * @param {Function} successCallback The callback which will be called in case of success
+ * @param {Function} failureCallback The callback which will be called when directory listing encouters an error
  * 
  * example, adding event named "pinch" for the Pinch-gesture: 
  * window.plugins.multitouchPlugin.addEventListener(
@@ -64,7 +65,7 @@ MultitouchPlugin.prototype.addEventListener = function(eventtype, eventname, eve
 };
 
 /**
- * @param eventtype - type of the event - see enum EventType... "PINCH"
+ * @param {String} eventtype - type of the event - see enum EventType... "PINCH"
  */
 MultitouchPlugin.prototype.removeEventListener = function(eventtype, successCallback, failureCallback) {
 	return cordova.exec(successCallback,    //Callback which will be called when directory listing is successful
@@ -75,7 +76,7 @@ MultitouchPlugin.prototype.removeEventListener = function(eventtype, successCall
 };
 
 /**
- * @param frequency - how often to send events in ms
+ * @param {String} frequency - how often to send events in ms
  */
 MultitouchPlugin.prototype.setUpdateFrequency = function(frequency, successCallback, failureCallback) {
     return cordova.exec(successCallback,    //Callback which will be called when directory listing is successful

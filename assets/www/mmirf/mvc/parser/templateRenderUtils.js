@@ -309,7 +309,7 @@ mobileDS.parser.RenderUtils = (function(){
     	}
     	
     	function getRenderingBuffer(renderingBuffer){
-    		if(renderingBuffer && isArray(renderingBuffer))
+    		if(renderingBuffer)// && isArray(renderingBuffer))
     			return renderingBuffer;
     		
     		return new Array();
@@ -617,7 +617,9 @@ mobileDS.parser.RenderUtils = (function(){
     		}
     		
     		//NOTE all template-vars start with special char @
-    		var fieldName = '@'+ elem.getValue(elem.name, elem.nameType, data);
+//    		var fieldName = '@'+ elem.getValue(elem.name, elem.nameType, data);
+    		var varName = elem.getValue(elem.name, elem.nameType);//FIXME: do not invoke with data; we only want the VAR-name!//, data);
+    		var fieldName = '@'+ varName;
     		
     		//initialize field for var-declaration
     		if(typeof data[fieldName] === 'undefined'){
@@ -632,6 +634,7 @@ mobileDS.parser.RenderUtils = (function(){
     			//              --> (a) we need to store the value here when var already exists
     			//                  (b) on parsing JS code we need to consider var-declarations, i.e. @-variables
     			//                      that are proceeded with a 'var'-statement, e.g.: 'var @varName = ...' 
+    			
     		}
     		// TODO handle case when field already exists (?)
     		

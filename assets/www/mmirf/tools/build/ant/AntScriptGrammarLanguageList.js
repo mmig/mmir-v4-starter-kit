@@ -53,7 +53,14 @@ function echo(text){
 }
 
 var strDirList = project.getProperty("JSONDirString");
-var jsonDirList = JSON.parse(strDirList);
+var jsonDirList;
+//try to avoid eval() -> use JSON if available
+if(typeof JSON !== 'undefined'){
+	jsonDirList = JSON.parse(strDirList);
+}
+else {
+	jsonDirList = eval('var dummy='+strDirList+';dummy');
+}
 
 var baseLanguageDir = project.getProperty("grammarDefinitionJsonDir");
 var grammarFileName = project.getProperty("grammarDefinitionJsonFile");

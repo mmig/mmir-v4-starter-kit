@@ -43,24 +43,57 @@ mobileDS.MediaManager = (function(){
     		          'maryTextToSpeech.js'),
     		'android': new Array('cordovaAudioOutput.js',
     		          'nuanceAudioInput.js',
-    		          'maryTextToSpeech.js')
+    		          'nuanceTextToSpeech.js')
     };
     var loadPlugin = function loadPlugin (filePath, successCallback, failureCallback){
     	try {
     		mobileDS.CommonUtils.getInstance().loadScript(mobileDS.constants.getMediaPluginPath()+filePath, function(){
-	    		//TODO keine globale Variable
 	    		if (typeof newMediaPlugin !== 'undefined' && newMediaPlugin){
 	    			newMediaPlugin.initialize(function(functions){
 	    					jQuery.extend(true,instance,functions);
 	    					newMediaPlugin = null;
 							if (successCallback) successCallback();
-	    			});
+	    			}, instance);
 	    		}
 	    		else {
 	        		console.error('Error loading MediaPlugin '+filePath + ' - no newMediaPlugin set!');
 	    			if (failureCallback) failureCallback();
 	    		}
 			});
+    		
+
+//        	//NOTE: this new loading-mechanism avoids global VARIABLES by
+//    		//	* loading the script as text
+//    		//	* evaluating the script-text (i.e. executing the JavaScript) within an local context
+//    		//i.e. eval(..) is used ...
+//    		$.ajax({
+//                async: true,
+//                dataType: "text",
+//                url: mobileDS.constants.getMediaPluginPath()+filePath,
+//                success: function(data){
+//                	
+//                	//add "dummy-export-code" to script-text 
+//                	// -> for "retrieving" the media-plugin implementation as return value from eval(..)
+//            		var LOAD_MODULE_TEMPLATE_POSTFIX = 'var dummy = newMediaPlugin; dummy';
+//                	var newMediaPlugin = eval(data + LOAD_MODULE_TEMPLATE_POSTFIX);
+//                	
+//                	if (typeof newMediaPlugin !== 'undefined' && newMediaPlugin){
+//    	    			newMediaPlugin.initialize(function(functions){
+//    	    					jQuery.extend(true,instance,functions);
+//    	    					newMediaPlugin = null;
+//    							if (successCallback) successCallback();
+//    	    			}, instance);
+//    	    		}
+//    	    		else {
+//    	        		console.error('Error loading MediaPlugin '+filePath + ' - no newMediaPlugin set!');
+//    	    			if (failureCallback) failureCallback();
+//    	    		}
+//                }
+//            }).fail(function(jqxhr, settings, err){
+//                // print out an error message
+//				var errMsg = err && err.stack? err.stack : err;
+//                console.error("[" + settings + "] " + JSON.stringify(jqxhr) + " -- " + partial.path + ": "+errMsg); //failure
+//            });
     	}catch (e){
     		console.error('Error loading MediaPlugin '+filePath+': '+e);
     		if (failureCallback) failureCallback();
@@ -69,6 +102,9 @@ mobileDS.MediaManager = (function(){
     };
     //those are the standard audioInput procedures, that should be implemented by a loaded file
     function constructor(){
+    	
+    	var listener = new Dictionary(); 
+    		
     	return {
     			//TODO add API documentation
     		
@@ -132,6 +168,17 @@ mobileDS.MediaManager = (function(){
     					console.error("Audio Output: canceling Text To Speech is not supported.");
     				}
     			},
+    			setTextToSpeechVolume: function(newValue){
+    				console.error("Audio Output: set volume for Text To Speech is not supported.");
+				},
+    			cancelRecognition: function(successCallBack,failureCallBack){
+    	   			if(failureCallBack){
+    					failureCallBack("Audio Output: canceling Recognize Speech is not supported.");
+    				}
+    				else {
+    					console.error("Audio Output: canceling Recognize Speech is not supported.");
+    				}
+    			},
     			playURL: function(url, successCallback, failureCallBack){
     	   			if(failureCallBack){
     					failureCallBack("Audio Output: play audio from URL is not supported.");
@@ -147,6 +194,56 @@ mobileDS.MediaManager = (function(){
     				else {
     					console.error("Audio Output: create audio from URL is not supported.");
     				}
+    			}
+    			/**
+    			 * @param eventName String
+    			 * @param eventHandler Function
+    			 */
+    			, addListener: function(eventName, eventHandler){
+    				var list = listener.get(eventName);
+    				if(!list){
+    					list = [eventHandler];
+    					listener.put(eventName, list);
+    				}
+    				else {
+    					list.push(eventHandler);
+    				}
+    			}
+    			/**
+    			 * @param eventName String
+    			 * @param eventHandler Function
+    			 */
+    			, removeListener: function(eventName, eventHandler){
+    				var isRemoved = false;
+    				var list = listener.get(eventName);
+    				if(list){
+    					var size = list.length;
+    					for(var i = size - 1; i >= 0; --i){
+    						if(list[i] ===  eventHandler){
+    							
+    							//move all handlers after i by 1 index-position ahead:
+    							for(var j = size - 1; j > i; --j){
+    								list[j-1] = list[j];
+    							}
+    							//remove last array-element
+    							list.splice(size-1, 1);
+    							
+    							isRemoved = true;
+    							break;
+    						}
+    					}
+    				}
+    				return isRemoved;
+    			}
+    			/**
+    			 * @returns Array<Function> of event-handlers; empty, if there are no event handlers for eventName
+    			 */
+    			, getListeners: function(eventName){
+    				var list = listener.get(eventName);
+    				if(list){
+    					return list;
+    				}
+    				return [];
     			}
     	};
     };
@@ -183,17 +280,42 @@ mobileDS.MediaManager = (function(){
         /**
          * Object containing the instance of the class {{#crossLink "audioInput"}}{{/crossLink}} 
          * 
+         * If <em>listenerList</em> is provided, each listener will be registered after the instance
+         * is initialized, but before media-plugins (i.e. environment specfific implementations) are
+         * loaded.
+         * Each entry in the <em>listenerList</em> must have fields <tt>name</tt> (String) and
+         * <tt>listener</tt> (Function), where
+         * <br>
+         * name: is the name of the event
+         * <br>
+         * listener: is the listener implementation (the signature/arguments of the listener function depends
+         * 			 on the specific event for which the listener will be registered)
+         *  
+         * 
          * @method getInstance
+         * @param {Array<Object>} [listenerList] OPTIONAL a list of listeners that should be registered
          * @return {Object} Object containing the instance of the class {{#crossLink "MediaManager"}}{{/crossLink}}
          * @public
          */
-        create: function(successCallback, failureCallback){
+        create: function(successCallback, failureCallback, listenerList){
             if (instance === null) {
             	jQuery.extend(true,this,constructor());
                 instance = this;
+                
+                if(listenerList){
+                	for(var i=0, size = listenerList.length; i < size; ++i){
+                		instance.addListener(listenerList[i].name, listenerList[i].listener);
+                	}
+                }
+                
             	var pluginArray = getPluginsToLoad();
                 loadAllPlugins(pluginArray,successCallback, failureCallback);
 
+            }
+            else if(listenerList){
+            	for(var i=0, size = listenerList.length; i < size; ++i){
+            		instance.addListener(listenerList[i].name, listenerList[i].listener);
+            	}
             }
             return this;
         },

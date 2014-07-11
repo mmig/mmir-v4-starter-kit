@@ -82,11 +82,14 @@ mobileDS.ConfigurationManager = (function(){
 				if(data){ 
     				var jsonData = data;//jQuery.parseJSON( data );
     				
-    				//get & set language setting
-    				if(jsonData.language && jsonData.language != mobileDS.LanguageManager.getInstance().getLanguage()){
-	    				mobileDS.LanguageManager.getInstance().setLanguage(jsonData.language);
-	    				if(IS_DEBUG_ENABLED) console.debug("ConfigurationManager.constructor: setting language to "+ jsonData.language);//debug
-	    			}
+    				//DISABLED: avoid cyclic dependency LanguageManager <-> ConfigurationManager 
+    				//          & avoid "private" knowledge about LanguageManager 
+    				//			-> now LanguageManager "pulls" language configuration from ConfigurationManager
+//    				//get & set language setting
+//    				if(jsonData.language && jsonData.language != mobileDS.LanguageManager.getInstance().getLanguage()){
+//	    				mobileDS.LanguageManager.getInstance().setLanguage(jsonData.language);
+//	    				if(IS_DEBUG_ENABLED) console.debug("ConfigurationManager.constructor: setting language to "+ jsonData.language);//debug
+//	    			}
     				
     				configData = jsonData;
     			}
@@ -103,7 +106,11 @@ mobileDS.ConfigurationManager = (function(){
 			 * 
 			 * <p>This does not return the language of the configuration, but is a
 			 * shortcut for {@link mobileDS.LanguageManager#getLanguage}.
-			 *  
+			 * 
+			 * 
+			 * @deprecated use mobileDS.LanguageManager.getInstance().getLanguage() instead!
+			 * 
+			 * 
 			 * @function getLanguage
 			 * @returns {String} The currently used language
 			 * @public
@@ -116,6 +123,9 @@ mobileDS.ConfigurationManager = (function(){
 			 * 
 			 * <p>This does not set the language of the configuration, but is a
 			 * shortcut for {@link mobileDS.LanguageManager#setLanguage}.
+			 * 
+			 * 
+			 * @deprecated use mobileDS.LanguageManager.getInstance().setLanguage(lang) instead!
 			 *  
 			 * @function setLanguage
 			 * @param {String} lang The language which is to be used

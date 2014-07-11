@@ -42,6 +42,8 @@
 
 var initArray = init();
 
+var CryptoJS;
+
 for(var i=0, size = initArray.length; i < size; ++i){
 	var result = initArray[i].call(window, arguments);
 	if(result && result[0] == "org"){
@@ -62,8 +64,14 @@ for(var i=0, size = initArray.length; i < size; ++i){
 	else if(result && result[0] == "dictionary"){
 		Dictionary = result[1];
 	}
-	else if(result && result[0] == "jpath"){
-		JPath = result[1];
+	else if(result && result[0] == "configurationManager"){
+		var configurationManager = result[1];
+	}
+//	else if(result && result[0] == "jpath"){
+//		JPath = result[1];
+//	}
+	else if(result && result[0] == "md5"){
+		CryptoJS = result[1];
 	}
 	else if(result && result[0] == "commonUtils"){
 		var commonUtils = result[1];
@@ -72,10 +80,19 @@ for(var i=0, size = initArray.length; i < size; ++i){
 	    $.isArray = commonUtils.isArray;
 		
 
-		//replace getLocalScript: ANT-executed JavaScript enviornments are DOMless 
+		//replace getLocalScript: ANT-executed JavaScript environments are DOMless 
 		//  -> load & eval scripts instead of adding to document header
 		commonUtils.getLocalScript = function (scriptUrl, success, fail){
-			var content = loadLocalFile(scriptUrl, 'text');
+			var content;
+			
+			try {
+				content = loadLocalFile(scriptUrl, 'text');
+			}
+			catch(exc){
+				console.error('Could not load file/script from "": '+exc+(exc.stack? exc.stack : ''));
+				if(fail) fail(exc);
+				return;
+			}
 			//console.log('loaded from '+scriptUrl+': '+content);
 			try{
 				eval(content);
@@ -182,7 +199,10 @@ console.info  = console.log;
 console.warn  = console.log;
 console.error = console.log;
 
-console.log('------------------------------------------------ completed initialization ---------------------------');
+
+mobileDS.ConfigurationManager.getInstance().set('usePrecompiledViews', 'false');
+
+console.log('------------------------------------------------ completed initialization, start parsing *.ehtml files... ---------------------------');
 
 // trigger parsing of templates:
 mobileDS.ControllerManager.create(
@@ -211,13 +231,126 @@ mobileDS.ControllerManager.create(
 			return originalAjax(options);
 		};
 		
-	    mobileDS.PresentationManager.getInstance();
+		//do trigger loading of the template files (*.ehtml) by requesting the PresentationManager instance:
+	    var pm = mobileDS.PresentationManager.getInstance();
 
 		if(isError){
 			throw(new Error('Encountered errors while reading templates files: abort parsing!'));
 		}
 	    
-	    console.log('------------------------------------------------ finished parsing *.ehtml templates ---------------------------');
-	}
+	    console.log('------------------------------------------------------- finished parsing *.ehtml templates -----------------------------------------');
+	    
+	    var storageBasePath = compiledViewGenPath;
+	    
+	    console.log(' \n ');
+	    console.log(
+	    	'--------------------------- writing to "'
+	    		+storageBasePath
+	    		+'" compiled *.ehtml templates (as JavaScript files)...'
+	    		+' --------------------------'
+	    );
+	    
+	    var wroteFileCounter = 0;
+
+		// stringify and store the views, ie. store "compiled" views
+		var utils = mobileDS.CommonUtils.getInstance();
+	    var partialPrefix = utils.getPartialsPrefix();
+	    var isPartialView = function(name){
+	    	return name.charAt(0) == partialPrefix;
+	    };
+	    var regExprFileExt = /\.ehtml$/igm;
+	    
+	    var checksumUtils = mobileDS.ChecksumUtils.init();
+	    
+		var viewList = utils.getDirectoryContents('views');
+	    
+		for(var i=0, size=viewList.length; i < size; ++i){
+			var name = viewList[i];
+			
+			if(!name){
+				console.error('Invalid view-directory in directory-structure at views/['+i+']!');
+				continue;
+			}
+			
+			var views = utils.getDirectoryContents('views/'+name);
+			var isLayout = false;
+			var ctrlName;
+			if(name === 'layouts'){
+				isLayout = true;
+			}
+			else {
+				ctrlName = name.charAt(0).toUpperCase() + name.substring(1);
+			}
+			
+			for(var j=0, jsize=views.length; j < jsize; ++j){
+				var viewFileName = views[j];
+				
+				if(!viewFileName){
+					console.error('Invalid view-name in directory-structure at views/'+name+'/['+j+']!');
+					continue;
+				}
+				
+				var viewName;
+				if(! regExprFileExt.test(viewFileName) ){
+					console.warn('Unknown file-extension for view in directory-structure at views/'+name+'/'+viewFileName);
+					viewName = viewFileName;
+				}
+				else {
+					//remove file extension ".ehtml"
+					viewName = viewFileName.substring(0, viewFileName.length - 6);
+				}
+				regExprFileExt.lastIndex = 0;
+				
+				console.log(' ');
+				console.log('preparing view (ehtml) in directory-structure at views/'+name+'/'+viewName+' for storage...');
+				
+				var isPartial = isPartialView(viewName);
+				
+				var view;
+				if( isLayout ){
+					//layouts are specific to controllers, so the layout's lookup-key is actually the controller-name
+					// --> "convert" layout name to controller-name format (i.e. first letter to upper case)
+					var layoutKey = viewName.charAt(0).toUpperCase() + viewName.substring(1);
+					view = pm.getLayout(layoutKey);
+				} 
+				else if( isPartial ){
+					//remove partial's name-prefix:
+					var partialName =  viewName.substring(partialPrefix.length);
+					view = pm.getPartial(ctrlName, partialName);
+				}
+				else {
+					view = pm.getView(ctrlName, viewName);
+				}
+				
+				if(!view){
+					console.error('Could not create compiled view '+(isLayout? '(layout) ':' ')+(isPartial? '(partial) ':' ')+'for '+ctrlName+'/'+viewName);
+					continue;
+				}
+				
+				var stringifiedView = view.stringify();
+				var path = storageBasePath + 'views/'+name+'/'+viewName;
+				
+				var viewEHtmlPath = mobileDS.constants.getInstance().getViewPath()+name+'/'+viewName + '.ehtml';
+
+				var wasWritten = saveToFile(stringifiedView, path + '.js');
+				if(wasWritten){
+					++wroteFileCounter;
+					
+					var rawViewContent = loadLocalFile(viewEHtmlPath, 'text');
+
+					//create checksum files to be used on loading pre-compiled templates
+					// (in order to check up-to-date status)
+					var digestContent = checksumUtils.createContent(rawViewContent);
+					saveToFile(digestContent, path + checksumUtils.getFileExt());
+					
+				}
+			}//END: for( view-subdir-list )
+			
+		}//END: for( views-list )
+		
+		console.log(' ');
+		console.log('------------------------------------------------ wrote '+wroteFileCounter+' file(s) to '+storageBasePath+' ---------------------------');
+
+	}//END: afterLoadingControllers()
 
 );

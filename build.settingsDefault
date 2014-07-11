@@ -2,24 +2,22 @@
 ## This file contains user specific settings for the ANT build.xml
 ##
 
-# mavenDir: leave empty, if the Maven executable is in the system path.
-#          Note: the path must end with a separator, 
-#                i.e. "some/path/maven/bin/" and NOT "some/path/maven/bin"
-mavenDir=
-
-# mavenExec: the Maven executable
-#           e.g. for Windows: mvn.bat
-#                   for Unix: mvn
-mavenExec=mvn.bat
-
-
 # [optional] if node.js is used for running JavaScript tasks,
 #			 (see target names in build.xml) 
-# 			 set these values analogous to Maven above
+#
+# NOTE: it is highly recommended to use NodeJS for JavaScript compilation tasks
+#       (instead of the slower build-in/shipped-with Rhino environment)
+#
+# example for Windows -- where executable is located in the same workspace,
+#                        i.e. relatively, in "parallel" project:
+#                         [workspace]
+#                                    /[this project]
+#                                    /nodejs/node.exe)
+#
 nodeJsDir=../nodejs/
 nodeJsExec=node.exe
-
-# path to the SCXML project
-#   this should be the Maven project with the SCXML sources 
-#   (e.g. the directory contains a file Maven configuration file pom.xml)
-commonsSCXMLjsDir=../commons-scxml-js/
+#
+# example for MacOs (where executable is installed in user's local bin folder):
+#
+#nodeJsDir=/usr/local/bin/
+#nodeJsExec=node

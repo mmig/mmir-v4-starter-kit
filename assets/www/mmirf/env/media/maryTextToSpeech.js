@@ -27,6 +27,18 @@
 
 newMediaPlugin = {
 		initialize: function(callBack){
+			
+			var volume = 1.0;
+			var _setVolume = function(val){
+				volume = val;
+				
+				for(var i=0,size=audioArray.length; i < size; ++i){
+					if(audioArray[i] && audioArray[i].setVolume){
+						audioArray[i].setVolume(val);
+					}
+				}
+			};
+			
 			var onEndCallBack= null;
 			var currentFailureCallBack = null;
 			var isReady= true;
@@ -38,13 +50,14 @@ newMediaPlugin = {
 			var bufferSize = 3;
 			var audioArray = [];
 			var sentenceArray = [];
-			var pauseDuration = 1000;
+			var pauseDuration = 500;
 			var defaultSplitter = function(text){
 				text = text.replace(/\.\s|\?\s|\!\s/g,"#");
 				return text.split("#");
-			}
+			};
 			var generateTTSURL = function(text){
-				text = text.replace(/\s/g, '%20');
+//				text = text.replace(/\s/g, '%20');
+				text = encodeURIComponent(text);
 				var speaker = window.mobileDS.LanguageManager.getInstance().getSpeaker();
 				var lang = speaker["lang_simple"];
 				var voice = speaker["speaker"];
@@ -52,16 +65,19 @@ newMediaPlugin = {
 			};
 			
 			var playNext = function playNext(){
+				
 				playIndex++;
 				if (playIndex<(audioArray.length)){
 					ttsMedia=audioArray[playIndex];
-					console.log("LongTTS playing "+playIndex+ " "+sentenceArray[playIndex]);
+					console.log("LongTTS playing "+playIndex+ " '"+sentenceArray[playIndex]+ "'" + (!audioArray[playIndex].isEnabled()?' DISABLED':''));
+					audioArray[playIndex].setVolume(volume);
 					audioArray[playIndex].play();
 					loadNext();
 				}
 				else {
 					if (onEndCallBack){
 						onEndCallBack();
+						onEndCallBack = null;
 					}
 					isReady = true;
 				}
@@ -98,7 +114,7 @@ newMediaPlugin = {
 					}
 				}
 			};
-			var ttsSentenceArray = function(sentences, onEnd, failureCallBack){
+			var ttsSentenceArray = function(sentences, onEnd, failureCallBack, onInit){
 				{
 					try {
 						firstSentence = true;
@@ -123,7 +139,7 @@ newMediaPlugin = {
 						loadIndex = -1;
 						audioArray = new Array(sentences.length);
 						isLoading = false;
-						loadNext();
+						loadNext(onInit);
 					} catch (e){
 						isReady=true;
 			    		console.log('error! '+e);
@@ -133,17 +149,24 @@ newMediaPlugin = {
 					}
 				}
 			};
-			var loadNext = function loadNext(){
+			var loadNext = function loadNext(onInit){//TODO not onInit is currently only used for the very first sentence ...
 				if (isLoading) return null;
-				isLoading = true;
+				//FIXME need to handle case that loadingIndex is not within buffer-size ...
 				if (((loadIndex-playIndex)<= bufferSize) && (loadIndex<(audioArray.length-1))){
+					isLoading = true;
 					var currIndex = ++loadIndex;
 					console.log("LongTTS loading "+currIndex+ " "+sentenceArray[currIndex]);
 					audioArray[currIndex] = mobileDS.MediaManager.getInstance().getURLAsAudio(generateTTSURL(sentenceArray[currIndex]), 
 							function(){
 								console.log("LongTTS done playing "+currIndex+ " "+sentenceArray[currIndex]);
 								audioArray[currIndex].release();
+								
+
+								console.log("LongTTS play next in "+pauseDuration+ " ms... ");
 								setTimeout(playNext, pauseDuration);
+								
+								//TODO only invoke this, if previously the test for (loadIndex-playIndex)<= bufferSize) failed ...
+//								loadNext();
 							},
 
 							function(){
@@ -153,20 +176,26 @@ newMediaPlugin = {
 								};
 							},
 							function(){
-								console.log("LongTTS done loading "+currIndex+ " "+sentenceArray[currIndex]);
+								console.log("LongTTS done loading "+currIndex+ " "+sentenceArray[currIndex]+ (!this.isEnabled()?' DISABLED':''));
 								isLoading = false;
 								loadNext();
 								
-							});
+								if(onInit){
+									onInit();
+								}
+							}
+					);
+					
 					if (currIndex==0){
 						playNext();
 					}
+					
 					loadNext();
 				}
 			};
 			
 			callBack({
-				textToSpeech: function(parameter, successCallback, failureCallback){
+				textToSpeech: function(parameter, successCallback, failureCallback, onInit){
 					if (!isReady) {
 						if(failureCallback){
 							failureCallback("TTS is already used at the moment.");
@@ -182,9 +211,9 @@ newMediaPlugin = {
 							}
 							return;/////////////////////////////////// EARLY EXIT /////////////////////////////
 						}
-						ttsSingleSentence(parameter, successCallback, failureCallback);
+						ttsSingleSentence(parameter, successCallback, failureCallback, onInit);
 					} else if((typeof parameter !== 'undefined')&& mobileDS.CommonUtils.getInstance().isArray(parameter) ){
-						ttsSentenceArray(parameter, successCallback, failureCallback);
+						ttsSentenceArray(parameter, successCallback, failureCallback, onInit);
 					} else if ((typeof parameter == 'object')){
 						if (parameter.pauseDuration!== null && parameter.pauseDuration>=0){
 							pauseDuration = parameter.pauseDuration;
@@ -198,32 +227,46 @@ newMediaPlugin = {
 						}
 						if ((typeof parameter.text !== 'undefined')&& mobileDS.CommonUtils.getInstance().isArray(parameter.text) ){
 							if (parameter.forceSingleSentence){
-								ttsSingleSentence(mobileDS.CommonUtils.getInstance().concatArray(parameter.text),successCallback, failureCallback);
+								ttsSingleSentence(mobileDS.CommonUtils.getInstance().concatArray(parameter.text),successCallback, failureCallback, onInit);
 							} else {
-								ttsSentenceArray(parameter.text, successCallback, failureCallback);
+								ttsSentenceArray(parameter.text, successCallback, failureCallback, onInit);
 							}
 						}
 						if ((typeof parameter.text)== 'string'){
 							if (parameter.split || parameter.splitter){
 								var splitter = parameter.splitter || defaultSplitter;
-								ttsSentenceArray(splitter(parameter.text), successCallback, failureCallback);
+								ttsSentenceArray(splitter(parameter.text), successCallback, failureCallback, onInit);
 							} else {
-								ttsSingleSentence(parameter.text, successCallback, failureCallback);
+								ttsSingleSentence(parameter.text, successCallback, failureCallback, onInit);
 							}
 						}
 					}
 				},
 				cancelSpeech: function(successCallBack, failureCallBack){
+					console.debug('cancel tts...');
 					try {
-						if (!isReady){
-						ttsMedia.disable();
-						}
+						
+						//prevent further loading:
+						loadIndex = audioArray.length;
+						
+						//disable playing for sentence-modus 
 						audioArray.forEach(function (audio){
 							if (audio) {
-								audio.stop();								
-								audio.release;
+								audio.disable();								
+								audio.release();
 							}
 						});
+
+						//stop currently playing
+						if (!isReady){
+							ttsMedia.disable();
+						}
+						
+						if(onEndCallBack){
+							onEndCallBack();
+							onEndCallBack = null;
+						}
+						
 						isReady = true;
 						successCallBack();
 					}catch (e){
@@ -231,7 +274,10 @@ newMediaPlugin = {
 						if (failureCallBack)
 							failureCallBack();
 					}
+				},
+				setTextToSpeechVolume: function(newValue){
+					_setVolume(newValue);
 				}
-				});	
+			});//END: callback{ ...
 		}
 };

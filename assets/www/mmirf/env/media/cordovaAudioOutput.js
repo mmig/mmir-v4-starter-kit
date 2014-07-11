@@ -27,125 +27,179 @@
 
 newMediaPlugin = {
 		initialize: function(callBack){
-			var counter = 0;
-			var callbackArray = new Array();
+			
 			callBack({
-					playWav: function(blob, successCallback, failureCallback){
-				    	try {
-				    	     var blobURL = window.URL.createObjectURL(blob);
-				    		 var my_media = new Media(
-				    				 blobURL,
-				    				 function(){ 
-				    					 console.log('WAV Audio created');
-		
-							    		 my_media.release();//TODO if my_media object is to be re-used, do not release immediately...
-							    		 if(successCallback){
-							                successCallback();
-							    		 }
-				    				 },failureCallback
-				    		);
-				    		 
-				            my_media.play();
-				            
-				    	} catch (e){
-				    		if(failureCallback){
-				    			failureCallback(e);
-				    		}
-				    	}
-				    },
-				    playURL: function(url, successCallback, failureCallback){
-				    	try {
-				    		 console.log(url);
-				    		 var my_media = new Media(
-				    				 url, 
-				    				 function(){ 
-				    					 console.log('Audio created');
+				
+				playWav: function(blob, successCallback, failureCallback){
+					try {
+						var blobURL = window.URL.createObjectURL(blob);
+						var my_media = new Media(
+								blobURL,
+								function(){ 
+//									console.log('WAV Audio created');
 
-							    		 my_media.release();//TODO if my_media object is to be re-used, do not release immediately...
-							    		 if(successCallback){
-							                successCallback();
-							    		 }
-				    				 } ,
-				    				 failureCallback
-				    		 );
+									my_media.release();
+									if(successCallback){
+										successCallback();
+									}
+								},failureCallback
+						);
 
-				    		 my_media.play();
-				    	} catch (e){
-				    		if(failureCallback){
-				    			failureCallback(e);
-				    		}
-				    	}
-				    },
-				    getURLAsAudio: function(url, onEnd, failureCallback, onCanPlay){
-				    	//if (onCanPlay) onCanPlay();
-				    	//successCallBack = function (){console.log("this isgetURLAsAudio"); successCallBack();};
-			//	    	console.log(successCallBack);
-			//	    	var onCanPlay = function (){ console.log("oncanplay ");
-			//	    		successCallBack();
-			//	    	};
-				    	try {
-				    		var onEndId = counter++;
-				    		var onCanPlayId = counter++;
-				    		var onFailureId = counter++;
-				    		callbackArray.push(onEnd);
-				    		callbackArray.push(onCanPlay);
-				    		callbackArray.push(failureCallback);
-	//			    		var playOnReady = false;
-				    		 console.log(url);
-				    		 var my_media = null;
-				    		 
-				    			 	my_media = new Media(
-				    				 url,function(){console.log('native onReady CB');}
-				    				 ,
-				    				 failureCallback,
-				    				 function(status){
-				    					 console.log("status change!"+status);
-				    					 //status = state;
-				    					 if (status==1){
-				    						 var onCanPlay = mobileDS.MediaManager.getInstance().getCallback(onCanPlayId);
-				    						 if (onCanPlay) onCanPlay();
-				    					 } else if (status==2)
-				    						 {
-				    						 console.log("Audio starting");
-				    						 }
-				    					 else if(status == 4){
-				    						 var onEnd = mobileDS.MediaManager.getInstance().getCallback(onEndId);
-				    						 if (onEnd) onEnd();				    					 
-				    						 }
-				    				 	}
-				    		 );
-				    		 var enabled = true;
-				    		 return {
-				    			 play: function(){
-				    				 if (enabled){
-					    				 my_media.play();
-				    				 };
-				    			 },
-				    			 enable: function(){
-				    				 enabled = true;
-				    			 },
-				    			 disable: function(){
-				    				 my_media.stop();
-				    				 enabled = false;
-				    			 },
-				    			 release: function(){
-				    				 enabled= false;
-				    				 callbackArray[onEndId] = null;
-				    				 callbackArray[onCanPlayId] = null;
-				    				 callbackArray[onFailureId] = null;
-				    				
-				    			 }
-				    		 };
-				    	} catch (e){
-				    		console.log(e);
-				    		if(failureCallback){
-				    			failureCallback(e);
-				    		}
-				    	}
-				    },
-				    getCallback: function(id){
-				    	return callbackArray[id];
-				    }
-				});	
+						my_media.play();
+
+					} catch (e){
+						if(failureCallback){
+							failureCallback(e);
+						}
+					}
+				},
+				
+				playURL: function(url, successCallback, failureCallback){
+					try {
+//						console.log(url);
+						var my_media = new Media(
+								url, 
+								function(){ 
+//									console.log('Audio played');
+
+									my_media.release();
+									if(successCallback){
+										successCallback.apply(my_media,arguments);
+									}
+								} ,
+								failureCallback
+						);
+
+						my_media.play();
+					} catch (e){
+						if(failureCallback){
+							failureCallback.apply(my_media,arguments);
+						}
+					}
+				},
+				
+				getURLAsAudio: function(url, onEnd, failureCallback, onCanPlay){
+					
+					try {
+//						console.log(url);
+						var my_media = null;
+
+						var playStatus = 0;
+						my_media = new Media(
+								url
+								,null //DEBUG: function(){console.log('native onReady CB');}
+								,failureCallback
+								,function(status){
+//									console.debug("media status change "+playStatus+" -> "+status+"  for: "+url);
+
+									playStatus = status;
+
+									if (status==1){
+										if (onCanPlay){
+											onCanPlay.apply(mediaImpl, arguments);
+											onCanPlay = null;//remove onCanPlay callback after first invocation
+										}
+									} 
+//									else if (status==2){
+//									console.log("Audio started");
+//									}
+//									else if (status==3){
+//									console.log("Audio paused");
+//									}
+									else if(status == 4){
+										if (onEnd){
+											onEnd.apply(mediaImpl, arguments);				    					 
+										}
+									}
+								}
+						);
+						var enabled = true;
+						var mediaImpl = {
+								play: function(){
+									if (enabled){
+										my_media.play();
+									}
+								},
+								stop: function(){
+									//use "manual" stop instead of Cordova's stop
+									//in order to allow "forgiving" behavior when audio is already stopped
+									//	-> Cordova's stop() requires the audio to be playing, otherwise an error is thrown/triggered
+
+//									console.info('CordovaAudio.stop[state '+playStatus
+//											+', duration '+my_media.duration
+//											+', position '+my_media.position
+////											+', currentPosition '+my_media.getCurrentPosition()
+//											+']: '+url);
+									
+									//only try to stop if playing and/or paused
+									if(playStatus == 2 || playStatus == 3){
+										my_media.stop();
+									}
+									
+//									if(playStatus == 2){//playing
+//										my_media.stop();
+//									}
+//									else if(playStatus == 3){//paused
+//										my_media.seekTo(0);
+//									}
+////									my_media.stop();
+								},
+								enable: function(){
+									enabled = true;
+								},
+								disable: function(){
+									if(enabled){
+										this.stop();
+										enabled = false;
+									}
+								},
+								release: function(){
+									if(enabled && ! this.isPaused()){
+										this.stop();
+									}
+									enabled= false;
+									if(my_media){
+										my_media.release();
+									}
+
+								},
+								setVolume: function(value){
+									if(my_media){
+										my_media.setVolume(value);
+									}
+								},
+								getDuration: function(){
+									if(my_media){
+										return my_media.duration;
+									}
+									return -1;
+								},
+								isPaused: function(){
+									if(my_media){
+										return playStatus == 3;
+									}
+									return false;
+								},
+								isEnabled: function(){
+									return enabled;
+								}
+						};
+
+						//WORK-AROUND for Android: need to invoke a method on the Media object in
+						//							order to trigger the on-init callback.
+						my_media.seekTo(0);
+
+
+						return mediaImpl;
+
+					} catch (e){
+						console.error(e);
+						if(failureCallback){
+							failureCallback(e);
+						}
+					}
+				}//END: getURLAsAudio
+				
+			});//END: callBack({...
 		}
-}
+};

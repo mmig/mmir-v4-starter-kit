@@ -47,8 +47,11 @@ var mobileDS = window.mobileDS ||
 function View(ctrl, name, definition){
     
 //	console.log("[View] '" + name + "' loaded.");
-    // remove HTML comments from View
-    definition = definition.replace(mobileDS.CommonUtils.getInstance().regexHTMLComment, '');//remove HTML comments!  .replace(HTMLCommentRegExp,"");
+	
+	if(definition){
+	    // remove HTML comments from View
+	    definition = definition.replace(mobileDS.CommonUtils.getInstance().regexHTMLComment, '');//remove HTML comments!  .replace(HTMLCommentRegExp,"");
+	}
 	
     /**
      * The controller to which this view belongs.
@@ -101,44 +104,19 @@ function View(ctrl, name, definition){
     this.helperMethods = new Array();
     
 
-    var parser = mobileDS.parser.ParserUtils.getInstance();
-    var renderer = mobileDS.parser.RenderUtils.getInstance();
-    
-    
-    var parseResult = parser.parse(this.def, this);
-    
-    for(var i=0, size = parseResult.contentFors.length; i < size ; ++i){
-    	this.contentFors.push(new ContentElement(parseResult.contentFors[i], this, parser, renderer));
+    if(this.def){
+	    var parser = mobileDS.parser.ParserUtils.getInstance();
+	    var renderer = mobileDS.parser.RenderUtils.getInstance();
+	    
+	    
+	    var parseResult = parser.parse(this.def, this);
+	    
+	    for(var i=0, size = parseResult.contentFors.length; i < size ; ++i){
+	    	this.contentFors.push(new ContentElement(parseResult.contentFors[i], this, parser, renderer));
+	    }
     }
     
 }
-
-
-/**
- * Executes all helper methods that were specified / referenced in the view; with **data** as parameter.
- * 
- * @deprecated helper methods must now explicitly called in template definition (using syntax <code>@helper(name,args)</code>)
- * 
- * @function executeHelperMethods
- * @param {Object} data Parameter to pass to the helper methods
- */
-View.prototype.executeHelperMethods = function(data){
-	for(var i=0, size = this.getHelperMethods().length; i < size ; ++i){
-		this.controller.performHelper(this.getHelperMethods()[i], data);
-    }
-//	var self = this;
-//	$.each(self.getHelperMethods(), function(index, h_method){
-//		//if(index == self.getHelperMethods().length -1){
-//		//	console.log("calling an action in view  : " + h_method );
-//		//	self.controller.performHelper(h_method, data, mobileDS.PresentationManager.getInstance().doRenderView(self.controller.getName(), self.name, self, self.controller));
-//		//	console.log("action berformed : " + h_method);
-//		//}else{
-//			self.controller.performHelper(h_method, data);
-//		//}
-//	
-//	});
-};
-
 
 /**
  * Gets the definition of a view.
@@ -198,12 +176,108 @@ View.prototype.getContentElement = function( name){
     return null;
 };
 
+View.prototype.stringify = function(){
+	
+	// "plain properties" list
+	var propList = [
+	     'name', 
+	     'def'
+//	     , 'helperMethods'//DISABLE: this field is deprecated!
+	];
+
+	//Array-properties
+	var arrayPropList = [
+   	     'contentFors' //element type: ContentElement (stringify-able)
+   	];
+
+	//function for iterating over the property-list and generating JSON-like entries in the string-buffer
+	var appendStringified = mobileDS.parser.appendStringified;
+	
+	var sb = ['mobileDS.parser.restoreObject({ classConstructor: ["View"]', ','];
+	
+	appendStringified(this, propList, sb);
+	
+	//non-primitives array-properties with stringify() function:
+	appendStringified(this, arrayPropList, sb, null, function arrayValueExtractor(name, arrayValue){
+		
+		var buf =['['];
+		for(var i=0, size = arrayValue.length; i < size; ++i){
+			buf.push(arrayValue[i].stringify());
+			buf.push(',');
+		}
+		//remove last comma
+		if(arrayValue.length > 0){
+			buf.splice( buf.length - 1, 1);
+		}
+		buf.push(']');
+		
+		return buf.join('');
+	});
+	
+
+	sb.push( 'initPublish: function(){ mobileDS.PresentationManager.getInstance().addView(this.getController(), this); }');
+	sb.push(',');
+	
+	//TODO is there a better way to store the controller? -> by its contoller's name, and add a getter function...
+	if(this['controller']){
+		
+		//getter/setter function for controller
+		//  (NOTE: this init-function needs to be called before controller can be accessed!)
+		sb.push( 'initController: function(){');
+
+		// store controller-name:
+		sb.push( ' var ctrlName = ');
+		sb.push( JSON.stringify(this.getController().getName()) );
+		
+		// ... and the getter/setter code:
+		sb.push( '; this.controller = mobileDS.ControllerManager.getInstance().getController(ctrlName); },' );
+		
+		
+		//add initializer function
+		//  (NOTE: needs to be called before controller or renderer can be accessed!)
+		sb.push( 'init: function(){');
+		sb.push( ' this.initController(); ' );
+		sb.push( ' }' );
+		
+		//NOTE: need to add comma in a separate entry 
+		//      (-> in order to not break the removal method of last comma, see below)
+		sb.push( ',' );
+	}
+	
+	//if last element is a comma, remove it
+	if(sb[sb.length - 1] === ','){
+		sb.splice( sb.length - 1, 1);
+	}
+	
+	
+	sb.push(' }, true);');
+	return sb.join('');
+};
+
+
+
 /**
  * Gets an array of all helper methods. 
+ * 
+ * @deprecated helper methods must now explicitly called in template definition (using syntax <code>@helper(name,args)</code>)
  * 
  * @function getHelperMethods
  * @returns {Array} Array of all helper methods
  */
 View.prototype.getHelperMethods = function(){
 	return this.helperMethods;
+};
+
+/**
+ * Executes all helper methods that were specified / referenced in the view; with **data** as parameter.
+ * 
+ * @deprecated helper methods must now explicitly called in template definition (using syntax <code>@helper(name,args)</code>)
+ * 
+ * @function executeHelperMethods
+ * @param {Object} data Parameter to pass to the helper methods
+ */
+View.prototype.executeHelperMethods = function(data){
+	for(var i=0, size = this.getHelperMethods().length; i < size ; ++i){
+		this.controller.performHelper(this.getHelperMethods()[i], data);
+    }
 };

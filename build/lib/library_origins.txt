@@ -6,3 +6,8 @@ ANTLR
 
 Apache Ant Contrib Tasks (Apache Software License) 
 * ant-contrib-1.0b3.jar
+
+Commons SCXML JS (discontinued Apache Project; Apache Software License)
+* commons-scxml-js
+  (NOTE: this is not the complete source of the SCXML-JS project; only a part)
+

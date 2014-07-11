@@ -176,9 +176,14 @@ mobileDS.InputEngine = (function(){
     		 * @function raise
     		 * @param {String} eventName Name of the event to be raised
     		 * @param {Object} data Data of the event
+    		 * @throws {Error} if invoked when the internal event/state engine is not initialized yet 
     		 * @public
     		 */
 			raise: function(eventName, data){	
+				
+				if(!isInitialized){
+            		throw new Error('InputEngine is not initialized yet, cannot process event "'+eventName+'"!');
+            	}
 				
 				if(IS_DEBUG_ENABLED) console.debug("InputEngine raising event : '" + eventName + "' in state '"+ stateHistory[stateHistory.length-1] + "' with data "+JSON.stringify(data));//debug
 										

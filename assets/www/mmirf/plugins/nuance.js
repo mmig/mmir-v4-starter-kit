@@ -61,7 +61,6 @@ NuancePlugin.prototype.speak = function(text, successCallback, failureCallback, 
 
 
 NuancePlugin.prototype.recognize = function(language, successCallback, failureCallback){
-
 	 return cordova.exec(successCallback,     //Callback which will be called when directory listing is successful
    					 failureCallback,      //Callback which will be called when directory listing encounters an error
    					 'NuanceAndroidPlugin',       //Telling cordova that we want to run "NuancePlugin" Plugin
@@ -69,13 +68,20 @@ NuancePlugin.prototype.recognize = function(language, successCallback, failureCa
    					 [language]);                  //Passing a list of arguments to the plugin
 };
 
-NuancePlugin.prototype.recognizeNoEOS = function(language, successCallback, failureCallback){
-
-	 return cordova.exec(successCallback,     //Callback which will be called when directory listing is successful
+NuancePlugin.prototype.recognizeNoEOS = function(language, successCallback, failureCallback, withIntermediateResults){
+	if (withIntermediateResults){
+		return cordova.exec(successCallback,     //Callback which will be called when directory listing is successful
+					 failureCallback,      //Callback which will be called when directory listing encounters an error
+					 'NuanceAndroidPlugin',       //Telling cordova that we want to run "NuancePlugin" Plugin
+					 'asr-short',                //Telling the plugin, which action we want to perform
+					 [language]);     
+	} else {
+		return cordova.exec(successCallback,     //Callback which will be called when directory listing is successful
   					 failureCallback,      //Callback which will be called when directory listing encounters an error
   					 'NuanceAndroidPlugin',       //Telling cordova that we want to run "NuancePlugin" Plugin
   					 'asr-no-eos-detection',                //Telling the plugin, which action we want to perform
-  					 [language]);                  //Passing a list of arguments to the plugin
+  					 [language]);     
+	}//Passing a list of arguments to the plugin
 };
 
 NuancePlugin.prototype.stopRecord = function(successCallback, failureCallback){

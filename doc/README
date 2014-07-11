@@ -1,18 +1,26 @@
-For the creation of the Api documentation, yuidoc is used.
+For the creation of the Api documentation, js-toolkit is used.
+Use the provided create_doc.bat file for the creation of the documentation.
+The documentation can be found under PROJECT_PATH\doc\api_doc.
 
-To install yuidoc, first install Node.js:
-Download and install Node.js (http://nodejs.org/#download)
+The invocation of the api generation is as follows:
 
-After that install yuidoc via the Node.js command prompt
-npm -g install yuidocjs.
+# MS Windows version (works)
+SET _BASEPATH=%~dp0
+SET TARGETDIR=%_BASEPATH%..\assets\www\javascripts
+SET EXCLUDEDIRS="-E=3rdParty|input_manager_state_chart|DialogDescription.js|grammar.js|gen|.json"
+SET OUTPUTDIR=%_BASEPATH%api_doc
+SET JSDOCDIR=tools\jsdoc-toolkit
+SET TEMPLATEDIR=%JSDOCDIR%\templates
+SET TEMPLATE=jsdoc
+java -jar %JSDOCDIR%\jsrun.jar %JSDOCDIR%\app\run.js -A -t=%TEMPLATEDIR%\%TEMPLATE% -p -v -r %EXCLUDEDIRS% -d=%OUTPUTDIR% -v %TARGETDIR%
 
-Very Important: copy the adapted docparser in 
-<workspace>/Voice2SocialApp/doc/docparser.js
-to
-%USERPROFILE%\AppData\Roaming\npm\node_modules\yuidocjs\lib
-so that category tags are parsed.
 
-Now you can open a Node.js command prompt and go to the <workspace>/Voice2SocialApp/doc directory and execute create_doc.bat (Windows)
-
-The documentation should be created in the <workspace>/Voice2SocialApp/doc/out directory
---> open <workspace>/Voice2SocialApp/doc/out/index.html
+# Linux version (should work, not tested):
+_BASEPATH=$PWD
+TARGETDIR=$_BASEPATH/../assets/www/javascripts
+EXCLUDEDIRS="-E=3rdParty|input_manager_state_chart|DialogDescription.js|grammar.js|gen|.json"
+OUTPUTDIR=$_BASEPATH/api_doc
+JSDOCDIR=./tools/jsdoc-toolkit
+TEMPLATEDIR=$JSDOCDIR/templates
+TEMPLATE=jsdoc
+java -jar $JSDOCDIR/jsrun.jar $JSDOCDIR/app/run.js -A -t=$TEMPLATEDIR/$TEMPLATE -p -v -r $EXCLUDEDIRS -d=$OUTPUTDIR -v $TARGETDIR

@@ -150,7 +150,7 @@ Controller.prototype.loadHelper = function(name, helperPath){
 		console.warn('Could not determine contents for directory "'+path+'"');
 		return; ////////////////////// EARLY EXIT //////////////////////////////
 	}
-	else if(! $.isArray(dirContents) || dirContents.length < 1){
+	else if(! mobileDS.CommonUtils.getInstance().isArray(dirContents) || dirContents.length < 1){
 		console.warn('Invalid information for contents of directory "'+path+'": '+dirContents);
 		return; ////////////////////// EARLY EXIT //////////////////////////////
 	}
@@ -269,14 +269,10 @@ Controller.prototype.getHelper = function(){
  * @public
  */
 Controller.prototype.parseViews = function(viewDefs){
-	var self = this;
 	
-	var i = 0;
-	$.each(viewDefs, function(index, view){
-		var viewName = view['name'];
-		self.views[i] = viewName;
-		i++;
-	});
+	for(var i=0, size = viewDefs.length; i < size; ++i){
+		this.views.push(viewDefs[i].name);
+	}
 	
 };
 
@@ -290,14 +286,10 @@ Controller.prototype.parseViews = function(viewDefs){
  * @public
  */
 Controller.prototype.parsePartials = function(partialDefs){
-    var self = this;
     
-    var i = 0;
-    $.each(partialDefs, function(index, partial){
-        var partialName = partial['name'];
-        self.partials[i] = partialName;
-        i++;
-    });
+	for(var i=0, size = partialDefs.length; i < size; ++i){
+		this.partials.push(partialDefs[i].name);
+	}
     
 };
 

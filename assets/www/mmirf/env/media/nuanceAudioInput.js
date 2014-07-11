@@ -27,16 +27,49 @@
 
 newMediaPlugin = {
 		initialize: function(callBack){
+			var id = 0;
+			var currentSuccessCallback;
+			var currentFailureCallback;
+			var callbackWrapper = function callbackWrapper (cb){
+				return (function (res){
+					console.log(res);
+					var asr_result = res;
+					if (res == 'repeat') {
+						window.plugins.nuancePlugin.recognizeNoEOS(
+								mobileDS.LanguageManager.getInstance().getSpeaker()["voice_lang"],
+								callbackWrapper(currentSuccessCallback), 
+								currentFailureCallback, 
+								true
+						);
+					} else if(res && res['result'] && res['result']!==''){
+						asr_result = res['result'];
+						cb(asr_result);			
+					}
+				});
+			};
+			
 			callBack ({
-				startRecord: function(successCallBack, failureCallBack){
-					window.plugins.nuancePlugin.recognizeNoEOS(mobileDS.LanguageManager.getInstance().getSpeaker()["voice_lang"],successCallBack, failureCallBack);
+				startRecord: function(successCallback, failureCallback){
+					currentFailureCallback = failureCallback;
+					currentSuccessCallback = successCallback;
+					window.plugins.nuancePlugin.recognizeNoEOS(
+							mobileDS.LanguageManager.getInstance().getSpeaker()["voice_lang"],
+							callbackWrapper(successCallback), 
+							failureCallback, 
+							true
+					);
 				},
-				stopRecord: function(successCallBack,failureCallBack){
-					window.plugins.nuancePlugin.stopRecord(successCallBack,failureCallBack);
+				stopRecord: function(successCallback,failureCallback){
+					window.plugins.nuancePlugin.stopRecord(callbackWrapper(successCallback),failureCallback);
 				},
-				recognize: function(successCallBack,failureCallBack){
-					window.plugins.nuancePlugin.recognize(mobileDS.LanguageManager.getInstance().getSpeaker()["voice_lang"], successCallBack, failureCallBack);
-				}
+				recognize: function(successCallback,failureCallback){
+					window.plugins.nuancePlugin.recognize(mobileDS.LanguageManager.getInstance().getSpeaker()["voice_lang"], callbackWrapper(successCallback), failureCallback);
+				},
+    			cancelRecognition: function(successCallBack,failureCallBack){
+    				//FIXME currently, NuancePlugin returns failure on successful cancel-performance, so we call the function with switched failure, success arguments...
+    				//			-> switch back, when NuancePlugin returns PluginResults correctly... 
+    				window.plugins.nuancePlugin.cancel(failureCallBack, successCallBack);
+    			}
 			});
 		    		
 		    		
