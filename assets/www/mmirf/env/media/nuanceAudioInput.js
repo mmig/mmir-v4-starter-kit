@@ -27,6 +27,7 @@
 
 newMediaPlugin = {
 		initialize: function(callBack){
+			var languageManager = require('languageManager');
 			var id = 0;
 			var currentSuccessCallback;
 			var currentFailureCallback;
@@ -36,7 +37,7 @@ newMediaPlugin = {
 					var asr_result = res;
 					if (res == 'repeat') {
 						window.plugins.nuancePlugin.recognizeNoEOS(
-								mobileDS.LanguageManager.getInstance().getSpeaker()["voice_lang"],
+								languageManager.getSpeaker()["voice_lang"],
 								callbackWrapper(currentSuccessCallback), 
 								currentFailureCallback, 
 								true
@@ -53,7 +54,7 @@ newMediaPlugin = {
 					currentFailureCallback = failureCallback;
 					currentSuccessCallback = successCallback;
 					window.plugins.nuancePlugin.recognizeNoEOS(
-							mobileDS.LanguageManager.getInstance().getSpeaker()["voice_lang"],
+							languageManager.getSpeaker()["voice_lang"],
 							callbackWrapper(successCallback), 
 							failureCallback, 
 							true
@@ -63,7 +64,7 @@ newMediaPlugin = {
 					window.plugins.nuancePlugin.stopRecord(callbackWrapper(successCallback),failureCallback);
 				},
 				recognize: function(successCallback,failureCallback){
-					window.plugins.nuancePlugin.recognize(mobileDS.LanguageManager.getInstance().getSpeaker()["voice_lang"], callbackWrapper(successCallback), failureCallback);
+					window.plugins.nuancePlugin.recognize(languageManager.getSpeaker()["voice_lang"], callbackWrapper(successCallback), failureCallback);
 				},
     			cancelRecognition: function(successCallBack,failureCallBack){
     				//FIXME currently, NuancePlugin returns failure on successful cancel-performance, so we call the function with switched failure, success arguments...

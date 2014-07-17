@@ -28,6 +28,8 @@
 newAudioOutput = {
 		initialize: function(callBack){
 			
+			var languageManager = require('languageManager');
+			
 			window.plugins.nativeTTS.startup(
 				function(data){
 					console.info('NativeTTS.startup: success -> '+JSON.stringify(data));
@@ -35,7 +37,7 @@ newAudioOutput = {
 					console.info('NativeTTS.startup: error -> '+JSON.stringify(e));
 				}
 			);
-			var language = mobileDS.LanguageManager.getInstance().getSpeaker()["voice_lang"];
+			var language = languageManager.getSpeaker()["voice_lang"];
 			window.plugins.nativeTTS.setLanguage(
 					language,
 				function(data){
@@ -63,7 +65,7 @@ newAudioOutput = {
 				    		};
 				    		
 				    		//check for changes in language setting:
-				    		var currentLanguage = mobileDS.LanguageManager.getInstance().getSpeaker()["voice_lang"];
+				    		var currentLanguage = languageManager.getSpeaker()["voice_lang"];
 				    		if(currentLanguage !== language){
 				    			//if necessary: change language first
 				    			window.plugins.nativeTTS.setLanguage(currentLanguage,

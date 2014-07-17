@@ -33,8 +33,6 @@
 	
     <link rel="stylesheet" href="mmirf/res/styles/jquery.mobile-1.3.1.min.css" />
     
-	<script type="text/javascript"src="mmirf/res/libs/jquery-1.9.1.min.js">
-	</script>
 	<!-- script type="text/javascript">
 		//disable jQuery Mobiles navigation/history handling (-> allow simple # links within page)
 		//NOTE this needs to be done, before jQuery Mobile JS is loaded!
@@ -44,42 +42,133 @@
 			$.mobile.linkBindingEnabled = false;
 		});
 	</script-->
-	<script type="text/javascript"src="mmirf/res/libs/jquery.mobile-1.3.1.js">
+	
+	
+	<script type="text/javascript" src="mmirf/res/libs/require.js"></script>
+	
+	<script type="text/javascript">
+
+//declare GrammarConvert-class in global namespace (will be set during initialization);
+var GrammarConverter;
+var jsl = {};
+
+(function () {
+    
+    
+    require.config({
+		baseUrl: './mmirf',
+		
+		config: {
+		    'constants': {
+		        forBrowser: true
+		    }
+		},
+	
+		paths : {
+		    
+		    // core
+	 	    'main': 'main'
+		    // lib
+		    , 'jquery': 'res/libs/jquery-1.9.1'
+		    
+		    // globals and AMDs
+	 	    , 'constants': 'tools/constants'
+	 	    , 'commonUtils': 'tools/commonUtils'
+		    , 'stringExtension': 'tools/extensions/StringExtensions'		
+		    , 'dictionary': 'tools/dictionary'
+		    , 'paramsParseFunc': 'tools/paramsParseFunc'
+			, 'env': 'tools/envDetect'
+			, 'envInit': 'tools/envInit'	
+	
+		    , 'jqm': 'res/libs/jquery.mobile-1.3.1'
+	
+		    // @chsc03 required by contentElement, renderUtils, declared in presentationManager
+		    , 'languageManager': 'manager/settings/languageManager'
+		    , 'configurationManager': 'manager/settings/configurationManager'
+		    
+			//grammar related
+			, 'jscc' : 'res/libs/jscc-amd'
+			, 'grammarConverter' : 'semantic/grammarConverter'
+			, 'grammarParserTemplate' : 'semantic/grammarParserTemplate'
+			, 'semanticInterpreter' : 'semantic/semanticInterpreter'
+			, 'jsonlint' : 'res/libs/jsonlint.parser'
+			
+		},
+	
+		shim : {
+		    
+		    'jqm': ['jquery']
+			
+			, 'jsonlint': {
+				exports: 'jsl.parser'
+			}
+	
+		}
+    });
+
+	var start = (function(){
+	
+		require(['jquery', 'constants', 'commonUtils', 'languageManager', 'semanticInterpreter', 'grammarConverter'
+		         , 'jsonlint'
+					//TODO make AMDs
+					, 'jqm'
+					
+			], function($, constants, commonUtils,languageManager,semanticInterpreter,grammarConverter,jsonlint
+				//TODO add AMDs when implements: , jpath, initJscc
+			) {
+			 $(function() {
+				 
+			 //export dependencies into mmir-package:
+			 mmir = {
+					 Constants: constants,
+					 CommonUtils: commonUtils,
+					 LanguageManager: languageManager,
+					 SemanticInterpreter: semanticInterpreter
+			 };
+			 
+			 GrammarConverter = grammarConverter;
+			 
+			 jsl.parser = jsonlint;
+			 
+			 console.log('dom ready');
+
+			 // start commonUtils
+			 commonUtils.init()
+
+			 // start the app
+				 .then(function() {
+				 
+					initJqmBookmarking();
+					initPage();				
+
+				 });
+
+			 });
+
+	 });
+	
+	})();
+
+}());
+
 	</script>
-
-
-	<script type="text/javascript"src="mmirf/res/libs/jpath.js">
+	
+	<!--script type="text/javascript"src="mmirf/res/libs/jpath.js">
 	</script>
 	<script type="text/javascript"src="mmirf/tools/initJSCC.js">
 	</script>
 	<script type="text/javascript"src="mmirf/res/libs/jscc.js"> 
 	</script>
-
 	<script type="text/javascript"src="mmirf/semantic/grammarConverter.js">
 	</script>
-	
-	<script type="text/javascript"src="mmirf/tools/extensions/StringExtensions.js">
-	</script>
-	<script type="text/javascript"src="mmirf/tools/constants.js">
-	</script>
-	<script type="text/javascript"src="mmirf/plugins/directoryListing.js">
-	</script>
-	<script type="text/javascript"src="mmirf/tools/CommonUtils.js">
-	</script>
-	<script type="text/javascript"src="mmirf/manager/settings/languageManager.js">
-	</script>
-	
 	<script type="text/javascript"src="mmirf/semantic/grammarParserTemplate.js">
 	</script>
 	<script type="text/javascript"src="mmirf/semantic/semanticInterpreter.js">
-	</script>
+	</script-->
 	
 	
 	<script type="text/javascript"src="mmirf/res/libs/jsonlint.parser.js">
 	</script>
-	
-	<!--script type="text/javascript" src="gen/grammar/de_grammar.js">
-	</script-->
 		
 	<style type="text/css">
 		
@@ -171,15 +260,11 @@
 	if(!console.error){
 		console.error = console.log;
 	}
-	
-	var mobileDS = window.mobileDS ||
-	{};
-
 
 	var forBrowser = true;
 	
-	var semanticInterpreter = mobileDS.SemanticInterpreter.getInstance();
-	semanticInterpreter.get_json_grammar_url = function(id) { return 'config/languages/'+id+'/grammar.json'; };
+	var semanticInterpreter;// = mmir.SemanticInterpreter.getInstance();
+	//semanticInterpreter.get_json_grammar_url = function(id) { return 'config/languages/'+id+'/grammar.json'; };
 	
 	//TODO: (1) load directory_strucutre file and detect available JSON grammars, (2) create drop-down menu for languages
 	//semanticInterpreter.setCurrentGrammar('de');
@@ -197,7 +282,11 @@
 	var optionGrammarFromFile = 'file-option';
 	
 	var initPage = function initPageImpl(){
-		var languageManager = mobileDS.LanguageManager.getInstance();
+	
+		semanticInterpreter = mmir.SemanticInterpreter.getInstance();
+		semanticInterpreter.get_json_grammar_url = function(id) { return 'config/languages/'+id+'/grammar.json'; };
+		
+		var languageManager = mmir.LanguageManager.getInstance();
 				
 		//get a default/"starting" language
 		var defLang = languageManager.getLanguage();
@@ -286,7 +375,7 @@
 			loadJsonGrammar(callback);
 			
 		});//END: $("#lang-selector").on( "change"...
-		
+				
 		//set current language in drop-down-box:
 		if(false || defLang){
 			var selectedLangOption = $('#lang-selector option[value="'+defLang+'"]');
@@ -297,7 +386,6 @@
 			
 			$('#lang-selector').selectmenu('refresh', true);
 		}
-		
 		
 		//overwrite default-impl. for getLanguage (-> use grammar-ID-field value instead of input-field's)
 		getLanguage = function(){
@@ -328,9 +416,9 @@
 		loadJsonGrammar(callback);
 	};
 
-	jQuery(document).ready(function(){
-		mobileDS.CommonUtils.getInstance().initialize(initPage);
-	});
+//	jQuery(document).ready(function(){
+//		mmir.CommonUtils.initialize(initPage);
+//	});
 	
 	function getLanguage(){
 		var id = $('#lang-selector-field').val();
@@ -339,7 +427,7 @@
 	}
 	
 	function initPageWithJsonGrammar(){
-		semanticInterpreter = mobileDS.SemanticInterpreter.getInstance();
+		semanticInterpreter = mmir.SemanticInterpreter.getInstance();
 		semanticInterpreter.createGrammar(theJSONgrammar, getLanguage());
 		
 		printGrammarDefinition();
@@ -360,7 +448,7 @@
 	
 	function loadJsonGrammar(cb){
 		if(!semanticInterpreter){
-			semanticInterpreter = mobileDS.SemanticInterpreter.getInstance();
+			semanticInterpreter = mmir.SemanticInterpreter.getInstance();
 		}
 		
 		var successFunc = function(gcInstance){
@@ -524,7 +612,7 @@
 		
 		clearOut();
 		
-		semanticInterpreter = mobileDS.SemanticInterpreter.getInstance();
+		semanticInterpreter = mmir.SemanticInterpreter.getInstance();
 		
 		var langCode = getLanguage();
 		if( semanticInterpreter.hasGrammar(langCode) ){
@@ -1023,7 +1111,8 @@
 	
 	//manually implement bookmark-navigation
 	// (by default jQuery Mobile interprest bookmarks as dialogs etc. ...)
-	$(function(){
+//	$(function(){
+	function initJqmBookmarking(){
 		var links = $('a[href^="#"]');
 
 		$('a[href^="#"]').on('click', function(evt){
@@ -1046,7 +1135,8 @@
 			return false;
 		});
 
-	});
+	}
+//	);
 		
 	</script>
 	

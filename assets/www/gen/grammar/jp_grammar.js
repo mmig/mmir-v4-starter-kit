@@ -1,4 +1,6 @@
-mobileDS.SemanticInterpreter.getInstance().addGrammar("jp", function(asr_recognized_text){
+(function(){
+  var semanticInterpreter = require("semanticInterpreter");
+var grammarFunc = function(asr_recognized_text){
   var theGrammarConverterInstance = this;
 
  
@@ -615,7 +617,9 @@ function __dbg_parsetree_phpSyntaxTree( nodes, tree )
 
 
 __parse( asr_recognized_text, new Array(), new Array());
-});
+};
+semanticInterpreter.addGrammar("jp", grammarFunc);
 
-mobileDS.SemanticInterpreter.getInstance().setStopwords("jp",["ください","下さい"]);
-
+semanticInterpreter.setStopwords("jp",["ください","下さい"]);
+return grammarFunc;
+})();

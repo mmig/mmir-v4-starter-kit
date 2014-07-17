@@ -15,7 +15,7 @@
     
     <label for="app-date">
       @localize("date_label")
-    </label>
+    </label>   
     <input name="app-date" id="app-date" type="date" data-role="datebox" readonly="readonly"
            data-options='{"mode": "flipbox"}' />
     

@@ -26,7 +26,7 @@
 
 
 /**
-* @module mobileDS.semantic
+* @module mmir.semantic
 * 
 */
 
@@ -37,6 +37,9 @@
 * @constructor
 * @category core
 */
+define(['commonUtils', 'jscc'], function(commonUtils){
+
+IS_DEBUG_ENABLED = true;//FIXME need to remove this!
 
 var GrammarConverter = function(){
 	this.THE_INTERNAL_GRAMMAR_CONVERTER_INSTANCE_NAME = "theGrammarConverterInstance";
@@ -414,7 +417,7 @@ GrammarConverter.prototype.setGrammarFunction = function(func){
 /**
  * Execute the grammar.
  * 
- * NOTE: do not use directly, but {@link mobileDS.SemanticInterpreter.getASRSemantic} instead,
+ * NOTE: do not use directly, but {@link mmir.SemanticInterpreter.getASRSemantic} instead,
  * 		since that function applies some pre- and post-processing to the text (stopword removal
  * 		en-/decoding of special characters etc.).
  * 
@@ -593,7 +596,7 @@ GrammarConverter.prototype.unmaskJSON = function (json, isMaskValues, isMaskName
  * @param {Boolean} [isMaskNames]  OPTIONAL if true, the property names will be processed (DEFAULT: see self.maskNames)
  * @returns the recoded JSON object
  * 
- * @requires {mobileDS.CommonUtils} or {Array.isArray}
+ * @requires {mmir.CommonUtils} or {Array.isArray}
  */
 GrammarConverter.prototype.recodeJSON = function (json, recodeFunc, isMaskValues, isMaskNames) {
 	
@@ -607,8 +610,8 @@ GrammarConverter.prototype.recodeJSON = function (json, recodeFunc, isMaskValues
 	
 	var self = this;
 	var isArray;
-	if(typeof mobileDS !== 'undefined' && typeof mobileDS.CommonUtils !== 'undefined'){
-		isArray = mobileDS.CommonUtils.getInstance().isArray;
+	if(typeof commonUtils !== 'undefined'){
+		isArray = commonUtils.isArray;//FIXME this requires ArrayExtension.js !!!
 	} 
 	else { 
 		isArray = Array.isArray;
@@ -658,3 +661,7 @@ GrammarConverter.prototype.recodeJSON = function (json, recodeFunc, isMaskValues
 	
 	return processJSON(json);
 };
+
+return GrammarConverter;
+
+});//END: define(..., funciton(){

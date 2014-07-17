@@ -28,6 +28,11 @@
 newMediaPlugin = {
 		initialize: function(callBack){
 			
+			var languageManager = require('languageManager');
+			var configurationManager = require('configurationManager');
+			var mediaManager = require('mediaManager');
+			var commonUtils = require('commonUtils');
+			
 			var volume = 1.0;
 			var _setVolume = function(val){
 				volume = val;
@@ -58,10 +63,10 @@ newMediaPlugin = {
 			var generateTTSURL = function(text){
 //				text = text.replace(/\s/g, '%20');
 				text = encodeURIComponent(text);
-				var speaker = window.mobileDS.LanguageManager.getInstance().getSpeaker();
+				var speaker = languageManager.getSpeaker();
 				var lang = speaker["lang_simple"];
 				var voice = speaker["speaker"];
-				return window.mobileDS.ConfigurationManager.getInstance().get("HTML5OutputServerBasePath")+'process?INPUT_TYPE=TEXT&OUTPUT_TYPE=AUDIO&INPUT_TEXT=' + text + '&LOCALE='+lang+'&VOICE='+voice+'&AUDIO=WAVE_FILE';
+				return configurationManager.get("HTML5OutputServerBasePath")+'process?INPUT_TYPE=TEXT&OUTPUT_TYPE=AUDIO&INPUT_TEXT=' + text + '&LOCALE='+lang+'&VOICE='+voice+'&AUDIO=WAVE_FILE';
 			};
 			
 			var playNext = function playNext(){
@@ -83,36 +88,36 @@ newMediaPlugin = {
 				}
 			};
 			var ttsSingleSentence = function(text, onEnd, failureCallBack, onLoad){
-				{
-					try {
-						isReady = false;		   			
-						ttsMedia = mobileDS.MediaManager.getInstance().getURLAsAudio(generateTTSURL(text), 
-									function(){
-										isReady = true;
-										if(onEnd){
-											onEnd();
-										};
-									},
-									function(){
-										isReady = true;
-										if (failureCallBack){
-											failureCallBack();
-										};
-									},
-									function(){
-										if(onLoad){
-											onLoad();
-										};
-									});
-						ttsMedia.play();
-					} catch (e){
-						isReady=true;
-			    		console.log('error!'+e);
-						if (failureCallBack){
-							failureCallBack();
-						}
+				
+				try {
+					isReady = false;		   			
+					ttsMedia = mediaManager.getURLAsAudio(generateTTSURL(text), 
+								function(){
+									isReady = true;
+									if(onEnd){
+										onEnd();
+									};
+								},
+								function(){
+									isReady = true;
+									if (failureCallBack){
+										failureCallBack();
+									};
+								},
+								function(){
+									if(onLoad){
+										onLoad();
+									};
+								});
+					ttsMedia.play();
+				} catch (e){
+					isReady=true;
+		    		console.log('error!'+e);
+					if (failureCallBack){
+						failureCallBack();
 					}
 				}
+				
 			};
 			var ttsSentenceArray = function(sentences, onEnd, failureCallBack, onInit){
 				{
@@ -156,7 +161,7 @@ newMediaPlugin = {
 					isLoading = true;
 					var currIndex = ++loadIndex;
 					console.log("LongTTS loading "+currIndex+ " "+sentenceArray[currIndex]);
-					audioArray[currIndex] = mobileDS.MediaManager.getInstance().getURLAsAudio(generateTTSURL(sentenceArray[currIndex]), 
+					audioArray[currIndex] = mediaManager.getURLAsAudio(generateTTSURL(sentenceArray[currIndex]), 
 							function(){
 								console.log("LongTTS done playing "+currIndex+ " "+sentenceArray[currIndex]);
 								audioArray[currIndex].release();
@@ -212,22 +217,22 @@ newMediaPlugin = {
 							return;/////////////////////////////////// EARLY EXIT /////////////////////////////
 						}
 						ttsSingleSentence(parameter, successCallback, failureCallback, onInit);
-					} else if((typeof parameter !== 'undefined')&& mobileDS.CommonUtils.getInstance().isArray(parameter) ){
+					} else if((typeof parameter !== 'undefined')&& commonUtils.isArray(parameter) ){
 						ttsSentenceArray(parameter, successCallback, failureCallback, onInit);
 					} else if ((typeof parameter == 'object')){
 						if (parameter.pauseDuration!== null && parameter.pauseDuration>=0){
 							pauseDuration = parameter.pauseDuration;
 							console.log("PauseDuration: "+pauseDuration);
 						} else {
-							var configPause = mobileDS.ConfigurationManager.getInstance().get('pauseDurationBetweenSentences');
+							var configPause = configurationManager.get('pauseDurationBetweenSentences');
 							if (configPause) {
 								pauseDuration = configPause;
 							}
 							else pauseDuration = 1000;
 						}
-						if ((typeof parameter.text !== 'undefined')&& mobileDS.CommonUtils.getInstance().isArray(parameter.text) ){
+						if ((typeof parameter.text !== 'undefined')&& commonUtils.isArray(parameter.text) ){
 							if (parameter.forceSingleSentence){
-								ttsSingleSentence(mobileDS.CommonUtils.getInstance().concatArray(parameter.text),successCallback, failureCallback, onInit);
+								ttsSingleSentence(commonUtils.concatArray(parameter.text),successCallback, failureCallback, onInit);
 							} else {
 								ttsSentenceArray(parameter.text, successCallback, failureCallback, onInit);
 							}

@@ -10,8 +10,10 @@ var MmirTemplateLexer = function(input, state) {
 
     (function(){
 
-
-        	mobileDS.parser.extendMmirTemplateProcessor(this);
+    		//FIXME
+//    		mmir.parser.extendMmirTemplateProcessor(this);
+	    	var extendMmirTemplateProcessor = require('templateProcessor');
+	    	extendMmirTemplateProcessor(this);
         	
 
     }).call(this);

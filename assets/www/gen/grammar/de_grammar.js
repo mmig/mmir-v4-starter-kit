@@ -1,4 +1,6 @@
-mobileDS.SemanticInterpreter.getInstance().addGrammar("de", function(asr_recognized_text){
+(function(){
+  var semanticInterpreter = require("semanticInterpreter");
+var grammarFunc = function(asr_recognized_text){
   var theGrammarConverterInstance = this;
 
  
@@ -10714,7 +10716,9 @@ function __dbg_parsetree_phpSyntaxTree( nodes, tree )
 
 
 __parse( asr_recognized_text, new Array(), new Array());
-});
+};
+semanticInterpreter.addGrammar("de", grammarFunc);
 
-mobileDS.SemanticInterpreter.getInstance().setStopwords("de",["bitte","doch","der","der","die","das","dem","den","des","diese","dieser","diesem","diesen","dieses","mir","mal","jetzt","lass","m__oe__chte","ich","bla"]);
-
+semanticInterpreter.setStopwords("de",["bitte","doch","der","der","die","das","dem","den","des","diese","dieser","diesem","diesen","dieses","mir","mal","jetzt","lass","m__oe__chte","ich","bla"]);
+return grammarFunc;
+})();

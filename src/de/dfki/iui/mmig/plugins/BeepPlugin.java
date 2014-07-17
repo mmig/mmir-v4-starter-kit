@@ -29,12 +29,10 @@ package de.dfki.iui.mmig.plugins;
 import org.apache.cordova.api.CallbackContext;
 import org.apache.cordova.api.CordovaPlugin;
 import org.apache.cordova.api.PluginResult;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import de.dfki.iui.mmig.R;
-
+import de.dfki.iui.mmig.starterkit.R;
 import android.media.MediaPlayer;
 
 /**

@@ -26,12 +26,14 @@
 
 
 /**
- * @module mobileDS.tools
+ * @module mmir.tools
  * 
  */
-var mobileDS = window.mobileDS ||
-{};
+//var mobileDS = window.mobileDS ||
+//{};
 
+
+define(['md5'], function(CryptoJS){
 /**
  * A Utility class for creating / reading checksum (files).<br>
  * 
@@ -40,7 +42,7 @@ var mobileDS = window.mobileDS ||
  * 
  * @depends CryptoJS (MD5, see https://code.google.com/p/crypto-js/)
  */
-mobileDS.ChecksumUtils = (function(){
+//mobileDS.ChecksumUtils = (function(){
 	
 	var cryptoInstance;
 	var computeChecksum = function(str){
@@ -81,7 +83,10 @@ mobileDS.ChecksumUtils = (function(){
 		}
 	};
 	
-	return {
+	/**
+	 * @lends ChecksumUtils
+	 */
+	var instance = {
 		/**
 		 * Must be called before using checksum-generation:
 		 * sets/initializes the object/function for checksum generation.
@@ -162,4 +167,8 @@ mobileDS.ChecksumUtils = (function(){
 		}
 	};
 	
-})();
+//})();
+	
+	return instance;
+	
+});//END: define

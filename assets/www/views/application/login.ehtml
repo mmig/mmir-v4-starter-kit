@@ -6,30 +6,9 @@
 
 @contentFor("content"){
 
-    @*
-    <fieldset>
-    <!-- div data-role="fieldcontain"-->
-	    <label for="asr-text">Text:</label>
-	    <textarea id="asr-text" name="asr-text" rows="5"></textarea>
-    </fieldset>
-    
-    sentence-mode: <button id="asr"  name="asr" data-inline="true" value="start"></button>
-    
-    normal mode: <button id="asr-normal"  name="asr-normal" data-inline="true" value="start"></button>
-    
-    <button id="clear"  name="asr" data-inline="true" value="clear"></button>
-    
-    <p></p>
-    
-    <hr/>
-    *@
     <h2>
         @localize("login_header")
     </h2>
-     
-    <button id="loginButton"  name="login_btn" data-inline="true">
-        @localize("login_label")
-    </button>
     
     <div id="emailField" data-role="fieldcontain" style=" font-size: 1px; top: 1em; left: 0.5em; ">
         <label for="email">
@@ -45,6 +24,9 @@
     	<input type="password" name="password" id="password"  placeholder="password" value="mmig-user" />
     </div>
 
+    <button id="loginButton"  name="login_btn" data-inline="true">
+        @localize("login_label")
+    </button>
     
     <div id="signUpLabel" style="text-align: left; position: relative; top: 1em; left: 0.5em; ">
         <h4>
@@ -62,7 +44,7 @@
 }@
 
 @contentFor("footer"){    
-    <div id="lang_button" class="footer_button" style="width: 56px; height: 100%; display: table; float: right;" onclick="mobileDS.InputEngine.getInstance().raise('touch_input_event'); mobileDS.InputEngine.getInstance().raise('click_on_language_btn');">
+    <div id="lang_button" class="footer_button" style="width: 56px; height: 100%; display: table; float: right;" onclick="mmir.InputEngine.raise('touch_input_event'); mmir.InputEngine.raise('click_on_language_btn');">
 		<div id='flags-@localize("current_language")' style="display: table-cell; vertical-align: middle;width: 100%; height:100%;" class="flags footer_button">
 			<div style="display: table; width: 100%; height:100%;">
 	    		<div class="center_element lang_button_text footer_button_line_height" style="display: table-cell; vertical-align:middle; text-align: center;">
@@ -76,7 +58,7 @@
 @contentFor("dialogs"){
   
   <blockquote id="language-menu-panel" class='ui-language-panel login_background_gradient ui-body-a ui-corner-all'>
-  	@helper('get_language_menu') @*render('Application', 'languageMenu')*@
+  	@*helper('get_language_menu')*@ @render('Application', 'languageMenu')
   </blockquote>
   
 }@

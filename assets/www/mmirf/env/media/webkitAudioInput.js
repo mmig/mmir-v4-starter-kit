@@ -27,6 +27,8 @@
 
 newMediaPlugin = {
 		initialize: function(callBack, logvalue){
+			
+			var languageManager = require('languageManager');
 
             //detect feature avaibility:
 			if(typeof webkitSpeechRecognition === 'undefined'){
@@ -261,7 +263,7 @@ newMediaPlugin = {
                     intermediate_results = intermediateResults;
                     
                     // set recognition language 
-                    var langStr = mobileDS.LanguageManager.getInstance().getSpeaker()["voice_lang"];
+                    var langStr = languageManager.getSpeaker()["voice_lang"];
                     if(langStr){
                     	//normalize language code: config uses underline as separator:
                     	recognition.lang = langStr.replace('_','-');
@@ -428,7 +430,7 @@ newMediaPlugin = {
                     final_recognition_result = "";
                     
                     // recognition.lang = "en-US";
-                    var langStr = mobileDS.LanguageManager.getInstance().getSpeaker()["voice_lang"];
+                    var langStr = languageManager.getSpeaker()["voice_lang"];
                     if(langStr){
                     	//normalize language code: config uses underline as separator:
                     	recognition.lang = langStr.replace('_','-');

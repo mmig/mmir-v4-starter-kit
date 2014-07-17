@@ -24,6 +24,8 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+define(['languageManager', 'parserModule', 'storageUtils'], function(languageManager, parser_context){//TODO storageUtils
+	
 
 /**
  * The ContentElement class holds the name of the content-field (used via the yield-tag in the layouts: content, header, footer, dialogs, ...)
@@ -39,7 +41,7 @@
  */
 function ContentElement(group, view, parser, renderer){
 
-	this.localizer  = mobileDS.LanguageManager.getInstance();
+	this.localizer  = languageManager;//mmir.LanguageManager.getInstance();
 	
 	if(arguments.length === 0){
 		return this;
@@ -149,7 +151,7 @@ function ContentElement(group, view, parser, renderer){
 		//         whereas when the eval('function...')-method behaves as if the function was declared statically 
 		//         like a normal function-expression (after its first evaluation here).
 		//
-//		var func = new Function(mobileDS.parser.element.DATA_NAME, strFuncBody);
+//		var func = new Function(parser_context.element.DATA_NAME, strFuncBody);
 //		func.name = strFuncName;
 		
 		
@@ -161,7 +163,7 @@ function ContentElement(group, view, parser, renderer){
 //		//EXPORT
 //		// * on exit: commit values of local variables to their corresponding DATA-fields (and remove previously set "sync"-code)
 //		//
-//		var dataFieldName = mobileDS.parser.element.DATA_NAME;
+//		var dataFieldName = parser_context.element.DATA_NAME;
 //		
 //		//TODO do static "import" without eval(): only import VARs that were declared by @var() before!
 //		//     ... also (OPTIMIZATION): during JS-parsing, gather/detect VARIABLE occurrences -> only import VAR if it gets "mentioned" in the func-body! (need to detect arguments vs. variables for this!)		
@@ -199,14 +201,14 @@ function ContentElement(group, view, parser, renderer){
 //		    			});'
 //					+ varIteratorEndSrc;
 //		
-//		var func = eval( 'var dummy=function '+strFuncName+'('+mobileDS.parser.element.DATA_NAME+'){'
+//		var func = eval( 'var dummy=function '+strFuncName+'('+parser_context.element.DATA_NAME+'){'
 //				+ importDataSrc + strFuncBody +';'+exportDataSrc+'};dummy' );//<- FIXME WARING: export does not work correctly, if there is a return-statement in the outermost scope of the strFuncBody!
 		
 		
 //		//NOTE: need a dummy variable to catch and return the create function-definition in the eval-statement
 //		//      (the awkward 'var dummy=...;dummy'-construction avoids leaking the dummy-var into the 
 //		//       global name-space, where the last ';dummy' represent the the return-statement for eval(..) )
-		var func = eval( 'var dummy=function '+strFuncName+'('+mobileDS.parser.element.DATA_NAME+'){'+strFuncBody+'};dummy' );
+		var func = eval( 'var dummy=function '+strFuncName+'('+parser_context.element.DATA_NAME+'){'+strFuncBody+'};dummy' );
 		
 		return func;
 	};
@@ -403,7 +405,7 @@ function ContentElement(group, view, parser, renderer){
 
 
 /**
- * Gets the name of a {@link mobileDS.ContentElement} object (content, header, footer, dialogs, ...).
+ * Gets the name of a {@link mmir.ContentElement} object (content, header, footer, dialogs, ...).
  * 
  * @function getName
  * @returns {String} Name - used by yield tags in layout
@@ -414,10 +416,10 @@ ContentElement.prototype.getName = function(){
 };
 
 /**
- * Gets the owner for this ContentElement, i.e. the {@link mobileDS.View} object.
+ * Gets the owner for this ContentElement, i.e. the {@link mmir.View} object.
  * 
  * @function getView
- * @returns {mobileDS.View} the owning View
+ * @returns {mmir.View} the owning View
  * @public
  */ 
 ContentElement.prototype.getView = function(){
@@ -428,7 +430,7 @@ ContentElement.prototype.getView = function(){
  * Gets the controller for this ContentElement.
  * 
  * @function getName
- * @returns {mobileDS.Controller} the Controller of the owning view
+ * @returns {mmir.Controller} the Controller of the owning view
  * @public
  */ 
 ContentElement.prototype.getController = function(){
@@ -436,7 +438,7 @@ ContentElement.prototype.getController = function(){
 };
 
 /**
- * Gets the definition of a {@link mobileDS.ContentElement} object.
+ * Gets the definition of a {@link mmir.ContentElement} object.
  * 
  * TODO remove this?
  * 
@@ -520,9 +522,9 @@ ContentElement.prototype.stringify = function(){
 	
 
 	//function for iterating over the property-list and generating JSON-like entries in the string-buffer
-	var appendStringified = mobileDS.parser.appendStringified;
+	var appendStringified = parser_context.appendStringified;
 	
-	var sb = ['mobileDS.parser.restoreObject({ classConstructor: ["ContentElement"]', ','];
+	var sb = ['require("storageUtils").restoreObject({ classConstructor: "contentElement"', ','];
 	
 	appendStringified(this, propList, sb);
 	
@@ -558,7 +560,7 @@ ContentElement.prototype.stringify = function(){
 		sb.push( JSON.stringify(this.getController().getName()) );
 		
 		// ... and the getter/setter code:
-		sb.push( '; this.view = mobileDS.PresentationManager.getInstance().get');
+		sb.push( '; this.view = require("presentationManager").get');
 		sb.push(this['view'].constructor.name);//<- insert getter-name dependent on the view-type (e.g. View, Partial)
 		sb.push('(ctrlName, viewName); this.getView = function(){return this.view;}; return this.view; },' );
 		
@@ -576,7 +578,7 @@ ContentElement.prototype.stringify = function(){
 		//  (NOTE: needs to be called before view/controller can be accessed!)
 		sb.push( 'initRenderer: function(){');
 		// ... and the getter/setter code:
-		sb.push( ' this.renderer = mobileDS.parser.RenderUtils.getInstance(); }' );
+		sb.push( ' this.renderer = require("renderUtils"); }' );
 		
 		//NOTE: need to add comma in a separate entry 
 		//      (-> in order to not break the removal method of last comma, see below)
@@ -610,46 +612,6 @@ ContentElement.prototype.stringify = function(){
 	return sb.join('');
 };
 
-//MOVED to renderContentElement in ParserUtils
-///** @private */
-//ContentElement.prototype.doGetStringForElement = function(element, data){
-//	
-//	if(element.type === mobileDS.parser.element.LOCALIZE){
-//		return this.doGetStringForLocalize(element, data);
-//	}
-//	else if(element.type === mobileDS.parser.element.HELPER){
-//		return this.doGetStringForHelper(element, data);
-//	}
-//	else if(
-//				element.type === mobileDS.parser.element.ESCAPE_ENTER
-//			||	element.type === mobileDS.parser.element.ESCAPE_EXIT
-//	){
-//		return element.text;
-//	}
-//	else {
-//		console.warn('ContentElement.doGetStringForElement: unknown element type '+element.type);
-//		return '';
-//	}
-//};
-//
-///** @private */
-//ContentElement.prototype.doGetStringForLocalize = function(localizeElement, data){
-//	var text = this.localizer.getText(localizeElement.name);
-//	if(!text){
-//		console.warn('ContentElement.render(localize): could not find localization text for "'+contentElement.name+'"');
-//		text = '';
-//	}
-//	return text;
-//};
-//
-///** @private */
-//ContentElement.prototype.doGetStringForHelper = function(helperElement, data){
-//	//TODo handle case, when .helper is not a String
-//	//TODo handle arguments for helper
-//	var text = this.getController().performHelper(helperElement.helper, data);
-//	if(!text){
-//		console.warn('ContentElement.render(helper): no result for '+this.getController().getName()+'-helper >'+helperElement.helper+'<');
-//		text = '';
-//	}
-//	return text.toString();
-//};
+return ContentElement;
+
+});//END: define(..., function(){

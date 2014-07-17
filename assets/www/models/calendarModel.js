@@ -25,21 +25,23 @@
  */
 
 
-var mobileDS = window.mobileDS ||
+var mmir = window.mmir ||
 {};
 
-mobileDS.CalendarModel = (function(){
+mmir.CalendarModel = (function(){
     var instance = null;
     
     function constructor(){
+    	
         var calendar_server_url = 'http//...';
+        
         return {
         
             save_appointment: function(data, cb_func){
                 //We suppose the appointment should be created at a server
                 //running on 'calendar_server_url' and send the information 
                 //via http-post-request to that server.
-                var user_name = mobileDS.User.getInstance().getName();
+                var user_name = mmir.User.getInstance().getName();
                 
                 var options = {
                     type: 'POST',

@@ -16,6 +16,8 @@ A base principle is the MVC (Model View Controller) pattern. The framework provi
 
 The state of the dialog system can be tracked and manipulated based on a finite-state machine (FSM). This is realized using SCXML (State Chart XML) with [SCION][1], a JavaScript based interpreter for SCXML files.
 
+The framework core and its extensions are implemented as AMD (Asynchronous Module Definition) using [requirejs][3].
+
 The StarterKit provides basic capabilities for recognizing speech input (ASR, using the Google Speech Recognition service), and speech output (TTS, using [MARY][2]).
 Note however, that there are some restrictions for running the StarterKit in a browser environment:
  * microphone access: currently only Google Chrome (version 21.x.x), and Firefox (version 20.x) allow access to the microphone resource for speech input
@@ -28,3 +30,4 @@ If not stated otherwise, the code, resource files etc. is provided under the MIT
 [0]: http://cordova.apache.org/
 [1]: https://github.com/jbeard4/SCION
 [2]: http://mary.dfki.de/
+[3]: http://requirejs.org/

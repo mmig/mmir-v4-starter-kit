@@ -24,28 +24,30 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+////FIXME @russa: move these globals (refactor?)
+//// overwrite/implement output functions for JS/CC compiler:
+//function _error( msg ){
+//    console.error('ERROR [SemanticInterpreter.parse]: '+msg);
+//}
+//function _warning( msg ){
+//    console.warn('WARNING [SemanticInterpreter.parse]: '+msg);   
+//}
+//function _print( msg ){
+//    console.info('INFO [SemanticInterpreter.parse]: '+msg);   
+//}
 
-var mobileDS = window.mobileDS ||
-{};
+////////////////////////////////////////// define: SemanticInterpreter ///////////////////////////////
 
-
-// overwrite/implement output functions for JS/CC compiler:
-function _error( msg ){
-    console.error('ERROR [SemanticInterpreter.parse]: '+msg);
-}
-function _warning( msg ){
-    console.warn('WARNING [SemanticInterpreter.parse]: '+msg);   
-}
-function _print( msg ){
-    console.info('INFO [SemanticInterpreter.parse]: '+msg);   
-}
-
+define(['constants', 'grammarConverter', 'grammarParserTemplate', 'jscc'], function( 
+		constants, GrammarConverter, template, jscc
+){
+	
 /**
  * @class
  * 
- * @see mobileDS.SemanticInterpreter#costructor
+ * @see mmir.SemanticInterpreter#costructor
  */
-mobileDS.SemanticInterpreter = (function(){
+//mmir.SemanticInterpreter = (function(){
 	var instance = null;
         
     var INPUT_FIELD_NAME = 'asr_recognized_text';
@@ -62,8 +64,8 @@ mobileDS.SemanticInterpreter = (function(){
      * 					NOTE: this should be a valid ISO language code!
      * 
      * @constructor
-     * @augments mobileDS.SemanticInterpreter
-     * @memberOf mobileDS.SemanticInterpreter.prototype
+     * @augments mmir.SemanticInterpreter
+     * @memberOf mmir.SemanticInterpreter.prototype
      */
     function constructor(doRecompile, generatedParserLanguageCode){
     
@@ -136,7 +138,7 @@ mobileDS.SemanticInterpreter = (function(){
 	     * 					IF {Function}: the {Function} {@link GrammarConverter.executeGrammar()} - 
 	     * 									In this case, if no GrammarConverter instance fo <tt>id</tt> is present, a new one will be created; 
 	     * 									The stopwords must already be set, or must additionally be set for the GrammarConverter instance
-	     * 									  (e.g. using {@link mobileDS.SemanticInterpreter.setStopwords}) 
+	     * 									  (e.g. using {@link mmir.SemanticInterpreter.setStopwords}) 
 	     */
     	var doAddGrammar = function(id, grammarImpl){
         	
@@ -238,56 +240,70 @@ mobileDS.SemanticInterpreter = (function(){
                 
 //                var pure_code, out_code, i;
 
-                //set up the JS/CC compiler (writes into global variables!):
-                html_output = new String();
-                error_output = new String();
-                reset_all(EXEC_WEB);
-                parse_grammar(grammarDefinition);
+                //set up the JS/CC compiler:
+                var dfa_table = '';
+//                html_output = new String();
+                error_output = new String();//FIXME impl. & use jcss.getErrorMessage()/Problems()...
+                jscc.reset_all( jscc.EXEC_WEB );
+                jscc.parse_grammar(grammarDefinition);
               
-                if (errors == 0) {
-                    undef();
-                    unreachable();
+                if (jscc.getErrors() == 0) {
+                	jscc.undef();
+                	jscc.unreachable();
                         
-                    if (errors == 0) {
-                        first();
-                         print_symbols();
-                         dfa_table = create_subset(nfa_states);
-                         dfa_table = minimize_dfa(dfa_table);
-                         lalr1_parse_table(false);
-                         errors = 0;
+                    if (jscc.getErrors() == 0) {
+                    	jscc.first();
+                    	jscc.print_symbols();
+                    	dfa_table = jscc.create_subset(jscc.get_nfa_states());
+                    	dfa_table = jscc.minimize_dfa(dfa_table);
+                    	
+                    	jscc.set_dfa_table(dfa_table);//FIXME: check, if this is really necessary
+                        
+                    	jscc.lalr1_parse_table(false);
+                    	jscc.resetErrors();
                     }
                 }
              
-                if (errors > 0 || warnings > 0 && error_output != "") 
+                if (jscc.getErrors() > 0 || jscc.getWarnings() > 0 && error_output != "") 
                     console.error(''+error_output);
+                jscc.resetErrors();
+                jscc.resetWarnings();
                 
 //                console.debug("before replace " + theConverterInstance.PARSER_TEMPLATE);//debug
              
                 var grammarParser = new String(theConverterInstance.PARSER_TEMPLATE);
                 grammarParser = grammarParser.replace(/##PREFIX##/gi, "");
-                grammarParser = grammarParser.replace(/##HEADER##/gi, code_head);
-                grammarParser = grammarParser.replace(/##TABLES##/gi, print_parse_tables(MODE_GEN_JS));
-                grammarParser = grammarParser.replace(/##DFA##/gi, print_dfa_table(dfa_table));
-                grammarParser = grammarParser.replace(/##TERMINAL_ACTIONS##/gi, print_term_actions());
-                grammarParser = grammarParser.replace(/##LABELS##/gi, print_symbol_labels());
-                grammarParser = grammarParser.replace(/##ACTIONS##/gi, print_actions());
+                grammarParser = grammarParser.replace(/##HEADER##/gi, jscc.get_code_head());
+                grammarParser = grammarParser.replace(/##TABLES##/gi, jscc.print_parse_tables(jscc.MODE_GEN_JS));
+                grammarParser = grammarParser.replace(/##DFA##/gi, jscc.print_dfa_table(dfa_table));
+                grammarParser = grammarParser.replace(/##TERMINAL_ACTIONS##/gi, jscc.print_term_actions());
+                grammarParser = grammarParser.replace(/##LABELS##/gi, jscc.print_symbol_labels());
+                grammarParser = grammarParser.replace(/##ACTIONS##/gi, jscc.print_actions());
                 grammarParser = grammarParser.replace(/##FOOTER##/gi, "__parse( "+INPUT_FIELD_NAME+", new Array(), new Array());");
-                grammarParser = grammarParser.replace(/##ERROR##/gi, get_error_symbol_id());
-                grammarParser = grammarParser.replace(/##EOF##/gi, get_eof_symbol_id());
-                grammarParser = grammarParser.replace(/##WHITESPACE##/gi, get_whitespace_symbol_id());
+                grammarParser = grammarParser.replace(/##ERROR##/gi, jscc.get_error_symbol_id());
+                grammarParser = grammarParser.replace(/##EOF##/gi, jscc.get_eof_symbol_id());
+                grammarParser = grammarParser.replace(/##WHITESPACE##/gi, jscc.get_whitespace_symbol_id());
                 
                 
                 //FIXME attach compiled parser to some other class/object
+                var moduleNameString = '"'+generatedParserLanguageCode+'GrammarJs"';
                 var addGrammarParserExec = 
-                	  'mobileDS.SemanticInterpreter.getInstance().addGrammar("'
-                		+generatedParserLanguageCode
-                		+'", function('+INPUT_FIELD_NAME+'){'
+//                	  'define('+moduleNameString+',["semanticInterpreter"],function(semanticInterpreter){\n'
+                	  '(function(){\n  var semanticInterpreter = require("semanticInterpreter");\n'//FIXME
+                	+ 'var grammarFunc = function('+INPUT_FIELD_NAME+'){'
                 			+ grammarParser
-                	+ '\n});\n\n'
-                	+ 'mobileDS.SemanticInterpreter.getInstance().setStopwords("'
+                	+ '\n};\n'
+                	+ 'semanticInterpreter.addGrammar("'
+                		+generatedParserLanguageCode
+                		+'", grammarFunc);\n\n'
+                	+ 'semanticInterpreter.setStopwords("'
                 		+generatedParserLanguageCode+'",'
                 		+JSON.stringify(theConverterInstance.getStopWords())
                 	+ ');\n'
+                	+ 'return grammarFunc;\n'
+//                	+ '});\n'
+//                	+ 'require(['+moduleNameString+']);\n';//requirejs needs this, in order to trigger initialization of the grammar-module (since this is a self-loading module that may not be referenced in a dependency in a define() call...)
+                	+ '})();'//FIXME
                 ;
                 
                 theConverterInstance.setJSGrammar(addGrammarParserExec);
@@ -422,7 +438,7 @@ mobileDS.SemanticInterpreter = (function(){
 			return thePhrase;
 		};
         
-		/** @lends mobileDS.SemanticInterpreter.prototype */
+		/** @lends mmir.SemanticInterpreter.prototype */
         return { // public members
         	/**
              * NOTE: now uses the modified implementation for stopwords.
@@ -522,30 +538,43 @@ mobileDS.SemanticInterpreter = (function(){
 	        
 	        //FIXME rename/move functions
 	        get_json_grammar_url: function(id){
-	        	var configLangPath = mobileDS.constants.getInstance().getLanguagePath();
-	        	var jsonGrammarFileName = mobileDS.constants.getInstance().getGrammarFileName();
+	        	var configLangPath = constants.getLanguagePath();
+	        	var jsonGrammarFileName = constants.getGrammarFileName();
 	        	
 	        	return configLangPath + id + '/' +jsonGrammarFileName;
 	        }
         };
     }
     
-    return {
-        getInstance: function(){
-        
-            if (instance === null) {
-            
-                instance = constructor();
-            }
-            return instance;
-        }
-//    	,
-//        getNewInstance: function(doRecompile, generatedParserId){
+//    return {
+//        getInstance: function(){
+//        
+//            if (instance === null) {
 //            
-//            instance = constructor(doRecompile, generatedParserId);
-//            
+//                instance = constructor();
+//            }
 //            return instance;
 //        }
-    };
+////    	,
+////        getNewInstance: function(doRecompile, generatedParserId){
+////            
+////            instance = constructor(doRecompile, generatedParserId);
+////            
+////            return instance;
+////        }
+//    };
     
-})();
+//})();
+    
+    instance = constructor();
+    
+    /**
+	 * @deprecated instead: use mmir.SemanticInterpreter directly
+	 */
+	instance.getInstance = function(){
+		return instance;
+	};
+    
+    return instance;
+    
+});//END: define(..., function(){

@@ -794,10 +794,10 @@ function inputStatechartExecutionContext() {
                 return "no_match"
             }
             this.enterAction = function() {
-                var dm = null; //TODO: mobileDS.CalendarModel.getInstance().getDiscourseManager();
+                var dm = null; //TODO: mmir.CalendarModel.getInstance().getDiscourseManager();
                 if (dm == null) {
-                    var msg = mobileDS.LanguageManager.getInstance().getText('did_not_understand_msg');
-                    mobileDS.MediaManager.getInstance().textToSpeech(msg, null, null);
+                    var msg = mmir.LanguageManager.getInstance().getText('did_not_understand_msg');
+                    mmir.MediaManager.getInstance().textToSpeech(msg, null, null);
                 } else {
                     dm.getCommand().parse(command);
                 }
@@ -843,7 +843,7 @@ function inputStatechartExecutionContext() {
                 return "send"
             }
             this.enterAction = function() {
-                mobileDS.CalendarModel.getInstance().clearDiscourseManager();
+                mmir.CalendarModel.getInstance().clearDiscourseManager();
                 alert('sending ....');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
@@ -930,8 +930,8 @@ function inputStatechartExecutionContext() {
                 return "record"
             }
             this.enterAction = function() {
-                mobileDS.CalendarModel.getInstance().clearDiscourseManager();
-                mobileDS.DialogEngine.getInstance().raise('click_on_rec_btn');
+                mmir.CalendarModel.getInstance().clearDiscourseManager();
+                mmir.DialogEngine.getInstance().raise('click_on_rec_btn');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -974,8 +974,8 @@ function inputStatechartExecutionContext() {
                 return "show_info"
             }
             this.enterAction = function() {
-                mobileDS.CalendarModel.getInstance().clearDiscourseManager();
-                mobileDS.DialogEngine.getInstance().raise('poi.display_details');
+                mmir.CalendarModel.getInstance().clearDiscourseManager();
+                mmir.DialogEngine.getInstance().raise('poi.display_details');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -1018,7 +1018,7 @@ function inputStatechartExecutionContext() {
                 return "rating"
             }
             this.enterAction = function() {
-                mobileDS.CalendarModel.getInstance().clearDiscourseManager();
+                mmir.CalendarModel.getInstance().clearDiscourseManager();
                 alert('rating ....');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
@@ -1062,8 +1062,8 @@ function inputStatechartExecutionContext() {
                 return "start_radar"
             }
             this.enterAction = function() {
-                mobileDS.CalendarModel.getInstance().clearDiscourseManager();
-                mobileDS.DialogEngine.getInstance().raise('click_on_radar_btn');
+                mmir.CalendarModel.getInstance().clearDiscourseManager();
+                mmir.DialogEngine.getInstance().raise('click_on_radar_btn');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -1106,8 +1106,8 @@ function inputStatechartExecutionContext() {
                 return "play_radio"
             }
             this.enterAction = function() {
-                mobileDS.CalendarModel.getInstance().clearDiscourseManager();
-                mobileDS.DialogEngine.getInstance().raise('click_on_start_radio_btn', emma);
+                mmir.CalendarModel.getInstance().clearDiscourseManager();
+                mmir.DialogEngine.getInstance().raise('click_on_start_radio_btn', emma);
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -1150,8 +1150,8 @@ function inputStatechartExecutionContext() {
                 return "play_audio"
             }
             this.enterAction = function() {
-                mobileDS.CalendarModel.getInstance().clearDiscourseManager();
-                mobileDS.DialogEngine.getInstance().raise('click_on_start_audio_btn', emma);
+                mmir.CalendarModel.getInstance().clearDiscourseManager();
+                mmir.DialogEngine.getInstance().raise('click_on_start_audio_btn', emma);
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -1194,7 +1194,7 @@ function inputStatechartExecutionContext() {
                 return "play_voice"
             }
             this.enterAction = function() {
-                mobileDS.CalendarModel.getInstance().clearDiscourseManager();
+                mmir.CalendarModel.getInstance().clearDiscourseManager();
                 window.plugins.nuancePlugin.speak('Sie können zurzeit nur Audio und lokationsbasiertes Radio abspielen.', null, null);
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
@@ -1238,8 +1238,8 @@ function inputStatechartExecutionContext() {
                 return "show_appointments"
             }
             this.enterAction = function() {
-                mobileDS.CalendarModel.getInstance().clearDiscourseManager();
-                mobileDS.DialogEngine.getInstance().raise('show_appointments_speech', command);
+                mmir.CalendarModel.getInstance().clearDiscourseManager();
+                mmir.DialogEngine.getInstance().raise('show_appointments_speech', command);
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -1282,8 +1282,8 @@ function inputStatechartExecutionContext() {
                 return "create_appointment"
             }
             this.enterAction = function() {
-                mobileDS.CalendarModel.getInstance().clearDiscourseManager();
-                mobileDS.DialogEngine.getInstance().raise('create_appointment_speech', command);
+                mmir.CalendarModel.getInstance().clearDiscourseManager();
+                mmir.DialogEngine.getInstance().raise('create_appointment_speech', command);
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -1326,8 +1326,8 @@ function inputStatechartExecutionContext() {
                 return "record_memo"
             }
             this.enterAction = function() {
-                mobileDS.CalendarModel.getInstance().clearDiscourseManager();
-                dialogManager.performHelper('Calendar', 'capture');
+                mmir.CalendarModel.getInstance().clearDiscourseManager();
+                mmir.DialogEngine.performHelper('Calendar', 'capture');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -1370,8 +1370,8 @@ function inputStatechartExecutionContext() {
                 return "find_person"
             }
             this.enterAction = function() {
-                mobileDS.CalendarModel.getInstance().clearDiscourseManager();
-                dialogManager.perform('Calendar', 'find_person', command);
+                mmir.CalendarModel.getInstance().clearDiscourseManager();
+                mmir.DialogEngine.perform('Calendar', 'find_person', command);
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -1414,7 +1414,7 @@ function inputStatechartExecutionContext() {
                 return "show_pois"
             }
             this.enterAction = function() {
-                mobileDS.CalendarModel.getInstance().clearDiscourseManager();
+                mmir.CalendarModel.getInstance().clearDiscourseManager();
                 alert('showing some pois ...');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
@@ -2042,7 +2042,7 @@ function inputStatechartExecutionContext() {
                 return "back"
             }
             this.enterAction = function() {
-                mobileDS.DialogEngine.getInstance().raise('back');
+                mmir.DialogEngine.getInstance().raise('back');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -2087,7 +2087,7 @@ function inputStatechartExecutionContext() {
                 return "login"
             }
             this.enterAction = function() {
-                mobileDS.DialogEngine.getInstance().raise('click_on_login_btn');
+                mmir.DialogEngine.getInstance().raise('click_on_login_btn');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -2132,7 +2132,7 @@ function inputStatechartExecutionContext() {
                 return "register"
             }
             this.enterAction = function() {
-                mobileDS.DialogEngine.getInstance().raise('click_on_register_btn');
+                mmir.DialogEngine.getInstance().raise('click_on_register_btn');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -2177,7 +2177,7 @@ function inputStatechartExecutionContext() {
                 return "sign_up"
             }
             this.enterAction = function() {
-                mobileDS.DialogEngine.getInstance().raise('click_on_sign_up_btn');
+                mmir.DialogEngine.getInstance().raise('click_on_sign_up_btn');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -2222,7 +2222,7 @@ function inputStatechartExecutionContext() {
                 return "appointment"
             }
             this.enterAction = function() {
-                mobileDS.DialogEngine.getInstance().raise('click_on_appointment_btn');
+                mmir.DialogEngine.getInstance().raise('click_on_appointment_btn');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -2267,7 +2267,7 @@ function inputStatechartExecutionContext() {
                 return "save_appointment"
             }
             this.enterAction = function() {
-                mobileDS.DialogEngine.getInstance().raise('click_on_save_appointment_btn');
+                mmir.DialogEngine.getInstance().raise('click_on_save_appointment_btn');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -2312,7 +2312,7 @@ function inputStatechartExecutionContext() {
                 return "discard_appointment"
             }
             this.enterAction = function() {
-                mobileDS.DialogEngine.getInstance().raise('click_on_discard_appointment_btn');
+                mmir.DialogEngine.getInstance().raise('click_on_discard_appointment_btn');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -2357,7 +2357,7 @@ function inputStatechartExecutionContext() {
                 return "language_btn"
             }
             this.enterAction = function() {
-                mobileDS.DialogEngine.getInstance().raise('click_on_language_btn', data);
+                mmir.DialogEngine.getInstance().raise('click_on_language_btn', data);
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -2402,7 +2402,7 @@ function inputStatechartExecutionContext() {
                 return "language_chosen"
             }
             this.enterAction = function() {
-                mobileDS.DialogEngine.getInstance().raise('language_choosen', data);
+                mmir.DialogEngine.getInstance().raise('language_choosen', data);
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {

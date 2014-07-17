@@ -25,32 +25,41 @@
  */
 
 
-var mobileDS = window.mobileDS ||
-{};
-
 /**
  * 
  * 
  * This "class" is structured as a singleton - so that only one instance is in use.<br>
  * You can access the instance of the class via 
+ * 
+ * @require jQuery.extend, jQuery.Deferred
+ * 
+ * TODO remove / change dependency on forBrowser: constants.isBrowserEnv()!!!
  */
-mobileDS.MediaManager = (function(){
+//mobileDS.MediaManager = (function(){
+
+
+define(['jquery', 'constants', 'commonUtils', 'configurationManager', 'dictionary'], function(
+		jQuery, constants, commonUtils, configurationManager, Dictionary
+){
+	
 
     var instance = null;
+    
     var pluginsToLoad = {
     		'browser': new Array('html5AudioOutput.js',
-    		          'html5AudioInput.js',
+    		          'webkitAudioInput.js',
     		          'maryTextToSpeech.js'),
     		'android': new Array('cordovaAudioOutput.js',
     		          'nuanceAudioInput.js',
     		          'nuanceTextToSpeech.js')
     };
+    
     var loadPlugin = function loadPlugin (filePath, successCallback, failureCallback){
     	try {
-    		mobileDS.CommonUtils.getInstance().loadScript(mobileDS.constants.getMediaPluginPath()+filePath, function(){
+    		commonUtils.loadScript(constants.getMediaPluginPath() + filePath, function(){
 	    		if (typeof newMediaPlugin !== 'undefined' && newMediaPlugin){
-	    			newMediaPlugin.initialize(function(functions){
-	    					jQuery.extend(true,instance,functions);
+	    			newMediaPlugin.initialize(function(exportedFunctions){
+	    					jQuery.extend(true,instance,exportedFunctions);
 	    					newMediaPlugin = null;
 							if (successCallback) successCallback();
 	    			}, instance);
@@ -69,7 +78,7 @@ mobileDS.MediaManager = (function(){
 //    		$.ajax({
 //                async: true,
 //                dataType: "text",
-//                url: mobileDS.constants.getMediaPluginPath()+filePath,
+//                url: constants.getMediaPluginPath()+filePath,
 //                success: function(data){
 //                	
 //                	//add "dummy-export-code" to script-text 
@@ -78,8 +87,8 @@ mobileDS.MediaManager = (function(){
 //                	var newMediaPlugin = eval(data + LOAD_MODULE_TEMPLATE_POSTFIX);
 //                	
 //                	if (typeof newMediaPlugin !== 'undefined' && newMediaPlugin){
-//    	    			newMediaPlugin.initialize(function(functions){
-//    	    					jQuery.extend(true,instance,functions);
+//    	    			newMediaPlugin.initialize(function(exportedFunctions){
+//    	    					jQuery.extend(true,instance,exportedFunctions);
 //    	    					newMediaPlugin = null;
 //    							if (successCallback) successCallback();
 //    	    			}, instance);
@@ -245,22 +254,33 @@ mobileDS.MediaManager = (function(){
     				}
     				return [];
     			}
-    	};
-    };
-    function getPluginsToLoad(){
+    			
+    	};//END: return{...
+    	
+    };//END: constructor(){...
+    
+    
+    //has 2 default configuarions:
+    // if isCordovaEnvironment TRUE: use 'android' config
+    // if FALSEy: use 'browser' config
+    //
+    // NOTE: this setting/paramater is overwritten, if the configuration has a property 'mediaPlugins' set!!!
+    function getPluginsToLoad(isCordovaEnvironment){
     	var env = null;
     	var pluginArray = new Array();
-    	if (forBrowser) {
-    		env = 'browser';
-    	} else {
+    	if (isCordovaEnvironment) {
     		env = 'android';
+    	} else {
+    		env = 'browser';
     	}
-    	var dataFromConfig = mobileDS.ConfigurationManager.getInstance().get('mediaPlugins');
+    	
+    	var dataFromConfig = configurationManager.get('mediaPlugins');
     	if (dataFromConfig && dataFromConfig[env]){
     		pluginArray = pluginArray.concat(dataFromConfig[env]);
     	} else{
     		pluginArray = pluginArray.concat(pluginsToLoad[env]);
     	}
+    	
     	return pluginArray;
     }
     
@@ -272,11 +292,18 @@ mobileDS.MediaManager = (function(){
     		return;
     	}
     	var newPluginName = pluginArray.pop();
-    	loadPlugin(newPluginName, function (){console.log(newPluginName+' loaded!');loadAllPlugins(pluginArray,successCallback, failureCallback);}, failureCallback);
+    	loadPlugin(newPluginName, function (){
+    		console.log(newPluginName+' loaded!');
+    		loadAllPlugins(pluginArray,successCallback, failureCallback);},
+    		failureCallback
+    	);
     }
     	
     
-    return {
+    var stub = {
+    	//TODO add for backwards compatability?:
+//    	create : function(){ return this.init.apply(this, arguments); },
+    	
         /**
          * Object containing the instance of the class {{#crossLink "audioInput"}}{{/crossLink}} 
          * 
@@ -292,12 +319,31 @@ mobileDS.MediaManager = (function(){
          * 			 on the specific event for which the listener will be registered)
          *  
          * 
-         * @method getInstance
+         * @method init
          * @param {Array<Object>} [listenerList] OPTIONAL a list of listeners that should be registered
          * @return {Object} Object containing the instance of the class {{#crossLink "MediaManager"}}{{/crossLink}}
          * @public
          */
-        create: function(successCallback, failureCallback, listenerList){
+        init: function(successCallback, failureCallback, listenerList){
+        	
+        	var defer = jQuery.Deferred();
+        	var deferredSuccess = function(){
+    			defer.resolve();
+    		};
+        	var deferredFailure = function(){
+    			defer.reject();
+    		};
+        	
+    		
+        	if(successCallback){
+        		defer.done(successCallback);
+        	}
+        	
+        	if(deferredFailure){
+        		defer.fail(failureCallback);
+        	}
+        	
+        	
             if (instance === null) {
             	jQuery.extend(true,this,constructor());
                 instance = this;
@@ -308,8 +354,10 @@ mobileDS.MediaManager = (function(){
                 	}
                 }
                 
-            	var pluginArray = getPluginsToLoad();
-                loadAllPlugins(pluginArray,successCallback, failureCallback);
+                var isCordovaEnvironment = ! constants.isBrowserEnv();//FIXME implement mechanism for configuring this!!
+                
+            	var pluginArray = getPluginsToLoad(isCordovaEnvironment);
+                loadAllPlugins(pluginArray,deferredSuccess, deferredFailure);
 
             }
             else if(listenerList){
@@ -317,24 +365,30 @@ mobileDS.MediaManager = (function(){
             		instance.addListener(listenerList[i].name, listenerList[i].listener);
             	}
             }
-            return this;
+            
+            return defer.promise(this);
         },
         getInstance: function(){
-            return this.create(null, null);
+            return this.init(null, null);
         },
         /**
          * loads a file. If the file implements a function initialize(f)
          * where the function f is called with a set of functions e, then those functions in e 
          * are added to the visibility of audioInput, and will from now on be applicable by calling
-         * mobileDS.MediaManager.getInstance().<function name>.
+         * mmir.MediaManager.<function name>().
+         * 
+         * @deprecated
          */
     	loadFile: function(filePath,successCallback, failureCallback){
     		if (instance=== null) {
-    			this.create();
+    			this.init();
     		}
     		
     		loadPlugin(filePath,sucessCallback, failureCallback);
 			
     	}
     };
-}) ();
+//}) ();
+    
+    return stub;
+});//END: define(..., function(){...

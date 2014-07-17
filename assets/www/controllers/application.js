@@ -26,7 +26,7 @@
 
 
   
-  var mobileDS = window.mobileDS ||
+  var mmir = window.mmir ||
   {};
 
   var current_asr_result;
@@ -49,14 +49,18 @@
   
   Application.prototype.on_page_load_login = function (){
 		
-		var isUseAlphaMagLanguageSelection = mobileDS.ConfigurationManager.getInstance().get('ALPHA_MapLanguageSelection');
+		var isUseAlphaMagLanguageSelection = mmir.ConfigurationManager.getInstance().get('ALPHA_MapLanguageSelection');
 
 		var self = this;
 		
 		//handle language selection:
 		$('#languageListView li')
-			.bind('vmousedown',           function(){	$(this).addClass(	'ui-focus ui-btn-active ui-btn-down-a');})
-			.bind('vmouseup vmousecancel',function(){	$(this).removeClass('ui-focus ui-btn-active ui-btn-down-a');})
+			.bind('vmousedown',           function(){	
+				$(this).addClass(	'ui-focus ui-btn-active ui-btn-down-a');
+			})
+			.bind('vmouseup vmousecancel',function(){	
+				$(this).removeClass('ui-focus ui-btn-active ui-btn-down-a');
+			})
 			//
 			//NOTE: we need to use 'click' here due to default event-handling of browser
 			//		  touchend -> tap/vclick -> click [delayed]
@@ -76,18 +80,18 @@
 				var isChanged = self.changeLanguage(lang, false);
 				
 				if(isUseAlphaMagLanguageSelection){
-					showLoader();//actually this does not really work, but at least something is shown...
+					mmir.DialogManager.showWaitDialog();//actually this does not really work, but at least something is shown...
 					//TODO: replace/set calendar's language specific resources
 				}
-				mobileDS.InputEngine.getInstance().raise('touch_input_event');
-				mobileDS.InputEngine.getInstance().raise('language_choosen', {changed: isChanged});
+				mmir.InputEngine.getInstance().raise('touch_input_event');
+				mmir.InputEngine.getInstance().raise('language_choosen', {changed: isChanged});
 				
 				return false;
 		});
 		
 //		if(isUseAlphaMagLanguageSelection){
-//			showLoader();//actually this does not really work, but at least something is shown...
-//			mobileDS.DialogEngine.getInstance().performHelper('GoogleMap', 'update_map_language');
+//			mmir.DialogManager.showWaitDialog();//actually this does not really work, but at least something is shown...
+//			mmir.DialogManager.performHelper('Calendar', 'update_language');
 //		}
 		
 		
@@ -119,7 +123,7 @@
 			
 			//text += ' set-ASR-to_'+(isAsrActive? 'active' : 'INactive');
 			if (!isAsrActive){
-				mobileDS.MediaManager.getInstance().startRecord(function(text, idInfo){
+				mmir.MediaManager.getInstance().startRecord(function(text, idInfo){
 						var textSoFar = textElement.val();
 						textSoFar += ' '+ text;
 						textElement.val( textSoFar );
@@ -129,7 +133,7 @@
 					, false //isUseIntermediateResultsMode
 					);
 			} else {
-				mobileDS.MediaManager.getInstance().stopRecord(function(text, idInfo){
+				mmir.MediaManager.getInstance().stopRecord(function(text, idInfo){
 						var textSoFar = textElement.val();
 						textSoFar += ' '+ text;
 						textElement.val( textSoFar );
@@ -156,7 +160,7 @@
 			
 			//text += ' set-ASR-to_'+(isAsrActive? 'active' : 'INactive');
 			if (!isAsrActive){
-				mobileDS.MediaManager.getInstance().startRecord(function(text, idInfo){
+				mmir.MediaManager.getInstance().startRecord(function(text, idInfo){
 						var textSoFar = textElement.val();
 						textSoFar += ' '+ text;
 						textElement.val( textSoFar );
@@ -166,7 +170,7 @@
 					, true //isUseIntermediateResultsMode
 					);
 			} else {
-				mobileDS.MediaManager.getInstance().stopRecord(function(text, idInfo){
+				mmir.MediaManager.getInstance().stopRecord(function(text, idInfo){
 						var textSoFar = textElement.val();
 						textSoFar += ' '+ text;
 						textElement.val( textSoFar );
@@ -185,13 +189,12 @@
 		$('#clear').on('vclick', function(event) {
 			$('#asr-text').val('');
 		});
-		
 	};
 
 	//DISABLED: now a @-statement within the template-definition is used
 //  Application.prototype.on_page_load_welcome = function (){
-//	  if(typeof mobileDS.User.getInstance() !== 'undefined'){
-//		  var userName = mobileDS.User.getInstance().getName();
+//	  if(typeof mmir.User.getInstance() !== 'undefined'){
+//		  var userName = mmir.User.getInstance().getName();
 //		  if(userName){
 //			  $('#user-name').text(', '+userName);
 //		  }
@@ -202,12 +205,12 @@
       var email = $('#emailField #email').val();
       var password = $('#passwordField #password').val();
       if(this.verify(email,password)){
-    	  mobileDS.User.create(email);
-    	  mobileDS.DialogEngine.getInstance().raise("user_logged_in");
+    	  mmir.User.create(email);
+    	  mmir.DialogEngine.getInstance().raise("user_logged_in");
       }
       else {
     	  alert('Wrong user name or password.\n\nDir you register?');
-    	  mobileDS.DialogEngine.getInstance().raise("login_failed");
+    	  mmir.DialogEngine.getInstance().raise("login_failed");
       }
   };
 
@@ -216,9 +219,9 @@
       var password = $('#registration-form #password').val();
       
       this.registerUsers[email] = password;
-      mobileDS.User.create(email);
+      mmir.User.create(email);
  	  
-      mobileDS.DialogEngine.getInstance().raise("user_logged_in");
+      mmir.DialogEngine.getInstance().raise("user_logged_in");
   };
   
   Application.prototype.verify = function(name, pw){
@@ -258,18 +261,18 @@
    * @returns {String} The translation of the keyword
    * @public
    * 
-   * @see mobileDS.LanguageManager#setToCompatibilityMode#changeLanguage
+   * @see mmir.LanguageManager#setToCompatibilityMode#changeLanguage
    */
   Application.prototype.changeLanguage = function(newLang, doReRenderView) {
 
 	  if(IS_DEBUG_ENABLED) console.debug("[Language] selected " + newLang);//debug
 
-	  var currLang = mobileDS.LanguageManager.getInstance().getLanguage();
-	  var newLang = mobileDS.LanguageManager.getInstance().setLanguage(newLang);
+	  var currLang = mmir.LanguageManager.getInstance().getLanguage();
+	  var newLang = mmir.LanguageManager.getInstance().setLanguage(newLang);
 
 	  if (doReRenderView == true){
-		  mobileDS.PresentationManager.getInstance().reRenderView();
+		  mmir.PresentationManager.getInstance().reRenderView();
 	  }
-//	  mobileDS.DialogEngine.getInstance().raise("language_choosen", newLang);
+//	  mmir.DialogEngine.getInstance().raise("language_choosen", newLang);
 	  return currLang != newLang;
   };

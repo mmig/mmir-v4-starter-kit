@@ -29,6 +29,12 @@ newMediaPlugin = {
 		
 	initialize: function(callBack, mediaManagerInstance){
 		
+		var languageManager = require('languageManager');
+		var configurationManager = require('configurationManager');
+		var mediaManager = require('mediaManager');
+		var constants = require('constants');
+		var commonUtils = require('commonUtils');
+		
 		function htmlAudioConstructor(){
 			// variable that describes if recording is in process
 			var recording = false;
@@ -110,7 +116,7 @@ newMediaPlugin = {
       			 if (webSocket){
       				 webSocket.close();
       			 }
-      			 webSocket = new WebSocket(mobileDS.ConfigurationManager.getInstance().get("HTML5InputWebSocketAddress"));
+      			 webSocket = new WebSocket(configurationManager.get("HTML5InputWebSocketAddress"));
       			
       			 
       			 webSocket.onopen = function () {
@@ -204,7 +210,7 @@ newMediaPlugin = {
 //		    		silenceDetectionInput.onaudioprocess= function(e){};
 //		    	}
 //		    	var input = audio_context.createMediaStreamSource(stream); 	    		    
-//		    	silenceDetectionInput = createAudioScriptProcessor(input, mobileDS.ConfigurationManager.getInstance().get("HTML5InputSoundPackageSize"), 2, 2);
+//		    	silenceDetectionInput = createAudioScriptProcessor(input, configurationManager.get("HTML5InputSoundPackageSize"), 2, 2);
 //		    	silenceDetectionInput.onaudioprocess = function(e){
 //		    		if (recording){
 //		    			silenceDetection.postMessage({
@@ -226,7 +232,7 @@ newMediaPlugin = {
     			var buffer = 0;
     			stream = inputstream;
     			var input = audio_context.createMediaStreamSource(stream);
-    			var recorderWorkerPath = mobileDS.constants.getWorkerPath()+'recorderWorkerExt.js';
+    			var recorderWorkerPath = constants.getWorkerPath()+'recorderWorkerExt.js';
     			recorder = new Recorder(input, {workerPath: recorderWorkerPath});
     			
     			//FIXME experimental callback/listener for on-start-record -> API may change!
@@ -236,7 +242,7 @@ newMediaPlugin = {
     			}
     			
     			
-//    			silenceDetection = new Worker(mobileDS.ConfigurationManager.getInstance().get("HTML5InputSilenceDetectorPath"));
+//    			silenceDetection = new Worker(configurationManager.get("HTML5InputSilenceDetectorPath"));
 //    			silenceDetection.onmessage = function (e){
 //    				if(IS_DEBUG_ENABLED) console.log(e.data);
 //    				if (e.data=='Send partial!'){
@@ -246,15 +252,15 @@ newMediaPlugin = {
 //    							alert("Message too large. You need to pause from time to time.");
 //    							console.log("Message too large. You need to pause from time to time.");
 //    						} else {
-//    							//mobileDS.MediaManager.getInstance().playWAV(blob,function(){},function(){alert("could not play blob");});
+//    							//mediaManager.playWAV(blob,function(){},function(){alert("could not play blob");});
 //    	    					if (!hasActiveId) {
 //			   						
-//    	    						webSocketSend("language "+mobileDS.ConfigurationManager.getInstance().getLanguage());//FIXME
+//    	    						webSocketSend("language "+configurationManager.getLanguage());//FIXME
 //			   					
 //    	    						inputId = findLowestFreeId();
 //    	    						hasActiveId = true;
 //    	    						webSocketSend("start "+ inputId);
-//    	    						buffer = mobileDS.ConfigurationManager.getInstance().get("HTML5InputSilenceBuffer");
+//    	    						buffer = configurationManager.get("HTML5InputSilenceBuffer");
 //    	    					}	else {
 //    	    						buffer = 0;
 //    	    					}
@@ -270,12 +276,12 @@ newMediaPlugin = {
 //    							alert("Message too large. You need to pause from time to time.");
 //    							console.log("Message too large. You need to pause from time to time.");
 //    						} else {
-//    							//mobileDS.MediaManager.getInstance().playWAV(blob,function(){},function(){alert("could not play blob");});
+//    							//mediaManager.playWAV(blob,function(){},function(){alert("could not play blob");});
 //    	    					if (!hasActiveId) {
 //    	    						inputId = findLowestFreeId();
 //    	    						hasActiveId = true;
 //    	    						webSocketSend("start "+ inputId);
-//    	    						buffer = mobileDS.ConfigurationManager.getInstance().get("HTML5InputSilenceBuffer");
+//    	    						buffer = configurationManager.get("HTML5InputSilenceBuffer");
 //    	    					}	else {
 //    	    						buffer = 0;
 //    	    					}
@@ -297,16 +303,16 @@ newMediaPlugin = {
 //    					}
 //    				}
 //    				if (e.data=='clear'){
-//    					recorder.clear(mobileDS.ConfigurationManager.getInstance().get("HTML5InputSilenceBuffer"));
+//    					recorder.clear(configurationManager.get("HTML5InputSilenceBuffer"));
 //    				}
 //    			};
 //    			silenceDetection.postMessage({
 //    				command: 'init',
 //    				config: {
 //    					sampleRate: input.context.sampleRate,
-//    					noiseTreshold : mobileDS.ConfigurationManager.getInstance().get("SilenceDetectorNoiseTreshold"),
-//    					pauseCount : mobileDS.ConfigurationManager.getInstance().get("SilenceDetectorPauseCount"),
-//    					resetCount : mobileDS.ConfigurationManager.getInstance().get("SilenceDetectorResetCount")
+//    					noiseTreshold : configurationManager.get("SilenceDetectorNoiseTreshold"),
+//    					pauseCount : configurationManager.get("SilenceDetectorPauseCount"),
+//    					resetCount : configurationManager.get("SilenceDetectorResetCount")
 //    				}
 //    			});
     			
@@ -325,15 +331,15 @@ newMediaPlugin = {
 //    							alert("Message too large. You need to pause from time to time.");
 //    							console.log("Message too large. You need to pause from time to time.");
 //    						} else {
-    							//mobileDS.MediaManager.getInstance().playWAV(blob,function(){},function(){alert("could not play blob");});
+    							//mediaManager.playWAV(blob,function(){},function(){alert("could not play blob");});
     	    					if (!hasActiveId) {
 			   						
-    	    						webSocketSend("language "+mobileDS.LanguageManager.getInstance().getLanguage());//FIXME
+    	    						webSocketSend("language "+require('languageManager').getLanguage());//FIXME
 			   					
     	    						inputId = findLowestFreeId();
     	    						hasActiveId = true;
     	    						webSocketSend("start "+ inputId);
-    	    						buffer = mobileDS.ConfigurationManager.getInstance().get("HTML5InputSilenceBuffer");
+    	    						buffer = configurationManager.get("HTML5InputSilenceBuffer");
     	    					}	else {
     	    						buffer = 0;
     	    					}
@@ -354,12 +360,12 @@ newMediaPlugin = {
     							console.log("Message too large. You need to pause from time to time.");
     	    					recorder.clear();
     						} else {
-    							//mobileDS.MediaManager.getInstance().playWAV(blob,function(){},function(){alert("could not play blob");});
+    							//mediaManager.playWAV(blob,function(){},function(){alert("could not play blob");});
     	    					if (!hasActiveId) {
     	    						inputId = findLowestFreeId();
     	    						hasActiveId = true;
     	    						webSocketSend("start "+ inputId);
-    	    						buffer = mobileDS.ConfigurationManager.getInstance().get("HTML5InputSilenceBuffer");
+    	    						buffer = configurationManager.get("HTML5InputSilenceBuffer");
     	    					}	else {
     	    						buffer = 0;
     	    					}
@@ -369,7 +375,7 @@ newMediaPlugin = {
     	    					hasActiveId = false;
 
     	              			//FIXME experimental callback/listener for on-detect-sentence -> API may change!
-    	            			var onDetectSentenceListeners = mediaManagerInstance.getListeners('ondetectsentence');
+    	            			var onDetectSentenceListeners = mediaManager.getListeners('ondetectsentence');
     	            			for(var i=0, size = onDetectSentenceListeners.length; i < size; ++i){
     	            				onDetectSentenceListeners[i](blob, inputId);
     	            			}
@@ -399,9 +405,9 @@ newMediaPlugin = {
     			};
     			var silenceDetectionConfig = {
 					sampleRate: input.context.sampleRate,
-					noiseTreshold : mobileDS.ConfigurationManager.getInstance().get("SilenceDetectorNoiseTreshold"),
-					pauseCount : mobileDS.ConfigurationManager.getInstance().get("SilenceDetectorPauseCount"),
-					resetCount : mobileDS.ConfigurationManager.getInstance().get("SilenceDetectorResetCount")
+					noiseTreshold : configurationManager.get("SilenceDetectorNoiseTreshold"),
+					pauseCount : configurationManager.get("SilenceDetectorPauseCount"),
+					resetCount : configurationManager.get("SilenceDetectorResetCount")
 				};
     			silenceDetection.postMessage({
     				command: 'initDetection',
@@ -412,7 +418,7 @@ newMediaPlugin = {
     		try {
 		        // unify the different kinds of HTML5 implementations
     			//window.AudioContext = window.AudioContext || window.webkitAudioContext;
-    			html5Navigator.getUserMedia = html5Navigator.getUserMedia || html5Navigator.webkitGetUserMedia || html5Navigator.mozGetUserMedia;
+    			navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
     			//window.URL = window.URL || window.webkitURL;
 //		    	audio_context = new webkitAudioContext;
 
@@ -444,7 +450,7 @@ newMediaPlugin = {
     		}
 
     		// get audioInputStream
-    		html5Navigator.getUserMedia({audio: true}, startUserMedia, function(e) {});
+    		navigator.getUserMedia({audio: true}, startUserMedia, function(e) {});
 
     		return {
     			startRecord: function(successCallback, failureCallback, intermediateResults){
@@ -523,8 +529,8 @@ newMediaPlugin = {
 		};//END: htmlAudioConstructor()
 			
 		// the code starts here, loads the necessary scripts and then calls htmlAudioConstructor
-		mobileDS.CommonUtils.getInstance().loadScript(mobileDS.constants.getWorkerPath()+'recorderWorkerExt.js',function(){
-			mobileDS.CommonUtils.getInstance().loadScript(mobileDS.constants.getMediaPluginPath()+'recorderExt.js', function(){
+		commonUtils.loadScript(constants.getWorkerPath()+'recorderWorkerExt.js',function(){
+			commonUtils.loadScript(constants.getMediaPluginPath()+'recorderExt.js', function(){
 				callBack(htmlAudioConstructor());
 			});
 		});

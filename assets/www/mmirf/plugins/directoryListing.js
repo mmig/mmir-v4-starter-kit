@@ -124,56 +124,12 @@ var DirectoryListing = function() {
  */
 DirectoryListing.prototype.getDirectoryStructure = function(directories, successCallback, failureCallback) {
 	
-	var self = this;
-	if(self.isDebugEnabled) console.log('DirectoryListing.getDirectoryStructure for directories: '+directories.join(', '));
+	return cordova.exec(successCallback,    //Callback which will be called when directory listing is successful
+		failureCallback,     //Callback which will be called when directory listing encounters an error
+		'DirectoryListing',  //Telling cordova that we want to run "DirectoryListing" Plugin
+		'getDirectoryStructure',              //Telling the plugin, which action we want to perform
+		[directories]);        //Passing a list of arguments to the plugin, in this case this is the directory path
 	
-	if (true){
-		
-		if(self.isDebugEnabled) console.log("[getDirectoryStructure] called, reading directory structure file...");
-		
-		// the URL to the directories file 
-		//  file has JSON format: 
-		//  <direcotry-name>: [array of file-names in directory]
-    	var directoryFileUrl = mobileDS.constants.getInstance(forBrowser).getDirectoriesFileUrl();
-
-   		 //load configuration file asynchronously: 
-    	jQuery.ajax({
-			async: false,
-			dataType: "json",
-			url: directoryFileUrl,
-			success: function(data){
-				if(self.isDebugEnabled) console.log("DirectoryListing.getDirectoryStructure: loaded file from "+directoryFileUrl);
-			
-				if(data){
-					var jsonData = data;//jQuery.parseJSON( data );
-					if(self.isDebugEnabled) console.log("DirectoryListing.getDirectoryStructure: Succeeded to load directory structure from '"+directoryFileUrl+"'! Data: "+ JSON.stringify(data));
-					
-					if(successCallback){
-						successCallback(jsonData);
-					}
-				
-				}
-			},
-			error: function(jqXHR, textStatus, errorThrown){
-				if(self.isDebugEnabled) console.log("DirectoryListing.getDirectoryStructure: failed to load file from '"+directoryFileUrl+"'! Status "+textStatus+": "+ errorThrown+ ", "+JSON.stringify(jqXHR));
-				
-				if(failureCallback){
-					failureCallback(textStatus+": failed to load file from '"+directoryFileUrl+"' - "+ errorThrown);
-				}
-				else {
-					console.error("DirectoryListing.getDirectoryStructure: failed to load file from '"+directoryFileUrl+"'! Status "+textStatus+": "+ errorThrown);
-				}
-			}
-		});
-	} else {//DISABLED: use native Android plugin for reading directories...
-		if(self.isDebugEnabled) console.log("[getDirectoryStructure] called, ");
-	
-		return cordova.exec(successCallback,    //Callback which will be called when directory listing is successful
-			failureCallback,     //Callback which will be called when directory listing encounters an error
-			'DirectoryListing',  //Telling cordova that we want to run "DirectoryListing" Plugin
-			'getDirectoryStructure',              //Telling the plugin, which action we want to perform
-			[directories]);        //Passing a list of arguments to the plugin, in this case this is the directory path
-	}
 };
 
 /**

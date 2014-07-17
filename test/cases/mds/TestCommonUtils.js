@@ -88,7 +88,7 @@ describe("tools/commonUtils", function() {
 				expect(mobileDS.CommonUtils.getInstance().getDirectoryContentsWithFilter(path, filter)).toEqual(after);
 			});
 			
-			it("loadAllPhonegapPlugins - nuance.js", function() {
+			it("loadAllCordovaPlugins - nuance.js", function() {
 //				var path = '/android_asset/www/mmirf/plugins';
 				var path = '/mmirf/plugins';
 				var filter = 'nuance.js';
@@ -101,14 +101,14 @@ describe("tools/commonUtils", function() {
 					success && success();
 				});
 				
-				spyOn(mobileDS.CommonUtils.getInstance(), "loadAllPhonegapPlugins").andCallThrough();
+				spyOn(mobileDS.CommonUtils.getInstance(), "loadAllCordovaPlugins").andCallThrough();
 
 				// execute function
-				mobileDS.CommonUtils.getInstance().loadAllPhonegapPlugins(pluginspath, function(){return true;})
+				mobileDS.CommonUtils.getInstance().loadAllCordovaPlugins(pluginspath, function(){return true;})
 				
 				// 7 files, but window.plugins.directoryListing is already "loaded" in beforeEach-function
 				expect(mobileDS.CommonUtils.getInstance().getLocalScript.calls.length).toEqual(6);
-				expect(mobileDS.CommonUtils.getInstance().loadAllPhonegapPlugins.calls.length).toEqual(1);
+				expect(mobileDS.CommonUtils.getInstance().loadAllCordovaPlugins.calls.length).toEqual(1);
 			});
 			
 			

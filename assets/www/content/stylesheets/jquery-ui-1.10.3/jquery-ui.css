@@ -53,6 +53,14 @@
 	z-index: 100;
 }
 
+.ui-content{
+		border-width:0;
+		overflow:visible;
+		overflow-x:hidden;
+		padding:15px;
+}
+
+
 
 /* Interaction Cues
 ----------------------------------*/

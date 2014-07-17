@@ -30,6 +30,7 @@
 
 if (!window) {
 	var window = module;
+	global.window = window;
 }
 
 if(!console.debug){

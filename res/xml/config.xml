@@ -20,7 +20,7 @@
 
 <widget xmlns = "http://www.w3.org/ns/widgets"
         id = "de.dfki.iui.mmir.starterKit"
-        version = "1.0.0">
+        version = "3.0.0">
     <name>MMIR StarterKit</name>
 
     <description>

@@ -28,12 +28,15 @@
 newMediaPlugin = {
 		initialize: function(callBack){
 			
+			var languageManager = require('languageManager');
+			var commonUtils = require('commonUtils');  
+			
 			callBack({
 				    textToSpeech: function (parameter, successCallBack, failureCallBack, startCallBack){
 				    	try{
 				    		
 				    		var text;
-				    		if((typeof parameter !== 'undefined')&& mobileDS.CommonUtils.getInstance().isArray(parameter) ){
+				    		if((typeof parameter !== 'undefined')&& commonUtils.isArray(parameter) ){
 				    			//TODO implement pausing similar to maryTextToSpeech.js (i.e. in JS code); use XML?
 				    			
 				    			text = parameter.join('\n');//FIXME may need 2 newlines here: in some cases the Nuance TTS does not make pause, when there is only 1 newline (why?!?...)
@@ -48,7 +51,7 @@ newMediaPlugin = {
 					    			text, 
 					    			successCallBack, 
 					    			failureCallBack,
-					    			mobileDS.LanguageManager.getInstance().getSpeaker()["voice_lang"]
+					    			languageManager.getSpeaker()["voice_lang"]
 					    	);
 					    	
 					    	//TODO implement real start-callback (needs to be done within java-/javascript-plugin)

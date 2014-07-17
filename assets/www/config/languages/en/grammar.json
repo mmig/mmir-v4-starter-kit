@@ -1,4 +1,5 @@
 {
+  "example_phrase" : "Turn the light in the kitchen on",
   "stop_word": [
     "in",
     "switch",
@@ -38,7 +39,7 @@
   },
   "utterances": {
 	  
-    "TURN_DEVICE": {
+    "CTRL_DEVICE": {
       "phrases": [
         "DEVICE ROOM STATE",
         "ROOM DEVICE STATE"
@@ -49,7 +50,7 @@
         "action": "_$state[0]"
       }
     },
-    "TURN_DEVICE": {
+    "CTRL_ALL_DEVICES": {
       "phrases": [
         "ALL_DEVICES STATE",
         "STATE ALL_DEVICES"

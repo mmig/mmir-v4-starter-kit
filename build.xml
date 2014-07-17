@@ -349,27 +349,46 @@
 	    <mkdir dir="${buildDirBin}" />
 	    <mkdir dir="${buildDirTempJS}" />
 		<concat destfile="${base.js.compile.grammar.parser.generator}" fixlastline="true" outputencoding="UTF-8">
-			<fileset dir="${jsSrcDirBase}tools"            includes="initJSCC.js" />
-			<fileset dir="${jsSrcDirBase}res/libs"         includes="jscc.js" />
-			<fileset dir="${jsSrcDirBase}tools/extensions" includes="StringExtensions.js" />
-			<fileset dir="${jsSrcDirBase}tools/extensions" includes="ArrayExtensions.js" />
-			<string>
-			    //need to use "export checksumUtils object" trick, since mobileDS gets overwritten
-			    //by later "includes"
-	    		var checksumUtils = (function(){
+            
+            <string>
+                //var requiren = require;
+                var require = require('./../../lib/r.js');
+                var definejs = require.define;
 	    	</string>
+            <fileset dir="${jsSrcDirBase}tools/build"      includes="buildConfig.js" />
+            
+            <!-- build AMD module for CryptoJS/md5 library: -->
+            <string>
+                definejs('md5impl', function(){
+            </string>
 			<fileset dir="${jsSrcDirBase}res/libs"         includes="md5.js" />
-			<fileset dir="${jsSrcDirBase}tools"            includes="checksumUtils.js" />
 			<string>
-			    	return mobileDS.ChecksumUtils.init();
-	    		})();
+			    	return CryptoJS;
+			    });
+                
+                definejs('jsonlint', function(){
 	    	</string>
-			<fileset dir="${jsSrcDirBase}semantic"         includes="grammarConverter.js" />
-			<fileset dir="${jsSrcDirBase}semantic"         includes="grammarParserTemplate.js" />
-			<fileset dir="${jsSrcDirBase}semantic"         includes="semanticInterpreter.js" />
-			<!-- fileset dir="${jsSrcDirBase}res/libs"     includes="jquery-1.9.1.js" /-->
+            <!-- ... and an AMD module for the jsonlint parser ... -->
 			<fileset dir="${jsSrcDirBase}res/libs"         includes="jsonlint.parser.js" />
+			<string>
+					return jsl.parser;
+				});
+			    	    		
+	    		var checksumUtils = require('checksumUtils');
+	    		checksumUtils.init( require('md5impl') );
+	    		var jsl;
+	    		
+	    		require(['jsonlint', 'jquery'], function(jsonlint){
+		    		jsl = {
+		    			parser: require('jsonlint')
+		    		};
+	    		
+	    	</string>
 			<fileset dir="${jsSrcDirBase}tools/build/ant"  includes="StandaloneSemanticParserCompileExec.js" />
+			<string>
+	    		});
+	    		
+	    	</string>
         </concat>
 		<echo message="${base.js.compile.grammar.parser.generator} built." />
 	</target>

@@ -26,7 +26,7 @@
 
 
  //application namespace 
- var mobileDS = window.mobileDS || {};
+ var mmir = window.mmir || {};
 
  //controller's constructor  
  var Calendar = function(){
@@ -90,5 +90,5 @@
   var cb_func = function(){
     alert("STUB: appointment successfully created!\n\n"+JSON.stringify(jData, null, 2));
   };
-  mobileDS.CalendarModel.getInstance().save_appointment(jData, cb_func);
+  mmir.CalendarModel.getInstance().save_appointment(jData, cb_func);
 };

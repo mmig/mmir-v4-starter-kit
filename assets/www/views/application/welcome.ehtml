@@ -8,7 +8,7 @@
 
 @contentFor("content"){
    <h2>
-      @localize("welcome_text")@(mobileDS.User.getInstance() ? ', '+ mobileDS.User.getInstance().getName() : '')
+      @localize("welcome_text")@(mmir.User.getInstance() ? ', '+ mmir.User.getInstance().getName() : '')
    </h2>
    <button id="appointmentButton" name="appointment_btn" data-inline="true">
    	 @localize("create_appointment")

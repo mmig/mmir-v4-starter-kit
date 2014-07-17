@@ -1,5 +1,5 @@
 ﻿
-version notes for MMIG Starter Kit (v 2.4)
+version notes for MMIG Starter Kit (v 3.0alpha)
 
  * using Cordova 2.8.x library (modified; source code included in JAR)
  * using jQuery 1.9.x library
@@ -10,6 +10,25 @@ version notes for MMIG Starter Kit (v 2.4)
  Change Log
  --------------
  
+##################
+ Version 3.0alpha
+##################
+
+ * AMD (Asynchronous Module Definition) version for MMIR framework (using requirejs)
+  * changes in almost all files for modularization (i.e. converting to AMD modules)
+  * improved separation of framework-code and application-code:
+    * initialization is now done in /assets/www/mmirf/main.js
+    * the bootstrap-code for the application is now located in /assets/www/app.js
+  * adjusted build.xml and parse.xml to new AMD structure
+  * updated testSemanticInterpreter.html to use new AMD version of the framework
+ * important changes:
+  * renamed main namespace: mobileDS -> mmir
+    * e.g. instead of mobileDS.LanguageManager.getInstance():
+       -> now use: mmir.LanguageManager.getInstance()
+       -> or add "backwards compatability" by creating global variable: var mobileDS = mmir;
+  * renamed Notification -> NotificationManager (moved file into mmirf/manager/)
+  * manager modules that had a .create() function: functions renamed to .init() [which return now Promise objects]
+  
 ##################
  Version 2.4
 ##################

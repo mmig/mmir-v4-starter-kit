@@ -1,98 +1,42 @@
-<html>
-<head>
-	<base href="file:///android_asset/www/index.html" />
-	<title>Appointment Test</title>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1,maximum-scale=1, user-scalable=no" />
-	
-	<link rel="stylesheet" href="mmirf/res/styles/jquery.mobile-1.3.1.min.css" />
-	<link rel="stylesheet" href="content/stylesheets/jqm-datebox-1.4.0.min.css" />
-	
-	<script src="mmirf/res/libs/jquery-1.9.1.min.js">
-	</script>
-	<script src="mmirf/res/libs/jquery.mobile-1.3.1.min.js">
-	</script>
-	<script type="text/javascript" charset="utf-8" src="mmirf/res/libs/cordova-2.8.1.js">
-	</script>
-	<script src="mmirf/tools/commonUtils.js" type="text/javascript">
-	</script>
-	<script src="mmirf/res/libs/jpath.js">
-	</script>
-	<script src="mmirf/tools/initJSCC.js">
-    </script>
-	<script src="mmirf/res/libs/jscc.js">
-	</script>
-	<script src="libs/datebox/jqm-datebox-1.4.0.comp.flipbox.min.js">
-	</script>
-	<script src="libs/datebox/jquery.mobile.datebox.i18n.en.utf8.js">
-	</script>
-	<script type="text/javascript" src="mmirf/res/libs/timer.js">
-	</script>
-	<script src="mmirf/mvc/views/contentElement.js">
-	</script>
-	<script src="mmirf/mvc/views/layout.js">
-	</script>
-	<script src="mmirf/mvc/views/view.js">
-	</script>
-	<script src="mmirf/mvc/controllers/controller.js">
-	</script>
-	<script src="mmirf/mvc/controllers/helper.js">
-	</script>
-	<script src="mmirf/manager/controllerManager.js">
-	</script>
-	<script src="mmirf/manager/modelManager.js">
-	</script>
-	<script src="mmirf/manager/presentationManager.js" type="text/javascript">
-	</script>
-	<script src="mmirf/manager/languageManager.js" type="text/javascript">
-	</script>
-	<script type="text/javascript" src="mmirf/semantic/stemmer.js">
-	</script>
-	<script src="mmirf/main.js" type="text/javascript">
-	</script>
-	<script src="mmirf/gen/DialogDescription.js" type="text/javascript">
-	</script>
-	<script src="mmirf/manager/dialog/dialogEngine.js" type="text/javascript">
-	</script>
-	<script src="mmirf/plugins/directoryListing.js" type="text/javascript">
-	</script>
-	<script src="mmirf/plugins/multitouchPlugin.js" type="text/javascript">
-	</script>
-	<script type="text/javascript" src="mmirf/tools/extensions/StringExtensions.js">
-	</script>
-	<script type="text/javascript" src="mmirf/notification.js">
-	</script>
-	<script type="text/javascript" src="mmirf/semantic/grammarParserTemplate.js">
-	</script>
-	<script type="text/javascript" src="mmirf/semantic/grammarConverter.js">
-	</script>
-	<script type="text/javascript" src="mmirf/semantic/semanticInterpreter.js">
-	</script>
-	<script type="text/javascript" src="mmirf/gesture/accelerometerGestureDetector.js">
-	</script>
-	<script type="text/javascript" src="mmirf/gesture/compassHandler.js">
-	</script>
-	<script type="text/javascript" src="mmirf/gesture/locationObserver.js">
-	</script>
-	<script type="text/javascript" src="mmirf/manager/dialog/inputEngine.js">
-	</script>
-	<script type="text/javascript" src="mmirf/manager/settings/configurationManager.js">
-	</script>
-	<script type="text/javascript" src="mmirf/manager/settings/languageManager.js">
-	</script>
-	
-	<script type="text/javascript" src="mmirf/plugins/nativeTTS.js"></script>
-	<script type="text/javascript" src="mmirf/plugins/nuance.js"></script>
-	<script type="text/javascript" src="controllers/application.js"></script>
-	<script type="text/javascript" src="applicationHelper.js"></script>
-	<script type="text/javascript" src="controllers/calendar.js"></script>
-	<script type="text/javascript" src="helpers/calendarHelper.js"></script>
-	<link rel="stylesheet" href="mmirf/res/styles/jqm-extentions.css"/>
-	<link rel="stylesheet" href="content/stylesheets/application.css"/>
-	<script type="text/javascript" src="models/calendarmodel.js"></script>
-	<script type="text/javascript" src="models/user.js"></script>
-</head>
-<body>
+<html class="ui-mobile"><head><base href="file:///D:/temp/documents_amd-export-2014-06-16/index.html">
+
+  <title>
+        MMIG
+    </title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no">
+
+  <!--
+  Copyright (C) 2012-2013 DFKI GmbH
+  Deutsches Forschungszentrum fuer Kuenstliche Intelligenz
+  German Research Center for Artificial Intelligence
+  http://www.dfki.de
+
+  Permission is hereby granted, free of charge, to any person obtaining a 
+  copy of this software and associated documentation files (the 
+  "Software"), to deal in the Software without restriction, including 
+  without limitation the rights to use, copy, modify, merge, publish, 
+  distribute, sublicense, and/or sell copies of the Software, and to 
+  permit persons to whom the Software is furnished to do so, subject to 
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be included 
+  in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
+  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
+  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  -->
+  
+  
+  <script type="text/javascript" src="mmirf/core.js"></script>
+  <script type="text/javascript" src="mmirf/res/libs/require.js" data-main="mmirf/mainConfig"></script>
+ <script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="config" src="mmirf/mainConfig.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="core" src="./mmirf/core.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="main" src="./mmirf/main.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="env" src="./mmirf/tools/envDetect.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="envInit" src="./mmirf/tools/envInit.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="jquery" src="./mmirf/res/libs/jquery-1.9.1.min.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="constants" src="./mmirf/tools/constants.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="commonUtils" src="./mmirf/tools/commonUtils.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="configurationManager" src="./mmirf/manager/settings/configurationManager.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="languageManager" src="./mmirf/manager/settings/languageManager.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="controllerManager" src="./mmirf/manager/controllerManager.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="modelManager" src="./mmirf/manager/modelManager.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="presentationManager" src="./mmirf/manager/presentationManager.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="inputManager" src="./mmirf/manager/dialog/inputManager.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="dialogManager" src="./mmirf/manager/dialog/dialogManager.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="semanticInterpreter" src="./mmirf/semantic/semanticInterpreter.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="mediaManager" src="./mmirf/manager/mediaManager.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="notificationManager" src="./mmirf/manager/notificationManager.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="paramsParseFunc" src="./mmirf/tools/paramsParseFunc.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="stringExtension" src="./mmirf/tools/extensions/StringExtensions.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="dictionary" src="./mmirf/tools/dictionary.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="controller" src="./mmirf/mvc/controllers/controller.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="renderUtils" src="./mmirf/mvc/parser/templateRenderUtils.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="layout" src="./mmirf/mvc/views/layout.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="view" src="./mmirf/mvc/views/view.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="partial" src="./mmirf/mvc/views/partial.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="checksumUtils" src="./mmirf/tools/checksumUtils.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="parserModule" src="./mmirf/mvc/parser/parserModule.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="engineConfig" src="./mmirf/manager/dialog/engineConfig.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="grammarConverter" src="./mmirf/semantic/grammarConverter.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="grammarParserTemplate" src="./mmirf/semantic/grammarParserTemplate.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="jscc" src="./mmirf/res/libs/jscc-amd.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="jqm" src="./mmirf/res/libs/jquery.mobile-1.3.1.min.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="antlr3" src="./mmirf/res/libs/antlr3-all-min.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="helper" src="./mmirf/mvc/controllers/helper.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="viewConstants" src="./mmirf/mvc/views/viewConstants.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="yield" src="./mmirf/mvc/views/yield.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="parseUtils" src="./mmirf/mvc/parser/templateParseUtils.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="storageUtils" src="./mmirf/mvc/parser/storageUtils.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="contentElement" src="./mmirf/mvc/views/contentElement.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="scionEngine" src="./mmirf/manager/dialog/scion/scionEngine.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="md5" src="./mmirf/res/libs/md5.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="parsingResult" src="./mmirf/mvc/parser/parsingResult.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="templateProcessor" src="./mmirf/mvc/parser/templateProcessor.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="scion" src="./mmirf/res/libs/scion-amd.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="scionUtil" src="./mmirf/manager/dialog/scion/scionUtil.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="templateLexer" src="./mmirf/gen/parser/MmirTemplateLexer.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="ES3Lexer" src="./mmirf/gen/parser/ES3Lexer.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="ES3Parser" src="./mmirf/gen/parser/ES3Parser.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="blockLexer" src="./mmirf/gen/parser/MmirScriptBlockLexer.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="blockParser" src="./mmirf/gen/parser/MmirScriptBlockParser.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="statementLexer" src="./mmirf/gen/parser/MmirScriptStatementLexer.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="statementParser" src="./mmirf/gen/parser/MmirScriptStatementParser.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="contentLexer" src="./mmirf/gen/parser/MmirScriptContentLexer.js"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="contentParser" src="./mmirf/gen/parser/MmirScriptContentParser.js"></script><script type="text/javascript" src="gen/grammar/de_grammar.js"></script><script type="text/javascript" src="gen/grammar/en_grammar.js"></script><script type="text/javascript" src="gen/grammar/jp_grammar.js"></script><script type="text/javascript" src="controllers/application.js"></script><script type="text/javascript" src="controllers/calendar.js"></script><script type="text/javascript" src="helpers/applicationHelper.js"></script><script type="text/javascript" src="mmirf/env/media/maryTextToSpeech.js"></script><script type="text/javascript" src="models/calendarModel.js"></script><script type="text/javascript" src="models/user.js"></script><script type="text/javascript" src="gen/views/layouts/application.js"></script><script type="text/javascript" src="gen/views/Application/login.js"></script><script type="text/javascript" src="gen/views/Application/registration.js"></script><script type="text/javascript" src="gen/views/Application/welcome.js"></script><script type="text/javascript" src="gen/views/Calendar/create_appointment.js"></script><script type="text/javascript" src="gen/views/Application/~languageMenu.js"></script><script type="text/javascript" src="mmirf/env/media/webkitAudioInput.js"></script><link rel="stylesheet" href="mmirf/res/styles/jquery.mobile-1.3.1.min.css"><link rel="stylesheet" href="content/stylesheets/jqm-datebox-1.4.0.min.css"><link rel="stylesheet" href="content/stylesheets/jqm-extentions.css"><link rel="stylesheet" href="content/stylesheets/application.css"><link rel="stylesheet" href="content/stylesheets/flags.css"><script type="text/javascript" src="content/libs/jqm-datebox-1.4.0.comp.flipbox.min.js"></script><script type="text/javascript" src="mmirf/env/media/html5AudioOutput.js"></script></head>
+ <body class="ui-mobile-viewport ui-overlay-c">
 	<div class="ui-loader ui-corner-all ui-body-a ui-loader-default">
 		<span class="ui-icon ui-icon-loading"></span>
 		<h1>loading</h1>
@@ -131,7 +75,7 @@
 				aria-disabled="false">
 				<span class="ui-btn-inner ui-btn-corner-all">
 				<a 	href="index.html" data-icon="add" class="ui-btn-right"
-					onclick="setTimeout(function(){mobileDS.DialogEngine.getInstance().render('Application','welcome');},1000);">
+					onclick="setTimeout(function(){mmir.DialogManager.render('Application','welcome');},1000);">
 					Enter DialogEngine...
 				</a>
 				</span>

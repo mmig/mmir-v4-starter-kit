@@ -129,3 +129,8 @@ function saveToFile(str, path, doNotOverWrite, doCreateMissingDirectories){
 	console.log('wrote String (len '+str.length+') to file: '+path);
 	return true;
 }
+
+if(typeof definejs !== 'undefined'){
+	definejs('loadLocalFile', function(){ return loadLocalFile; });
+	definejs('saveToFile', function(){ return saveToFile; });
+}

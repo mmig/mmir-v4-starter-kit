@@ -23,30 +23,32 @@
  * 	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-
-/**
- * @module mobileDS.manager.settings
- * 
- */
-var mobileDS = window.mobileDS ||
-{};
-
+	
 /**
  * A class for managing the configuration. <br>
  * It's purpose is to load the configuration and settings automatically.
  * 
  * This "class" is structured as a singleton - so that only one instance is in use.<br>
  * You can access the instance of the class via 
- * @example <code>mobileDS.ConfigurationManager.getInstance()</code>
+ * @example <code>mmir.ConfigurationManager.getInstance()</code>
  * @class ConfigurationManager
  * @category core
  * 
- * @see mobileDS.ConfigurationManager#constructor
+ * @see mmir.ConfigurationManager#constructor
+ * 
+ * @require jQuery.ajax
+ * 
  */
-mobileDS.ConfigurationManager = (function(){
+//TODO additional dependency on LanguageManager for 
+//		* getLanguage() -> languageManager.getLanguage()
+//		* setLanguage(lang) -> languageManager.setLanguage(lang)
+//
+// should the dependency on LanguageManager be made OPTIONAL?
+//
+define(['constants', 'jquery' ], function (constants, $){
+
     /**
-     * Object containing the instance of the class {@link mobileDS.ConfigurationManager}.
+     * Object containing the instance of the class {@link mmir.ConfigurationManager}.
      * 
      * @property instance
      * @type Object
@@ -55,11 +57,11 @@ mobileDS.ConfigurationManager = (function(){
     var instance = null;
     
 	/**
-	 * Constructor-Method of Class {@link mobileDS.ConfigurationManager}.
+	 * Constructor-Method of Class {@link mmir.ConfigurationManager}.
 	 * 
 	 * @constructor
-	 * @augments mobileDS.ConfigurationManager
-	 * @memberOf mobileDS.ConfigurationManager.prototype
+	 * @augments mmir.ConfigurationManager
+	 * @memberOf mmir.ConfigurationManager.prototype
 	 */
     function constructor(){
     	/**
@@ -70,14 +72,17 @@ mobileDS.ConfigurationManager = (function(){
     	 */
     	var configData = null;
     	
-        //load configuration file asynchronously: 
+    	//FIXME change implementation to async-loading?
+    	//		-> would need to add init()-function, with callback and/or return Deferred.promise
+    	
+        //load configuration file synchronously: 
         $.ajax({
     		async: false,
     		dataType: "json",
-    		url: mobileDS.constants.getInstance(forBrowser).getConfigurationFileUrl(),
+    		url: constants.getConfigurationFileUrl(),
     		success: function(data){
     			
-    			if(IS_DEBUG_ENABLED) console.debug("ConfigurationManager.constructor: loaded language settings from "+mobileDS.constants.getInstance(forBrowser).getConfigurationFileUrl());//debug
+    			if(IS_DEBUG_ENABLED) console.debug("ConfigurationManager.constructor: loaded language settings from "+constants.getConfigurationFileUrl());//debug
     			
 				if(data){ 
     				var jsonData = data;//jQuery.parseJSON( data );
@@ -86,8 +91,8 @@ mobileDS.ConfigurationManager = (function(){
     				//          & avoid "private" knowledge about LanguageManager 
     				//			-> now LanguageManager "pulls" language configuration from ConfigurationManager
 //    				//get & set language setting
-//    				if(jsonData.language && jsonData.language != mobileDS.LanguageManager.getInstance().getLanguage()){
-//	    				mobileDS.LanguageManager.getInstance().setLanguage(jsonData.language);
+//    				if(jsonData.language && jsonData.language != mmir.LanguageManager.getInstance().getLanguage()){
+//	    				mmir.LanguageManager.getInstance().setLanguage(jsonData.language);
 //	    				if(IS_DEBUG_ENABLED) console.debug("ConfigurationManager.constructor: setting language to "+ jsonData.language);//debug
 //	    			}
     				
@@ -95,44 +100,47 @@ mobileDS.ConfigurationManager = (function(){
     			}
     		},
     		error: function(data){
-    			console.error("ConfigurationManager.constructor: failed to load configuration from '"+mobileDS.constants.getInstance(forBrowser).getConfigurationFileUrl()+"'! ERROR: "+ JSON.stringify(data));
+    			console.error("ConfigurationManager.constructor: failed to load configuration from '"+constants.getConfigurationFileUrl()+"'! ERROR: "+ JSON.stringify(data));
     		}
     	});
     	
-        /** @lends mobileDS.ConfigurationManager.prototype */
+        /** @lends mmir.ConfigurationManager.prototype */
         return { // public members
 			/**
 			 * Returns the currently used language. 
 			 * 
 			 * <p>This does not return the language of the configuration, but is a
-			 * shortcut for {@link mobileDS.LanguageManager#getLanguage}.
+			 * shortcut for {@link mmir.LanguageManager#getLanguage}.
 			 * 
 			 * 
-			 * @deprecated use mobileDS.LanguageManager.getInstance().getLanguage() instead!
+			 * @deprecated use mmir.LanguageManager.getInstance().getLanguage() instead!
 			 * 
+			 * @requires mmir.LanguageManager
 			 * 
 			 * @function getLanguage
 			 * @returns {String} The currently used language
 			 * @public
 			 */
             getLanguage: function(){
-                return mobileDS.LanguageManager.getInstance().getLanguage();
+                return mmir.LanguageManager.getInstance().getLanguage();
             },
 			/**
 			 * Sets the currently used language.
 			 * 
 			 * <p>This does not set the language of the configuration, but is a
-			 * shortcut for {@link mobileDS.LanguageManager#setLanguage}.
+			 * shortcut for {@link mmir.LanguageManager#setLanguage}.
 			 * 
 			 * 
-			 * @deprecated use mobileDS.LanguageManager.getInstance().setLanguage(lang) instead!
-			 *  
+			 * @deprecated use mmir.LanguageManager.getInstance().setLanguage(lang) instead!
+			 * 
+			 * @requires mmir.LanguageManager
+			 * 
 			 * @function setLanguage
 			 * @param {String} lang The language which is to be used
 			 * @public
 			 */
             setLanguage: function(lang){
-            	mobileDS.LanguageManager.getInstance().setLanguage(lang);
+            	mmir.LanguageManager.getInstance().setLanguage(lang);
             },
 			/**
 			 * Returns the value of a property.
@@ -163,21 +171,18 @@ mobileDS.ConfigurationManager = (function(){
             }
             
         };
-    }
-    return {
-        /**
-         * Object containing the instance of the class {@link mobileDS.ConfigurationManager} 
-         * 
-         * @function getInstance
-         * @returns {Object} Object containing the instance of the class {@link mobileDS.ConfigurationManager}
-         * @public
-         */
-        getInstance: function(){
-            if (instance == null) {
-                instance = constructor();
-            }
-            return instance;
-        }
-    };
-    
-})();
+    }//END: construcor = function(){...
+
+		    	
+	instance = new constructor();
+	
+	/**
+	 * @deprecated instead: use mmir.ConfigurationManager directly
+	 */
+	instance.getInstance = function(){
+		return instance;
+	};
+	
+	return instance;
+
+});

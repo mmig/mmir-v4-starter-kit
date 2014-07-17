@@ -84,7 +84,7 @@ try{
 //var checksumUtils = mobileDS.ChecksumUtils.init();
 checksumUtils.getFileExt();
 
-semanticInterpreter = mobileDS.SemanticInterpreter.getInstance();
+semanticInterpreter = require('semanticInterpreter');
 semanticInterpreter.createGrammar(theJSONgrammar, theJSONGrammarLanguage, function(){
 	var compiledParser = semanticInterpreter.getGrammarParserText( theJSONGrammarLanguage );
 
