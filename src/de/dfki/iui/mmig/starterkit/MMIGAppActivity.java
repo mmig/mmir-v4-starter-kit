@@ -29,7 +29,6 @@
 
 import org.apache.cordova.DroidGap;
 
-import de.dfki.iui.mmig.plugins.nuance.NuanceEngine;
 import android.os.Bundle;
 //import android.view.View;
 //import android.view.WindowManager;
@@ -41,8 +40,6 @@ public class MMIGAppActivity extends DroidGap {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		NuanceEngine.createInstance(this.getContext());
 		
 //		CookieManager.setAcceptFileSchemeCookies(true);
 		
@@ -84,14 +81,5 @@ public class MMIGAppActivity extends DroidGap {
 //		//"overlay" task bar (i.e. hide/dim out the controls; but they are still ative) for Android level 14
 //		getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
 	}
-
-	@Override
-	public void onDestroy() {
-		
-		NuanceEngine.getInstance().releaseResources();
-		
-		super.onDestroy();
-	}
-
 	
 }
