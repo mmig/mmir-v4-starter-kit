@@ -41,8 +41,6 @@ public class MMIGAppActivity extends DroidGap {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		NuanceEngine.createInstance(this.getContext());
-		
 //		CookieManager.setAcceptFileSchemeCookies(true);
 		
 		//INCREASE TIMEOUT if you get the error message
@@ -82,14 +80,6 @@ public class MMIGAppActivity extends DroidGap {
 //
 //		//"overlay" task bar (i.e. hide/dim out the controls; but they are still ative) for Android level 14
 //		getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
-	}
-
-	@Override
-	public void onDestroy() {
-		
-		NuanceEngine.getInstance().releaseResources();
-		
-		super.onDestroy();
 	}
 
 	
