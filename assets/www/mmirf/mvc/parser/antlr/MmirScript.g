@@ -35,11 +35,25 @@ options {
 
 	this.isDebug = true;
 	
+	this.isInStatementMode = false;
+	
 	this.nesting = 0;
 	this.nestingBlock = 0;
 	
-	this.isParseAsStatement = function(){
-		return typeof this.parseAsStatement !== 'undefined' && this.parseAsStatement === true;
+	this.setStatementMode = function(){
+		this.isInStatementMode = true;
+	};
+	
+	this.setBlockMode = function(){
+		this.isInStatementMode = false;
+	};
+	
+	this.isStatementMode = function(){
+		return this.isInStatementMode === true;
+	};
+	
+	this.isBlockMode = function(){
+		return this.isInStatementMode === false;
 	};
 }
 
@@ -60,7 +74,7 @@ options {
 }
 main returns[String theText]
 	@after{
-		if(this.isDebug) printInfo('SCRIPT_main.text', $theText);//debug
+		if(this.isDebug) this.printInfo('SCRIPT_main.text', $theText);//debug
 	}
 	: t=text { $theText = ($t.text?$t.text:''); } (NL t=text { $theText = $theText + '\r\n' + ($t.text?$t.text:''); })*
 	;
@@ -69,94 +83,67 @@ text
 	: ( other | DoExit | DoExitStatement | DoEnter | DoEnterStatement | CHAR )*
 	;
 
-stringArgAndContent returns[String theName, String theContent]	
-	@init{
-		var startPos;
-	}
-	@after{
-		var end = this.input.getTokens()[this.input.size()-1].getStopIndex()+1;
-		var theString = this.input.getTokenSource().input.data;
-		$theContent = theString.substring(startPos, end);
-		
-		if(this.isDebug) print('Block.stringArgAndContent -> content= "'+$theContent+'"');//debug
-	}
-	: stringArg ')' (NL|WS)* start='{'  (NL  | CHAR )*
-	{
-		$theName = $stringArg.theText;
-		startPos = start.getStartIndex()+1;
-		
-		if(this.isDebug) print('Block.stringArgAndContent -> str='+$stringArg.theText);
-	}
-	;
-parseStringArg returns[String theText]
-	: stringArg EOF {$theText = $stringArg.theText;}
-	;
-
-stringArg returns[String theText]
-@init{
-	var strs;
-}
-@after{
-	if(strs) $theText = strs.join(''); 
-	else $theText='';
-}
-	: (NL|WS)* 
-	  (
-		str=STRING {if(!strs)strs=new Array();strs.push(this.extractString($str.text));}
-	  |	str=SSTRING {if(!strs)strs=new Array();strs.push(this.extractString($str.text));}
-	  ) ( 
-	  	(NL|WS)* '+' (NL|WS)* 
-	  	  (str=STRING {if(!strs)strs=new Array();strs.push(this.extractString($str.text));}
-	  	  |str=SSTRING {if(!strs)strs=new Array();strs.push(this.extractString($str.text));}
-	  	 )
-	  )* (NL|WS)*
-	;
-
-other	: COMMENT  {if(this.isDebug) printInfo('SCRIPT_BLOCK_comment',$COMMENT.text);/*debug*/}
-	| STRING   {if(this.isDebug) printInfo('SCRIPT_BLOCK_String' ,$STRING.text);/*debug*/}
-	| SSTRING  {if(this.isDebug) printInfo('SCRIPT_BLOCK_string' ,$SSTRING.text);/*debug*/}
+other	: COMMENT  {if(this.isDebug) this.printInfo('SCRIPT_BLOCK_comment',$COMMENT.text);/*debug*/}
+	| STRING   {if(this.isDebug) this.printInfo('SCRIPT_BLOCK_String' ,$STRING.text);/*debug*/}
+	| SSTRING  {if(this.isDebug) this.printInfo('SCRIPT_BLOCK_string' ,$SSTRING.text);/*debug*/}
 	;
 	
 line_end:	NL | EOF;
 
 DoEnter
-	:	'{' {this.nestingBlock++; if(this.isDebug) print("opening level SCRIPT_BLOCK "+this.nestingBlock);/*debug*/}
+	:	'{' 
+	{
+	  if(this.isBlockMode()){
+		this.nestingBlock++;
+		if(this.isDebug) this.printDebug("opening level SCRIPT_BLOCK "+this.nestingBlock);//debug
+	  }
+	}
         ;
         
 DoExit
 	:	'}'
 	{
-          if ( this.nestingBlock <= 0 ) {
-		
-                this.emit(org.antlr.runtime.Token.EOF_TOKEN);
-                
-                if(this.isDebug) print("exiting embedded SCRIPT_BLOCK");//debug
-          }
-          else {
-                if(this.isDebug) print("closing level SCRIPT_BLOCK "+this.nestingBlock);//debug
-                
-                this.nestingBlock--;
-          }
+	  if(this.isBlockMode()){
+	          if ( this.nestingBlock <= 0 ) {
+			
+	                this.emit(org.antlr.runtime.Token.EOF_TOKEN);
+	                
+	                if(this.isDebug) this.printDebug("exiting embedded SCRIPT_BLOCK");//debug
+	          }
+	          else {
+	                if(this.isDebug) this.printDebug("closing level SCRIPT_BLOCK "+this.nestingBlock);//debug
+	                
+	                this.nestingBlock--;
+	          }
+	   }
         }
 	;
 
 DoEnterStatement 
-	:	'(' {this.nesting++; if(this.isDebug) print("opening level STATEMENT_BLOCK "+this.nesting);/*debug*/}
+	:	'('
+	{
+	  if(this.isStatementMode()){
+	  	this.nesting++;
+	  	if(this.isDebug) this.printDebug("opening level STATEMENT_BLOCK "+this.nesting);//debug
+	  }
+	}
         ;
         
 DoExitStatement:	 ')'
 	{
-          if ( this.nesting <= 0 ) {
-          
-                this.emit(org.antlr.runtime.Token.EOF_TOKEN);
-                
-                if(this.isDebug) print("exiting embedded SCRIPT_STATEMENT");//debug
-          }
-          else {
-                if(this.isDebug) print("closing level SCRIPT_STATEMENT "+this.nesting);//debug
-                
-                this.nesting--;
-          }
+	  if(this.isStatementMode()){
+	          if ( this.nesting <= 0 ) {
+	          
+	                this.emit(org.antlr.runtime.Token.EOF_TOKEN);
+	                
+	                if(this.isDebug) this.printDebug("exiting embedded SCRIPT_STATEMENT");//debug
+	          }
+	          else {
+	                if(this.isDebug) this.printDebug("closing level SCRIPT_STATEMENT "+this.nesting);//debug
+	                
+	                this.nesting--;
+	          }
+	   }
         }
 	;
 

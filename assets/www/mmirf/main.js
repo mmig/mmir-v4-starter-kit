@@ -1,4 +1,4 @@
-﻿/*
+/*
  * 	Copyright (C) 2012-2013 DFKI GmbH
  * 	Deutsches Forschungszentrum fuer Kuenstliche Intelligenz
  * 	German Research Center for Artificial Intelligence
@@ -24,444 +24,285 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
-var mobileDS = window.mobileDS ||
-{};
-
-var commonUtils;
-var pm;
-var viewFactory;
-var motionDetector;
-var dialogManager;
-var inputManager;
-var controllerManager;
-var semanticInterpreter;
-var modelManager;
-var initialized = false;
-var audioInput;
-var applicationLanguage;
-var langManager;
-var appConfiguration;
-
-var fileSys = '';
-var content = '';
-
-var IS_DEBUG_ENABLED = true;
-
-var ACTIVE_TEXT_ELEMENT = null;
-
-//devault time-duration for click-feedback vibration
-var CLICK_VIBRATE_DURATION = 50;//ms
-
-jQuery(document).ready(function(){
-	if (forBrowser) onDeviceReady();
-	else document.addEventListener("deviceready", onDeviceReady, false);
-});
-
-
-function fail(error) {
-	console.log("Error! " + error.code);
-}
-//LOGGING end
-
-function onDeviceReady(){
-    console.log("device is ready");
-
-    //overwrite BACK-event for Android/cordova environment:
-    document.addEventListener("backbutton", backKeyDown, true);
-    
-    if(forBrowser){
-	    //overwrite BACK-event in Browser environment:
-	    window.addEventListener("popstate", backKeyDown, true);
-    }
-    
-    commonUtils = mobileDS.CommonUtils.getInstance().initialize(initializeApplication);
-}
-
-
-function initializeApplication(){
-	console.log("initialize Application.");
+define(['core', 'env', 'envInit', 'jquery', 'constants', 'commonUtils', 'configurationManager', 'languageManager'
+     , 'controllerManager', 'modelManager'
+     , 'presentationManager', 'inputManager', 'dialogManager', 'module'
+     , 'semanticInterpreter', 'mediaManager', 'notificationManager'
+  ],
+  /**
+   * Initializes the MMIR framework:
+   * triggers {@link mmir.ready} when initialization has finished.
+   * 
+   * If run with env-setting <code>cordova</code> the initialization starts
+   * when the <code>deviceready</code> event is fired.
+   * Otherwise initialization starts when the <code>domready</code> event was fired
+   * (using jQuery's ready function). 
+   * 
+   * @class
+   * @name main
+   * @exports main as mmir.main
+   */
+  function(mmir, env, envInit, $, constants, commonUtils, configurationManager, languageManager
+	 , controllerManager, modelManager
+     , presentationManager, inputManager, dialogManager, module
+     , semanticInterpreter, mediaManager, notificationManager
+){
+	//export framework functions/objects
+	mmir.Constants = constants;
+	mmir.CommonUtils = commonUtils;
+	mmir.ConfigurationManager = configurationManager;
+	mmir.NotificationManager = notificationManager.init();
 	
-    commonUtils = mobileDS.CommonUtils.getInstance();
-    
-    commonUtils.loadCompiledGrammars(mobileDS.constants.getInstance(forBrowser).getGeneratedGrammarsPath(), function(){
-    		
-    
-	    if (!forBrowser){
-	
-	    	// Check if a network connection is established.
-	    	if (mobileDS.CommonUtils.getInstance().checkNetworkConnection() == false){
-	    		alert("No network connection enabled.\nPlease enable network access.");
-	//    		return false;
-	    	} else {
-	    		if(IS_DEBUG_ENABLED) console.log("Network access is available.");
-	    	}
-	    	
-			mobileDS.CommonUtils.getInstance().loadAllPhonegapPlugins(mobileDS.constants.getInstance(forBrowser).getPluginsPath(), function(){
-			        try {
-			            for (var prop in window.plugins) {
-			                console.log("Loaded plugin '" + prop + "'");
-			            }
-			        } 
-			        catch (e) {
-			            console.log("Exception: " + e);
-			        }
-			        loadManagers();
-			});
-	    }
-	    else {
-	    	loadManagers();
-	    }
-    });
+	var mainInit = function(){
 
-}
-
-function loadManagers(){
-    mobileDS.ConfigurationManager.getInstance();
-    
-    langManager = mobileDS.LanguageManager.getInstance(mobileDS.ConfigurationManager.getInstance().get('language'));
-    
-    semanticInterpreter = mobileDS.SemanticInterpreter.getInstance();
-    
-    //this is a "dummy" listener for the on allowrecording event -> triggered when user allows getUserMedia (HTML5)
-    // we need this, in case the browser has a permanent "allow" permission
-    // -> 	then the event i striggered as soon as teh MediaManager (or more precisely html5AudioInput)
-    //		is loaded/executed, i.e. before the "real" implementation for the listener in controller/application
-    //		is loaded
-    //		... so we use this "dummy" listener to catch the data that is delivered by the event, and use
-    //			it later in controller/application (if this dummy was not triggered by then, it will be removed
-    //			and discarded)
-    MEDIA_ON_ALLOW_RECORD_LISTENER = function(recordingStream, audioContextImpl, recorderInstance){
-		if(recordingStream){
-			MEDIA_RECORDING_STREAM = recordingStream;
-		}
-		if(audioContextImpl){
-			MEDIA_AUDIO_CONTEXT = audioContextImpl;
-		}
-		if(recorderInstance){
-			MEDIA_RECORDER_INSTANCE = recorderInstance;
-		}
-		
-		if(typeof MEDIA_RECORDING_STREAM !== 'undefined' && typeof MEDIA_AUDIO_CONTEXT !== 'undefined'){
-			return {
-				recordingStream : MEDIA_RECORDING_STREAM,
-				audioContext : MEDIA_AUDIO_CONTEXT,
-				recorderInstance: MEDIA_RECORDER_INSTANCE
-			};
-		}
-		return null;
-    };
-    
-    mobileDS.MediaManager.create(function(){
-    		console.log('All Media-Plugins Loaded');
-    		 mobileDS.SCIONExtension.getInstance();
-    		    
-//    	    controllerManager = //NOTE: create() has no return value any more! -> set controllerManager variable in callback
-    	    	mobileDS.ControllerManager.create(afterLoadingControllers);
-    	}, function (e) {
-    		console.log('Error loading Media plugins');
-    		if (e) console.log(e);
-	},
-		[{ name: 'onallowrecord', listener: MEDIA_ON_ALLOW_RECORD_LISTENER }]
-	);
-   
+		console.log('dom ready');
     	
-}
+		//initialize the common-utils:
+		commonUtils.init()//<- load directory structure
+			
+			//load plugins (if in CORDOVA environment)
+			.then(function() {
 
-function backKeyDown(event){
-	if(!forBrowser || (forBrowser && event.state)){//if(IS_BACK_ACTIVE){
-		
-		//FIX for browser-env.: to popstate-event is triggered not only when back-button is pressed in browser (however, in this case it seems, that the event.state is empty...)
-		if(forBrowser && !event.state){
-			return; /////////////////////////// EARLY EXIT ///////////////////////////////////
-		}
-		triggerClickFeedback({haptic : false});//vibration is already triggered by system for this back-button...
-		mobileDS.DialogEngine.getInstance().raise('back', { nativeBackButton : 'true'});
-	}
-}
-
-function showLoader(){
-	mobileDS.DialogEngine.getInstance().showWaitDialog();
-//    $('.ui-loader').css('display', 'block');
-}
-
-
-function hideLoader(){
-	mobileDS.DialogEngine.getInstance().hideWaitDialog();
-//    $('.ui-loader').css('display', 'none');
-}
-
-
-function afterLoadingControllers(ctrlManager){
-	
-	mobileDS.InputEngine.create(function(engineInstance){
-	    inputManager = engineInstance;
-		inputManager.startEngine();
-	
-	    console.log("initialization finished");
-	    /// callback end
-	   
-//	    var cm = mobileDS.CompassHandler.getInstance();
-//	    cm.startWatch();
-
-	
-		controllerManager = ctrlManager;
-		
-		mobileDS.Notification.getInstance().initBeep();
-		
-	    pm = mobileDS.PresentationManager.getInstance();
-	    
-	    mobileDS.DialogEngine.create(function(engineInstance){
-		    dialogManager = engineInstance;
-		    
-		    mobileDS.ModelManager.create(function(modelManagerInstance){
-		    	modelManager = modelManagerInstance;
-		    	
-			    dialogManager.setOnPageRenderedHandler(exectueAfterEachPageIsLoaded);
-			    dialogManager.startEngine();
-			    var appLayout = pm.getLayout("Application");
-			    var headerContents = appLayout.getHeaderContents();
-			    var header = $("head");
-			    header.append(headerContents);
-			    $('#applications_dialogs').appendTo($.mobile.pageContainer).css({});
-			    
-		    });
-		    
-	    });//END: DialogEngine.create()
-	    
-	});//END: InputEngine.create()
-    
-}
-
-function exectueAfterEachPageIsLoaded(ctrlName,viewName,data){
-	//register "automatic" event handlers for buttons
-	$("button").each(function(index, el){
-	  var tis = $(this);
-	  var eventName;
-	  tis.bind('vmousedown', function(event){
-	      tis.parent().addClass('ui-focus ui-btn-active ui-btn-down-a');
-	      eventName = "touch_start_on_" + tis.attr("name");
-	      mobileDS.InputEngine.getInstance().raise("touch_input_event");
-	      mobileDS.InputEngine.getInstance().raise(eventName);
-	  });
-	  tis.bind('vclick', function(event){
-		  event.preventDefault();
-		  triggerClickFeedback();
-	      eventName = "click_on_" + tis.attr("name");
-	      mobileDS.InputEngine.getInstance().raise("touch_input_event");
-	      mobileDS.InputEngine.getInstance().raise(eventName);
-	  });
-	  tis.bind('vmouseup', function(event){
-		  tis.parent().removeClass('ui-focus ui-btn-active ui-btn-down-a');
-		  eventName = "touch_end_on_" + tis.attr("name");
-		  mobileDS.InputEngine.getInstance().raise("touch_input_event");
-		  mobileDS.InputEngine.getInstance().raise(eventName);
-	  });
-	});
-}
-
-var IS_SOUND_FEEDBACK  = true;
-var IS_HAPTIC_FEEDBACK = true;
-/**
- * 
- * @param config (optional) cofiguration object with fields
- * 			config.audio BOOLEAN set if sound should be included in this feedback
- * 			config.haptic BOOLEAN set if vibration should be included in this feedback
- */
-function triggerClickFeedback(config){
-	
-	var isSound  = config && typeof config.sound  !== 'undefined'? config.sound  : true;
-	var isHaptic = config && typeof config.haptic !== 'undefined'? config.haptic : true;
-	
-	
-	//TODO haptic and sound feedback should be run in parallel, not sequential (... use 'threads'?)
-	if(isHaptic && IS_HAPTIC_FEEDBACK){
-		triggerHapticFeedback();
-	}
-	
-	if(isSound && IS_SOUND_FEEDBACK){
-		triggerSoundFeedback();
-	}
-}
-
-function triggerHapticFeedback(){
-//	if( ! forBrowser){
-		//do not block function, return immediatly using setTimeout
-		setTimeout(function(){
-	    	mobileDS.Notification.getInstance().vibrate(CLICK_VIBRATE_DURATION);
-		},0);
-//	}
-}
-
-function triggerSoundFeedback(){
-	//do not block function, return immediatly using setTimeout
-	setTimeout(function(){
-    	mobileDS.Notification.getInstance().beep(1);
-	},0);
-}
-
-function triggerErrorFeedback(){
-	triggerMulitpleVibrationFeedback(3);
-}
-
-function triggerMulitpleVibrationFeedback(number){
-	
-	var doTriggerErrorVibrateFeedback = function(){
-		setTimeout(function(){ 
-			triggerClickFeedback();
-			++count;
-			if(count < number){
-				doTriggerErrorVibrateFeedback();
-			}
-		}, 4*CLICK_VIBRATE_DURATION);
-	};
-	
-	triggerClickFeedback();
-	var count = 1;
-	if(count < number){
-		doTriggerErrorVibrateFeedback();
-	}
-}
-
-function micClick(){
-	var notification = mobileDS.Notification.getInstance();
-	if (!forBrowser) notification.vibrate(500);
-	
-	var isUseEndOfSpeechDetection = false;
-	
-	var successFunc = function recognizeSuccess (res){
-		
-		console.log("[AudioInput] finished recoginition: "  + JSON.stringify(res));
-
-		var asr_result = res;
-		if(res['result']){
-			asr_result = res['result'];
-		}
-		
-		mobileDS.MediaManager.getInstance().textToSpeech(asr_result, function(){}, function(){});
-
-		var result = mobileDS.SemanticInterpreter.getInstance().getASRSemantic(asr_result);
-		var semantic;
-
-		$('#mic_button').removeClass('footer_button_clicked');
+				mmir.LanguageManager = languageManager.init();
 				
-		if (result.semantic != null) {
-			semantic = JSON.parse(result.semantic);
-			semantic.phrase = res;
-			console.log("semantic : " + result.semantic);
-		}
-		else {
-			semantic = JSON.parse('{ "NoMatch": { "phrase": "'+asr_result+'" }}');
-		}
-		inputManager.raise("speech_input_event",  semantic);
-		if(ACTIVE_TEXT_ELEMENT && semantic && semantic.value){
-			var str = semantic.value;
-			var child = semantic.title;
-			while(child && child.value){
-				str += ' ' +child.value;
-				child = child.title;
-			}
+				var defer = $.Deferred();
+		        
+				//if in Cordova env:
+				// * load cordova library
+				// * then load the (Cordova) plugins
+				// -> after this: continue (i.e. resolve promise)
+				var isCordova = env.isCordovaEnv;
+				if(isCordova){
+					require(['cordova'], function(){
+						commonUtils.loadAllCordovaPlugins()
+							.then(defer.resolve());
+					});
+		        }
+		        else {
+		        	// otherwise (e.g. BROWSER env):
+		        	// just continue by resolving the promise immediately
+		        	defer.resolve();
+		        }
 
-			ACTIVE_TEXT_ELEMENT.val(str);
-		}
-	};
-	
-	var errorFunc = function recognizeError (err){
-		$('#mic_button').removeClass('footer_button_clicked');
-		console.error('[AudioInput] Error while finishing recoginition: '+JSON.stringify(err));
-		
-
-   		var msg = JSON.stringify(err);//mobileDS.LanguageManager.getInstance().getText('did_not_understand_msg');
-		mobileDS.MediaManager.getInstance().textToSpeech(msg, null, null);
-	};
-	
-	if(isUseEndOfSpeechDetection === false){
-
-		
-		//WITHOUT end-of-speech-detection (i.e. manual stop by user interaction):	
-		if ($('#mic_button').hasClass('footer_button_clicked')){
-
-			console.log("[AudioInput] stop recoginition without automtic END OF SPEECH detection");
+	        	return defer.promise();
+			})
+			// start the ControllerManager
+			.then(function() {
+				
+				mmir.ControllerManager = controllerManager;
+				
+				//NOTE: this also gathers information on which 
+				//      views, layouts etc. are available
+				//      -> the presentationManager depends on this information
+				return controllerManager.init();
+			})
 			
-			mobileDS.MediaManager.getInstance().stopRecord(successFunc, errorFunc);
+			//TEST parallelized loading of independent modules:
+			.then(function(){
+				
+				var isMediaManagerLoaded 	= false;
+				var isModelsLoaded 			= false;
+				var isVisualsLoaded 		= false;
+				var isInputManagerLoaded 	= false;
+				var isDialogManagerLoaded 	= false;
+				var isSemanticsLoaded        = false;
+				
+				var checkInitCompleted = function(){
+					
+					if(			isMediaManagerLoaded
+							&&	isModelsLoaded
+							&& 	isVisualsLoaded 
+							&&	isInputManagerLoaded
+							&&	isDialogManagerLoaded
+							&&	isSemanticsLoaded
+					){
+						
+						//"give signal" that the framework is now initialized / ready
+						mmir.setInitialized();
+					}
+				};
+				
+				
+				commonUtils.loadCompiledGrammars(constants.getGeneratedGrammarsPath()).then(function() {
+					isSemanticsLoaded = true;
+					
+					mmir.SemanticInterpreter = semanticInterpreter;
+					checkInitCompleted();
+				});
+
+				// start the MediaManager
+				mediaManager.init().then(function() {
+					isMediaManagerLoaded = true;
+					
+					//initialize BEEP notification (after MediaManager was initialized)
+					notificationManager.initBeep();
+					
+					mmir.MediaManager = mediaManager;
+					checkInitCompleted();
+				});
+				
+				//TODO models may access views etc. during their initialization
+				//	   --> there should be a way to configure startup, so that models may only be loaded, after everything else was loaded
+				modelManager.init().then(function(){
+					isModelsLoaded = true;
+					mmir.ModelManager = modelManager;
+					checkInitCompleted();
+				});
+				
+				presentationManager.init().then(function(){
+					isVisualsLoaded = true;
+					
+					//FIXME impl. mechanism where this is done for each view/layout rendering 
+					//   (i.e. in presentationManager's rendering function and not here)
+					//
+					//initialize with layout contents of the default-controller (i.e. "Application"):
+					var headerContents = $( presentationManager.getLayout("Application").getHeaderContents() );
+					//NOTE: need to handle scripts separately, since some browsers may refuse to "simply append" script TAGs...
+					var scriptList = [];
+					var stylesheetList = headerContents.filter(function(index){
+						var tis = $(this);
+						if( tis.is('script') ){
+							scriptList.push(tis.attr('src'));
+							return false;
+						}
+						return true;
+					});
+					$("head").append( stylesheetList );
+					commonUtils.loadImpl(scriptList, true);//load serially, since scripts may depend on each other; TODO should processing wait, until these scripts have been finished! (i.e. add callbacks etc.?)
+					
+					mmir.PresentationManager = presentationManager;
+					checkInitCompleted();
+				});
+				
+				dialogManager.init().then(function(_dlgMng, _dialogEngine){
+					isDialogManagerLoaded = true;
+					mmir.DialogManager = dialogManager;
+					mmir.DialogEngine = _dialogEngine;
+					checkInitCompleted();
+				});
+				
+				inputManager.init().then(function(_inputMng, _inputEngine){
+					isInputManagerLoaded = true;
+					mmir.InputManager = inputManager;
+					mmir.InputEngine  = _inputEngine; 
+					checkInitCompleted();
+				});
+				
+				
+				
+			});
+			
+
+	};//END: mainInit(){...
 	
-		}
-		else {
-			
-			console.log("[AudioInput] start recoginition without automtic END OF SPEECH detection");
-			
-			$('#mic_button').addClass('footer_button_clicked');
-			mobileDS.MediaManager.getInstance().startRecord(
-				function printResult(res){
-					console.log("[AudioInput] start recoginition: "  + res);
-				}, function(err){
-					$('#mic_button').removeClass('footer_button_clicked');
-					setTimeout(function(){errorFunc(err);}, 0);
-					alert('tts failed: '+err);
-				}
-			);
-		}
+	//TEST for reference/testing: strictly serial initialization of the modules/managers:
+//	var mainSerialInit = function(){
+//
+//		console.log('dom ready');
+//    	
+//		//load plugins
+//		commonUtils.init()//<- load directory structure
+//			
+//			//load compiled grammars (if present)
+//			.then(function() {
+//
+//				mmir.SemanticInterpreter = semanticInterpreter;
+//				return commonUtils.loadCompiledGrammars(constants.getGeneratedGrammarsPath());//TODO remove dependency on constants-obj here (move into commonUtils? and/or make param optional?)
+//			})
+//			
+//			//load plugins (if in CORDOVA environment)
+//			.then(function() {
+//
+//				mmir.LanguageManager = languageManager.init();
+//				
+//				var defer = $.Deferred();
+//		        
+//				//if in Cordova env:
+//				// * load cordova library
+//				// * then load the (Cordova) plugins
+//				// -> after this: continue (i.e. resolve promise)
+//				var isCordova = env.isCordovaEnv;
+//				if(isCordova){
+//					require(['cordova'], function(){
+//						commonUtils.loadAllCordovaPlugins()
+//							.then(defer.resolve());
+//					});
+//		        }
+//		        else {
+//		        	// otherwise (e.g. BROWSER env):
+//		        	// just continue by resolving the promise immediately
+//		        	defer.resolve();
+//		        }
+//
+//	        	return defer.promise();
+//			})
+//			// start the MediaManager
+//			.then(function() {
+//				
+//				mmir.MediaManager = mediaManager;
+//				return mediaManager.init();
+//			})
+//			// start the ControllerManager
+//			.then(function() {
+//
+//				notificationManager.initBeep();//initialize BEEP notification (after MediaManager was initialized)
+//				
+//				mmir.ControllerManager = controllerManager;
+//				return controllerManager.init();
+//			})
+//	
+//			// start the ModelManager
+//			.then(function() {
+//				
+//				//TODO models may access views etc. during their initialization
+//				//	   --> there should be a way to configure startup, so that models may only be loaded, after everything else was loaded
+//				return modelManager.init();
+//			})
+//	
+//			// start the PresentationManager
+//			.then(function() {
+//				
+//				return presentationManager.init();
+//			})
+//	
+//			// start the InputManager
+//			.then(function() {
+//				
+//				//FIXME this should be done on rendering (and (possibly) removing obsolete the CSS header contents)
+//				$("head").append(presentationManager.getLayout("Application").getHeaderContents());
+//				
+//				mmir.InputManager = inputManager;
+//				return mmir.InputManager.init();
+//			})
+//	
+//			// start the DialogManager
+//			.then(function() {
+//				mmir.DialogManager = dialogManager;
+//				return mmir.DialogManager.init();
+//			})
+//	
+//			// start the app
+//			.then(function(_engine) {
+//				
+//				//"give signal" that the framework is now initialized / ready
+//				mmir.setInitialized();
+//	
+//			});
+//			
+//
+//	};//END: mainSerialInit(){...
+//	
+//	mainInit = mainSerialInit;
+	
+	if(env.isCordovaEnv){
 		
+		document.addEventListener("deviceready", mainInit, false);
 	}
 	else {
-		//WITH end-of-speech-detection (i.e. automatic stop by silence detection):
-
-		console.log("[AudioInput] start recoginition with automatic END OF SPEECH detection");
 		
-		if ($('#mic_button').hasClass('footer_button_clicked')){
-
-			console.log("[AudioInput] speech recoginition with automtic END OF SPEECH detection: already in progress, stopping now...");
-			
-			
-			mobileDS.MediaManager.getInstance().stopRecord(
-				function printResult(res){
-					console.log("[AudioInput] MANUALLY stopped recoginition: "  + JSON.stringify(res));
-					successFunc(res);
-				}, function(err){
-					console.log("[AudioInput] failed to MANUALLY stop recoginition: "  + err);
-					setTimeout(function(){errorFunc(err);}, 0);
-					alert('tts failed: '+err);
-				}
-			);
-			
-		}
-		else {
-			
-			console.log("[AudioInput] starting recoginition with automatic END OF SPEECH detection now...");
-			
-			$('#mic_button').addClass('footer_button_clicked');
-			setTimeout(function(){
-				mobileDS.MediaManager.getInstance().recognize(successFunc, errorFunc);
-			}, 1000);
-		}
+		$(mainInit);
 	}
-}
+	//END: $(function() {...
 
-function show_phrase (event) {
-   var phrase_view = jQuery('div.phrase-view'),
-	pDiv = jQuery('<div>'),
-	phrase;
-
-   try {
-	if (typeof(event) !== 'string') {
-	    phrase = event.phrase;
-	} else {
-	    phrase = event;
-	}
-	if (typeof(phrase) === 'undefined') {
-	    phrase = event.NoMatch.phrase;
-	}
-   } catch (e) {
-	console.log("Failed to read phrase: " + e);
-   }
-   
-   phrase_view.append(pDiv);
-   pDiv.text(phrase);
-   pDiv.hide().slideDown(800);
-   pDiv.delay(2500).slideUp(400);
-}
-
-jQuery(document).bind("mobileinit", function(){
-    jQuery.mobile.ajaxEnabled = true;
-    
-});
+	
+});//END: define(...

@@ -16,15 +16,34 @@
 	    <mkdir dir="${buildDirTempJS}" />
 	    <concat destfile="${exec.js.compile.template.parser}" fixlastline="true" overwrite="true">
 	    	<!-- TODO make generalized init-file for rhino (current file is really for creating GrammarParserGenerator) -->
-	    	<!--fileset dir="${jsSrcDirBase}tools/build/rhino" includes="InitForAntRhinoScriptEnv.js" />
-	    	<fileset dir="${jsSrcDirBase}tools/build/ant"  includes="AntFileHandler.js" /-->
-	    	<fileset dir="${jsSrcDirBase}tools/build/nodejs" includes="InitNodeJsEnv.js" />
-	    	<fileset dir="${jsSrcDirBase}tools/build/nodejs" includes="NodeJsFileHandler.js" />
-	    	<fileset dir="${jsSrcDirBase}tools/build/nodejs" includes="InitTemplateParserNodeJsEnv.js" />
-	    	<string>
+	    	<!--fileset dir="${jsBuildDirBase}rhino" includes="InitForAntRhinoScriptEnv.js" />
+	    	<fileset dir="${jsBuildDirBase}ant"      includes="AntFileHandler.js" /-->
+	    	<fileset dir="${jsBuildDirBase}nodejs"   includes="InitNodeJsEnv.js" />
+	    	<fileset dir="${jsBuildDirBase}nodejs"   includes="InitTemplateParserNodeJsEnv.js" />
+	    	
+	        <string>
+	            
+	            //"export" base-dir path for saving generated/compiled template files:
+	            var compiledViewGenPath = '${jsGenDirBase}';
+	            
+	            //FIXME export/move to settings file:
+	            var buildLibDirRelativePath = './../../lib/';
+	            
+                var requiren = require;
+                var require = require(buildLibDirRelativePath+'r.js');
+                var definejs = require.define;
+	    	</string>
+            <!-- fileset dir="${buildDirLib}"       includes="r.js" /-->
+            <fileset dir="${jsBuildDirBase}"        includes="buildConfig.js" />
+	    	<fileset dir="${jsBuildDirBase}nodejs"  includes="NodeJsFileHandler.js" />
+            
+            <string>
+                
+                //set the framework's src-path from the build-properties file
+                //  (may be different than the default value in buildConfig.js)
+                require.config({baseUrl: './${jsSrcDirBase}'});
 	    		
-	    		function init(){
-	    			return [ function(){
+	    		definejs('antlr3', function(){
 			    		
 			    		org = {};
 	    				window.org = org;
@@ -38,123 +57,73 @@
 							org.antlr.runtime.tree = {};
 						}
 	    	</string>
-            <fileset dir="${jsSrcDirBase}res/libs"         includes="antlr3-all.js" />
+            <fileset dir="${jsSrcDirBase}vendor/libs"         includes="antlr3-all.js" />
 	    	<string>
-	    			return ['org', org];
-	    		}, function(){
+	    			return org;
+	    		});
 	    	</string>
-
-            <!--fileset dir="${jsSrcDirBase}res/libs"         includes="jpath.js" />
 	    	<string>
-	    			return ['jpath', JPath];
-	    		}, function(){
-	    	</string-->
-	    	
-	    	<fileset dir="${jsSrcDirBase}res/libs"         includes="md5.js" />
-	    	<string>
-	    	    	return ['md5', CryptoJS];
-	    		}, function(){
-	    	</string>
-	    	<fileset dir="${jsSrcDirBase}tools"            includes="checksumUtils.js" />
-	    	<string>
-	    		}, function(){
-	    	</string>
-	        <fileset dir="${jsSrcDirBase}mvc/parser"       includes="parseElementTypes.js" />
-	    	<string>
-	    		}, function(){
-	    	</string>
-	        <fileset dir="${jsSrcDirBase}mvc/parser"       includes="parsingResult.js" />
-	    	<string>
-	    		}, function(){
-	    	</string>
-	        <fileset dir="${jsSrcDirBase}mvc/parser"       includes="templateProcessor.js" />
-	    	<string>
-	    		}, function(){
-	    	</string>
-	    	<fileset dir="${jsSrcDirBase}mvc/parser"       includes="storageUtils.js" />
-	    	<string>
-	    		}, function(){
+	    	    
+	    		require(['antlr3'], function(org){
 	    	</string>
 	        <fileset dir="${jsSrcDirBase}gen/parser"       includes="*.js" excludes="MmirTemplateParser.js" />
 	    	<string>
-	    			return [ "template-parser",
-	    				ES3Lexer, ES3Parser, MmirScriptBlockLexer, MmirScriptBlockParser,
-	    				MmirScriptContentLexer, MmirScriptContentParser, MmirScriptStatementLexer,
-	    				MmirScriptStatementParser, MmirTemplateLexer //, MmirTemplateParser
-	    			];
-	    		}, function(){
+	    			definejs('ES3Lexer',  function(){ return ES3Lexer; });
+	    			definejs('ES3Parser', function(){ return ES3Parser; });
+	    			
+	    			definejs('contentLexer',  function(){ return MmirScriptContentLexer; });
+	    			definejs('contentParser', function(){ return MmirScriptContentParser; });
+	    			
+	    			definejs('scriptLexer',  function(){ return MmirScriptLexer; });
+	    			definejs('scriptParser', function(){ return MmirScriptParser; });
+	    			
+	    			definejs('templateLexer',  function(){ return MmirTemplateLexer; });
+	    			//definejs('templateParser', function(){ return MmirTemplateParser; });
+	    				    			
+	    		});
 	    	</string>
-	    	<fileset dir="${jsSrcDirBase}tools/extensions" includes="StringExtensions.js" />
-	    	<string>
-	    		}, function(){
+	    	
+	    	
+            <!-- build AMD module for CryptoJS/md5 library: -->
+            <string>
+                definejs('md5impl', function(){
+            </string>
+			<fileset dir="${jsSrcDirBase}vendor/libs"         includes="md5.js" />
+			<string>
+			    	return CryptoJS;
+			    });
+                
+                definejs('jsonlint', function(){
 	    	</string>
-	        <fileset dir="${jsSrcDirBase}tools"            includes="constants.js" />
-	    	<string>
-	    			var path = mobileDS.constants.getInstance(forBrowser).getBasePath();
-	    			console.log('base path: '+path);
-	    		}, function(){
-	    	</string>
-	        <fileset dir="${jsSrcDirBase}plugins"          includes="directoryListing.js" />
-	    	<string>
-	    		}, function(){
-	    	</string>
-	        <fileset dir="${jsSrcDirBase}tools"            includes="commonUtils.js" />
-	    	<string>
+            <!-- ... and an AMD module for the jsonlint parser ... -->
+			<fileset dir="${buildDirLib}"         includes="jsonlint.parser.js" />
+			<string>
+					return jsl.parser;
+				});
+			    	    		
+	    		var checksumUtils = require('checksumUtils');
+	    		checksumUtils.init( require('md5impl') );
+	    		var jsl;
 	    		
-	    			return ['commonUtils', mobileDS.CommonUtils.getInstance()];
+	    		var jqueryDeferred = requiren(buildLibDirRelativePath+'nodejs-jquery-deferred/index.js');
 	    		
-	    		}, function(){
-	    	</string>
-	        <fileset dir="${jsSrcDirBase}manager/settings"            includes="configurationManager.js" />
-	    	<string>
-	    		
-	    			return ['configurationManager', mobileDS.ConfigurationManager.getInstance()];
-	    		
-	    		}, function(){
-	    	</string>
-	        <fileset dir="${jsSrcDirBase}tools"            includes="dictionary.js" />
-	    	<string>
-	    			return ['dictionary', Dictionary];
-	    		}, function(){
-	    	</string>
-	        <fileset dir="${jsSrcDirBase}mvc/parser"       includes="templateParseUtils.js" />
-	    	<string><![CDATA[
+	    		require(['constants', 'jsonlint', 'jqueryajax'], function(constants, jsonlint, jquery){
+	    			
+	    			constants.init(theArguments[2] + 'www/');
+	    			
+		    		jsl = {
+		    			parser: require('jsonlint')
+		    		};
 		    		
-	    			return ['parseUtils', this,
-	    				print, printInfo, parserPrintDebug, parserPrintInfo, 
-	    				parserPrintWarning, parserPrintError, parserCreatePrintMessage
-	    			];
-	    		}, function(){
-	    	]]></string>
-	        <fileset dir="${jsSrcDirBase}mvc/parser"       includes="templateRenderUtils.js" />
-	    	<string>
-	    		}, function(){
-	    	</string>
-	    	
-	    	<fileset dir="${jsSrcDirBase}mvc/controllers" includes="*.js"/>
-	    	<fileset dir="${jsSrcDirBase}mvc/views"       includes="*.js"/>
-	    	<string>
-	    			return ['mvc',
-	    				Controller, Helper, ContentElement, Layout, View, Partial, YieldDeclaration
-	    			];
-	    		}, function(){
-	    	</string>
-	    	
-	        <fileset dir="${jsSrcDirBase}manager"          includes="controllerManager.js" />
-	    	<string>
-	    		}, function(){
-	    	</string>
-	        <fileset dir="${jsSrcDirBase}manager"          includes="presentationManager.js" />
-	    	<string>
+		    		jqueryDeferred.extend(jquery, jqueryDeferred);
 	    		
-	    		}];
-	    	}//end of init()
-	    	
-	    	//stored ANT property for target storage-path (target location for storing compiled views); 	
-	    	var compiledViewGenPath = '${jsGenDirBase}';
 	    	</string>
-	        <!-- fileset dir="${jsSrcDirBase}res/libs"     includes="jquery-1.9.1.js" /-->
-	        <fileset dir="${jsSrcDirBase}tools/build/ant"  includes="StandaloneTemplateParserExec.js" />
+			<fileset dir="${jsBuildDirBase}ant"              includes="StandaloneTemplateParserExec.js" />
+			<string>
+	    		});
+	    		
+	    	</string>
+	        
 
 	    </concat>
 	    <echo message="${exec.js.compile.template.parser} built." />

@@ -14,7 +14,7 @@ describe("manager/languageManager", function() {
 		var commonUtils;
 		var langManager;
 		window = {};
-		dirObj={"/config/languages":["aa","de","en","zy"],"/config/languages/aa":["dictionary.dic","grammar.json"],"/config/languages/de":["dictionary.dic","grammar.json"],"/config/languages/en":["dictionary.dic"],"/config/languages/zy":[]}
+		dirObj={"/config/languages":["aa","de","en","zy"],"/config/languages/aa":["dictionary.json","grammar.json"],"/config/languages/de":["dictionary.json","grammar.json"],"/config/languages/en":["dictionary.json"],"/config/languages/zy":[]}
 
 		beforeEach(function() {
 			// set global variables

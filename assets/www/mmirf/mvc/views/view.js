@@ -24,35 +24,38 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
+define ( ['commonUtils', 'contentElement', 'renderUtils', 'parseUtils', 'storageUtils'], 
+	/**
+	 * @name View
+	 * @class
+	 */
+	function(
+			commonUtils, ContentElement, renderUtils, parserUtils, parser
+){
+/** @scope View.prototype */
 /**
- * @module mobileDS.mvc.views
- * 
- */
-var mobileDS = window.mobileDS ||
-{};
-
-
+ * #@+
+ * @memberOf View.prototype
+ */	
+	
 /**
  * The View class is a kind of interface-class which gives access to the methods and data of a helper (which itself belongs to a controller)<br>
  * Apart from initialising some properties, the constructor also parses the view description and looks for needed helper methods.
  * 
- * @class View
- * @constructor
+ * @constructs View
  * @param {Object} ctrl Controller instance / object
  * @param {String} name Name of the View 
  * @param {String} definition View description
  * @category core
  */
-function View(ctrl, name, definition){
+ function View(ctrl, name, definition){
     
 //	console.log("[View] '" + name + "' loaded.");
-	
-	if(definition){
+	 if(definition){
 	    // remove HTML comments from View
-	    definition = definition.replace(mobileDS.CommonUtils.getInstance().regexHTMLComment, '');//remove HTML comments!  .replace(HTMLCommentRegExp,"");
+	    definition = definition.replace(commonUtils.regexHTMLComment, '');
 	}
-	
+	 
     /**
      * The controller to which this view belongs.
      * 
@@ -82,7 +85,7 @@ function View(ctrl, name, definition){
    
 	
     /**
-     * An array of all the views {@link mobileDS.ContentElement} objects.<br>
+     * An array of all the views {@link mmir.ContentElement} objects.<br>
      * 
      * @property contentFors
      * @type Array
@@ -103,20 +106,19 @@ function View(ctrl, name, definition){
      */
     this.helperMethods = new Array();
     
-
     if(this.def){
-	    var parser = mobileDS.parser.ParserUtils.getInstance();
-	    var renderer = mobileDS.parser.RenderUtils.getInstance();
+//	    var parser = mmir.parser.ParserUtils.getInstance();
+//	    var renderer = mmir.parser.RenderUtils.getInstance();
 	    
 	    
-	    var parseResult = parser.parse(this.def, this);
+	    var parseResult = parserUtils.parse(this.def, this);
 	    
 	    for(var i=0, size = parseResult.contentFors.length; i < size ; ++i){
-	    	this.contentFors.push(new ContentElement(parseResult.contentFors[i], this, parser, renderer));
+	    	this.contentFors.push(new ContentElement(parseResult.contentFors[i], this, parserUtils, renderUtils));
 	    }
     }
     
-}
+};
 
 /**
  * Gets the definition of a view.
@@ -151,29 +153,32 @@ View.prototype.getController = function(){
 
 
 /**
- * Gets a specific {@link mobileDS.ContentElement} object by name. 
+ * Gets a specific {@link mmir.ContentElement} object by name. 
  * 
  * @function getContentElement
  * @param {String} name Name of the ContentElement object
  * @returns {object} The wanted ContentElement object or null
  */
 View.prototype.getContentElement = function( name){
-//    var result = null;
-//	//this.controller = ctrl;
-//    $.each(this.contentFors, function(index, content){
-//    
-//        if (content.getName() == name) {
-//            result = content;
-//        }
-//    });
-//    return result;
     
     for(var i=0, size = this.contentFors.length; i < size ; ++i){
     	if(this.contentFors[i].getName() == name){
     		return this.contentFors[i];/////////////////////// EARLY EXIT /////////////////////////////
     	}
     }
+    
     return null;
+    
+};
+
+/**
+ * Gets an array of all helper methods. 
+ * 
+ * @function getHelperMethods
+ * @returns {Array} Array of all helper methods
+ */
+View.prototype.getHelperMethods = function(){
+	return this.helperMethods;
 };
 
 View.prototype.stringify = function(){
@@ -191,9 +196,20 @@ View.prototype.stringify = function(){
    	];
 
 	//function for iterating over the property-list and generating JSON-like entries in the string-buffer
-	var appendStringified = mobileDS.parser.appendStringified;
+	var appendStringified = parser.appendStringified;
 	
-	var sb = ['mobileDS.parser.restoreObject({ classConstructor: ["View"]', ','];
+	var moduleNameString = '"'+this.name+this.getController().getName()+'View"';
+	
+
+	//TODO use requirejs mechanism? (NOTE there may occur timing problems for loading/registering the JS file, and querying the PresentationManager for it ...)
+	//TODO(2) should all dependencies be added?
+	// eg. -> [...,"presentationManager","controllerManager","view"]
+	// and function(...,presentationManager,controllerManager,View)
+	//... this would require to gather all nested dependencies and "apply" them here...
+	//
+//	var sb = ['define('+moduleNameString+', ["storageUtils"], function(parser){ return parser.restoreObject({ classConstructor: "view"', ','];
+	
+	var sb = ['require("storageUtils").restoreObject({ classConstructor: "view"', ','];
 	
 	appendStringified(this, propList, sb);
 	
@@ -214,8 +230,9 @@ View.prototype.stringify = function(){
 		return buf.join('');
 	});
 	
-
-	sb.push( 'initPublish: function(){ mobileDS.PresentationManager.getInstance().addView(this.getController(), this); }');
+	//TODO should require() be replaced by define()-dependency declaration?
+	//     NOTE the use of require() here, assumes that the dependency has already been loaded (i.e. has already been request by some other module!)
+	sb.push( 'initPublish: function(){ require("presentationManager").addView(this.getController(), this); }');
 	sb.push(',');
 	
 	//TODO is there a better way to store the controller? -> by its contoller's name, and add a getter function...
@@ -230,8 +247,7 @@ View.prototype.stringify = function(){
 		sb.push( JSON.stringify(this.getController().getName()) );
 		
 		// ... and the getter/setter code:
-		sb.push( '; this.controller = mobileDS.ControllerManager.getInstance().getController(ctrlName); },' );
-		
+		sb.push( '; this.controller = require("controllerManager").getController(ctrlName); },' );//TODO see remark about use of require() above
 		
 		//add initializer function
 		//  (NOTE: needs to be called before controller or renderer can be accessed!)
@@ -249,8 +265,12 @@ View.prototype.stringify = function(){
 		sb.splice( sb.length - 1, 1);
 	}
 	
+	//TODO use requirejs mechanism? (see remark above)
+//	sb.push(' }, true); });\n require(['//<- add require-call, so that this JS-file adds itself to the loaded dependencies in requirejs
+//			+ moduleNameString + ']);');
 	
 	sb.push(' }, true);');
+	
 	return sb.join('');
 };
 
@@ -281,3 +301,11 @@ View.prototype.executeHelperMethods = function(data){
 		this.controller.performHelper(this.getHelperMethods()[i], data);
     }
 };
+
+return View;
+
+/** #@- */
+
+});//END: define(..., function(){
+
+

@@ -1,0 +1,13 @@
+{
+	"language": "de-DE",
+	
+	"plugins": {
+		"maryTextToSpeech": {
+			"language": "de",
+			"voice": "bits1-hsmm"
+		},
+		"nuanceAudioInput": {
+			"language": "deu-DEU"
+		}
+	}
+}

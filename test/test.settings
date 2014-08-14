@@ -1,28 +1,41 @@
-#
-# jstestdriver.dir - directory of the jstestdriver-jar
-jstestdriver.dir=lib/jstestdriver
+## root directory for testing
+jstestdriver.root.dir=
+##... if run from root directory, use:
+##jstestdriver.root.dir=test/
 
-# jstestdriver.bin - path to jstestdriver-jar
+## jstestdriver.dir - directory of the jstestdriver-jar
+jstestdriver.dir=${jstestdriver.root.dir}lib/jstestdriver
+
+## jstestdriver.bin - path to jstestdriver-jar
 jstestdriver.bin=${jstestdriver.dir}/JsTestDriver-1.3.5.jar
 
-# jstestdriver.port - port of the jstestdriver-server
+## jstestdriver.port - port of the jstestdriver-server
 jstestdriver.port=52525
 
-# jstestdriver.runnermode - how much information to show:
-# DEBUG, DEBUG_NO_TRACE, DEBUG_OBSERVE, PROFILE, QUIET (default), INFO
+## jstestdriver.runnermode - how much information to show:
+## DEBUG, DEBUG_NO_TRACE, DEBUG_OBSERVE, PROFILE, QUIET (default), INFO
 jstestdriver.runnermode=QUIET
+#jstestdriver.runnermode=INFO
 
-# jstestdriver.config.dir - wheere to look for config files
-jstestdriver.config.dir=drivers
+## jstestdriver.config.dir - wheere to look for config files
+jstestdriver.config.dir=${jstestdriver.root.dir}drivers
 
-# Path to mmirf-dir of the project
+## Path to mmirf-dir of the project
 jsSrcDirBase=../assets/www/mmirf/
+##... if run from root directory, use:
+##jsSrcDirBase=assets/www/mmirf/
 
+## Path to JavaScript files need for starting / running tests
+jsTestDirBase=${jstestdriver.root.dir}scripts/
 
-# paths to browser binaries
-browser.firefox=C:/Program Files/Mozilla Firefox/firefox.exe
+## Path top log-dir
+jstestdriver.log.dir=${jstestdriver.root.dir}log
+
+## paths to browser binaries
+## (there must be at least one valid browser configuration)
+#browser.firefox=C:/Program Files/Mozilla Firefox/firefox.exe
 #browser.iexplore=C:/Program Files/Internet Explorer/iexplore.exe
-#browser.chrome=C:/Users/flpe02/AppData/Local/Google/Chrome/Application/chrome.exe
+browser.chrome=C:/Program Files (x86)/Google/Chrome/Application/chrome.exe
 #browser.opera=
 #browser.safari=
 

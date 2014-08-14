@@ -24,22 +24,44 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
+define(['languageManager', 'parserModule', 'storageUtils'],
+	/**
+	 * @name ContentElement
+	 * @class
+	 * 
+	 */
+	function(
+			languageManager, parser_context
+){//NOTE: dependency storageUtils is actually accessed through parser_context (i.e. it attaches its functions to parserModule)
+	
+/** @scope ContentElement.prototype */
 /**
- * The ContentElement class holds the name of the content-field (used via the yield-tag in the layouts: content, header, footer, dialogs, ...)
+ * #@+
+ * @memberOf ContentElement.prototype
+ */
+	
+/**
+ * The ContentElement represents "content" parts of a view; it may itself contain one or more ContentElements.
+ * 
+ * This class holds the name of the content-field (used via the yield-tag in the layouts: content, header, footer, dialogs, ...)
  * and its definition as HTML-String.
  * 
- * @class ContentElement
+ * @constructs ContentElement
+ * @public
  * 
- * @param {Array} group or {Object} with properties <code>name</code> {String}, and <code>content</code> {String}
- * @param {Object} view the view that owns this ContentElement-element 
- * @param {Object} parser for the the content (optional) if supplied this object must have a function <code>parse({String})</code> (see templateParseUtil)
- * @param {Object} renderer for the the content (optional) if supplied, a <code>parser</code> must also be supplied; the renderer must have a function <code>parse({String})</code> (see templateRenderUtil)
- * @category core
+ * @param {Array|Object} group
+ * 				 an array or object with properties <code>name</code> {String}, and <code>content</code> {String}
+ * @param {Object} view 
+ * 				the view that owns this ContentElement-element 
+ * @param {mmir.parser.ParserUtils} parser 
+ * 				for the the content (optional) if supplied this object must have a function <code>parse({String})</code> (see templateParseUtil)
+ * @param {mmir.parser.RenderUtils} renderer
+ * 				 for the the content (optional) if supplied, a <code>parser</code> must also be supplied; the renderer must have a function <code>parse({String})</code> (see templateRenderUtil)
+ * 
  */
 function ContentElement(group, view, parser, renderer){
 
-	this.localizer  = mobileDS.LanguageManager.getInstance();
+	this.localizer  = languageManager;
 	
 	if(arguments.length === 0){
 		return this;
@@ -70,6 +92,36 @@ function ContentElement(group, view, parser, renderer){
 	if(typeof group.start !== 'undefined' && typeof group.end !== 'undefined'){
 		this.start = group.start;
 		this.end = group.end;
+	}
+	
+	if(typeof group.offset !== 'undefined'){
+		/**
+		 * The offset of the ContentElement's raw String-content
+		 * in relation to its parent ContentElement. 
+		 * 
+		 * I.e. only when ContentElements are nested with other ContentElements.
+		 * 
+		 * For nested ContentElements, the offset always refers to outermost
+		 * ContentElement, e.g.
+		 * 
+		 *   content
+		 *   ContentElement_1
+		 *   	ContentElement_2.parentOffset: offset to ContentElement_1
+		 *   		...
+		 *   			ContentElement_i.parentOffset: offset to ContentElement_1
+		 * 
+		 * @property parentOffset
+		 * @type {Number} 
+		 * @private
+		 */
+		this.parentOffset = group.offset;
+	}
+	else if(typeof group.contentOffset !== 'undefined'){
+
+		this.parentOffset = group.contentOffset;
+	}
+	else {
+		this.parentOffset = 0;
 	}
 	
 	var parsingResult = parser.parse(this.definition, this);
@@ -138,6 +190,46 @@ function ContentElement(group, view, parser, renderer){
 	// (--> i.e. has to be evaluated on each rendering, or -if not- can be statically rendered once)
 	this.internalHasDynamicContent = checkHasDynamicContent(this);
 	
+	var ScriptEvalError = function(error, strScript, contentElement, parsingElement){
+		
+		var err = Error.apply(this, arguments);
+		err.name = this.name = 'ScriptEvalError';
+
+		this.stack = err.stack;
+		this.message = err.message;
+
+		if(typeof this.stack === 'string'){
+			//remove first line of stack (which would only contain a reference to this constructor)
+			this.stack = this.stack.replace(/^.*?\r?\n/, this.name + ': ');
+		}
+		
+		var offset = 0;
+//		if(parsingElement.contentOffset){
+//			console.error('elem.offset: '+parsingElement.contentOffset);
+////			offset = parsingElement.contentOffset;
+//		}
+		offset += contentElement.getOffset();
+		
+		this.offset = offset;
+		
+		this.start = this.offset + parsingElement.getStart();
+		this.end = this.offset + parsingElement.getEnd();
+		
+		this.errorDetails = parser_context.parserCreatePrintMessage(
+				'ContentElement.ScriptEvalError: Error evaluating script '
+					+JSON.stringify(strScript)
+					+' for ' + parsingElement.getTypeName()
+					+' element:\n', 
+				this.message,
+				this
+		);
+		
+		this.getDetails = function(){
+			return this.errorDetails;
+		};
+		
+		return this;
+	};
 	
 	//this creates a function for embedded JavaScript code:
 	//	using a function pre-compiles codes, in order to avoid parsing the code  
@@ -149,7 +241,7 @@ function ContentElement(group, view, parser, renderer){
 		//         whereas when the eval('function...')-method behaves as if the function was declared statically 
 		//         like a normal function-expression (after its first evaluation here).
 		//
-//		var func = new Function(mobileDS.parser.element.DATA_NAME, strFuncBody);
+//		var func = new Function(parser_context.element.DATA_NAME, strFuncBody);
 //		func.name = strFuncName;
 		
 		
@@ -161,7 +253,7 @@ function ContentElement(group, view, parser, renderer){
 //		//EXPORT
 //		// * on exit: commit values of local variables to their corresponding DATA-fields (and remove previously set "sync"-code)
 //		//
-//		var dataFieldName = mobileDS.parser.element.DATA_NAME;
+//		var dataFieldName = parser_context.element.DATA_NAME;
 //		
 //		//TODO do static "import" without eval(): only import VARs that were declared by @var() before!
 //		//     ... also (OPTIMIZATION): during JS-parsing, gather/detect VARIABLE occurrences -> only import VAR if it gets "mentioned" in the func-body! (need to detect arguments vs. variables for this!)		
@@ -199,14 +291,14 @@ function ContentElement(group, view, parser, renderer){
 //		    			});'
 //					+ varIteratorEndSrc;
 //		
-//		var func = eval( 'var dummy=function '+strFuncName+'('+mobileDS.parser.element.DATA_NAME+'){'
+//		var func = eval( 'var dummy=function '+strFuncName+'('+parser_context.element.DATA_NAME+'){'
 //				+ importDataSrc + strFuncBody +';'+exportDataSrc+'};dummy' );//<- FIXME WARING: export does not work correctly, if there is a return-statement in the outermost scope of the strFuncBody!
 		
 		
 //		//NOTE: need a dummy variable to catch and return the create function-definition in the eval-statement
 //		//      (the awkward 'var dummy=...;dummy'-construction avoids leaking the dummy-var into the 
 //		//       global name-space, where the last ';dummy' represent the the return-statement for eval(..) )
-		var func = eval( 'var dummy=function '+strFuncName+'('+mobileDS.parser.element.DATA_NAME+'){'+strFuncBody+'};dummy' );
+		var func = eval( 'var dummy=function '+strFuncName+'('+parser_context.element.DATA_NAME+'){'+strFuncBody+'};dummy' );
 		
 		return func;
 	};
@@ -229,9 +321,19 @@ function ContentElement(group, view, parser, renderer){
 				this.definition.substring( renderPartialsElement.getCallDataStart(),  renderPartialsElement.getCallDataEnd() ),
 				'embeddedStatementTail',//<- "internal" parser rule for parsing fragments: >>JS_STATEMENT EOF<<
 				this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then renderPartialsElement.rawResult and .dataPos contain the information, where exactly this element is located...
+				, renderPartialsElement.getStart() + this.getOffset() + '@render('.length
 			);
 			preparedJSCode = renderer.renderJS(parsedJS.rawTemplateText, parsedJS.varReferences, true);
-			renderPartialsElement.argsEval = createJSEvalFunction('return ('+preparedJSCode+');', 'argsEval');
+			
+			try{
+				renderPartialsElement.argsEval = createJSEvalFunction('return ('+preparedJSCode+');', 'argsEval');
+			} catch (err){
+				var error = new ScriptEvalError(err, preparedJSCode,  this, renderPartialsElement);
+				//attach a dummy function that prints the error each time it is invoked:
+				renderPartialsElement.argsEval = function(){ console.error(error.getDetails()); };
+				//... and print the error now, too:
+				console.error(error.getDetails());
+			}
 		}
 	}
 	
@@ -246,10 +348,20 @@ function ContentElement(group, view, parser, renderer){
 			parsedJS = parser.parseJS( 
 				this.definition.substring( helperElement.getCallDataStart(),  helperElement.getCallDataEnd() ),
 				'embeddedStatementTail',//<- "internal" parser rule for parsing fragments: >>JS_STATEMENT EOF<<
-				this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located... 
+				this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located...
+				, helperElement.getStart() + this.getOffset() + '@helper('
 			);
 			preparedJSCode = renderer.renderJS(parsedJS.rawTemplateText, parsedJS.varReferences, true);
-			helperElement.argsEval = createJSEvalFunction('return ('+preparedJSCode+');', 'argsEval');
+			
+			try{
+				helperElement.argsEval = createJSEvalFunction('return ('+preparedJSCode+');', 'argsEval');
+			} catch (err){
+				var error = new ScriptEvalError(err, preparedJSCode,  this, helperElement);
+				//attach a dummy function that prints the error each time it is invoked:
+				helperElement.argsEval = function(){ console.error(error.getDetails()); };
+				//... and print the error now, too:
+				console.error(error.getDetails());
+			}
 		}
 	}
 	
@@ -260,10 +372,20 @@ function ContentElement(group, view, parser, renderer){
 		//TODO use original parser/results instead of additional parsing pass
 		parsedJS = parser.parseJS(
 				ifElement.ifExpr, 
-				this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located... 
+				this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located...
+				, ifElement.getStart() + this.getOffset() + '@if('.length
 		);
 		preparedJSCode = renderer.renderJS(parsedJS.rawTemplateText, parsedJS.varReferences);
-		ifElement.ifEval = createJSEvalFunction('return ('+preparedJSCode+');', 'ifEval');
+		
+		try{
+			ifElement.ifEval = createJSEvalFunction('return ('+preparedJSCode+');', 'ifEval');
+		} catch (err){
+			var error = new ScriptEvalError(err, preparedJSCode,  this, ifElement);
+			//attach a dummy function that prints the error each time it is invoked:
+			ifElement.ifEval = function(){ console.error(error.getDetails()); };
+			//... and print the error now, too:
+			console.error(error.getDetails());
+		}
 	}
 	
 	//prepare for-elements
@@ -325,27 +447,88 @@ function ContentElement(group, view, parser, renderer){
 		}
 		else {
 			
+			//offset within the for-expression 
+			// (-> for locating the init-/condition-/increase-statements in case of an error)
+			var currentOffset = '@for('.length;//<- "@for("
+			
 			//TODO use original parser/results instead of additional parsing pass
-			parsedJS = parser.parseJS(
-					forElement.forInitExpr, 
-					this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located... 
-			);
-			preparedJSCode = renderer.renderJS(parsedJS.rawTemplateText, parsedJS.varReferences, true);
-			forElement.forInitEval = createJSEvalFunction(preparedJSCode+';', 'forInitEval');
+			if(forElement.forInitExpr){
+				parsedJS = parser.parseJS(
+						forElement.forInitExpr, 
+						this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located...
+						, forElement.getStart() + this.getOffset() + currentOffset
+				);
+				preparedJSCode = renderer.renderJS(parsedJS.rawTemplateText, parsedJS.varReferences, true);
+				
+				currentOffset += forElement.forInitExpr.length;
+			}
+			else {
+				// -> empty init-statement
+				preparedJSCode = '';
+			}
+			try{
+				forElement.forInitEval = createJSEvalFunction(preparedJSCode+';', 'forInitEval');
+			} catch (err){
+				var error = new ScriptEvalError(err, preparedJSCode,  this, forElement);
+				//attach a dummy function that prints the error each time it is invoked:
+				forElement.forInitEval = function(){ console.error(error.getDetails()); };
+				//... and print the error now, too:
+				console.error(error.getDetails());
+			}
 			
-			parsedJS = parser.parseJS(
-					forElement.forConditionExpr, 
-					this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located... 
-			);
-			preparedJSCode = renderer.renderJS(parsedJS.rawTemplateText, parsedJS.varReferences, true);
-			forElement.forConditionEval = createJSEvalFunction('return ('+preparedJSCode+');', 'forConditionEval');
+			//increase by 1 for semicolon-separator:
+			++currentOffset;
 			
-			parsedJS = parser.parseJS(
-					forElement.forIncrementExpr,
-					this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located... 
-			);
-			preparedJSCode = renderer.renderJS(parsedJS.rawTemplateText, parsedJS.varReferences, true);
-			forElement.forIncrementEval = createJSEvalFunction(preparedJSCode+';', 'forIncrementEval');
+			if(forElement.forConditionExpr){
+				parsedJS = parser.parseJS(
+						forElement.forConditionExpr, 
+						this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located...
+						, forElement.getStart() + this.getOffset() + currentOffset
+				);
+				preparedJSCode = renderer.renderJS(parsedJS.rawTemplateText, parsedJS.varReferences, true);
+				
+				currentOffset += forElement.forConditionExpr.length;
+			}
+			else {
+				//-> empty condition-element
+				preparedJSCode = 'true';
+			}
+			try {
+				forElement.forConditionEval = createJSEvalFunction('return ('+preparedJSCode+');', 'forConditionEval');
+			} catch (err){
+				var error = new ScriptEvalError(err, preparedJSCode,  this, forElement);
+				//attach a dummy function that prints the error each time it is invoked:
+				forElement.forConditionEval = function(){ console.error(error.getDetails()); };
+				//... and print the error now, too:
+				console.error(error.getDetails());
+			}
+
+
+			//increase by 1 for semicolon-separator:
+			++currentOffset;
+			
+			if(forElement.forIncrementExpr){
+				parsedJS = parser.parseJS(
+						forElement.forIncrementExpr,
+						this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located...
+						, forElement.getStart() + this.getOffset() + currentOffset
+				);
+				preparedJSCode = renderer.renderJS(parsedJS.rawTemplateText, parsedJS.varReferences, true);
+			}
+			else {
+				//-> empty "increase" expression
+				preparedJSCode = '';
+			}
+			
+			try{
+				forElement.forIncrementEval = createJSEvalFunction(preparedJSCode+';', 'forIncrementEval');
+			} catch (err){
+				var error = new ScriptEvalError(err, preparedJSCode,  this, forElement);
+				//attach a dummy function that prints the error each time it is invoked:
+				forElement.forIncrementEval = function(){ console.error(error.getDetails()); };
+				//... and print the error now, too:
+				console.error(error.getDetails());
+			}
 		}
 	}
 	
@@ -362,13 +545,15 @@ function ContentElement(group, view, parser, renderer){
 				parsedJS = parser.parseJS(
 						subContentElement.scriptContent, 
 						'embeddedStatementTail',
-						this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located... 
+						this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located...
+						, subContentElement.getStart() + this.getOffset() + '@('.length
 				);
 			}
 			else {
 				parsedJS = parser.parseJS(
 						subContentElement.scriptContent,
-						this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located... 
+						this//TODO supply/implement more accurate error-localization: this is indeed wrong, since it is not the view-defintion, but: this.definition=<view's contentFor>, then helperElement.rawResult and .dataPos contain the information, where exactly this element is located...
+						, subContentElement.getStart() + this.getOffset() + '@{'.length
 				);
 			}
 			
@@ -379,20 +564,41 @@ function ContentElement(group, view, parser, renderer){
 			if(isScriptStatement===true){
 				preparedJSCode = 'return ('+preparedJSCode+');';
 			}
-			subContentElement.scriptEval = createJSEvalFunction(preparedJSCode, 'scriptEval');
+			
+			try{
+				subContentElement.scriptEval = createJSEvalFunction(preparedJSCode, 'scriptEval');
+			} catch (err){
+				var error = new ScriptEvalError(err, preparedJSCode,  this, subContentElement);
+				//attach a dummy function that prints the error each time it is invoked:
+				subContentElement.scriptEval = function(){ console.error(error.getDetails()); };
+				//... and print the error now, too:
+				console.error(error.getDetails());
+			}
 			
 			this.internalHasDynamicContent = true;
 		}
 		
 		if(typeof subContentElement.content === 'string'){
-			subContentElement.content = new ContentElement({name: SUB_ELEMENT_NAME, content: subContentElement.content}, view, parser, renderer);
+			
+			subContentElement.content = new ContentElement({
+					name: SUB_ELEMENT_NAME, 
+					content: subContentElement.content,
+					offset: this.getOffset() + subContentElement.contentOffset
+				}, view, parser, renderer
+			);
 			
 			this.internalHasDynamicContent = this.internalHasDynamicContent || subContentElement.content.hasDynamicContent();
 		}
 		
 		//IF-elements can have an additional ELSE-content field:
 		if(subContentElement.hasElse() && typeof subContentElement.elseContent.content === 'string'){
-			subContentElement.elseContent.content = new ContentElement({name: SUB_ELEMENT_NAME, content: subContentElement.elseContent.content}, view, parser, renderer);
+			
+			subContentElement.elseContent.content = new ContentElement({
+					name: SUB_ELEMENT_NAME,
+					content: subContentElement.elseContent.content,
+					offset: this.getOffset() + subContentElement.elseContent.contentOffset
+				}, view, parser, renderer
+			);
 
 			this.internalHasDynamicContent = this.internalHasDynamicContent || subContentElement.elseContent.content.hasDynamicContent();
 		}
@@ -403,7 +609,7 @@ function ContentElement(group, view, parser, renderer){
 
 
 /**
- * Gets the name of a {@link mobileDS.ContentElement} object (content, header, footer, dialogs, ...).
+ * Gets the name of a {@link mmir.ContentElement} object (content, header, footer, dialogs, ...).
  * 
  * @function getName
  * @returns {String} Name - used by yield tags in layout
@@ -414,10 +620,10 @@ ContentElement.prototype.getName = function(){
 };
 
 /**
- * Gets the owner for this ContentElement, i.e. the {@link mobileDS.View} object.
+ * Gets the owner for this ContentElement, i.e. the {@link mmir.View} object.
  * 
  * @function getView
- * @returns {mobileDS.View} the owning View
+ * @returns {mmir.View} the owning View
  * @public
  */ 
 ContentElement.prototype.getView = function(){
@@ -428,7 +634,7 @@ ContentElement.prototype.getView = function(){
  * Gets the controller for this ContentElement.
  * 
  * @function getName
- * @returns {mobileDS.Controller} the Controller of the owning view
+ * @returns {mmir.Controller} the Controller of the owning view
  * @public
  */ 
 ContentElement.prototype.getController = function(){
@@ -436,7 +642,7 @@ ContentElement.prototype.getController = function(){
 };
 
 /**
- * Gets the definition of a {@link mobileDS.ContentElement} object.
+ * Gets the definition of a {@link mmir.ContentElement} object.
  * 
  * TODO remove this?
  * 
@@ -476,6 +682,11 @@ ContentElement.prototype.getStart = function(){
 
 ContentElement.prototype.getEnd = function(){
     return this.end;
+};
+
+//FIXME add to storage? (this should only be relevant for parsing, which is not neccessary in case of store/restore...)
+ContentElement.prototype.getOffset = function(){
+    return this.parentOffset;
 };
 
 ContentElement.prototype.hasDynamicContent = function(){
@@ -520,9 +731,9 @@ ContentElement.prototype.stringify = function(){
 	
 
 	//function for iterating over the property-list and generating JSON-like entries in the string-buffer
-	var appendStringified = mobileDS.parser.appendStringified;
+	var appendStringified = parser_context.appendStringified;
 	
-	var sb = ['mobileDS.parser.restoreObject({ classConstructor: ["ContentElement"]', ','];
+	var sb = ['require("storageUtils").restoreObject({ classConstructor: "contentElement"', ','];
 	
 	appendStringified(this, propList, sb);
 	
@@ -558,7 +769,7 @@ ContentElement.prototype.stringify = function(){
 		sb.push( JSON.stringify(this.getController().getName()) );
 		
 		// ... and the getter/setter code:
-		sb.push( '; this.view = mobileDS.PresentationManager.getInstance().get');
+		sb.push( '; this.view = require("presentationManager").get');
 		sb.push(this['view'].constructor.name);//<- insert getter-name dependent on the view-type (e.g. View, Partial)
 		sb.push('(ctrlName, viewName); this.getView = function(){return this.view;}; return this.view; },' );
 		
@@ -576,7 +787,7 @@ ContentElement.prototype.stringify = function(){
 		//  (NOTE: needs to be called before view/controller can be accessed!)
 		sb.push( 'initRenderer: function(){');
 		// ... and the getter/setter code:
-		sb.push( ' this.renderer = mobileDS.parser.RenderUtils.getInstance(); }' );
+		sb.push( ' this.renderer = require("renderUtils"); }' );
 		
 		//NOTE: need to add comma in a separate entry 
 		//      (-> in order to not break the removal method of last comma, see below)
@@ -610,46 +821,8 @@ ContentElement.prototype.stringify = function(){
 	return sb.join('');
 };
 
-//MOVED to renderContentElement in ParserUtils
-///** @private */
-//ContentElement.prototype.doGetStringForElement = function(element, data){
-//	
-//	if(element.type === mobileDS.parser.element.LOCALIZE){
-//		return this.doGetStringForLocalize(element, data);
-//	}
-//	else if(element.type === mobileDS.parser.element.HELPER){
-//		return this.doGetStringForHelper(element, data);
-//	}
-//	else if(
-//				element.type === mobileDS.parser.element.ESCAPE_ENTER
-//			||	element.type === mobileDS.parser.element.ESCAPE_EXIT
-//	){
-//		return element.text;
-//	}
-//	else {
-//		console.warn('ContentElement.doGetStringForElement: unknown element type '+element.type);
-//		return '';
-//	}
-//};
-//
-///** @private */
-//ContentElement.prototype.doGetStringForLocalize = function(localizeElement, data){
-//	var text = this.localizer.getText(localizeElement.name);
-//	if(!text){
-//		console.warn('ContentElement.render(localize): could not find localization text for "'+contentElement.name+'"');
-//		text = '';
-//	}
-//	return text;
-//};
-//
-///** @private */
-//ContentElement.prototype.doGetStringForHelper = function(helperElement, data){
-//	//TODo handle case, when .helper is not a String
-//	//TODo handle arguments for helper
-//	var text = this.getController().performHelper(helperElement.helper, data);
-//	if(!text){
-//		console.warn('ContentElement.render(helper): no result for '+this.getController().getName()+'-helper >'+helperElement.helper+'<');
-//		text = '';
-//	}
-//	return text.toString();
-//};
+return ContentElement;
+
+/**  #@- */
+
+});//END: define(..., function(){

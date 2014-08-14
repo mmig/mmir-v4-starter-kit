@@ -24,9 +24,14 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
+/**
+ * @name media.plugin.cordovaAudioInput
+ */
 newMediaPlugin = {
+		/** @scope media.plugin.cordovaAudioInput.prototype */
 		initialize: function(callBack){
+			
+			var _pluginName = 'codovaAudioOutput';
 			
 			callBack({
 				

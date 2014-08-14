@@ -25,10 +25,10 @@
  */
 
 
-var mobileDS = window.mobileDS ||
+var mmir = window.mmir ||
 {};
 
-mobileDS.User = (function(){
+mmir.User = (function(){
 
     var instance = null;
     

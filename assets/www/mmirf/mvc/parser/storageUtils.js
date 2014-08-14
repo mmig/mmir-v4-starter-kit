@@ -1,5 +1,8 @@
 
 /**
+ * Extends the parser-module with helper functions for
+ * storing/restoring compiled templates (eHTML -> layout, view, partial etc)
+ *
  * Dependencies:
  * 
  *  @depends jQuery.extend 
@@ -7,13 +10,13 @@
  *  alternatively: set <code>mobileDS.parser.CLASS_EXTENDER</code> with an object that 
  *  exposes a function <tt>extend(obj1,obj1)</tt>, i.e.
  *  
- *  <code>mobileDS.parser.CLASS_EXTENDER.extend(obj1, obj2)</code>
+ *  <code>mmir.parser.CLASS_EXTENDER.extend(obj1, obj2)</code>
  * 
  * @module mobileDS.tools
  * 
  */
-var mobileDS = window.mobileDS || {};
-mobileDS.parser = mobileDS.parser || {};
+
+define(['jquery', 'parserModule'], function($, parser){
 
 /**
  * Creates the appropriate object from a JSON-like <tt>storedObject</tt>.
@@ -47,28 +50,32 @@ mobileDS.parser = mobileDS.parser || {};
  * @returns {Object} an new instance created with the constructor <tt>classConstructor</tt> and
  * 			set with all properties (fields and functions) from <tt>storedObject</tt>.
  */
-mobileDS.parser.restoreObject = function(storedObject, isTriggerPublish){
+parser.restoreObject = function(storedObject, isTriggerPublish){
 	var classExtender;
-	if(mobileDS.parser.CLASS_EXTENDER && typeof mobileDS.parser.CLASS_EXTENDER.extend === 'function'){
-		classExtender = mobileDS.parser.CLASS_EXTENDER;
+	if(parser.CLASS_EXTENDER && typeof parser.CLASS_EXTENDER.extend === 'function'){
+		classExtender = parser.CLASS_EXTENDER;
 	}
 	else {
-		classExtender = jQuery;
+		classExtender = $;
 	}
 	
-	//NOTE: classConstructor contains a list of Strings:
-	//       * the constructor-function is either in global namespace
-	//         e.g. "View" -> then the list contains exactly one entry ["View"]
-	//
-	//       * if the constructor-function is in a sub-namespace (e.g. "sub-module")
-	//         then the list contains the "path" to the constructorf-function
-	//         starting with the module that is in the global namespace
-	//         e.g. "mobileDS.parser.ParsingResult" -> ["mobileDS, "parser", "ParsingResult"]
-	//
-	var constructor = window[storedObject.classConstructor[0]];
-	for(var i=1, size = storedObject.classConstructor.length; i < size; ++i){
-		constructor = constructor[storedObject.classConstructor[i]];
-	}
+//	//NOTE: classConstructor contains a list of Strings:
+//	//       * the constructor-function is either in global namespace
+//	//         e.g. "View" -> then the list contains exactly one entry ["View"]
+//	//
+//	//       * if the constructor-function is in a sub-namespace (e.g. "sub-module")
+//	//         then the list contains the "path" to the constructorf-function
+//	//         starting with the module that is in the global namespace
+//	//         e.g. "mobileDS.parser.ParsingResult" -> ["mobileDS, "parser", "ParsingResult"]
+//	//
+//	var constructor = window[storedObject.classConstructor[0]];//FIXME need to convert this to require
+//	for(var i=1, size = storedObject.classConstructor.length; i < size; ++i){
+//		constructor = constructor[storedObject.classConstructor[i]];
+//	}
+	
+	//requirejs version (for this to work, all Classe (i.e. JS-files) need to already have been loaded & required!)
+	var constructor = require(storedObject.classConstructor);
+	
 	var obj = classExtender.extend( new constructor(), storedObject);
 	if(typeof obj.init === 'function'){
 		obj.init();
@@ -138,7 +145,7 @@ mobileDS.parser.restoreObject = function(storedObject, isTriggerPublish){
  * //str will be: "some:\"properties\","
  * 
  */
-mobileDS.parser.appendStringified = function(obj, propertyNames, stringBuffer, propertyNamePostfix, valueFunc){
+parser.appendStringified = function(obj, propertyNames, stringBuffer, propertyNamePostfix, valueFunc){
 	
 	//"shift" arguments, if necessary
 	if(typeof propertyNamePostfix === 'function' && ! valueFunc){
@@ -175,3 +182,7 @@ mobileDS.parser.appendStringified = function(obj, propertyNames, stringBuffer, p
 	
 	return stringBuffer;
 };
+
+return parser;
+
+});//END: define(..., function(){

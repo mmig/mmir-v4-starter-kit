@@ -1,4 +1,6 @@
-mobileDS.SemanticInterpreter.getInstance().addGrammar("en", function(asr_recognized_text){
+(function(){
+  var semanticInterpreter = require("semanticInterpreter");
+var grammarFunc = function(asr_recognized_text){
   var theGrammarConverterInstance = this;
 
  
@@ -8,7 +10,8 @@ mobileDS.SemanticInterpreter.getInstance().addGrammar("en", function(asr_recogni
   var _$all_devices = {};
   var _$state = {};
   var _$rest = {};
-  var _$turn_device = {};
+  var _$ctrl_device = {};
+  var _$ctrl_all_devices = {};
 
 
 /*
@@ -56,7 +59,7 @@ function __lex( info )
 		start = pos;
 
 		if( info.src.length <= start )
-			return 10;
+			return 11;
 
 		do
 		{
@@ -514,33 +517,50 @@ function __parse( src, err_off, err_la )
 var pop_tab = new Array(
 	new Array( 0/* utterance' */, 1 ),
 	new Array( 8/* utterance */, 1 ),
-	new Array( 9/* TURN_DEVICE */, 2 ),
-	new Array( 9/* TURN_DEVICE */, 2 ),
+	new Array( 9/* CTRL_DEVICE */, 3 ),
+	new Array( 9/* CTRL_DEVICE */, 3 ),
+	new Array( 10/* CTRL_ALL_DEVICES */, 2 ),
+	new Array( 10/* CTRL_ALL_DEVICES */, 2 ),
+	new Array( 7/* phrases */, 1 ),
 	new Array( 7/* phrases */, 1 )
 );
 
 /* Action-Table */
 var act_tab = new Array(
-	/* State 0 */ new Array( 4/* "ALL_DEVICES" */,4 , 5/* "STATE" */,5 ),
-	/* State 1 */ new Array( 10/* "$" */,0 ),
-	/* State 2 */ new Array( 10/* "$" */,-1 ),
-	/* State 3 */ new Array( 10/* "$" */,-4 ),
-	/* State 4 */ new Array( 5/* "STATE" */,6 ),
-	/* State 5 */ new Array( 4/* "ALL_DEVICES" */,7 ),
-	/* State 6 */ new Array( 10/* "$" */,-2 ),
-	/* State 7 */ new Array( 10/* "$" */,-3 )
+	/* State 0 */ new Array( 3/* "DEVICE" */,5 , 2/* "ROOM" */,6 , 4/* "ALL_DEVICES" */,7 , 5/* "STATE" */,8 ),
+	/* State 1 */ new Array( 11/* "$" */,0 ),
+	/* State 2 */ new Array( 11/* "$" */,-1 ),
+	/* State 3 */ new Array( 11/* "$" */,-6 ),
+	/* State 4 */ new Array( 11/* "$" */,-7 ),
+	/* State 5 */ new Array( 2/* "ROOM" */,9 ),
+	/* State 6 */ new Array( 3/* "DEVICE" */,10 ),
+	/* State 7 */ new Array( 5/* "STATE" */,11 ),
+	/* State 8 */ new Array( 4/* "ALL_DEVICES" */,12 ),
+	/* State 9 */ new Array( 5/* "STATE" */,13 ),
+	/* State 10 */ new Array( 5/* "STATE" */,14 ),
+	/* State 11 */ new Array( 11/* "$" */,-4 ),
+	/* State 12 */ new Array( 11/* "$" */,-5 ),
+	/* State 13 */ new Array( 11/* "$" */,-2 ),
+	/* State 14 */ new Array( 11/* "$" */,-3 )
 );
 
 /* Goto-Table */
 var goto_tab = new Array(
-	/* State 0 */ new Array( 8/* utterance */,1 , 7/* phrases */,2 , 9/* TURN_DEVICE */,3 ),
+	/* State 0 */ new Array( 8/* utterance */,1 , 7/* phrases */,2 , 9/* CTRL_DEVICE */,3 , 10/* CTRL_ALL_DEVICES */,4 ),
 	/* State 1 */ new Array(  ),
 	/* State 2 */ new Array(  ),
 	/* State 3 */ new Array(  ),
 	/* State 4 */ new Array(  ),
 	/* State 5 */ new Array(  ),
 	/* State 6 */ new Array(  ),
-	/* State 7 */ new Array(  )
+	/* State 7 */ new Array(  ),
+	/* State 8 */ new Array(  ),
+	/* State 9 */ new Array(  ),
+	/* State 10 */ new Array(  ),
+	/* State 11 */ new Array(  ),
+	/* State 12 */ new Array(  ),
+	/* State 13 */ new Array(  ),
+	/* State 14 */ new Array(  )
 );
 
 
@@ -556,7 +576,8 @@ var labels = new Array(
 	"REST" /* Terminal symbol */,
 	"phrases" /* Non-terminal symbol */,
 	"utterance" /* Non-terminal symbol */,
-	"TURN_DEVICE" /* Non-terminal symbol */,
+	"CTRL_DEVICE" /* Non-terminal symbol */,
+	"CTRL_ALL_DEVICES" /* Non-terminal symbol */,
 	"$" /* Terminal symbol */
 );
 
@@ -578,7 +599,7 @@ var labels = new Array(
 
 	while( true )
 	{
-		act = 9;
+		act = 16;
 		for( var i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2 )
 		{
 			if( act_tab[sstack[sstack.length-1]][i] == la )
@@ -601,7 +622,7 @@ var labels = new Array(
 		
 			
 		//Panic-mode: Try recovery when parse-error occurs!
-		if( act == 9 )
+		if( act == 16 )
 		{
 			if( _dbg_withtrace )
 				__dbg_print( "Error detected: There is no reduce or shift on the symbol " + labels[la] );
@@ -621,7 +642,7 @@ var labels = new Array(
 				rvstack[i] = vstack[i];
 			}
 			
-			while( act == 9 && la != 10 )
+			while( act == 16 && la != 11 )
 			{
 				if( _dbg_withtrace )
 					__dbg_print( "\tError recovery\n" +
@@ -630,7 +651,7 @@ var labels = new Array(
 				if( la == -1 )
 					info.offset++;
 					
-				while( act == 9 && sstack.length > 0 )
+				while( act == 16 && sstack.length > 0 )
 				{
 					sstack.pop();
 					vstack.pop();
@@ -638,7 +659,7 @@ var labels = new Array(
 					if( sstack.length == 0 )
 						break;
 						
-					act = 9;
+					act = 16;
 					for( var i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2 )
 					{
 						if( act_tab[sstack[sstack.length-1]][i] == la )
@@ -649,7 +670,7 @@ var labels = new Array(
 					}
 				}
 				
-				if( act != 9 )
+				if( act != 16 )
 					break;
 				
 				for( var i = 0; i < rsstack.length; i++ )
@@ -661,7 +682,7 @@ var labels = new Array(
 				la = __lex( info );
 			}
 			
-			if( act == 9 )
+			if( act == 16 )
 			{
 				if( _dbg_withtrace )
 					__dbg_print( "\tError recovery failed, terminating parse process..." );
@@ -674,7 +695,7 @@ var labels = new Array(
 		}
 		
 		/*
-		if( act == 9 )
+		if( act == 16 )
 			break;
 		*/
 		
@@ -728,15 +749,30 @@ switch( act )
 	break;
 	case 2:
 	{
-		 rval = vstack[ vstack.length - 2 ] + ' ' + vstack[ vstack.length - 1 ]; var turn_device_temp = {}; turn_device_temp['phrases'] = {};turn_device_temp['phrases']['all_devices'] = {};turn_device_temp['phrases']['all_devices'][0] = vstack[ vstack.length - 2 ]; turn_device_temp['phrases']['state'] = {};turn_device_temp['phrases']['state'][0] = vstack[ vstack.length - 1 ]; var _$phrase = rval; turn_device_temp['phrase']=_$phrase; turn_device_temp['semantic'] = '{"target":"' + function(){try{return _$all_devices[turn_device_temp['phrases']['all_devices'][0]];} catch(e){return 'undefined';}}() + '","action":"' + function(){try{return _$state[turn_device_temp['phrases']['state'][0]];} catch(e){return 'undefined';}}() + '"}'; _$turn_device[_$phrase] = turn_device_temp; _$result = turn_device_temp; 
+		 rval = vstack[ vstack.length - 3 ] + ' ' + vstack[ vstack.length - 2 ] + ' ' + vstack[ vstack.length - 1 ]; var ctrl_device_temp = {}; ctrl_device_temp['phrases'] = {};ctrl_device_temp['phrases']['device'] = {};ctrl_device_temp['phrases']['device'][0] = vstack[ vstack.length - 3 ]; ctrl_device_temp['phrases']['room'] = {};ctrl_device_temp['phrases']['room'][0] = vstack[ vstack.length - 2 ]; ctrl_device_temp['phrases']['state'] = {};ctrl_device_temp['phrases']['state'][0] = vstack[ vstack.length - 1 ]; var _$phrase = rval; ctrl_device_temp['phrase']=_$phrase; ctrl_device_temp['semantic'] = '{"location":"' + function(){try{return _$room[ctrl_device_temp['phrases']['room'][0]];} catch(e){return 'undefined';}}() + '","target":"' + function(){try{return _$device[ctrl_device_temp['phrases']['device'][0]];} catch(e){return 'undefined';}}() + '","action":"' + function(){try{return _$state[ctrl_device_temp['phrases']['state'][0]];} catch(e){return 'undefined';}}() + '"}'; _$ctrl_device[_$phrase] = ctrl_device_temp; _$result = ctrl_device_temp; 
 	}
 	break;
 	case 3:
 	{
-		 rval = vstack[ vstack.length - 2 ] + ' ' + vstack[ vstack.length - 1 ]; var turn_device_temp = {}; turn_device_temp['phrases'] = {};turn_device_temp['phrases']['state'] = {};turn_device_temp['phrases']['state'][0] = vstack[ vstack.length - 2 ]; turn_device_temp['phrases']['all_devices'] = {};turn_device_temp['phrases']['all_devices'][0] = vstack[ vstack.length - 1 ]; var _$phrase = rval; turn_device_temp['phrase']=_$phrase; turn_device_temp['semantic'] = '{"target":"' + function(){try{return _$all_devices[turn_device_temp['phrases']['all_devices'][0]];} catch(e){return 'undefined';}}() + '","action":"' + function(){try{return _$state[turn_device_temp['phrases']['state'][0]];} catch(e){return 'undefined';}}() + '"}'; _$turn_device[_$phrase] = turn_device_temp; _$result = turn_device_temp; 
+		 rval = vstack[ vstack.length - 3 ] + ' ' + vstack[ vstack.length - 2 ] + ' ' + vstack[ vstack.length - 1 ]; var ctrl_device_temp = {}; ctrl_device_temp['phrases'] = {};ctrl_device_temp['phrases']['room'] = {};ctrl_device_temp['phrases']['room'][0] = vstack[ vstack.length - 3 ]; ctrl_device_temp['phrases']['device'] = {};ctrl_device_temp['phrases']['device'][0] = vstack[ vstack.length - 2 ]; ctrl_device_temp['phrases']['state'] = {};ctrl_device_temp['phrases']['state'][0] = vstack[ vstack.length - 1 ]; var _$phrase = rval; ctrl_device_temp['phrase']=_$phrase; ctrl_device_temp['semantic'] = '{"location":"' + function(){try{return _$room[ctrl_device_temp['phrases']['room'][0]];} catch(e){return 'undefined';}}() + '","target":"' + function(){try{return _$device[ctrl_device_temp['phrases']['device'][0]];} catch(e){return 'undefined';}}() + '","action":"' + function(){try{return _$state[ctrl_device_temp['phrases']['state'][0]];} catch(e){return 'undefined';}}() + '"}'; _$ctrl_device[_$phrase] = ctrl_device_temp; _$result = ctrl_device_temp; 
 	}
 	break;
 	case 4:
+	{
+		 rval = vstack[ vstack.length - 2 ] + ' ' + vstack[ vstack.length - 1 ]; var ctrl_all_devices_temp = {}; ctrl_all_devices_temp['phrases'] = {};ctrl_all_devices_temp['phrases']['all_devices'] = {};ctrl_all_devices_temp['phrases']['all_devices'][0] = vstack[ vstack.length - 2 ]; ctrl_all_devices_temp['phrases']['state'] = {};ctrl_all_devices_temp['phrases']['state'][0] = vstack[ vstack.length - 1 ]; var _$phrase = rval; ctrl_all_devices_temp['phrase']=_$phrase; ctrl_all_devices_temp['semantic'] = '{"target":"' + function(){try{return _$all_devices[ctrl_all_devices_temp['phrases']['all_devices'][0]];} catch(e){return 'undefined';}}() + '","action":"' + function(){try{return _$state[ctrl_all_devices_temp['phrases']['state'][0]];} catch(e){return 'undefined';}}() + '"}'; _$ctrl_all_devices[_$phrase] = ctrl_all_devices_temp; _$result = ctrl_all_devices_temp; 
+	}
+	break;
+	case 5:
+	{
+		 rval = vstack[ vstack.length - 2 ] + ' ' + vstack[ vstack.length - 1 ]; var ctrl_all_devices_temp = {}; ctrl_all_devices_temp['phrases'] = {};ctrl_all_devices_temp['phrases']['state'] = {};ctrl_all_devices_temp['phrases']['state'][0] = vstack[ vstack.length - 2 ]; ctrl_all_devices_temp['phrases']['all_devices'] = {};ctrl_all_devices_temp['phrases']['all_devices'][0] = vstack[ vstack.length - 1 ]; var _$phrase = rval; ctrl_all_devices_temp['phrase']=_$phrase; ctrl_all_devices_temp['semantic'] = '{"target":"' + function(){try{return _$all_devices[ctrl_all_devices_temp['phrases']['all_devices'][0]];} catch(e){return 'undefined';}}() + '","action":"' + function(){try{return _$state[ctrl_all_devices_temp['phrases']['state'][0]];} catch(e){return 'undefined';}}() + '"}'; _$ctrl_all_devices[_$phrase] = ctrl_all_devices_temp; _$result = ctrl_all_devices_temp; 
+	}
+	break;
+	case 6:
+	{
+		rval = vstack[ vstack.length - 1 ];
+	}
+	break;
+	case 7:
 	{
 		rval = vstack[ vstack.length - 1 ];
 	}
@@ -917,7 +953,9 @@ function __dbg_parsetree_phpSyntaxTree( nodes, tree )
 
 
 __parse( asr_recognized_text, new Array(), new Array());
-});
+};
+semanticInterpreter.addGrammar("en", grammarFunc);
 
-mobileDS.SemanticInterpreter.getInstance().setStopwords("en",["in","switch","turn","turned","please","the","and"]);
-
+semanticInterpreter.setStopwords("en",["in","switch","turn","turned","please","the","and"]);
+return grammarFunc;
+})();

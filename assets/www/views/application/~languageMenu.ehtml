@@ -1,12 +1,11 @@
-<h2>@(mobileDS.LanguageManager.getInstance().getText('choose_language'))</h2>
-
+<h2>@(mmir.LanguageManager.getInstance().getText('password_place_holder'))</h2>
 @var(par_available_languages)
 @var(size)
 @var(set_lang)
 @var(set_list_class)
 @var(set_list_theme)
 @{
-	@par_available_languages = mobileDS.LanguageManager.getInstance().getLanguages();
+	@par_available_languages = mmir.LanguageManager.getInstance().getLanguages();
 }@
 
 <ul id="languageListView" class="ui-listview ui-listview-inset ui-corner-all ui-shadow" data-role="listview" data-theme="b" data-divider-theme="b" data-inset="true">
@@ -25,8 +24,8 @@
 		}
 		
 		@set_list_theme = 
-			@set_lang == mobileDS.LanguageManager.getInstance().getLanguage()?
-				'e' : 'b';
+			@set_lang == mmir.LanguageManager.getInstance().getLanguage()?
+				'b' : 'a';
 		
 		@set_list_class += 'ui-body-' + @set_list_theme;
 	}@

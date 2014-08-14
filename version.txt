@@ -1,14 +1,99 @@
 ﻿
-version notes for MMIG Starter Kit (v 2.4)
+version notes for MMIG Starter Kit (v 3.0beta2)
 
  * using Cordova 2.8.x library (modified; source code included in JAR)
- * using jQuery 1.9.x library
- * using jQuery Mobile 1.3.x library
+ * using jQuery 1.11.x library
+ * using jQuery Mobile 1.4.x library
  
  
  --------------
  Change Log
  --------------
+##################
+ Version 3.0beta2
+##################
+
+ * moved JavaScript files used in build process & testing into separate folder /build/lib/mmir-build/ (and into /test/scripts/ respectively)
+  * updated build.properties, build.xml and parse.xml accordingly
+  * updated test.settings, test.xml ect. accordingly
+  
+ * moved jsonlint library to build directory (only used during build-process and grammar-testing)
+  * for testSemanticInterpreter.html: copied jsonlint source-code directly into the HTML page
+     
+##################
+ Version 3.0beta / alpha
+##################
+
+ * change of framework-namespace:
+     mobileDS -> mmir
+   e.g. use mmir.DialogEngine (instead of old-style: mobileDS.DialogEngine)
+
+ * renamed directory mmirf/res/ -> mmirf/vendor/
+ 
+ * renamed resources:
+  * renamed files /lanugages/<lang>/speaker.json -> /languages/<lang>/speech.json
+  * renamed file extension /lanugages/<lang>/dictionary.dic -> /languages/<lang>/dictionary.json
+  * renamed: elementTypes[.js] -> parserModule[.js]
+
+ * moved resources:
+  * moved checksum files from /config/languages/<lang>/** and /config/statedef/** -> /gen/** (see also comment for build.xml)
+
+ * languageManager:
+   * removed getSpeaker(); replaced by new machanism via getLanguageConfig(str [, str, str])
+      * NOTE: renamed speaker.json -> speech.json
+      * NOTE: format for speech.json (previously speaker.json) has changed too!
+  * renamed (private) function: loadSpeaker() -> loadSpeechConfig()
+  * renamed function: existsSpeaker() -> existsSpeechConfig()
+
+ * constants
+   * changed speaker.json -> speech.json
+   * renamed getter function: getSpeakerFileName -> getSpeechConfigFileName
+ 
+ * build.xml
+   * all checksum files are now located where the generated counterparts are
+   * unified checksum file names to the file-extension used by the JavaScript checksumUtils code
+   * removed checksum file generation where these are already created by JavaScript code (i.e. for grammars); ANT tasks uses the JavaScript generated checksums now instead (for up-to-date verification)
+
+ * configurationManager
+   * added support for nested / structured configuration
+   * changed media-plugin settings into structured settings (for htm5AudioInput and maryTextToSpeech)
+   * TODO document possible configuration values!!!
+   
+ * commonUtils:
+   * renamed: commonUtils.loadAllPhonegapPlugins -> loadAllCordovaPlugins
+
+ * notificationManager:
+   * renamed: Notification -> NotificationManager
+   
+ * backwards compatibility issues
+  * mobileDS.constants is now mmir.Constants
+    (NOTE: case change for first letter!)
+  * create() is now replaced with init()!
+	         in: Constants, ControllerManager, CommonUtils, MediaManager, ModelManager
+	         
+  * deprecated / removed:
+    * BROWSER-part of plugins/directoryListing (-> now in CommonUtils!)
+    * html5Navigator (removed; now use navigator directly...)
+
+ * AMD (Asynchronous Module Definition) version for MMIR framework (using requirejs)
+  * changes in almost all files for modularization (i.e. converting to AMD modules)
+  * improved separation of framework-code and application-code:
+    * initialization is now done in /assets/www/mmirf/main.js
+    * the bootstrap-code for the application is now located in /assets/www/app.js
+  * adjusted build.xml and parse.xml to new AMD structure
+  * updated testSemanticInterpreter.html to use new AMD version of the framework
+ * important changes:
+  * renamed main namespace: mobileDS -> mmir
+    * e.g. instead of mobileDS.LanguageManager.getInstance():
+       -> now use: mmir.LanguageManager.getInstance()
+       -> or add "backwards compatability" by creating global variable: var mobileDS = mmir;
+  * renamed Notification -> NotificationManager (moved file into mmirf/manager/)
+  * manager modules that had a .create() function: functions renamed to .init() [which return now Promise objects]
+  
+##################
+ Version 2.4.1
+##################
+ (changes are contained within 3.0 notes)
  
 ##################
  Version 2.4
@@ -173,7 +258,7 @@ TODO (changes that may effect application specific code)
 	* NOTE: do not forget to update directories.json (default target in build.xml) after adding, removing, or renaming files
  
  * restructured 3rd party JS files, libraries etc.:
-	- resources (JS-files, CSS-files, images, sounds etc) required by the framework itself are now located in mmirf/res/ (in the corresponding sub-directories)
+	- resources (JS-files, CSS-files, images, sounds etc) required by the framework itself are now located in mmirf/vendor/ (previously: mmirf/res/), that is, in the corresponding sub-directories thereof
 	- application specific JS-files are now located in assets/www/libs/
 	- other application specific resources are located in assets/www/content/ as before
 

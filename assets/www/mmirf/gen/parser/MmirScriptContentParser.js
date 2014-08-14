@@ -161,7 +161,7 @@ org.antlr.lang.augmentObject(MmirScriptContentParser.prototype, {
 
 
 
-            		if(this.isDebug) printInfo('CONTENT_text', theText);//debug
+            		if(this.isDebug) this.printInfo('CONTENT_text', theText);//debug
             	
         }
         catch (re) {
@@ -389,7 +389,7 @@ org.antlr.lang.augmentObject(MmirScriptContentParser.prototype, {
 
             		startPos = start.getStartIndex()+1;
             		
-            		if(this.isDebug) print('CONTENT_content -> start at '+startPos);//debug
+            		if(this.isDebug) this.printDebug('CONTENT_content -> start at '+startPos);//debug
             	
 
 
@@ -399,7 +399,7 @@ org.antlr.lang.augmentObject(MmirScriptContentParser.prototype, {
             		var theString = this.input.getTokenSource().input.data;
             		theContent = theString.substring(startPos, end);
             		
-            		if(this.isDebug) print('CONTENT_content -> content= "'+theContent+'"');//debug
+            		if(this.isDebug) this.printDebug('CONTENT_content -> content= "'+theContent+'"');//debug
             	
         }
         catch (re) {
@@ -447,21 +447,21 @@ org.antlr.lang.augmentObject(MmirScriptContentParser.prototype, {
                 case 1 :
                     // ../MmirScriptContent.g:95:9: COMMENT
                     COMMENT1=this.match(this.input,COMMENT,MmirScriptContentParser.FOLLOW_COMMENT_in_other225); 
-                    if(this.isDebug) printInfo('CONTENT_comment',(COMMENT1?COMMENT1.getText():null));/*debug*/
+                    if(this.isDebug) this.printInfo('CONTENT_comment',(COMMENT1?COMMENT1.getText():null));/*debug*/
 
 
                     break;
                 case 2 :
                     // ../MmirScriptContent.g:96:4: STRING
                     STRING2=this.match(this.input,STRING,MmirScriptContentParser.FOLLOW_STRING_in_other233); 
-                    if(this.isDebug) printInfo('CONTENT_String' ,(STRING2?STRING2.getText():null));/*debug*/
+                    if(this.isDebug) this.printInfo('CONTENT_String' ,(STRING2?STRING2.getText():null));/*debug*/
 
 
                     break;
                 case 3 :
                     // ../MmirScriptContent.g:97:5: SSTRING
                     SSTRING3=this.match(this.input,SSTRING,MmirScriptContentParser.FOLLOW_SSTRING_in_other243); 
-                    if(this.isDebug) printInfo('CONTENT_string' ,(SSTRING3?SSTRING3.getText():null));/*debug*/
+                    if(this.isDebug) this.printInfo('CONTENT_string' ,(SSTRING3?SSTRING3.getText():null));/*debug*/
 
 
                     break;

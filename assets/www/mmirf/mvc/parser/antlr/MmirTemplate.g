@@ -33,7 +33,10 @@ options{
 
 @lexer::members {
 
-	mobileDS.parser.extendMmirTemplateProcessor(this);
+	//FIXME
+	//mmir.parser.extendMmirTemplateProcessor(this);
+	var extendMmirTemplateProcessor = require('templateProcessor');
+	extendMmirTemplateProcessor(this);
 	
 }
 
@@ -304,5 +307,5 @@ UNICODE_ESC
  *  off the input stream currently) to exit.
  */
 END     : EOF {this.emit(org.antlr.runtime.Token.EOF_TOKEN);}
-          {if(this.isDebug) print("exit text");/*debug*/}
+          {if(this.isDebug) this.printDebug("exit text");/*debug*/}
         ;

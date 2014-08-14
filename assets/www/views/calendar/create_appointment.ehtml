@@ -5,7 +5,8 @@
 }@
 
 @contentFor("content"){
-  <div id="create_appointment">
+
+  <div id="create_appointment" class="app_content" style="margin-top: 1em;">
   
     <label for="subject">
       @localize("subject_label")
@@ -15,32 +16,32 @@
     
     <label for="app-date">
       @localize("date_label")
-    </label>
-    <input name="app-date" id="app-date" type="date" data-role="datebox" readonly="readonly"
-           data-options='{"mode": "flipbox"}' />
+    </label>   
+    <input name="app-date" id="app-date" type="date" data-role="datebox" 
+           data-options='{"mode": "flipbox", "themeHeader": "b"}' />
     
     <label for="start-time">
       @localize("start_time_label")
     </label>
-    <input name="start-time" id="start-time" type="date" data-role="datebox" readonly="readonly" 
-           data-options='{"mode": "timeflipbox"}' />
+    <input name="start-time" id="start-time" type="date" data-role="datebox" 
+           data-options='{"mode": "timeflipbox", "themeHeader": "b"}' />
     
     <label for="end-time">
       @localize("end_time_label")
     </label>
-    <input name="end-time" id="end-time" type="date" data-role="datebox" readonly="readonly"
-           data-options='{"mode": "timeflipbox"}' />
+    <input name="end-time" id="end-time" type="date" data-role="datebox" 
+           data-options='{"mode": "timeflipbox", "themeHeader": "b", "overrideStyleClass": "ui-icon-clock"}' />
            
     <label for="note">
       @localize("note_label")
     </label>
     <textarea name="note" id="note"></textarea>
     
-    <button id="save_appointment" name="save_appointment_btn" data-inline="true">
+    <button id="save_appointment" name="save_appointment_btn" data-inline="true" data-icon="check">
    		@localize("save")
     </button>
    
-    <button id="discard_appointment" name="discard_appointment_btn" data-inline="true">
+    <button id="discard_appointment" name="discard_appointment_btn" data-inline="true" data-icon="delete">
    		@localize("discard")
     </button>
 

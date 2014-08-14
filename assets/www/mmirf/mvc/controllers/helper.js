@@ -25,76 +25,88 @@
  */
 
 
-/**
- * @module mobileDS.mvc.controllers
- * 
- */
-var mobileDS = window.mobileDS ||
-{};
+define(
+	/**
+	 * @name Helper
+	 * @class
+	 */
+	function(
+){
+	/** @scope Helper.prototype */
+	/**
+	 * #@+
+	 * @memberOf Helper.prototype
+	 */
+		
+	/**
+	 * The Helper Class is a kind of interface-class which gives access to the methods and data of a helper (which itself belongs to a controller)<br>
+	 * 
+	 * @constructs Helper
+	 * @param {Object} ctrl Controller instance / object
+	 * @param {String} name Name of the Helper 
+	 * @category core
+	 */
+	function Helper(ctrl, name){
+	    /**
+	     * The definition of the helper object, containing all properties and functions of the controller.<br>
+	     * A method of the controller can be called via:
 
-/**
- * The Helper Class is a kind of interface-class which gives access to the methods and data of a helper (which itself belongs to a controller)<br>
- * 
- * @class Helper
- * @constructor
- * @param {Object} ctrl Controller instance / object
- * @param {String} name Name of the Helper 
- * @category core
- */
-function Helper(ctrl, name){
-    /**
-     * The definition of the helper object, containing all properties and functions of the controller.<br>
-     * A method of the controller can be called via:
+		this.script.methodController(parameter);
 
-	this.script.methodController(parameter);
+	     * 
+	     * @property script
+	     * @type Object
+	     * @public
+	     */
+		// this can only be invoked, if a function with the name "name" exists
+		this.script = new window[name]();
 
-     * 
-     * @property script
-     * @type Object
-     * @public
-     */
-	// this can only be invoked, if a function with the name "name" exists
-	this.script = new window[name]();
+		/**
+	     * The name of the helper. 
+	     * 
+	     * @property name
+	     * @type String
+	     * @public
+	     */
+		this.name=name;
+
+		/**
+	     * The controller to which this helper belongs.
+	     * 
+	     * @property controller
+	     * @type Object
+	     * @public
+	     */
+		this.controller = ctrl;
+
+	}
+
 
 	/**
-     * The name of the helper. 
-     * 
-     * @property name
-     * @type String
-     * @public
-     */
-	this.name=name;
+	 * This function performs an action of a helper.<br>
+	 * 
+	 * @function perform
+	 * @param {String} actionName Name of the method to be executed
+	 * @param {Object} data Data to pass to the method of the helper as argument
+	 * @returns {Object} The return value of the executed method 
+	 * @public
+	 */
+	Helper.prototype.perform = function(actionName, data){
+		
+		if(IS_DEBUG_ENABLED) console.debug("should perform '" + actionName + "' of '" + this.name + "'" + ((typeof data !== 'undefined' && data !== null)? " with data: "+JSON.stringify(data): ""));//debug
+		
+		if(arguments.length > 2){
+		    return this.script[actionName](this.controller, data, arguments[2]);
+		}
+		else {
+		    return this.script[actionName](this.controller, data);
+		}
+	};
 
-	/**
-     * The controller to which this helper belongs.
-     * 
-     * @property controller
-     * @type Object
-     * @public
-     */
-	this.controller = ctrl;
 
-}
-
-
-/**
- * This function performs an action of a helper.<br>
- * 
- * @function perform
- * @param {String} actionName Name of the method to be executed
- * @param {Object} data Data to pass to the method of the helper as argument
- * @returns {Object} The return value of the executed method 
- * @public
- */
-Helper.prototype.perform = function(actionName, data){
+	return Helper;
 	
-	if(IS_DEBUG_ENABLED) console.debug("should perform '" + actionName + "' of '" + this.name + "'" + ((typeof data !== 'undefined' && data !== null)? " with data: "+JSON.stringify(data): ""));//debug
+	/** #@- */
 	
-	if(arguments.length > 2){
-	    return this.script[actionName](this.controller, data, arguments[2]);
-	}
-	else {
-	    return this.script[actionName](this.controller, data);
-	}
-};
+});//END: define(...
 

@@ -25,8 +25,9 @@
  */
 
 
+
 /**
-* @module mobileDS.semantic
+* @module mmir.semantic
 * 
 */
 
@@ -36,8 +37,16 @@
 * @class GrammarConverter
 * @constructor
 * @category core
+* 
+* @requires mmir.CommonUtils#isArray
 */
+define(['commonUtils', 'jscc'], function(commonUtils){
 
+IS_DEBUG_ENABLED = true;//FIXME need to remove this!
+
+/**
+ * @class GrammarConverter
+ */
 var GrammarConverter = function(){
 	this.THE_INTERNAL_GRAMMAR_CONVERTER_INSTANCE_NAME = "theGrammarConverterInstance";
 	this.json_grammar_definition = null;
@@ -58,8 +67,13 @@ var GrammarConverter = function(){
 	//default setting for masking value Strings in JSON values (see maskJSON() / unmaskJSON)
 	this.maskValues = true;
 	//default setting for masking property-name Strings in JSON values (see maskJSON() / unmaskJSON)
-	// WARNING: this is acutally EXPERIMENTAL; it should be set to false, since JS/CC may not be able to handle masked ID names...
+	// WARNING: this is actually EXPERIMENTAL; it should be set to false, since JS/CC may not be able to handle masked ID names...
 	this.maskNames = false;
+	//default setting for loading JSON files:
+	// if set to true, old-style umlauts encodings (e.g. __oe__) will converted after loading the file
+	// Enable this, if you need to use old-style encoded grammars ... still, the better option would
+	//  be to convert the old-style grammar (i.e. use un-encoded umlauts in the JSON grammar file).
+	this.convertOldFormat = false;
 	
 
 	//alternative reg-exp for stop-words (a different method for detecting/removing stopwords must be used!)
@@ -84,17 +98,17 @@ GrammarConverter.prototype.loadGrammar = function(successCallback, errorCallback
 		url:theUrl,
 		success: function(data){
 			
-			data = JSON.stringify(data);
+			//DISABLED: old-style masking for umlauts:
+//			data = self.recodeJSON(data, self.encodeUmlauts);
 			
-			//TODO: externalize replacement (encoding/decoding); see also in semanticInterpreter.js
-			//Java-Code:
-//			data = data.replaceAll("\u00E4", "__ae__");//HTML: &#228;
-//			data = data.replaceAll("\u00FC", "__ue__");//HTML: &#252;
-//			data = data.replaceAll("\u00F6", "__oe__");//HTML: &#246;
-//			data = data.replaceAll("\u00DF", "__ss__");//HTML: &#223;
-			grammar=data.replace(/ö/g,'__oe__').replace(/ä/g,'__ae__').replace(/ü/g,'__ue__').replace(/ß/g,'__ss__');
+			//if auto-upgrading is enabled:
+			//   decode old-style umlaut masking before continuing
+			if(self.convertOldFormat){
+				data = self.recodeJSON(data, self.decodeUmlauts);
+			}
 			
-			self.json_grammar_definition = jQuery.parseJSON( grammar );
+			self.json_grammar_definition = data;
+			
 			if (typeof successCallback == "function") {
 				successCallback(self);
 			}
@@ -132,13 +146,19 @@ GrammarConverter.prototype.convertJSONGrammar = function(){
 };
 
 GrammarConverter.prototype.setStopWords = function(stopWordArray){
+	
 	if(!this.json_grammar_definition){
 		this.json_grammar_definition = {};
 	}
-	this.json_grammar_definition.stop_word = stopWordArray;
+	
+	this.json_grammar_definition.stop_word = this.maskJSON(stopWordArray);
 	
 	this.parseStopWords();
 	this.parseStopWords_alt();
+	
+	//use unmask-function in order to ensure masking/unmasking is reversible
+	//  (or in case it is not: the error will be held in property stop_word)
+	this.json_grammar_definition.stop_word = this.unmaskJSON(this.json_grammar_definition.stop_word);
 };
 
 GrammarConverter.prototype.getStopWords = function(){
@@ -166,7 +186,7 @@ GrammarConverter.prototype.parseStopWords = function(){
 				stop_words +=	"|"; 		//there is already a previous stopword-entry: do add OR-matching ...
 			}
 	
-			stop_words +=	stop_word //... the stopword "stop_word"
+			stop_words +=	stop_word   //... the stopword "stop_word"
 							+ "\\s?";	//... and optionally one white-character that follows the stopword
 		}
 		
@@ -414,7 +434,7 @@ GrammarConverter.prototype.setGrammarFunction = function(func){
 /**
  * Execute the grammar.
  * 
- * NOTE: do not use directly, but {@link mobileDS.SemanticInterpreter.getASRSemantic} instead,
+ * NOTE: do not use directly, but {@link mmir.SemanticInterpreter.getASRSemantic} instead,
  * 		since that function applies some pre- and post-processing to the text (stopword removal
  * 		en-/decoding of special characters etc.).
  * 
@@ -427,20 +447,30 @@ GrammarConverter.prototype.executeGrammar = function(text){
 /**
  * Masks unicoded characters strings.
  * 
- * Unicode characters are mask by replaceing them with
+ * Unicode characters are mask by replacing them with
  * <code>~~XXXX~~</code>
  * where <code>XXXX</code> is the four digit unicode HEX number.
  * 
  * <p>
- * NOTE that this function is <em>stable</em> with regard of
- * multiple applications:
+ * NOTE that this function is <em>stable</em> with regard to
+ * multiple executions:
  * 
  * If the function is invoked on the returned String again, the
- * returned String will be the same, i.e. unchanged. 
+ * returned String will be the same / unchanged, i.e.
+ * maskings (i.e. "~~XXXX~~") will not be masked again.
+ * </p>
+ * <p>
+ * NOTE: currently, the masking pattern cannot be escaped,
+ * 		 i.e. if the original String contains a substring
+ * 		 that matches the masking pattern, it cannot
+ * 		 be escaped, so that the unmask-function
+ * 		 will leave it untouched.
  * </p>
  * 
  * @param {String} str
- * @returns {String} the masked string
+ * 				the String to process
+ * @returns {String} 
+ * 				the masked string
  */
 GrammarConverter.prototype.maskString = function (str) {
 	var i, s, ch, peek, result,
@@ -532,9 +562,10 @@ GrammarConverter.prototype.maskString = function (str) {
  * where <code>XXXX</code> is the four digit unicode HEX number.
  * 
  * <p>
- * NOTE that this function is <em>stable</em> with regard of
- * multiple applications, <b>IF</b> the original String <tt>str</tt> did not
- * contain a sub-string that conforms to the encoding pattern (see above):
+ * NOTE that this function is <em>stable</em> with regard to
+ * multiple executions, <b>IF</b> the original String <tt>str</tt> did not
+ * contain a sub-string that conforms to the encoding pattern 
+ * (see remark for {@link #maskString}):
  * 
  * If the function is invoked on the returned String again, the
  * returned String will be the same, i.e. unchanged. 
@@ -581,43 +612,48 @@ GrammarConverter.prototype.unmaskJSON = function (json, isMaskValues, isMaskName
 };
 
 /**
- * Recodes Strings of a JSON object.
+ * Recodes Strings of a JSON-like object.
  * 
- * @param {Object} json the JSON object
- * @param {Function} recodeFunc the "recoding" function for modifying String values:
+ * @param {Object} json 
+ * 					the JSON-like object (i.e. PlainObject)
+ * 
+ * @param {Function} recodeFunc
+ * 								the "recoding" function for modifying String values:
  * 								 must accecpt a String argument and return a String
  * 									<code>String recodeFunc(String)</code>.
  * 								The <tt></tt> function is invoked in context of the GrammarConverter object.
- * 								Example: this.maskString() .
- * @param {Boolean} [isMaskValues] OPTIONAL if true, the object's property String values will be processed (DEFAULT: see self.maskValues)
- * @param {Boolean} [isMaskNames]  OPTIONAL if true, the property names will be processed (DEFAULT: see self.maskNames)
- * @returns the recoded JSON object
+ * 								Example: this.maskString().
+ * 								See {@link #maskString}.k
  * 
- * @requires {mobileDS.CommonUtils} or {Array.isArray}
+ * @param {Boolean} [isMaskValues] OPTIONAL
+ * 								 if true, the object's property String values will be processed
+ * 								 NOTE: in case this parameter is specified, then <code>recodeFunc</code> must
+ * 									   also be specified!
+ * 								 DEFAULT: uses property {@link #maskValues}
+ * @param {Boolean} [isMaskNames]  OPTIONAL
+ * 								 if true, the property names will be processed
+ * 								 NOTE: in case this parameter is specified, then <code>recodeFunc</code> and
+ * 									   <code>isMaskValues</code> must also be specified!
+ * 								 DEFAULT: uses property {@link #maskNames}
+ * 
+ * @returns {Object} the recoded JSON object
+ * 
+ * @requires {@link mmir.CommonUtils#isArray} or {@link Array#isArray}
  */
-GrammarConverter.prototype.recodeJSON = function (json, recodeFunc, isMaskValues, isMaskNames) {
-	
-	//evalate arguments:
-	if(typeof isMaskValues === 'undefined'){
-		isMaskValues = this.maskValues;
-	}
-	if(typeof isMaskNames === 'undefined'){
-		isMaskNames = this.maskNames;
-	}
+GrammarConverter.prototype.recodeJSON = (function () {//<- NOTE this is only the initializer (i.e. see returned function below)
 	
 	var self = this;
 	var isArray;
-	if(typeof mobileDS !== 'undefined' && typeof mobileDS.CommonUtils !== 'undefined'){
-		isArray = mobileDS.CommonUtils.getInstance().isArray;
+	if(typeof commonUtils !== 'undefined'){
+		isArray = commonUtils.isArray;//FIXME this requires ArrayExtension.js !!!
 	} 
 	else { 
 		isArray = Array.isArray;
-	
 	}
 	
-	//recursiv processing for an object
+	//recursive processing for an object
 	//returns: the processed object
-	var processJSON = function(obj){
+	var processJSON = function(obj, recodeFunc, isMaskValues, isMaskNames){
 		
 		//different treatments for: STRING, ARRAY, OBJECT types (and 'REST' type, i.e. all ohters)
 		if(typeof obj === 'string' && isMaskValues){
@@ -627,7 +663,7 @@ GrammarConverter.prototype.recodeJSON = function (json, recodeFunc, isMaskValues
 		else if( isArray(obj) ) {
 			//ARRAY: process all entries:
 			for(var i=0, size = obj.length; i < size; ++i){
-				obj[i] = processJSON(obj[i]);
+				obj[i] = processJSON(obj[i], recodeFunc, isMaskValues, isMaskNames);
 			}
 			
 			return obj;
@@ -637,7 +673,7 @@ GrammarConverter.prototype.recodeJSON = function (json, recodeFunc, isMaskValues
 			for(var p in obj){
 				if(obj.hasOwnProperty(p)){
 					
-					obj[p] = processJSON(obj[p]);
+					obj[p] = processJSON(obj[p], recodeFunc, isMaskValues, isMaskNames);
 					
 					//if the property-name should also be encoded:
 					if(typeof p === 'string' && isMaskNames){
@@ -656,5 +692,111 @@ GrammarConverter.prototype.recodeJSON = function (json, recodeFunc, isMaskValues
 		}
 	};
 	
-	return processJSON(json);
+	return function (json, recodeFunc, isMaskValues, isMaskNames){
+		//evalate arguments:
+		if(typeof isMaskValues === 'undefined'){
+			isMaskValues = this.maskValues;
+		}
+		if(typeof isMaskNames === 'undefined'){
+			isMaskNames = this.maskNames;
+		}
+		
+		return processJSON(json, recodeFunc, isMaskValues, isMaskNames);
+	};
+	
+})();
+
+/**
+ * 
+ * @deprecated this is used for the old-style encoding / decoding for umlauts (now masking for ALL unicode chars is used!)
+ * 
+ * @param {String|Object} target
+ * 							the String for wich all contained umlauts should be replaced with an encoded version.
+ * 							If this parameter is not a String, it will be converted using <code>JSON.stringify()</code>
+ * 							and the resulting String will be processed (may lead to errors if umlauts occur in "strange"
+ * 							places within the stringified object).
+ * @param {Boolean} [doAlsoEncodeUpperCase] OPTIONAL
+ * 							if <code>true</code>, then upper-case umlauts will be encoded, too
+ * 							DEFAULT: <code>false</code> (i.e. no encoding for upper-case umlauts)
+ * 		
+ * @returns {String|Object}
+ * 				the String with encoded umlauts.
+ * 				If the input argument <code>target</code> was an Object, the return value
+ * 				will also be an Object, for which the processing stringified Object is converted
+ * 				back using <code>JSON.parse()</code> (may lead to errors if umlauts occur in "strange"
+ * 				places within the stringified object).
+ */
+GrammarConverter.prototype.encodeUmlauts = function(target, doAlsoEncodeUpperCase){
+	var isString = typeof target === 'string';
+	var str;
+	if(isString){
+		str = target;
+	}
+	else {
+		str = JSON.stringify(target);
+	}
+	
+	//Java-Code:
+	//	data = data.replaceAll("\u00E4", "__ae__");//HTML: &#228;
+	//	data = data.replaceAll("\u00FC", "__ue__");//HTML: &#252;
+	//	data = data.replaceAll("\u00F6", "__oe__");//HTML: &#246;
+	//	data = data.replaceAll("\u00DF", "__ss__");//HTML: &#223;
+	str = str.replace(/ö/g,'__oe__').replace(/ä/g,'__ae__').replace(/ü/g,'__ue__').replace(/ß/g,'__ss__');
+	if(doAlsoEncodeUpperCase){
+    	str = str.replace(/Ö/g,'__Oe__').replace(/Ä/g,'__Ae__').replace(/Ü/g,'__Ue__');
+	}
+	
+	if(isString){
+		return str;
+	}
+	else {
+		return JSON.parse(str);
+	}
 };
+
+/**
+ * 
+ * @deprecated this is used for the old-style encoding / decoding for umlauts (now masking for ALL unicode chars is used!)
+ * 
+ * @param {String|Object} target
+ * 							the String for wich all contained umlauts-encoding should be replaced with the original umlauts.
+ * 							If this parameter is not a String, it will be converted using <code>JSON.stringify()</code>
+ * 							and the resulting String will be processed (may lead to errors if umlauts occur in "strange"
+ * 							places within the stringified object).
+ * @param {Boolean} [doAlsoEncodeUpperCase] OPTIONAL
+ * 							if <code>true</code>, then upper-case umlauts-encodings will be decoded, too
+ * 							DEFAULT: <code>false</code> (i.e. no decoding for upper-case umlauts-encodings)
+ * 		
+ * @returns {String|Object}
+ * 				the String with decoded umlauts-encodings (i.e. with the "original" umlauts).
+ * 				If the input argument <code>target</code> was an Object, the return value
+ * 				will also be an Object, for which the processing stringified Object is converted
+ * 				back using <code>JSON.parse()</code> (may lead to errors if umlauts occur in "strange"
+ * 				places within the stringified object).
+ */
+GrammarConverter.prototype.decodeUmlauts = function(target, doAlsoDecodeUpperCase){
+	var isString = typeof target === 'string';
+	var str;
+	if(isString){
+		str = target;
+	}
+	else {
+		str = JSON.stringify(target);
+	}
+	
+	str = str.replace(/__oe__/g,'ö').replace(/__ae__/g,'ä').replace(/__ue__/g,'ü').replace(/__ss__/g,'ß');
+	if(doAlsoDecodeUpperCase){
+    	str = str.replace(/__Oe__/g,'Ö').replace(/__Ae__/g,'Ä').replace(/__Ue__/g,'Ü');
+	}
+	
+	if(isString){
+		return str;
+	}
+	else {
+		return JSON.parse(str);
+	}
+};
+
+return GrammarConverter;
+
+});//END: define(..., function(){

@@ -24,29 +24,33 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var mobileDS = window.mobileDS ||
-{};
 
+//define(['module'], function(module){//TODO remove module-dependency? -> would need different mechanism for querying env-configuration...
+define(['env'], 
 /**
  * A Utility class that provides various <i>constants</i>.<br>
  * 
  * <p>
- * Note that the actual values depend on the execution environment (e.g. ANDROID vs. BROWSER).
- * As a consequence the constants object has 2 modes, that can be switchted via
- * the getInstance()-method, e.g. <code>getInstance(false)</code>
+ * Note that the actual values depend on the execution environment (e.g. ANDROID
+ * vs. BROWSER). As a consequence the constants object has 2 modes, that can be
+ * switchted via the getInstance()-method, e.g. <code>getInstance(false)</code>
  * 
- * @example <code>mobileDS.constants.getInstance(true)</code>
- * @class constants
+ * @example <code>mmir.Constants</code>
  * @category core
  * 
- * @see mobileDS.constants#constructor
+ * @name Constants
+ * @exports Constants as mmir.Constants
+ * @static
+ * @class
  */
-mobileDS.constants = (function() {
-    /**
+function(
+		env
+){
+	 /**
      * Object containing the instance of the class constants 
      * 
      * @property instance
-     * @type Object
+     * @type mmir.Constants#constructor
      * @private
      */
     var instance = null;
@@ -55,7 +59,6 @@ mobileDS.constants = (function() {
 
 	// needed basepath
     var basePath = "";
-//	var assetPath = "/../";
 	
 	// Paths
 	var frameworkBasePath = "mmirf/";
@@ -63,7 +66,7 @@ mobileDS.constants = (function() {
 	var workerPath = frameworkBasePath + "workers/";
 	var pluginsPath = frameworkBasePath + "plugins/";
 	var extensionsPath = frameworkBasePath + "tools/extensions/";
-	var beepURL = frameworkBasePath + "res/sounds/beep-notification.mp3";
+	var beepURL = frameworkBasePath + "vendor/sounds/beep-notification.mp3";
 	var controllerPath = "controllers/";
 	var helperPath = "helpers/";
 	var languagePath = "config/languages/";
@@ -73,9 +76,10 @@ mobileDS.constants = (function() {
 	var genViewPath = "gen/views/";
 	var genLayoutPath = "gen/views/layouts/";
 	var genGrammarsPath = "gen/grammar/";
-	var speakerFileName = "speaker.json";
+	
+	var speechConfigFileName = "speech.json";
 	var grammarFileName = "grammar.json";
-	var dictionaryFileName = "dictionary.dic";
+	var dictionaryFileName = "dictionary.json";
 	var mediaPluginPath = "mmirf/env/media/";
 	
 	var configurationFileUrl = "config/configuration.json";
@@ -94,26 +98,24 @@ mobileDS.constants = (function() {
 		}
 		else if (isBrowserEnvParam){
 			basePath = "";
-//			assetPath = "/../";
 		}
 		else {
+			//TODO this is only for ANDROID -- need to set appropriate path path according to ENV setting...
 			basePath = "file:///android_asset/www/";
-//			assetPath = "file:///android_asset/";
 		}
 	}
 	
 	/**
-	 * Constructor-Method of Class {@link mobileDS.constants}<br>
-	 * @constructor
-	 * @augments mobileDS.constants
-	 * 
-	 * @memberOf mobileDS.constants.prototype
+	 * Constructor-Method of Class {@link Constants}<br>
+	 * @constructs Constants
+	 * @memberOf Constants.prototype
+	 * @private
 	 */
     function constructor(forBrowserParameter){
 		isBrowserEnv = forBrowserParameter? forBrowserParameter : isBrowserEnv;
 		setBasePath(forBrowserParameter);
 		
-		/** @lends mobileDS.constants.prototype */
+		/** @lends Constants.prototype */
 		return {
 			/**
 			 * Returns a string with the base path.
@@ -267,13 +269,14 @@ mobileDS.constants = (function() {
 				return dictionaryFileName;
 			},
 			/**
-			 * Returns the name of the speaker filename as string 
-			 * @function getDictionaryFileName
+			 * Returns the name of the filename for
+			 * the speech configuration as string 
+			 * @function getSpeechFileName
 			 * @public
 			 * @returns {String} dictionary filename
 			 */
-			getSpeakerFileName: function(){
-				return speakerFileName;
+			getSpeechConfigFileName: function(){
+				return speechConfigFileName;
 			},
 			/**
 			 * Returns the name of the grammar filename as string 
@@ -310,50 +313,43 @@ mobileDS.constants = (function() {
 			 */
 			getLanguage: function(){
 				return language;
-			}
-		};
-	}
-	
-	return {
-        /**
-         * Object containing the instance of the class {@link mobileDS.constants} 
-         * 
-         * @function create
-         * @param {Boolean} forBrowserParameter <tt>true</tt> for browser-environment, if <tt>false</tt> ANDROID environment is assumed (TODO change type from boolean; support more environments!)
-         * @param {jQuery} [jQuery] the jQuery object (some functions may not work without this; see requires annotations)
-         * @returns {Object} Object containing the instance of the class {@link mobileDS.constants}
-         * @public
-         */
-		create: function(forBrowserParameter, jQuery){
-//			if (instance === null) {
-				instance = constructor(forBrowserParameter, jQuery);
-	            
-				//remove necessity for using getInstance
-				mobileDS.constants = instance;
-	            
-	            //replace functions so that after this function returns, 
-	            // create and getInstance will always just return the created instance:
-	            var createImpl = function getInstanceDummy(theForBrowserParameter){
-	            	if (theForBrowserParameter && theForBrowserParameter != isBrowserEnv){
-	    				setBasePath(theForBrowserParameter);
-	    			}
-	            	return instance;
-	            };
-	            mobileDS.constants.getInstance = createImpl;
-	            mobileDS.constants.create = createImpl;
-//			}
+			},
 			
-			return instance;
-		}
+			/**
+	         * Initialize the Constants singleton.
+	         * 
+	         * @function init
+	         * @param {Boolean} forBrowserParameter <tt>true</tt> for browser-environment, if <tt>false</tt> ANDROID environment
+	         * @returns {Object} Object containing the instance of the class {@link mmir.Constants}
+	         * @public
+	         */
+			init: function(theForBrowserParameter){
+				if (theForBrowserParameter && theForBrowserParameter != isBrowserEnv){
+    				setBasePath(theForBrowserParameter);
+    			}
+				return this;
+			},
+			
+			isBrowserEnv: function(){//FIXME replace with real environment-setting/-mechanism
+				return isBrowserEnv;
+			},
+			
+			/**
+			 * @deprecated instead, use Constants-object directly: mmir.Constants
+			 */
+			getInstance: function(forBrowserParameter){
+				return this.init(forBrowserParameter);
+			}
+		};//END: return{}
+		
+	}//END: constructor()
 	
-	    /**
-	     * @see create
-	     * 
-	     * @function
-	     */
-	    ,getInstance: function(forBrowserParameter, jQuery){
-	    	return this.create(forBrowserParameter, jQuery);
-	    }
-	};
+    
+//    //TODO implement mechanism for setting env-variable (e.g. read from params...)
+	var isBrowserEnvironment = env.isBrowserEnv;// module.config().forBrowser;
+	
+	instance = new constructor(isBrowserEnvironment);
+	
+	return instance;
 
-}());
+});

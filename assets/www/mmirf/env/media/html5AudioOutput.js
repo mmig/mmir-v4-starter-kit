@@ -25,8 +25,16 @@
  */
 
 
+/**
+ * @name media.plugin.html5AudioOutput
+ */
 newMediaPlugin = {
+
+		/** @scope media.plugin.html5AudioOutput.prototype */
+		
 		initialize: function(callBack, mediaManagerInstance){
+			
+			var _pluginName = 'html5AudioOutput';
 
 			callBack({
 				playWAV: function(blob, successCallback, failureCallback){

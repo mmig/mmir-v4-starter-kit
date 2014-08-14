@@ -27,7 +27,7 @@
 
 
 /**
- * @module mobileDS.helpers
+ * @module mmir.helpers
  * 
  */
 
@@ -41,9 +41,9 @@
 var ApplicationHelper = function(){
     this.name = "ApplicationHelper";
     this.language_menu;
-	this.language_choosen_action = 'mobileDS.PresentationManager.getInstance().renderPreviousView()';
-	this.listItemTheme="b";
-	this.listItemThemeCurrent="e";
+	this.language_choosen_action = 'mmir.PresentationManager.renderPreviousView()';
+	this.listItemTheme="a";
+	this.listItemThemeCurrent="b";
 };
 
 /**
@@ -91,7 +91,7 @@ ApplicationHelper.prototype.get_language_menu = function(ctrl, data){
 			}
 			
 			// check if item is current language--- if so: mark by another theme
-			if (mobileDS.LanguageManager.getInstance().getLanguage() === par_available_languages[i]){
+			if (mmir.LanguageManager.getInstance().getLanguage() === par_available_languages[i]){
 				li.attr( "data-theme", self.listItemThemeCurrent );
 				class_li += "ui-body-"+self.listItemThemeCurrent;
 			} else {
@@ -138,9 +138,9 @@ ApplicationHelper.prototype.get_language_menu = function(ctrl, data){
 		return $('<div></div>').append(ul.clone()).html();
 	}
 	
-	var languageMenuStr = '<h2>'+mobileDS.LanguageManager.getInstance().getText("choose_language")+'</h2>';
+	var languageMenuStr = '<h2>'+ mmir.LanguageManager.getInstance().getText("choose_language")+'</h2>';
 
-	var available_languages = mobileDS.LanguageManager.getInstance().getLanguages();
+	var available_languages = mmir.LanguageManager.getInstance().getLanguages();
 	languageMenuStr += getLanguageListView(available_languages);
 	
 	return languageMenuStr;

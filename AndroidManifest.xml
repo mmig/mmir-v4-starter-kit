@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="de.dfki.iui.mmig" android:versionCode="1"
-	android:versionName="1.0">
+	package="de.dfki.iui.mmig.starterkit" android:versionCode="3"
+	android:versionName="3.0">
 
 	<supports-screens android:largeScreens="true"
 		android:normalScreens="true" android:smallScreens="true"
@@ -32,7 +32,7 @@
         
 	    
         <activity
-            android:name="de.dfki.iui.mmig.MMIGAppActivity"
+            android:name="de.dfki.iui.mmig.starterkit.MMIGAppActivity"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/app_name"
             android:launchMode="singleTask" >

@@ -254,7 +254,7 @@ function StatechartExecutionContext() {
                 return "main_state"
             }
             this.enterAction = function() {
-                dialogManager.render('Application', 'login');
+                mmir.DialogManager.render('Application', 'login');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -325,7 +325,7 @@ function StatechartExecutionContext() {
                     preemptedBasicStates: {},
                     action: function() {
                         //transition action
-                        dialogManager.perform('Application', 'slide_down_language_menu');
+                        mmir.DialogManager.perform('Application', 'slide_down_language_menu');
                         for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                         N10000_iterator < N10000_hoist;
                         N10000_iterator++) {
@@ -343,10 +343,10 @@ function StatechartExecutionContext() {
                         //transition action
                         var isChanged = _event.data && _event.data.changed ? _event.data.changed : false;
                         if (isChanged) {
-                            dialogManager.render('Application', 'login');
+                            mmir.DialogManager.render('Application', 'login');
                         }
                         else {
-                            dialogManager.perform('Application', 'slide_up_language_menu');
+                            mmir.DialogManager.perform('Application', 'slide_up_language_menu');
                         }
                         for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                         N10000_iterator < N10000_hoist;
@@ -410,7 +410,7 @@ function StatechartExecutionContext() {
                         preemptedBasicStates: {},
                         action: function() {
                             //transition action
-                            dialogManager.perform('Application', 'slide_down_language_menu');
+                            mmir.DialogManager.perform('Application', 'slide_down_language_menu');
                             for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                             N10000_iterator < N10000_hoist;
                             N10000_iterator++) {
@@ -427,10 +427,10 @@ function StatechartExecutionContext() {
                             //transition action
                             var isChanged = _event.data && _event.data.changed ? _event.data.changed : false;
                             if (isChanged) {
-                                dialogManager.render('Application', 'login');
+                                mmir.DialogManager.render('Application', 'login');
                             }
                             else {
-                                dialogManager.perform('Application', 'slide_up_language_menu');
+                                mmir.DialogManager.perform('Application', 'slide_up_language_menu');
                             }
                             for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                             N10000_iterator < N10000_hoist;
@@ -463,7 +463,7 @@ function StatechartExecutionContext() {
                 return "registration_form"
             }
             this.enterAction = function() {
-                dialogManager.render('Application', 'registration');
+                mmir.DialogManager.render('Application', 'registration');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -598,7 +598,7 @@ function StatechartExecutionContext() {
                 return "try_to_register_new_user"
             }
             this.enterAction = function() {
-                dialogManager.perform('Application', 'register');
+                mmir.DialogManager.perform('Application', 'register');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -617,7 +617,7 @@ function StatechartExecutionContext() {
                 }
             }
             this.$default = function() {
-                if (mobileDS.User.getInstance() == null) return {
+                if (mmir.User.getInstance() == null) return {
                     preemptedBasicStates: {},
                     action: function() {
                         hasTakenDefaultTransition = true;
@@ -639,7 +639,7 @@ function StatechartExecutionContext() {
                             ];
                     }
                 }
-                if (mobileDS.User.getInstance() != null) return {
+                if (mmir.User.getInstance() != null) return {
                     preemptedBasicStates: {},
                     action: function() {
                         hasTakenDefaultTransition = true;
@@ -686,7 +686,7 @@ function StatechartExecutionContext() {
                 return "login_user"
             }
             this.enterAction = function() {
-                dialogManager.perform('Application', 'login');
+                mmir.DialogManager.perform('Application', 'login');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -729,7 +729,7 @@ function StatechartExecutionContext() {
                 return scxmlRoot['login_failed']();
             }
             this.user_logged_in = function() {
-                if (mobileDS.User.getInstance() != null) return {
+                if (mmir.User.getInstance() != null) return {
                     preemptedBasicStates: {},
                     action: function() {
                         //exit states
@@ -750,7 +750,7 @@ function StatechartExecutionContext() {
                             ];
                     }
                 }
-                if (mobileDS.User.getInstance() == null) return {
+                if (mmir.User.getInstance() == null) return {
                     preemptedBasicStates: {},
                     action: function() {
                         //exit states
@@ -798,7 +798,7 @@ function StatechartExecutionContext() {
                     }
                 }
                 if (e.match(user_logged_in_Regexp_N10421)) {
-                    if (mobileDS.User.getInstance() != null) return {
+                    if (mmir.User.getInstance() != null) return {
                         preemptedBasicStates: {},
                         action: function() {
                             //exit states
@@ -821,7 +821,7 @@ function StatechartExecutionContext() {
                     }
                 }
                 if (e.match(user_logged_in_Regexp_N10421)) {
-                    if (mobileDS.User.getInstance() == null) return {
+                    if (mmir.User.getInstance() == null) return {
                         preemptedBasicStates: {},
                         action: function() {
                             //exit states
@@ -865,7 +865,7 @@ function StatechartExecutionContext() {
                 return "logged_in"
             }
             this.enterAction = function() {
-                dialogManager.render('Application', 'welcome');
+                mmir.DialogManager.render('Application', 'welcome');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -1317,7 +1317,7 @@ function StatechartExecutionContext() {
                 return "create_appointment_initial"
             }
             this.enterAction = function() {
-                dialogManager.render('Calendar', 'create_appointment');
+                mmir.DialogManager.render('Calendar', 'create_appointment');
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {
@@ -1361,7 +1361,7 @@ function StatechartExecutionContext() {
             }
             this.enterAction = function() {
                 var data = jQuery.parseJSON('{"container_id":"create_appointment"}');
-                var result = dialogManager.perform('Calendar', 'create_appointment', data);
+                var result = mmir.DialogManager.perform('Calendar', 'create_appointment', data);
                 for (var N10000_iterator = 0, N10000_hoist = listeners.length;
                 N10000_iterator < N10000_hoist;
                 N10000_iterator++) {

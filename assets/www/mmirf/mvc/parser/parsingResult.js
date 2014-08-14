@@ -28,14 +28,15 @@
 /**
  * Dependencies:
  * 
- *  * mobileDS.parser.element (parseElementTypes.js)
+ *  * parser.element (parserModule.js)
  *  * ANTLR TokenStream (antlr3-all.js)
  * 
  * @module mobileDS.tools
  * 
  */
-var mobileDS = window.mobileDS || {};
-mobileDS.parser = mobileDS.parser || {};
+
+define(['antlr3', 'parserModule'], function(org, parser){
+
 
 /**
  * ParsingResult represents an element that was detected during parsing.
@@ -46,7 +47,7 @@ mobileDS.parser = mobileDS.parser || {};
  * 
  * <p>
  * The ParsingResult has a <code>type</code> property which refers to the kind of element
- * that was detected (see constants in {@link mobileDS.parser.element}).
+ * that was detected (see constants in {@link mmir.parser.element}).
  * 
  * <p>
  * In addition, the ParsingResult may have several properties that depend of its type. In general,
@@ -111,8 +112,8 @@ mobileDS.parser = mobileDS.parser || {};
  * 							function takes one argument: the current data-object.</li>
  * 	<li><strong>content</strong> {ContentElement}: the HTML / template content that should be render, in case the
  * 					if-expression evaluates to <code>true</code>.</li>
- *  <li><strong>elseContent</strong> {@link mobileDS.parser.ParsingResult}: OPTIONALLY a ParsingResult
- *  					representing an else-expression, see {@link mobileDS.parser.element.ELSE}.</li>
+ *  <li><strong>elseContent</strong> {@link mmir.parser.ParsingResult}: OPTIONALLY a ParsingResult
+ *  					representing an else-expression, see {@link mmir.parser.element.ELSE}.</li>
  * </ul>
  * <p>
  * Properties for <strong>ELSE</strong> type:
@@ -185,7 +186,7 @@ mobileDS.parser = mobileDS.parser || {};
  * 
  * @category parser
  */
-mobileDS.parser.ParsingResult = function (thetokens){
+parser.ParsingResult = function (thetokens){
 	var isSet = false;
 	
 	//try to extract start-/end-indexes from the argument:
@@ -236,7 +237,7 @@ mobileDS.parser.ParsingResult = function (thetokens){
  * 
  * @public
  */
-mobileDS.parser.ParsingResult.prototype.setStartFrom = function(thetokens){
+parser.ParsingResult.prototype.setStartFrom = function(thetokens){
 	//NOTE: must invoke getTokens() for initializing size() etc.!
 	if(thetokens.getTokens() && thetokens.size() > 0){
 		this.start = thetokens.getTokens()[0].getStartIndex();
@@ -255,7 +256,7 @@ mobileDS.parser.ParsingResult.prototype.setStartFrom = function(thetokens){
  * 
  * @public
  */
-mobileDS.parser.ParsingResult.prototype.setEndFrom = function(thetokens){
+parser.ParsingResult.prototype.setEndFrom = function(thetokens){
 	//NOTE: must invoke getTokens() for initializing size() etc.!
 	if(thetokens.getTokens() && thetokens.size() > 0){
 		this.end = thetokens.getTokens()[thetokens.size()-1].getStopIndex();
@@ -264,31 +265,31 @@ mobileDS.parser.ParsingResult.prototype.setEndFrom = function(thetokens){
 		this.end = -1;
 	}
 };
-mobileDS.parser.ParsingResult.prototype.getStart = function(){
+parser.ParsingResult.prototype.getStart = function(){
 	return this.start;
 };
-mobileDS.parser.ParsingResult.prototype.getEnd = function(){
+parser.ParsingResult.prototype.getEnd = function(){
 	return this.end;
 };
 
 /**
  * Get the type of this parsed element, i.e. as which type this element was parsed.
  * 
- * The type corresponds to one of the type defined in {mobileDS.parser.element}.
+ * The type corresponds to one of the type defined in {mmir.parser.element}.
  * 
  * @function setEndFrom
- * @return {mobileDS.parser.element} the type for this ParsingResult
+ * @return {mmir.parser.element} the type for this ParsingResult
  * 
  * @public
  */
-mobileDS.parser.ParsingResult.prototype.getType = function(){
+parser.ParsingResult.prototype.getType = function(){
 	return this.type;
 };
 
 //helper function for converting properties to the correct value.
 // By default, the ParsingResult only contains "raw" property values.
 // Which properties are available, depends on the type of the ParsingResult (see templateProcessor.js)
-mobileDS.parser.ParsingResult.prototype.getValue = function(rawPropertyValue, proptertyType, data){
+parser.ParsingResult.prototype.getValue = function(rawPropertyValue, proptertyType, data){
 	
 	if(proptertyType === 'StringLiteral'){
 		return rawPropertyValue.substring(1, rawPropertyValue.length-1);
@@ -324,136 +325,159 @@ mobileDS.parser.ParsingResult.prototype.getValue = function(rawPropertyValue, pr
 		return rawPropertyValue;
 };
 
-mobileDS.parser.ParsingResult.prototype.hasVarReferences = function(){
+parser.ParsingResult.prototype.hasVarReferences = function(){
 	return false;//TODO implement this
 };
 
-mobileDS.parser.ParsingResult.prototype.isScriptTag = function(){
-	if( mobileDS.parser.element.INCLUDE_SCRIPT === this.getType() ){
+parser.ParsingResult.prototype.isScriptTag = function(){
+	if( parser.element.INCLUDE_SCRIPT === this.getType() ){
 		return true;
 	}
 	return false;
 };
 
-mobileDS.parser.ParsingResult.prototype.isStyleTag = function(){
-	if( mobileDS.parser.element.INCLUDE_STYLE === this.getType() ){
+parser.ParsingResult.prototype.isStyleTag = function(){
+	if( parser.element.INCLUDE_STYLE === this.getType() ){
 		return true;
 	}
 	return false;
 };
 
-mobileDS.parser.ParsingResult.prototype.isLocalize = function(){
-	if( mobileDS.parser.element.LOCALIZE === this.getType() ){
+parser.ParsingResult.prototype.isLocalize = function(){
+	if( parser.element.LOCALIZE === this.getType() ){
 		return true;
 	}
 	return false;
 };
 
-mobileDS.parser.ParsingResult.prototype.isYield = function(){
-	if( mobileDS.parser.element.YIELD_DECLARATION === this.getType() ){
+parser.ParsingResult.prototype.isYield = function(){
+	if( parser.element.YIELD_DECLARATION === this.getType() ){
 		return true;
 	}
 	return false;
 };
 
-mobileDS.parser.ParsingResult.prototype.isYieldContent = function(){
-	if( mobileDS.parser.element.YIELD_CONTENT === this.getType() ){
+parser.ParsingResult.prototype.isYieldContent = function(){
+	if( parser.element.YIELD_CONTENT === this.getType() ){
 		return true;
 	}
 	return false;
 };
 
-mobileDS.parser.ParsingResult.prototype.isScriptBlock = function(){
-	if( mobileDS.parser.element.BLOCK === this.getType() ){
+parser.ParsingResult.prototype.isScriptBlock = function(){
+	if( parser.element.BLOCK === this.getType() ){
 		return true;
 	}
 	return false;
 };
 
-mobileDS.parser.ParsingResult.prototype.isScriptStatement = function(){
-	if( mobileDS.parser.element.STATEMENT === this.getType() ){
+parser.ParsingResult.prototype.isScriptStatement = function(){
+	if( parser.element.STATEMENT === this.getType() ){
 		return true;
 	}
 	return false;
 };
 
-mobileDS.parser.ParsingResult.prototype.isHelper = function(){
-	if( mobileDS.parser.element.HELPER === this.getType() ){
+parser.ParsingResult.prototype.isHelper = function(){
+	if( parser.element.HELPER === this.getType() ){
 		return true;
 	}
 	return false;
 };
 
-mobileDS.parser.ParsingResult.prototype.isIf = function(){
-	if( mobileDS.parser.element.IF === this.getType() ){
+parser.ParsingResult.prototype.isIf = function(){
+	if( parser.element.IF === this.getType() ){
 		return true;
 	}
 	return false;
 };
 
-mobileDS.parser.ParsingResult.prototype.hasElse = function(){
+parser.ParsingResult.prototype.hasElse = function(){
 	if(this.isIf() && typeof this.elseContent != 'undefined'){
 		return true;
 	}
 	return false;
 };
 
-mobileDS.parser.ParsingResult.prototype.isElse = function(){
-	if( mobileDS.parser.element.ELSE === this.getType() ){
+parser.ParsingResult.prototype.isElse = function(){
+	if( parser.element.ELSE === this.getType() ){
 		return true;
 	}
 	return false;
 };
 
-mobileDS.parser.ParsingResult.prototype.isFor = function(){
-	if( mobileDS.parser.element.FOR === this.getType() ){
+parser.ParsingResult.prototype.isFor = function(){
+	if( parser.element.FOR === this.getType() ){
 		return true;
 	}
 	return false;
 };
 
-mobileDS.parser.ParsingResult.prototype.isRender = function(){
-	if( mobileDS.parser.element.RENDER === this.getType() ){
+parser.ParsingResult.prototype.isRender = function(){
+	if( parser.element.RENDER === this.getType() ){
 		return true;
 	}
 	return false;
 };
 
-mobileDS.parser.ParsingResult.prototype.isEscapeEnter = function(){
-	if( mobileDS.parser.element.ESCAPE_ENTER === this.getType() ){
+parser.ParsingResult.prototype.isEscapeEnter = function(){
+	if( parser.element.ESCAPE_ENTER === this.getType() ){
 		return true;
 	}
 	return false;
 };
 
-mobileDS.parser.ParsingResult.prototype.isEscapeExit = function(){
-	if( mobileDS.parser.element.ESCAPE_EXIT === this.getType() ){
+parser.ParsingResult.prototype.isEscapeExit = function(){
+	if( parser.element.ESCAPE_EXIT === this.getType() ){
 		return true;
 	}
 	return false;
 };
 
-mobileDS.parser.ParsingResult.prototype.isEscape = function(){
+parser.ParsingResult.prototype.isEscape = function(){
 	return this.isEscapeEnter() || this.isEscapeExit();
 };
 
-mobileDS.parser.ParsingResult.prototype.hasCallData = function(){
+/**
+ * WARNING: do use sparingly -- an invocation triggers a list evaluation.
+ * 
+ * @returns {String} a String representation (name) for this ParsingResult's type
+ * 
+ * @see #getType
+ */
+parser.ParsingResult.prototype.getTypeName = function(){
+	
+	if(this.typeName){
+		return this.typeName;/////////////////// EARLY EXIT //////////////////////////
+	}
+	
+	for(var prop in parser.element){
+		if(parser.element.hasOwnProperty(prop) && parser.element[prop] === this.getType()){
+			this.typeName = prop;
+			return prop;/////////////////// EARLY EXIT //////////////////////////
+		}
+	}
+	
+	return void(0);
+};
+
+parser.ParsingResult.prototype.hasCallData = function(){
 	return typeof this.dataPos !== 'undefined';
 };
 
-mobileDS.parser.ParsingResult.prototype.getCallDataStart = function(){
+parser.ParsingResult.prototype.getCallDataStart = function(){
 	return this.dataPos.start;
 };
 
-mobileDS.parser.ParsingResult.prototype.getCallDataEnd = function(){
+parser.ParsingResult.prototype.getCallDataEnd = function(){
 	return this.dataPos.end;
 };
 
-mobileDS.parser.ParsingResult.prototype.getCallDataType = function(){
+parser.ParsingResult.prototype.getCallDataType = function(){
 	return this.dataType;
 };
 
-mobileDS.parser.ParsingResult.prototype.stringify = function(){
+parser.ParsingResult.prototype.stringify = function(){
 	
 	//TODO use constants for lists
 	
@@ -500,9 +524,9 @@ mobileDS.parser.ParsingResult.prototype.stringify = function(){
 	
 
 	//function for iterating over the property-list and generating JSON-like entries in the string-buffer
-	var  appendStringified = mobileDS.parser.appendStringified;
+	var  appendStringified = parser.appendStringified;
 
-	var sb = ['mobileDS.parser.restoreObject({ classConstructor: ["mobileDS","parser","ParsingResult"]', ','];
+	var sb = ['require("storageUtils").restoreObject({ classConstructor: "parsingResult"', ','];
 
 	//TODO property dataPos: {start: Number, end: Number}
 	if(this['dataPos']){
@@ -538,3 +562,6 @@ mobileDS.parser.ParsingResult.prototype.stringify = function(){
 	return sb.join('');
 };
 
+return parser.ParsingResult;
+
+});//END: define(..., function(){

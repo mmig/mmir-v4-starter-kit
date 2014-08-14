@@ -22,6 +22,10 @@
 	<target name="test-all" depends="start-test" description="Start all tests">
     </target>
     
+	<target name="create-dirs">
+	    <mkdir dir="${jstestdriver.log.dir}"></mkdir>
+	</target>
+	
 	<!-- 
 	* Checks if the binary (JAR-file) of the jstestdriver-suite exists
 	* and if directory to config files is known.
@@ -42,6 +46,14 @@
 			</and>   		    
    		</condition>
 		<fail unless="${jstestdriver.config.dir.found}" message="Missing configuration directory: '${jstestdriver.config.dir}'" />
+		<condition property="jstestdriver.log.dir.found" else="false">
+			<and>
+				<available file="${jstestdriver.log.dir}"  type="dir"/>
+				<length string="${jstestdriver.log.dir}" when="greater" length="0" />		    
+			</and>   		    
+   		</condition>
+		<fail unless="${jstestdriver.log.dir.found}" message="Missing log directory: '${jstestdriver.log.dir}'" />
+		<echo>Using log directory: ${jstestdriver.log.dir}</echo>
   		<!--  <available file="/usr/local/somefile" property="second.file.found"/>  -->
 	</target>
 	
@@ -98,12 +110,12 @@
 		<script language="javascript"
     		description="generates the browser parameter">
 		</script>
-		<script language="javascript" src="${jsSrcDirBase}tools/test/AntTestGenerateBrowserParameter.js" />
+		<script language="javascript" src="${jsTestDirBase}AntTestGenerateBrowserParameter.js" />
  		<echo>var.browser-args: ${config.browser.args}</echo>
 	    		
 	</target>
 
-    <target name="check_config" depends="file-checks, browser-checks" description="Start the server">
+    <target name="check_config" depends="create-dirs,file-checks, browser-checks" description="Start the server">
 	    <echo>jstestdriverbin     : ${jstestdriver.bin}</echo>
   		<available file="${jstestdriver.bin}"  property="config.jstestdriver.found"/>
 		<fail unless="config.jstestdriver.found" message="Missing jar-file: ${jstestdriver.bin}" />
@@ -143,7 +155,8 @@
 				<property name="@{returnproperty}" refid="@{srcdir}" />
 			</sequential>
 		</macrodef>
-		<getFilelist srcdir="drivers" returnproperty="config.files"/>
+		<!-- <getFilelist srcdir="drivers" returnproperty="config.files"/> -->
+		<getFilelist srcdir="${jstestdriver.config.dir}" returnproperty="config.files"/>
 		<echo>Config files: ${config.files}</echo>
     </target>
 	
@@ -151,6 +164,6 @@
 		<!--
 		* run the jstestdriver with given config file
 		-->
-		<script language="javascript" src="${jsSrcDirBase}tools/test/AntTestRunTestdriver.js" />
+		<script language="javascript" src="${jsTestDirBase}AntTestRunTestdriver.js" />
 	</target>
 </project>

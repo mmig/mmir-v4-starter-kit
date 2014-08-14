@@ -26,21 +26,24 @@
 
 
 /**
- * @module mobileDS.tools
+ * @module mmir.tools
  * 
  */
-var mobileDS = window.mobileDS ||
-{};
 
-/**
- * A Utility class for creating / reading checksum (files).<br>
- * 
- * @class ChecksumUtils
- * @category core
- * 
- * @depends CryptoJS (MD5, see https://code.google.com/p/crypto-js/)
- */
-mobileDS.ChecksumUtils = (function(){
+define(['md5'],
+	/**
+	 * A Utility class for creating / reading checksum (files).<br>
+	 * 
+	 * @name ChecksumUtils
+	 * @class
+	 * @exports ChecksumUtils as mmir.tools.ChecksumUtils
+	 * @static
+	 * 
+	 * @depends CryptoJS (MD5, see https://code.google.com/p/crypto-js/)
+	 */
+	function(
+		CryptoJS
+){
 	
 	var cryptoInstance;
 	var computeChecksum = function(str){
@@ -49,13 +52,14 @@ mobileDS.ChecksumUtils = (function(){
 	
 	var digestFileExt = '.checksum.txt';
 	var digestContentSeparator = '\t';
+	var digestContentPostfix = '\r\n';
 	
 	var createDigestFileContent = function(originalText){
 	
 		var size = originalText.length;
 		var digest = computeChecksum(originalText);
 		
-		return size + digestContentSeparator + digest;
+		return digest + digestContentSeparator + size + digestContentPostfix;
 	};
 	
 	var parseDigestFileContent = function(rawTextContent){
@@ -63,8 +67,8 @@ mobileDS.ChecksumUtils = (function(){
 		var data = rawTextContent.split(digestContentSeparator);
 		
 		return {
-			size: parseInt(data[0]),
-			hash: data[1]
+			size: parseInt(data[1]),
+			hash: data[0]
 		};
 	};
 	
@@ -81,6 +85,9 @@ mobileDS.ChecksumUtils = (function(){
 		}
 	};
 	
+	/**
+	 * @lends ChecksumUtils.prototype
+	 */
 	return {
 		/**
 		 * Must be called before using checksum-generation:
@@ -162,4 +169,4 @@ mobileDS.ChecksumUtils = (function(){
 		}
 	};
 	
-})();
+});//END: define
