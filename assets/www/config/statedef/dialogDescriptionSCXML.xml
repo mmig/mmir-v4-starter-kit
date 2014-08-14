@@ -35,7 +35,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     
     <onentry>
       <script>
-	mmir.DialogManager.render('Application', 'login');
+			mmir.DialogManager.render('Application', 'login');
       </script>
     </onentry>
     
@@ -44,20 +44,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     
     <transition name="click_on_language_btn" event="click_on_language_btn" >
       <script>
-	mmir.DialogManager.perform('Application','slide_down_language_menu');
+			mmir.DialogManager.perform('Application','slide_down_language_menu');
       </script>
     </transition>
     
     <transition name="language_choosen" event="language_choosen" >
       <script>
-	MY_GLOBAL = 'mich wieder wegmachen';
-	var isChanged = _event.data &amp;&amp; _event.data.changed ? _event.data.changed : false;
-	if(isChanged){
-	mmir.DialogManager.render('Application', 'login');
-	}
-	else {
-	mmir.DialogManager.perform('Application','slide_up_language_menu');
-	}
+		var isChanged = _event.data &amp;&amp; _event.data.changed ? _event.data.changed : false;
+		if(isChanged){
+			mmir.DialogManager.render('Application', 'login');
+		}
+		else {
+			mmir.DialogManager.perform('Application','slide_up_language_menu');
+		}
       </script>
     </transition>
     
@@ -66,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   <state id="registration_form" name="registration_form">
     <onentry>
       <script>
-	mmir.DialogManager.render('Application', 'registration');
+			mmir.DialogManager.render('Application', 'registration');
       </script>
     </onentry>
     <transition event="click_on_register_btn" name="click_on_register_btn" target="try_to_register_new_user" />
@@ -76,7 +75,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   <state id="try_to_register_new_user" name="try_to_register_new_user">
     <onentry>
       <script>
-	mmir.DialogManager.perform('Application', 'register');
+			mmir.DialogManager.perform('Application', 'register');
       </script>
     </onentry>
     <transition cond="mmir.User.getInstance() == null" target="main_state"></transition>
@@ -86,7 +85,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   <state id="login_user" name="login_user">
     <onentry>
       <script>
-	mmir.DialogManager.perform('Application','login');
+			mmir.DialogManager.perform('Application','login');
       </script>
     </onentry>
     <transition event="login_failed" target="main_state" />
@@ -97,7 +96,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   <state id="logged_in" name="logged_in">
     <onentry>
       <script>
-	mmir.DialogManager.render('Application', 'welcome');
+			mmir.DialogManager.render('Application', 'welcome');
       </script>
     </onentry>
     <transition event="click_on_appointment_btn" name="click_on_appointment_btn" target="create_appointment" />
@@ -108,9 +107,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   <state id="create_appointment" name="create_appointment">
     <initial>
       <onentry>
-	<script>
-	  mmir.DialogManager.render('Calendar', 'create_appointment');
-	</script>
+		<script>
+			mmir.DialogManager.render('Calendar', 'create_appointment');
+		</script>
       </onentry>
     </initial>
 
@@ -125,10 +124,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     
     <state id="save_appointment" name="save_appointment">
       <onentry>
-	<script>
-	  var data = jQuery.parseJSON('{"container_id":"create_appointment"}');
-	  var result = mmir.DialogManager.perform('Calendar','create_appointment',data);
-	</script>
+		<script>
+	  		var data = jQuery.parseJSON('{"container_id":"create_appointment"}');
+	  		var result = mmir.DialogManager.perform('Calendar','create_appointment',data);
+		</script>
       </onentry>
       <transition target="logged_in" />
     </state>

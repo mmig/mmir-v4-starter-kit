@@ -58,7 +58,7 @@
 			.bind('vmousedown',           function(){	
 				$(this).addClass(	'ui-focus ui-btn-active ui-btn-down-a');
 			})
-			.bind('vmouseup vmousecancel',function(){	
+			.bind('vmouseup vmousecancel',function(){
 				$(this).removeClass('ui-focus ui-btn-active ui-btn-down-a');
 			})
 			//
@@ -75,16 +75,16 @@
 		
 				var lang = $(this).attr('lang');
 		
-//				console.log('lang-clicked: ' + lang);
+				//TODO trigger click-feedback
 		
 				var isChanged = self.changeLanguage(lang, false);
 				
 				if(isUseAlphaMagLanguageSelection){
 					mmir.DialogManager.showWaitDialog();//actually this does not really work, but at least something is shown...
-					//TODO: replace/set calendar's language specific resources
 				}
-				mmir.InputEngine.getInstance().raise('touch_input_event');
-				mmir.InputEngine.getInstance().raise('language_choosen', {changed: isChanged});
+				
+				mmir.InputManager.raise('touch_input_event');
+				mmir.InputManager.raise('language_choosen', {changed: isChanged});
 				
 				return false;
 		});
@@ -205,12 +205,12 @@
       var email = $('#emailField #email').val();
       var password = $('#passwordField #password').val();
       if(this.verify(email,password)){
-    	  mmir.User.create(email);
-    	  mmir.DialogEngine.getInstance().raise("user_logged_in");
+    	  mmir.ModelManager.getModel('User').create(email);
+    	  mmir.DialogManager.raise("user_logged_in");
       }
       else {
     	  alert('Wrong user name or password.\n\nDir you register?');
-    	  mmir.DialogEngine.getInstance().raise("login_failed");
+    	  mmir.DialogManager.raise("login_failed");
       }
   };
 
@@ -219,9 +219,9 @@
       var password = $('#registration-form #password').val();
       
       this.registerUsers[email] = password;
-      mmir.User.create(email);
+      mmir.ModelManager.getModel('User').create(email);
  	  
-      mmir.DialogEngine.getInstance().raise("user_logged_in");
+      mmir.DialogManager.raise("user_logged_in");
   };
   
   Application.prototype.verify = function(name, pw){
@@ -243,25 +243,14 @@
 
   /**
    * 
-   * 
    * This function changes the application language and, if requested, renders the current view again, so that 
    * the change of the language is applied to the currently displayed view. 
-   * <br>DISABLED: After changing the language (and re-rendering the view) an event "language_choosen" is raised
-   * on the DialogEngine.<br>
-   * 
-   * <div class="box important">
-   * <b>Note:</b>
-   * Momentarily this function is used by 'controllers/application.js' in the generated language menu, when the user selects a new language.<br>
-   * This should better be implemented as a partial.
-   * </div>
    * 
    * @function changeLanguage
    * @param {String} newLang The new language which is to be used henceforth
    * @param {Boolean} doReRenderView Should the currently displayed view be rendered again in the new language?
-   * @returns {String} The translation of the keyword
+   * @returns {Boolean} <code>true</code> if the language has change, <code>false</code> otherwise
    * @public
-   * 
-   * @see mmir.LanguageManager#setToCompatibilityMode#changeLanguage
    */
   Application.prototype.changeLanguage = function(newLang, doReRenderView) {
 
@@ -273,6 +262,9 @@
 	  if (doReRenderView == true){
 		  mmir.PresentationManager.getInstance().reRenderView();
 	  }
-//	  mmir.DialogEngine.getInstance().raise("language_choosen", newLang);
+	  
+	  //also set the new language for jqm plugin datebox:
+	  jQuery.mobile.datebox.prototype.options.useLang = newLang;
+	  
 	  return currLang != newLang;
   };

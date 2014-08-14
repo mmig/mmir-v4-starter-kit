@@ -24,17 +24,25 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-define ( ['commonUtils', 'contentElement', 'renderUtils', 'parseUtils', 'storageUtils'], function(//TODO storageUtils
+define ( ['commonUtils', 'contentElement', 'renderUtils', 'parseUtils', 'storageUtils'], 
+	/**
+	 * @name View
+	 * @class
+	 */
+	function(
 			commonUtils, ContentElement, renderUtils, parserUtils, parser
 ){
-		
+/** @scope View.prototype */
+/**
+ * #@+
+ * @memberOf View.prototype
+ */	
 	
 /**
  * The View class is a kind of interface-class which gives access to the methods and data of a helper (which itself belongs to a controller)<br>
  * Apart from initialising some properties, the constructor also parses the view description and looks for needed helper methods.
  * 
- * @class View
- * @constructor
+ * @constructs View
  * @param {Object} ctrl Controller instance / object
  * @param {String} name Name of the View 
  * @param {String} definition View description
@@ -295,6 +303,8 @@ View.prototype.executeHelperMethods = function(data){
 };
 
 return View;
+
+/** #@- */
 
 });//END: define(..., function(){
 

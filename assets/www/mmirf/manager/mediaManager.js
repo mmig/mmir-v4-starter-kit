@@ -25,33 +25,67 @@
  */
 
 
-/**
- * 
- * 
- * This "class" is structured as a singleton - so that only one instance is in use.<br>
- * You can access the instance of the class via 
- * 
- * @require jQuery.extend, jQuery.Deferred
- * 
- * TODO remove / change dependency on forBrowser: constants.isBrowserEnv()!!!
- */
-//mobileDS.MediaManager = (function(){
 
-
-define(['jquery', 'constants', 'commonUtils', 'configurationManager', 'dictionary'], function(
+define(['jquery', 'constants', 'commonUtils', 'configurationManager', 'dictionary'],
+	/**
+	 * The MediaManager gives access to audio in- and output functionality.
+	 * 
+	 * Depending on its configuration, the MediaManager loads different implementation modules
+	 * (<em>plugins</em>) that realize the interface-functions differently.
+	 * 
+	 * See directory <code>mmirf/env/media</code> for available plugins.
+	 * 
+	 * This "class" is a singleton - so that only one instance is in use.<br>
+	 * 
+	 * @class
+	 * @name MediaManager
+	 * @exports MediaManager as mmir.MediaManager
+	 * @static
+	 * 
+	 * @depends jQuery.extend
+	 * @depends jQuery.Deferred
+	 * 
+	 * TODO remove / change dependency on forBrowser: constants.isBrowserEnv()!!!
+	 */
+	function(
 		jQuery, constants, commonUtils, configurationManager, Dictionary
 ){
-	
+	//next 2 comments are needed by JSDoc so that all functions etc. can
+	// be mapped to the correct class description
+	/** @scope mmir.MediaManager.prototype */
+	/**
+	 * #@+
+	 * @memberOf mmir.MediaManager.prototype 
+	 */
 
     var instance = null;
     
+    //default configuration for env-settings "browser" and "cordova":
+    //
+    // -> may be overwritten by settings in the configuration file.
+    // e.g. adding the following JSON data to config/configuration.json:
+    //
+	//    "mediaManager": {
+	//    	"plugins": {
+	//    		"browser": ["html5AudioOutput.js",
+	//    		            "html5AudioInput.js",
+	//    		            "maryTextToSpeech.js"
+	//    		],
+	//    		"cordova": ["cordovaAudioOutput.js",
+	//    		            "nuanceAudioInput.js",
+	//    		            "nativeTextToSpeech.js"
+	//    		]
+	//    	}
+	//    }
     var pluginsToLoad = {
-    		'browser': new Array('html5AudioOutput.js',
-    		          'webkitAudioInput.js',
-    		          'maryTextToSpeech.js'),
-    		'android': new Array('cordovaAudioOutput.js',
-    		          'nuanceAudioInput.js',
-    		          'nuanceTextToSpeech.js')
+    		'browser': ['html5AudioOutput.js',
+    		            'html5AudioInput.js',
+    		            'maryTextToSpeech.js'
+    		],
+    		'cordova': ['cordovaAudioOutput.js',
+    		            'nuanceAudioInput.js',
+    		            'nativeTextToSpeech.js'
+    		]
     };
     
     var loadPlugin = function loadPlugin (filePath, successCallback, failureCallback){
@@ -109,16 +143,43 @@ define(['jquery', 'constants', 'commonUtils', 'configurationManager', 'dictionar
     	}
 	
     };
-    //those are the standard audioInput procedures, that should be implemented by a loaded file
+    
+    /**
+     * @constructs mmir.MediaManager
+     * @memberOf mmir.MediaManager.prototype
+     * @ignore
+     */
     function constructor(){
     	
+    	/** @scope mmir.MediaManager.prototype */
+    	
     	var listener = new Dictionary(); 
-    		
+    	
     	return {
+    		
     			//TODO add API documentation
     		
-    			//audio input API:
-    			recognize: function(blob, successCallBack, failureCallBack){
+    			//... these are the standard audioInput procedures, that should be implemented by a loaded file
+    		
+///////////////////////////// audio input API: /////////////////////////////
+	    		/**
+	    		 * Start speech recognition with <em>end-of-speech</em> detection:
+	    		 * 
+	    		 * the recognizer automatically tries to detect when speech has finished and then
+	    		 * triggers the callback with the result.
+	    		 * 
+	    		 * @async
+	    		 * 
+	    		 * @param {Function} [successCallBack] OPTIONAL
+	    		 * 			callback function that is triggered when a text result is available.
+	    		 * 			The callback signature is:
+	    		 * 				<code>callback(textResult)</code>
+	    		 * @param {Function} [failureCallBack] OPTIONAL
+	    		 * 			callback function that is triggered when an error occurred.
+	    		 * 			The callback signature is:
+	    		 * 				<code>callback(error)</code> 
+	    		 */
+    			recognize: function(successCallBack, failureCallBack){
     				if(failureCallBack){
     					failureCallBack("Audio Input: Speech Recognition is not supported.");
     				}
@@ -126,7 +187,36 @@ define(['jquery', 'constants', 'commonUtils', 'configurationManager', 'dictionar
     					console.error("Audio Input: Speech Recognition is not supported.");
     				}
     			},
-    			startRecord: function(successCallBack,failureCallBack){
+    			/**
+	    		 * Start continuous speech recognition:
+	    		 * 
+	    		 * The recognizer continues until {@link #stopRecord} is called.
+	    		 * 
+	    		 * <p>
+	    		 * If <code>isWithIntermediateResults</code> is used, the recognizer may
+	    		 * invoke the callback with intermediate recognition results.
+	    		 * 
+	    		 * TODO specify whether stopRecord should return the "gathered" intermediate results, or just the last one
+	    		 * 
+	    		 * NOTE that not all implementation may support this feature.
+	    		 * 
+	    		 * @async
+	    		 * 
+	    		 * @param {Function} [successCallBack] OPTIONAL
+	    		 * 			callback function that is triggered when a text result is available.
+	    		 * 			The callback signature is:
+	    		 * 				<code>callback(textResult)</code>
+	    		 * @param {Function} [failureCallBack] OPTIONAL
+	    		 * 			callback function that is triggered when an error occurred.
+	    		 * 			The callback signature is:
+	    		 * 				<code>callback(error)</code>
+	    		 * @param {Boolean} [isWithIntermediateResults] OPTIONAL
+	    		 * 			if <code>true</code>, the recognizer will return intermediate results
+	    		 * 			by invoking the successCallback
+	    		 * 
+	    		 * @see #stopRecord
+	    		 */
+    			startRecord: function(successCallBack,failureCallBack, isWithIntermediateResults){
     				if(failureCallBack){
     					failureCallBack("Audio Input: Speech Recognition (recording) is not supported.");
     				}
@@ -134,6 +224,27 @@ define(['jquery', 'constants', 'commonUtils', 'configurationManager', 'dictionar
     					console.error("Audio Input: Speech Recognition (recording) is not supported.");
     				}
     			},
+    			/**
+	    		 * Stops continuous speech recognition:
+	    		 * 
+	    		 * After {@link #startRecord} was called, invoking this function will stop the recognition
+	    		 * process and return the result by invoking the <code>succesCallback</code>.
+	    		 * 
+	    		 * TODO specify whether stopRecord should return the "gathered" intermediate results, or just the last one
+	    		 * 
+	    		 * @async
+	    		 * 
+	    		 * @param {Function} [successCallBack] OPTIONAL
+	    		 * 			callback function that is triggered when a text result is available.
+	    		 * 			The callback signature is:
+	    		 * 				<code>callback(textResult)</code>
+	    		 * @param {Function} [failureCallBack] OPTIONAL
+	    		 * 			callback function that is triggered when an error occurred.
+	    		 * 			The callback signature is:
+	    		 * 				<code>callback(error)</code>
+	    		 * 
+	    		 * @see #startRecord
+	    		 */
     			stopRecord: function(successCallBack,failureCallBack){
     				if(failureCallBack){
     					failureCallBack("Audio Input: Speech Recognition (recording) is not supported.");
@@ -142,50 +253,23 @@ define(['jquery', 'constants', 'commonUtils', 'configurationManager', 'dictionar
     					console.error("Audio Input: Speech Recognition (recording) is not supported.");
     				}
     	   		},
-    	   		//audio output API:
-    	   		playWAV: function(blob, successCallBack, failureCallBack){
-    	   			if(failureCallBack){
-    					failureCallBack("Audio Output: play audio is not supported.");
-    				}
-    				else {
-    					console.error("Audio Output: play audio is not supported.");
-    				}
-    			},
-    			/**
-    			 * parameter: string OR string Array OR object with attributes:
-    			 * 		text: string OR string Array, text that should be read aloud
-    			 * 		pauseLength: Length of the pauses between sentences in milliseconds
-    			 * 		forceSingleSentence: boolean, if true, a string Array will be turned into a single string
-    			 * 		split: boolean, if true and the text is a single string, it will be split using a splitter function
-    			 * 		splitter: function, replaces the default splitter-function. It takes a simple string as input and gives a string Array as output
-    			 */
-    			textToSpeech: function(parameter, successCallBack,failureCallBack){
-    	   			if(failureCallBack){
-    					failureCallBack("Audio Output: Text To Speech is not supported.");
-    				}
-    				else {
-    					console.error("Audio Output: Text To Speech is not supported.");
-    				}
-    			},
-    			
-    			//ADDITIONAL functions: 
-    			cancelSpeech: function(successCallBack,failureCallBack){
-    	   			if(failureCallBack){
-    					failureCallBack("Audio Output: canceling Text To Speech is not supported.");
-    				}
-    				else {
-    					console.error("Audio Output: canceling Text To Speech is not supported.");
-    				}
-    			},
-    			setTextToSpeechVolume: function(newValue){
-    				console.error("Audio Output: set volume for Text To Speech is not supported.");
-				},
+
     			cancelRecognition: function(successCallBack,failureCallBack){
     	   			if(failureCallBack){
     					failureCallBack("Audio Output: canceling Recognize Speech is not supported.");
     				}
     				else {
     					console.error("Audio Output: canceling Recognize Speech is not supported.");
+    				}
+    			},
+///////////////////////////// audio output API: /////////////////////////////
+    	   		
+    	   		playWAV: function(blob, successCallBack, failureCallBack){
+    	   			if(failureCallBack){
+    					failureCallBack("Audio Output: play WAV audio is not supported.");
+    				}
+    				else {
+    					console.error("Audio Output: play WAV audio is not supported.");
     				}
     			},
     			playURL: function(url, successCallback, failureCallBack){
@@ -203,7 +287,40 @@ define(['jquery', 'constants', 'commonUtils', 'configurationManager', 'dictionar
     				else {
     					console.error("Audio Output: create audio from URL is not supported.");
     				}
-    			}
+    			},
+///////////////////////////// text-to-speech API: /////////////////////////////
+    			
+    			/**
+    			 * parameter: string OR string Array OR object with attributes:
+    			 * 		text: string OR string Array, text that should be read aloud
+    			 * 		pauseLength: Length of the pauses between sentences in milliseconds
+    			 * 		forceSingleSentence: boolean, if true, a string Array will be turned into a single string
+    			 * 		split: boolean, if true and the text is a single string, it will be split using a splitter function
+    			 * 		splitter: function, replaces the default splitter-function. It takes a simple string as input and gives a string Array as output
+    			 */
+    			textToSpeech: function(parameter, successCallBack,failureCallBack){
+    	   			if(failureCallBack){
+    					failureCallBack("Audio Output: Text To Speech is not supported.");
+    				}
+    				else {
+    					console.error("Audio Output: Text To Speech is not supported.");
+    				}
+    			},
+    			cancelSpeech: function(successCallBack,failureCallBack){
+    	   			if(failureCallBack){
+    					failureCallBack("Audio Output: canceling Text To Speech is not supported.");
+    				}
+    				else {
+    					console.error("Audio Output: canceling Text To Speech is not supported.");
+    				}
+    			},
+    			
+///////////////////////////// ADDITIONAL (optional) functions: ///////////////////////////// 
+    			
+    			setTextToSpeechVolume: function(newValue){
+    				console.error("Audio Output: set volume for Text To Speech is not supported.");
+				}
+    			
     			/**
     			 * @param eventName String
     			 * @param eventHandler Function
@@ -261,20 +378,20 @@ define(['jquery', 'constants', 'commonUtils', 'configurationManager', 'dictionar
     
     
     //has 2 default configuarions:
-    // if isCordovaEnvironment TRUE: use 'android' config
+    // if isCordovaEnvironment TRUE: use 'cordova' config
     // if FALSEy: use 'browser' config
     //
     // NOTE: this setting/paramater is overwritten, if the configuration has a property 'mediaPlugins' set!!!
     function getPluginsToLoad(isCordovaEnvironment){
     	var env = null;
-    	var pluginArray = new Array();
+    	var pluginArray = [];
     	if (isCordovaEnvironment) {
-    		env = 'android';
+    		env = 'cordova';
     	} else {
     		env = 'browser';
     	}
     	
-    	var dataFromConfig = configurationManager.get('mediaPlugins');
+    	var dataFromConfig = configurationManager.get('mediaManager.plugins', true);
     	if (dataFromConfig && dataFromConfig[env]){
     		pluginArray = pluginArray.concat(dataFromConfig[env]);
     	} else{
@@ -300,8 +417,11 @@ define(['jquery', 'constants', 'commonUtils', 'configurationManager', 'dictionar
     }
     	
     
-    var stub = {
-    	//TODO add for backwards compatability?:
+    var _stub = {
+    	
+    	/** @scope mmir.MediaManager.prototype */
+    	
+    	//TODO add for backwards compatibility?:
 //    	create : function(){ return this.init.apply(this, arguments); },
     	
         /**
@@ -321,7 +441,7 @@ define(['jquery', 'constants', 'commonUtils', 'configurationManager', 'dictionar
          * 
          * @method init
          * @param {Array<Object>} [listenerList] OPTIONAL a list of listeners that should be registered
-         * @return {Object} Object containing the instance of the class {{#crossLink "MediaManager"}}{{/crossLink}}
+         * @return {Object} Object containing the instance of the class {@link mmir.MediaManager}
          * @public
          */
         init: function(successCallback, failureCallback, listenerList){
@@ -388,7 +508,9 @@ define(['jquery', 'constants', 'commonUtils', 'configurationManager', 'dictionar
 			
     	}
     };
-//}) ();
     
-    return stub;
+    return _stub;
+	
+	/** #@- */
+    
 });//END: define(..., function(){...

@@ -29,14 +29,25 @@
  * @module mmir.mvc.views
  */
 
-define(['parsingResult', 'storageUtils'], function(ParsingResult, parser) {
+define(['parsingResult', 'storageUtils'],
+	/**
+	 * @name YieldDeclaration
+	 * @class
+	 */
+	function(
+		ParsingResult, parser
+) {
+	/** @scope YieldDeclaration.prototype */
+	/**
+	 * #@+
+	 * @memberOf YieldDeclaration.prototype
+	 */
 	
 	/**
 	 * The YieldDeclaration class holds the name of the yield-declaration (which is a place-holder for the contentFor-fields and is used in the layouts: content, header, footer, dialogs, ...)
 	 * and its starting and ending position within the content-definition.
 	 * 
-	 * @class YieldDeclaration
-	 * @constructor
+	 * @constructs YieldDeclaration
 	 * @param {Object} parsingElement with properties <code>name</code> {String}, <code>start</code> {Integer}, <code>end</code> {Integer}
 	 * @param {Integer} contentAreaType the type of the content area within the layout that this yield-declaration refers to (e.g. ViewConstants.CONTENT_AREA_BODY )
 	 * @category core
@@ -161,4 +172,6 @@ define(['parsingResult', 'storageUtils'], function(ParsingResult, parser) {
 	};
 		
 	return YieldDeclaration;
+	
+	/** #@- */
 });

@@ -32,12 +32,11 @@
 
 /**
  * Plugin for the reading of directories using phonegap-/cordova-plugin-functions to bind java-methods to a javascript method.
- * @class DirectoryListing
  * @returns {Object} Instance of DirectoryListing
- * @constructor
  * @category core
  * 
- * @requires jQuery.ajax
+ * @depends jQuery.ajax
+ * @ignore
  */
 var DirectoryListing = function() {
 	this.isDebugEnabled = typeof IS_DEBUG_ENABLED !== 'undefined'? IS_DEBUG_ENABLED : false;

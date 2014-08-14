@@ -25,30 +25,52 @@
  */
 
 
-/**
- * @module mmir.manager
- * 
- * Dependencies:
- *  TODO add entries for used JS files
- *  
- * Libraries:
- *  - jQuery (>= v1.6.2); ajax, each, bind
- *  - jQuery Mobile (jQuery plugin, >= 1.2.0); $.mobile
- *  - SimpleModal (jQuery plugin, >= v1.4.2); $.modal
- *  TODO check for other dependencies on 3rd party libraries (& add missing entries)
- *  
- *  @depends document (DOM object)
- */
+
 define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager', 'renderUtils'
-         , 'layout', 'view', 'partial', 'dictionary', 'checksumUtils'
+         , 'layout', 'view', 'partial', 'dictionary', 'checksumUtils', 'languageManager'
          , 'jquery'//, 'module'
-         , 'antlr3', 'jqm','stringExtension', 'languageManager', 'parserModule'
+         , 'antlr3', 'jqm', 'stringExtension', 'parserModule'
         
-    ], function ( controllerManager, constants, commonUtils, configurationManager, renderUtils
-    		, Layout, View, Partial, Dictionary, checksumUtils
+    ],
+    
+    /**
+     * @class
+     * @name mmir.PresentationManager
+     * @static 
+     *  
+     * Libraries:
+     *  - jQuery (>= v1.6.2); ajax, each, bind
+     *  - jQuery Mobile (jQuery plugin, >= 1.2.0); $.mobile
+     *  - SimpleModal (jQuery plugin, >= v1.4.2); $.modal
+     *  TODO check for other dependencies on 3rd party libraries (& add missing entries)
+     *  
+     *  @depends document (DOM object)
+     */
+    function ( controllerManager, constants, commonUtils, configurationManager, renderUtils
+    		, Layout, View, Partial, Dictionary, checksumUtils, languageManager
             , $//, module
 ) {
 	
+	//next 2 comments are needed by JSDoc so that all functions etc. can
+	// be mapped to the correct class description
+	/** @scope mmir.PresentationManager.prototype */
+	/**
+	 * #@+
+	 * @memberOf mmir.PresentationManager.prototype 
+	 */
+	
+	/**
+     * Counter that keeps track of the number of times, that a view is rendered
+     * 
+     * NOTE: for implementation specific reasons, jQuery Mobile requires that
+     * 		 each page has a different ID. This pageIndex is used to generating
+     * 		 such a unique ID, by increasing the number on each page-change
+     * 		 (i.e. by rendering a view) and appending it to the page's ID/name.
+     * 
+     * @property pageIndex
+     * @type Integer
+     * @private
+     */
 	var pageIndex = 0;
 
 	 /**
@@ -65,7 +87,27 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 	  */
 	 var DEFAULT_CONTROLLER_NAME = 'Application';
 	 
-	 
+	 /**
+	  * Name of the configuration property that specifies whether or not to use 
+	  * pre-compiled views, i.e. whether to use generated JavaScript files
+	  * instead of parsing & compiling the "raw" templates (eHTML files).
+	  * 
+	  * <p>
+	  * NOTE: the configuration value, that can be retrieved by querying this configuration-property
+	  * 	  has is either a Boolean, or a String representation of a Boolean value:
+	  * 		<code>[true|false|"true"|"false"]</code>
+	  * <br>
+	  * NOTE2: There may be no value set at all in the configuration for this property.
+	  * 	   In this case you should assume that it was set to <code>false</code>. 
+	  * 
+	  * @property CONFIG_PRECOMPILED_VIEWS_MODE
+	  * @type String
+	  * @private
+	  * @constant
+	  * 
+	  * @example var isUsePrecompiledViews = mmir.Constants.get(CONFIG_PRECOMPILED_VIEWS_MODE);
+	  * 
+	  */
 	 var CONFIG_PRECOMPILED_VIEWS_MODE = 'usePrecompiledViews';//TODO move this to somewhere else (collected config-vars?)? this should be a public CONSTANT...
 	 
 	 // private members
@@ -100,6 +142,8 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 	  * List of elements (jQuery objects) that should be remove from DOM
 	  * after a page has loaded (loaded: after all contents inserted into the
 	  * DOM and after all page transitions have been executed).
+	  * 
+	  * @private
 	  */
 	 var afterViewLoadRemoveList = [];
      
@@ -119,15 +163,22 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
      		afterViewLoadRemoveList.splice(0, size);
      	}
      };
-     //may run in window-/DOM-less environment (e.g. nodejs) 
-     //  -> only add listener, if document object is present:
-     if(typeof document !== 'undefined'){
-     	$( document ).bind( "pagechange", doRemoveElementsAfterViewLoad);
-     }
+     
+     //DISABLE: old jQuery Mobile API (version <= 1.3.x)
+     //			(with new API, the change-handler is diretly attachted 
+     //			 to the new page, see doRenderView())
+//     //may run in window-/DOM-less environment (e.g. nodejs) 
+//     //  -> only add listener, if document object is present:
+//     if(typeof document !== 'undefined'){
+//     	$( document ).bind( 'pagecontainerchange', doRemoveElementsAfterViewLoad);
+//     }
 
 	 // set jQuery Mobile's default transition to "none":
+     // TODO make this configurable (through mmir.ConfigurationManager)?
 	 $.mobile.defaultPageTransition = 'none';
 
+	 
+	 
 	 /**
 	  * An object containing data for the currently displayed view.<br>
 	  * It contains: name of the corresponding controller, name of the view
@@ -160,7 +211,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 	  * @private
 	  */
 	 var current_dialog = null;
-
+	 
 	 var viewSeparator 		= '#';
      var partialSeparator 	= commonUtils.getPartialsPrefix();
      function createLookupKey(ctrl, viewObj, separator){
@@ -189,8 +240,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 	  * all the content is localized using
 	  * {@link mmir.LanguageManager#translateHTML}, and appended to
 	  * the HTML document of the application, while the old one is
-	  * removed - is probably not a good idea to use '<b>$("div[data-role='page']").first().remove()</b>'
-	  * to remove the old page content: it's not robust.<br>
+	  * removed.<br>
 	  * At the end the <b>on_page_load</b> action is performed.
 	  * 
 	  * @function doRenderView
@@ -203,8 +253,19 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 	  * @param {Object}
 	  *            ctrl Controller object of the view to render
 	  * @param {Object}
-	  *            [data] optional data for the view
-	  * @public
+	  *            [data] optional data for the view.
+	  *            Currently same jQuery Mobile specific properties are supported: <br>
+	  *            When these are present, they will be used for animating the 
+	  *            page transition upon rendering.
+	  *            
+	  *            <pre>{transition: STRING, reverse: BOOLEAN}</pre>
+	  *            where<br>
+	  *            <code>transition</code>: the name for the transition (see jQuery Mobile Doc for possible values)
+	  *            							DEFAULT: "none".
+	  *            <code>reverse</code>: whether the animation should in "forward" (FALSE) direction, or "backwards" (TRUE)
+	  *            						DEFAULT: FALSE
+	  *            
+	  * @private
 	  */
 	 var doRenderView = function(ctrlName, viewName, view, ctrl, data){
 		 
@@ -218,20 +279,16 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		 layoutDialogs = renderUtils.renderViewDialogs(layoutDialogs, layout.getYields(), view.contentFors, data );
 
 		 //TODO handle additional template syntax e.g. for BLOCK, STATEMENT (previously: partials)
-		 var dialogs = $("#applications_dialogs");//<- TODO make this a CONST & export/collect all CONSTs in one place 
+		 var dialogs = $("#applications_dialogs");//<- TODO make this ID a CONST & export/collect all CONSTs in one place 
 		 dialogs.empty();
 
-		 // Translate the Keywords or better: localize it... 
-//		 NOTE: this is now done during rendering of dialogs-content                if(typeof layoutDialogs  != "undefined"){
-//		 layoutDialogs = mmir.LanguageManager.translateHTML(layoutDialogs);
-//		 }
-		 dialogs.append( layoutDialogs);
+		 dialogs.append(layoutDialogs);
 
 //		 // Translate the Keywords or better: localize it... 
 //		 NOTE: this is now done during rendering of body-content                  	layoutBody = mmir.LanguageManager.translateHTML(layoutBody);
 		 //TODO do localization rendering for layout (i.e. none-body- or dialogs-content)
 
-		 var pg = new RegExp("pageContainer", "ig");
+		 var pg = new RegExp("pageContainer", "ig");//TODO make "pageContainer" a CONSTANT
 		 var oldId = "#pageContainer" + pageIndex;
 
 		 // get old content from page
@@ -257,8 +314,9 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		 }
 		 var newPage = $(layoutBody);
 
-		 ctrl.performIfPresent('before_page_load', data);//MODIFICATION for lever: added before_page_load hook!
-//		 ctrl.performIfPresent('before_page_load_'+viewName, data);
+		 //trigger "before page loading" hooks on controller, if present/implemented: 
+		 ctrl.performIfPresent('before_page_load', data);//<- this is triggered for every view in the corresponding controller
+//		 ctrl.performIfPresent('before_page_load_'+viewName, data);//<- TODO should hooks for single/specific views be supported?
 
 		 //'load' new content into the page (using jQuery mobile)
 		 newPage.appendTo($.mobile.pageContainer);
@@ -277,18 +335,27 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 				 };
 			 }
 			 else {
-				 changeOptions.reverse = data.reverse; 
+				 changeOptions.reverse = data.reverse;
 			 }
 		 }
+		 
 
 		 //change visible page from old to new one (using jQuery mobile)
-		 $.mobile.changePage("#" + newId, changeOptions);
+         //jQuery Mobile <= 1.3.x API:
+//         $.mobile.changePage("#" + newId, changeOptions);
+		 
+         //jQuery Mobile 1.4 API:
+         var pageContainer = $(':mobile-pagecontainer');
+         //add handler that removes old page, after the new one was loaded:
+         pageContainer.pagecontainer({change: doRemoveElementsAfterViewLoad});
+         //actually change the (visible) page to the new one:
+         pageContainer.pagecontainer('change', '#' + newId, changeOptions);
 
-		 //remove old content:
-//		 oldContent.remove();
 
+         //trigger "after page loading" hooks on controller:
+         // the hook for all views of the controller MUST be present/implemented:
 		 ctrl.perform('on_page_load', data);
-
+		 //... the hook for single/specific view MAY be present/implemented:
 		 ctrl.performIfPresent('on_page_load_'+viewName, data);
 
 		 // =====================================================================
@@ -314,8 +381,9 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 	 };
 
 	 
-	var _instance = {
-			
+	 var _instance = {
+			/** @scope mmir.PresentationManager.prototype  */
+			 
 			/**
 			 * @deprecated instead: use mmir.PresentationManager directly
 			 */
@@ -324,7 +392,6 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 			},
 
            // public members
-
             addLayout : function(layout) {
                 layouts.put(layout.getName(), layout);
             },
@@ -487,35 +554,101 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 					});
 
 				} else {
-					alert("Could not find: Controller for " + ctrlName);
+					console.error("Could not find: Controller for " + ctrlName);
 				}
 
-				$('.transformed-checkbox').jqTransform({
-					imgPath : 'jqtransformplugin/img/'
-				});
+				//DISABLED: this would require jqtransform.js / jqtransform.css
+//				$('.transformed-checkbox').jqTransform({
+//					imgPath : 'jqtransformplugin/img/'
+//				});
+			},
+			
+			/**
+			 * Shows a "wait" dialog, i.e. "work in progress" notification.
+			 * 
+			 * @function showWaitDialog
+			 * 
+			 * @param {String} [text] OPTIONAL
+			 * 				the text that should be displayed.
+			 * 				If omitted the language setting for <code>loadingText</code>
+			 * 				will be used instead (from dictionary.json)
+			 * @param {String} [theme] OPTIONAL
+			 * 				set the jQuery Mobile theme to be used for the wait-dialog
+			 * 				(e.g. "a" or "b").
+			 * 				NOTE: if this argument is used, then the <code>text</code>
+			 * 					  must also be supplied.
+			 * 
+			 * @public
+			 * @requires jQuery Mobile: <code>$.mobile.loading</code>
+			 * 
+			 * @see #hideWaitDialog
+			 */
+			showWaitDialog : function(text, theme) {
+
+				var loadingText = typeof text === 'undefined'? languageManager.getText('loadingText') : text;
+				var themeSwatch = typeof theme === 'undefined'? 'b' : text;//TODO define a default & make configurable (-> mmir.ConfigurationManager) 
+				
+				if (loadingText !== null && loadingText.length > 0) {
+//					console.log('[DEBUG] setting loading text to: "'+loadingText+'"');
+					$.mobile.loading('show', {
+						text : loadingText,
+						theme: themeSwatch,
+						textVisible : true
+					});
+				}
+				else {
+					$.mobile.loading('show',{
+						theme: themeSwatch,
+						textVisible : false
+					});
+				}
 			},
 
-            /**
-             * Gets the view for a controller, then executes helper methods on
-             * the view data. The Rendering of the view is done by the
-             * {@link mmir.PresentationManager#doRenderView} method. Also
-             * stores the previous and current view with parameters.<br>
-             * 
-             * @function renderView
-             * @param {String}
-             *            ctrlName Name of the controller
-             * @param {String}
-             *            viewName Name of the view to render
-             * @param {Object}
-             *            data Optionally data for the view
-             * @public
-             */
+			/**
+			 * Hides / closes the "wait" dialog.
+			 * 
+			 * @function hideWaitDialog
+			 * @public
+			 * @requires jQuery Mobile: <code>$.mobile.loading</code>
+			 * 
+			 * @see #showWaitDialog
+			 */
+			hideWaitDialog : function() {
+
+				$.mobile.loading('hide');
+
+			},
+
+			/**
+			 * Gets the view for a controller, then executes helper methods on
+			 * the view data. The Rendering of the view is done by the
+			 * {@link #doRenderView} method. Also
+			 * stores the previous and current view with parameters.<br>
+			 * 
+			 * @function renderView
+			 * @param {String}
+			 *            ctrlName Name of the controller
+			 * @param {String}
+			 *            viewName Name of the view to render
+			 * @param {Object}
+			 *            [data] optional data for the view.
+			 *            Currently same jQuery Mobile specific properties are supported: <br>
+			 *            When these are present, they will be used for animating the 
+			 *            page transition upon rendering.
+			 *            
+			 *            <pre>{transition: STRING, reverse: BOOLEAN}</pre>
+			 *            where<br>
+			 *            <code>transition</code>: the name for the transition (see jQuery Mobile Doc for possible values)
+			 *            							DEFAULT: "none".
+			 *            <code>reverse</code>: whether the animation should in "forward" (FALSE) direction, or "backwards" (TRUE)
+			 *            						DEFAULT: FALSE
+			 * @public
+			 */
             renderView : function(ctrlName, viewName, data) {
             	
                 var ctrl = controllerManager.getController(ctrlName);
 
                 if (ctrl != null) {
-                    // var view = mmir.PresentationManager.getInstance().getView(ctrlName, viewName);
                     var view = this.getView(ctrlName, viewName);
 
 
@@ -525,7 +658,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 
                     doRenderView(ctrlName, viewName, view, ctrl, data);
 
-                    // Only overwrite previous state if and only if the view is not rerendered!
+                    // Only overwrite previous state if and only if the view is not re-rendered!
 					if (ctrlName != currentView["ctrlName"] || viewName != currentView["viewName"] || data != currentView["data"]){
 						previousView["ctrlName"]=currentView["ctrlName"];
 						previousView["viewName"]=currentView["viewName"];
@@ -540,7 +673,11 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 
             /**
              * Renders the current view again, using the
-             * {@link mmir.PresentationManager#render} method.
+             * {@link #render} method.
+             * 
+             * @deprecated you should use {@link #render} with appropriate parameters instead.
+             * 
+             * @depends mmir.DialogManager
              * 
              * @function reRenderView
              * @public
@@ -548,14 +685,19 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
             reRenderView : function() {
                 if (currentView) {
                     if (currentView["ctrlName"] && currentView["viewName"]) {
-                        dialogManager.render(currentView["ctrlName"], currentView["viewName"], currentView["data"]);
+                        require('dialogManager').render(currentView["ctrlName"], currentView["viewName"], currentView["data"]);
                     }
                 }
             },
 
             /**
              * Renders the previous view again, using the
-             * {@link mmir.DialogEngine#render} method.
+             * {@link mmir.DialogManager#render} method.
+             * 
+             * 
+             * @deprecated you should use {@link #render} with appropriate parameters instead.
+             * 
+             * @depends mmir.DialogManager
              * 
              * @function renderPreviousView
              * @public
@@ -563,27 +705,25 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
             renderPreviousView : function() {
                 if (previousView) {
                     if (previousView["ctrlName"] && previousView["viewName"]) {
-                        dialogManager.render(previousView["ctrlName"], previousView["viewName"], previousView["data"]);
+                    	require('dialogManager').render(previousView["ctrlName"], previousView["viewName"], previousView["data"]);
                     }
                 }
             },        
 	
             init: init
-	};
+		};//END:  return{...
+//	})();//END: (function(){...
 	
-		
+
 	return _instance;
 	
 	function init () {
 		
+		/** @scope mmir.MediaManager.prototype */
+		
 		checksumUtils = require('checksumUtils');//FIXME why is this undefined on loading? dependency cycle? really, this should already be available, since it is mentioned in the deps of define()....
 
 		delete _instance.init;//FIXME should init be deleted?
-
-		//DEPRECATED loadAddons!
-//		if (module.config().addons){
-//			commonUtils.loadAddons(module.config().addons);
-//		}
 
         /**
          * Checks if a pre-compiled view is up-to-date:
@@ -594,6 +734,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
          * (the callback argument may contain information about the cause).
          * 
          * @async
+         * @private
          * 
          * @param {String} rawViewData
          * 					the text content of the view template (i.e. content of a eHTML file "as is")
@@ -639,6 +780,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
          *    by comparing it with the data of the checksum file.
          *    
          * @sync the checksum file is loaded in synchronous mode
+         * @private
          * 
          * @param {String} viewContent
          * 						the content of the view template (i.e. loaded eHTML file)
@@ -1033,6 +1175,6 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 
 	};
 
-	
+	/** #@- */
 });
 

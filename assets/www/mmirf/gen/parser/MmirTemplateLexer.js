@@ -1005,7 +1005,7 @@ org.antlr.lang.augmentObject(MmirTemplateLexer.prototype, {
             // ../MmirTemplate.g:306:11: EOF
             this.match(this.EOF); 
             this.emit(org.antlr.runtime.Token.EOF_TOKEN);
-            if(this.isDebug) print("exit text");/*debug*/
+            if(this.isDebug) this.printDebug("exit text");/*debug*/
 
 
 

@@ -24,6 +24,9 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+
+//define(['module'], function(module){//TODO remove module-dependency? -> would need different mechanism for querying env-configuration...
+define(['env'], 
 /**
  * A Utility class that provides various <i>constants</i>.<br>
  * 
@@ -33,13 +36,16 @@
  * switchted via the getInstance()-method, e.g. <code>getInstance(false)</code>
  * 
  * @example <code>mmir.Constants</code>
- * @class mmir.Constants
  * @category core
  * 
- * @see mmir.Constants#constructor
+ * @name Constants
+ * @exports Constants as mmir.Constants
+ * @static
+ * @class
  */
-//define(['module'], function(module){//TODO remove module-dependency? -> would need different mechanism for querying env-configuration...
-define(['env'], function(env){
+function(
+		env
+){
 	 /**
      * Object containing the instance of the class constants 
      * 
@@ -53,7 +59,6 @@ define(['env'], function(env){
 
 	// needed basepath
     var basePath = "";
-//	var assetPath = "/../";
 	
 	// Paths
 	var frameworkBasePath = "mmirf/";
@@ -61,7 +66,7 @@ define(['env'], function(env){
 	var workerPath = frameworkBasePath + "workers/";
 	var pluginsPath = frameworkBasePath + "plugins/";
 	var extensionsPath = frameworkBasePath + "tools/extensions/";
-	var beepURL = frameworkBasePath + "res/sounds/beep-notification.mp3";
+	var beepURL = frameworkBasePath + "vendor/sounds/beep-notification.mp3";
 	var controllerPath = "controllers/";
 	var helperPath = "helpers/";
 	var languagePath = "config/languages/";
@@ -71,9 +76,10 @@ define(['env'], function(env){
 	var genViewPath = "gen/views/";
 	var genLayoutPath = "gen/views/layouts/";
 	var genGrammarsPath = "gen/grammar/";
-	var speakerFileName = "speaker.json";
+	
+	var speechConfigFileName = "speech.json";
 	var grammarFileName = "grammar.json";
-	var dictionaryFileName = "dictionary.dic";
+	var dictionaryFileName = "dictionary.json";
 	var mediaPluginPath = "mmirf/env/media/";
 	
 	var configurationFileUrl = "config/configuration.json";
@@ -92,26 +98,24 @@ define(['env'], function(env){
 		}
 		else if (isBrowserEnvParam){
 			basePath = "";
-//			assetPath = "/../";
 		}
 		else {
+			//TODO this is only for ANDROID -- need to set appropriate path path according to ENV setting...
 			basePath = "file:///android_asset/www/";
-//			assetPath = "file:///android_asset/";
 		}
 	}
 	
 	/**
-	 * Constructor-Method of Class {@link mmir.Constants}<br>
-	 * @constructor
-	 * @augments mmir.Constants
-	 * 
-	 * @memberOf mmir.Constants.prototype
+	 * Constructor-Method of Class {@link Constants}<br>
+	 * @constructs Constants
+	 * @memberOf Constants.prototype
+	 * @private
 	 */
     function constructor(forBrowserParameter){
 		isBrowserEnv = forBrowserParameter? forBrowserParameter : isBrowserEnv;
 		setBasePath(forBrowserParameter);
 		
-		/** @lends mmir.Constants.prototype */
+		/** @lends Constants.prototype */
 		return {
 			/**
 			 * Returns a string with the base path.
@@ -265,13 +269,14 @@ define(['env'], function(env){
 				return dictionaryFileName;
 			},
 			/**
-			 * Returns the name of the speaker filename as string 
-			 * @function getDictionaryFileName
+			 * Returns the name of the filename for
+			 * the speech configuration as string 
+			 * @function getSpeechFileName
 			 * @public
 			 * @returns {String} dictionary filename
 			 */
-			getSpeakerFileName: function(){
-				return speakerFileName;
+			getSpeechConfigFileName: function(){
+				return speechConfigFileName;
 			},
 			/**
 			 * Returns the name of the grammar filename as string 
@@ -311,7 +316,7 @@ define(['env'], function(env){
 			},
 			
 			/**
-	         * Object containing the instance of the class {@link mmir.Constants} 
+	         * Initialize the Constants singleton.
 	         * 
 	         * @function init
 	         * @param {Boolean} forBrowserParameter <tt>true</tt> for browser-environment, if <tt>false</tt> ANDROID environment

@@ -25,25 +25,35 @@
  */
 
 
-/**
- * 
- * A class for managing the models of the application (MVC-Component). <br>
- * It's purpose is to load the models automatically.
- * 
- * This "class" is structured as a singleton - so that only one instance is in
- * use.<br>
- * You can access the instance of the class via
- * 
- * TODO add example for usage (models as "class" / models as "singleton")
- * 
- * @example <code>mmir.ModelManager.getInstance()</code>
- * @class ModelManager
- * @category core
- * 
- * @see mmir.ModelManager#constructor
- */
-define( [ 'dictionary', 'constants', 'commonUtils' ], function ( 
-    		Dictionary,  constants, commonUtils ) {
+
+define( [ 'dictionary', 'constants', 'commonUtils' ],
+	/**
+	 * 
+	 * A class for managing the models of the application (MVC-Component). <br>
+	 * It's purpose is to load the models automatically.
+	 * 
+	 * This "class" is a singleton - so that only one instance is in
+	 * use.<br>
+	 * 
+	 * TODO add example for usage (models as "class" / models as "singleton")
+	 * 
+	 * @class
+	 * @name ModelManager
+	 * @exports ModelManager as mmir.ModelManager
+	 * @static
+	 * @category core
+	 * 
+	 */
+	function( 
+    		Dictionary,  constants, commonUtils
+){
+	//next 2 comments are needed by JSDoc so that all functions etc. can
+	// be mapped to the correct class description
+	/** @scope mmir.ModelManager.prototype */
+	/**
+	 * #@+
+	 * @memberOf mmir.ModelManager.prototype 
+	 */
 
 	// private members
     /**
@@ -91,7 +101,7 @@ define( [ 'dictionary', 'constants', 'commonUtils' ], function (
 
 	/**
 	 * This function invokes the method
-	 * {@link mmir.ModelManager-constructor-foundModelsCallBack} to load all
+	 * {@link mmir.ModelManager#foundModelsCallBack} to load all
 	 * models in the path specified by *modelPath*.
 	 * 
 	 * @function loadModels
@@ -101,8 +111,9 @@ define( [ 'dictionary', 'constants', 'commonUtils' ], function (
 	 *            {@link mmir.ModelManager}.
 	 * @private
 	 */
-
-	function _init(myCallbackFunction) {	 
+	function _init(myCallbackFunction) {
+		
+		/** @scope mmir.ModelManager.prototype */
 
 //		delete _instance.init;
 		_instance.init = _instance.getInstance;
@@ -267,8 +278,10 @@ define( [ 'dictionary', 'constants', 'commonUtils' ], function (
 	 * @property instance
 	 * @type Object
 	 * @private
+	 * @ignore
 	 */
 	var _instance = {
+			/** @scope mmir.ModelManager.prototype */
 
 			/**
 			 * @deprecated use ModelManager object directly, e.g. instead of: mmir.ModelManager.getInstance().getModel()
@@ -351,6 +364,8 @@ define( [ 'dictionary', 'constants', 'commonUtils' ], function (
 
 	};
 
-
 	return _instance;
+	
+	/** #@- */
+	
 });

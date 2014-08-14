@@ -29,20 +29,21 @@
  * @module mmir.tools
  * 
  */
-//var mobileDS = window.mobileDS ||
-//{};
 
-
-define(['md5'], function(CryptoJS){
-/**
- * A Utility class for creating / reading checksum (files).<br>
- * 
- * @class ChecksumUtils
- * @category core
- * 
- * @depends CryptoJS (MD5, see https://code.google.com/p/crypto-js/)
- */
-//mobileDS.ChecksumUtils = (function(){
+define(['md5'],
+	/**
+	 * A Utility class for creating / reading checksum (files).<br>
+	 * 
+	 * @name ChecksumUtils
+	 * @class
+	 * @exports ChecksumUtils as mmir.tools.ChecksumUtils
+	 * @static
+	 * 
+	 * @depends CryptoJS (MD5, see https://code.google.com/p/crypto-js/)
+	 */
+	function(
+		CryptoJS
+){
 	
 	var cryptoInstance;
 	var computeChecksum = function(str){
@@ -51,13 +52,14 @@ define(['md5'], function(CryptoJS){
 	
 	var digestFileExt = '.checksum.txt';
 	var digestContentSeparator = '\t';
+	var digestContentPostfix = '\r\n';
 	
 	var createDigestFileContent = function(originalText){
 	
 		var size = originalText.length;
 		var digest = computeChecksum(originalText);
 		
-		return size + digestContentSeparator + digest;
+		return digest + digestContentSeparator + size + digestContentPostfix;
 	};
 	
 	var parseDigestFileContent = function(rawTextContent){
@@ -65,8 +67,8 @@ define(['md5'], function(CryptoJS){
 		var data = rawTextContent.split(digestContentSeparator);
 		
 		return {
-			size: parseInt(data[0]),
-			hash: data[1]
+			size: parseInt(data[1]),
+			hash: data[0]
 		};
 	};
 	
@@ -84,9 +86,9 @@ define(['md5'], function(CryptoJS){
 	};
 	
 	/**
-	 * @lends ChecksumUtils
+	 * @lends ChecksumUtils.prototype
 	 */
-	var instance = {
+	return {
 		/**
 		 * Must be called before using checksum-generation:
 		 * sets/initializes the object/function for checksum generation.
@@ -166,9 +168,5 @@ define(['md5'], function(CryptoJS){
 			return digestContentSeparator;
 		}
 	};
-	
-//})();
-	
-	return instance;
 	
 });//END: define

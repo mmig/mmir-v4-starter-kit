@@ -25,13 +25,23 @@
  */
 
 
-define ( function () {
-	
+define(
+	/**
+	 * @name Helper
+	 * @class
+	 */
+	function(
+){
+	/** @scope Helper.prototype */
+	/**
+	 * #@+
+	 * @memberOf Helper.prototype
+	 */
+		
 	/**
 	 * The Helper Class is a kind of interface-class which gives access to the methods and data of a helper (which itself belongs to a controller)<br>
 	 * 
-	 * @class Helper
-	 * @constructor
+	 * @constructs Helper
 	 * @param {Object} ctrl Controller instance / object
 	 * @param {String} name Name of the Helper 
 	 * @category core
@@ -95,5 +105,8 @@ define ( function () {
 
 
 	return Helper;
-});
+	
+	/** #@- */
+	
+});//END: define(...
 

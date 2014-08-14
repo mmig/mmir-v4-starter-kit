@@ -28,7 +28,20 @@ define(['core', 'env', 'envInit', 'jquery', 'constants', 'commonUtils', 'configu
      , 'controllerManager', 'modelManager'
      , 'presentationManager', 'inputManager', 'dialogManager', 'module'
      , 'semanticInterpreter', 'mediaManager', 'notificationManager'
-  ], 
+  ],
+  /**
+   * Initializes the MMIR framework:
+   * triggers {@link mmir.ready} when initialization has finished.
+   * 
+   * If run with env-setting <code>cordova</code> the initialization starts
+   * when the <code>deviceready</code> event is fired.
+   * Otherwise initialization starts when the <code>domready</code> event was fired
+   * (using jQuery's ready function). 
+   * 
+   * @class
+   * @name main
+   * @exports main as mmir.main
+   */
   function(mmir, env, envInit, $, constants, commonUtils, configurationManager, languageManager
 	 , controllerManager, modelManager
      , presentationManager, inputManager, dialogManager, module
@@ -38,21 +51,14 @@ define(['core', 'env', 'envInit', 'jquery', 'constants', 'commonUtils', 'configu
 	mmir.Constants = constants;
 	mmir.CommonUtils = commonUtils;
 	mmir.ConfigurationManager = configurationManager;
-	mmir.NotificationManager = notificationManager;
+	mmir.NotificationManager = notificationManager.init();
 	
 	var mainInit = function(){
 
 		console.log('dom ready');
     	
-		//load plugins
+		//initialize the common-utils:
 		commonUtils.init()//<- load directory structure
-			
-			//load compiled grammars (if present)
-			.then(function() {
-
-				mmir.SemanticInterpreter = semanticInterpreter;
-				return commonUtils.loadCompiledGrammars(constants.getGeneratedGrammarsPath());//TODO remove dependency on constants-obj here (move into commonUtils? and/or make param optional?)
-			})
 			
 			//load plugins (if in CORDOVA environment)
 			.then(function() {
@@ -84,17 +90,22 @@ define(['core', 'env', 'envInit', 'jquery', 'constants', 'commonUtils', 'configu
 			.then(function() {
 				
 				mmir.ControllerManager = controllerManager;
+				
+				//NOTE: this also gathers information on which 
+				//      views, layouts etc. are available
+				//      -> the presentationManager depends on this information
 				return controllerManager.init();
 			})
 			
 			//TEST parallelized loading of independent modules:
 			.then(function(){
 				
-				var isMediaManagerLoaded = false;
-				var isModelsLoaded = false;
-				var isVisualsLoaded = false;
-				var isInputManagerLoaded = false;
-				var isDialogManagerLoaded = false;
+				var isMediaManagerLoaded 	= false;
+				var isModelsLoaded 			= false;
+				var isVisualsLoaded 		= false;
+				var isInputManagerLoaded 	= false;
+				var isDialogManagerLoaded 	= false;
+				var isSemanticsLoaded        = false;
 				
 				var checkInitCompleted = function(){
 					
@@ -103,6 +114,7 @@ define(['core', 'env', 'envInit', 'jquery', 'constants', 'commonUtils', 'configu
 							&& 	isVisualsLoaded 
 							&&	isInputManagerLoaded
 							&&	isDialogManagerLoaded
+							&&	isSemanticsLoaded
 					){
 						
 						//"give signal" that the framework is now initialized / ready
@@ -110,6 +122,13 @@ define(['core', 'env', 'envInit', 'jquery', 'constants', 'commonUtils', 'configu
 					}
 				};
 				
+				
+				commonUtils.loadCompiledGrammars(constants.getGeneratedGrammarsPath()).then(function() {
+					isSemanticsLoaded = true;
+					
+					mmir.SemanticInterpreter = semanticInterpreter;
+					checkInitCompleted();
+				});
 
 				// start the MediaManager
 				mediaManager.init().then(function() {
@@ -137,10 +156,10 @@ define(['core', 'env', 'envInit', 'jquery', 'constants', 'commonUtils', 'configu
 					//   (i.e. in presentationManager's rendering function and not here)
 					//
 					//initialize with layout contents of the default-controller (i.e. "Application"):
-					var headerContents = $(presentationManager.getLayout("Application").getHeaderContents());
+					var headerContents = $( presentationManager.getLayout("Application").getHeaderContents() );
 					//NOTE: need to handle scripts separately, since some browsers may refuse to "simply append" script TAGs...
 					var scriptList = [];
-					headerContents = headerContents.filter(function(index){
+					var stylesheetList = headerContents.filter(function(index){
 						var tis = $(this);
 						if( tis.is('script') ){
 							scriptList.push(tis.attr('src'));
@@ -148,24 +167,25 @@ define(['core', 'env', 'envInit', 'jquery', 'constants', 'commonUtils', 'configu
 						}
 						return true;
 					});
-					$("head").append( headerContents );
+					$("head").append( stylesheetList );
 					commonUtils.loadImpl(scriptList, true);//load serially, since scripts may depend on each other; TODO should processing wait, until these scripts have been finished! (i.e. add callbacks etc.?)
 					
 					mmir.PresentationManager = presentationManager;
 					checkInitCompleted();
 				});
 				
-				inputManager.init().then(function(){
+				dialogManager.init().then(function(_dlgMng, _dialogEngine){
+					isDialogManagerLoaded = true;
+					mmir.DialogManager = dialogManager;
+					mmir.DialogEngine = _dialogEngine;
+					checkInitCompleted();
+				});
+				
+				inputManager.init().then(function(_inputMng, _inputEngine){
 					isInputManagerLoaded = true;
 					mmir.InputManager = inputManager;
+					mmir.InputEngine  = _inputEngine; 
 					checkInitCompleted();
-					
-					//FIXME remove dependency DialogManager <- InputManager! (these should be capable of being loaded in parallel!)
-					dialogManager.init().then(function(){
-						isDialogManagerLoaded = true;
-						mmir.DialogManager = dialogManager;
-						checkInitCompleted();
-					});
 				});
 				
 				

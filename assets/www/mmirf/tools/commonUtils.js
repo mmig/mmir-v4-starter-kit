@@ -29,28 +29,40 @@
  * 
  */
 
-/**
- * A Utility class to support various functions.<br>
- * 
- * @example <code>mmir.CommonUtils</code>
- * @class CommonUtils
- * @category core
- * 
- * @see mmir.CommonUtils#constructor
- * 
- * @depends StringExtensions, Constants (optionally: jQuery), mmir.SemanticInterpreter (in loadCompiledGrammars())
- *  
- */
 
-//TODO @russa:  jquery should be optional
-define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'], function(constants, stringExt, $, paramsParseFunc) {
-
+define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
+	/**
+	 * A Utility class to support various functions.<br>
+	 * 
+	 * @example <code>mmir.CommonUtils.isArray(list)</code>
+	 * @category core
+	 * 
+	 * 
+	 * @depends StringExtensions
+	 * @depends Constants (optionally: jQuery)
+	 * @depends mmir.SemanticInterpreter (in {@link mmir.CommonUtils#loadCompiledGrammars})
+	 * 
+	 * @class
+	 * @name mmir.CommonUtils
+	 * @static
+	 * 
+	 * @public
+	 */
+	function(
+		constants, stringExt, $, paramsParseFunc
+) {
+	/** @scope mmir.CommonUtils.prototype */
+	/**
+	 * #@+
+	 * @memberOf mmir.CommonUtils.prototype
+	 */
+	
 	var instance = null;
 
     /**
      * JSON-Object containing the directory Structure of the application. Only
      * directories defined by the Property
-     * {@link mmir.CommonUtils-constructor-directoriesToParse} are contained
+     * {@link CommonUtils-constructor-directoriesToParse} are contained
      * within the JSON-Object.
      * 
      * @property directoryStructure
@@ -106,14 +118,14 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'], function(c
      *            [$] the jQuery instance/object (OPTIONAL); some few function
      *            need jQuery to work correctly (see requires annotations)
      * 
-     * @constructor
-     * @augments mmir.CommonUtils
-     * 
+     * @constructs mmir.CommonUtils
      * @memberOf mmir.CommonUtils.prototype
+     * @function
+     * @private
      */
     function constructor($, constants) {
 		// private members.
-	
+    	
 		/**
 		 * The Prefix for the file names of partial-files.<br>
 		 * Files named &lt;PARTIAL-PREFIX&gt;filename.ehtml inside a
@@ -147,99 +159,14 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'], function(c
 			 "www/helpers"
 		 ];
 	
-		/**
-		 * Array of strings for the conversion of month represented by integers
-		 * to strings Default Language for months is english, 'en'
-		 * 
-		 * @property months
-		 * @type Object
-		 * @private
-		 */
-		this.months = new Object();
-		this.months['01'] = 'January';
-		this.months['02'] = 'February';
-		this.months['03'] = 'March';
-		this.months['04'] = 'April';
-		this.months['05'] = 'May';
-		this.months['06'] = 'June';
-		this.months['07'] = 'July';
-		this.months['08'] = 'August';
-		this.months['09'] = 'September';
-		this.months['10'] = 'October';
-		this.months['11'] = 'November';
-		this.months['12'] = 'December';
-	
-		this.months['de'] = new Object();
-		this.months['de']['01'] = 'Januar';
-		this.months['de']['02'] = 'Februar';
-		this.months['de']['03'] = 'M&auml;rz';
-		this.months['de']['04'] = 'April';
-		this.months['de']['05'] = 'Mai';
-		this.months['de']['06'] = 'Juni';
-		this.months['de']['07'] = 'Juli';
-		this.months['de']['08'] = 'August';
-		this.months['de']['09'] = 'September';
-		this.months['de']['10'] = 'Oktober';
-		this.months['de']['11'] = 'November';
-		this.months['de']['12'] = 'Dezember';
-	
-		
 		/** @lends mmir.CommonUtils.prototype */
-		var _instance = {
+		return {
 		    
-//			/** 
-//			 * @russa doc!?! TODO remove/replace this! NOTE:  $.getScript may NOT work in Android!!!
-//			 * @deprecated
-//			 * 
-//			 * @param arr
-//			 * @param suc
-//			 * @param err
-//			 */
-//		    loadAddons: function (arr, suc, err) {
-//	
-//				var libs = [];
-//				for (var i = 0, len = arr.length; i < len; i++) {
-//					
-//				    var el = arr[i];
-//				    // var domElem = null;
-//				    var extension = el.split(".")[el.split(".").length - 1];
-//				    switch(extension) {
-//					
-//					    case "css": (function() {
-//								$("<link/>", {
-//								    rel: "stylesheet",
-//								    type: "text/css",
-//								    href: el
-//								}).appendTo("head");							    			
-//						    })();
-//							break;
-//						
-//					    case "js": (function() {
-//								if (!suc) {
-//								    $("<script/>", {
-//										type: "text/javascript",
-//										src: el
-//								    }).appendTo("head");
-//								}
-//								else {
-//								    libs.push(el);
-//								}
-//					
-//							})();
-//							break;
-//						
-//					    default: console.warn("Add on not found: ", el);
-//					    
-//				    }//END: switch
-//				    
-//				}//END: for()
-//				
-//				// synched version with callback						
-//				if (libs.length > 0) {
-//				    $.when.apply(this, libs.map(function (src) {return $.getScript(src);})).done(suc).fail(err);
-//				}					
-//		    },
-		    
+			/**
+	    	 * #@+
+	    	 * @memberOf mmir.CommonUtils.prototype
+	    	 */
+			
 		    /**
 		     * This function is used by
 		     * {@link mmir.CommonUtils#getDirectoryContents} and
@@ -340,6 +267,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'], function(c
 				script.src = url;
 	
 				if (typeof callback === 'function') {
+					/** @ignore */
 					script.onload = function() {
 					callback();
 					};
@@ -355,7 +283,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'], function(c
 		     * @param {String} [pluginsPath] OPTIONAL 
 		     *            Path of the plugins which should be
 		     *            loaded, e.g.
-		     *            <b>file:///android_asset/www/mmirf/plugins/</b>
+		     *            <b>mmirf/plugins/</b>
 		     *            
 		     *            If omitted: the default plugin-path is used
 		     *            (see {@link mmir.Constant#getPluginsPath}
@@ -428,14 +356,14 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'], function(c
 			 * Load all compiled grammars (executable JavaScript grammars).
 			 * 
 			 * @function loadCompiledGrammars
-			 * @param {String} generatedGrammarsPath Path of the grammars which should be loaded, e.g. <b>file:///android_asset/www/gen/grammar/</b> 
+			 * @param {String} generatedGrammarsPath Path of the grammars which should be loaded, e.g. <b>gen/grammar/</b> 
 			 * @param {Function} cbFunction The function that should be executed after the plugins are loaded. 
 			 * 					 If the execution of following functions is dependent on the presence of the grammars, 
 			 * 					 they should be triggered from inside the callback-function.
 			 * 
 		     * @returns {Promise} a Deferred.promise (see loadImpl())
 		     * 
-		     * @requires mmir.SemanticInterpreter
+		     * @requires mmir.SemanticInterpreter (must be loaded as dependency "semanticInterpreter" at least once before this function is loaded)
 		     * 
 			 * @async
 			 * @public
@@ -449,7 +377,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'], function(c
 					function isGrammarAlreadyLoaded(grammarFileName) {
 						var i = grammarFileName.indexOf('_');
 						if (i !== -1) {
-							return mmir.SemanticInterpreter.hasGrammar(
+							return require('semanticInterpreter').hasGrammar(
 									grammarFileName.substring(0, i)
 							);
 						} else {
@@ -482,7 +410,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'], function(c
 			 * 
 			 * @function loadImpl
 			 * @param {String|Array<String>} librariesPath 
-			 * 				Path (or list of  of the plugins which should be loaded, e.g. <b>file:///android_asset/www/mmirf/plugins/</b>
+			 * 				Path (or list of  of the plugins which should be loaded, e.g. <b>mmirf/plugins/</b>
 			 * 				NOTE: The (String) path must be an entry in directories.json! 
 			 *                    (directories.json is used to generate/"query" the file-list for the path)
 			 * 
@@ -645,12 +573,12 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'], function(c
 	
 		    /**
 		     * Detects via the user-agent-string if the application is running
-		     * on android.
+		     * on Android.
 		     * 
 		     * @function isRunningOnAndroid
 		     * @public
 		     * @returns {Boolean} <b>True</b> if application is running on
-		     *          android, <b>False</b> otherwise
+		     *          Android, <b>False</b> otherwise
 		     */
 		    isRunningOnAndroid : function() {
 				// Testing if user-Agent-/ or appVersion-String contains 'android'
@@ -666,7 +594,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'], function(c
 	
 		    /**
 		     * Should detect - via the user-agent-string - if the application is
-		     * running on android, symbian or ios; in other words: on a
+		     * running on Android, Symbian or iOS; in other words: on a
 		     * smartphone.
 		     * 
 		     * @function isRunningOnSmartphone
@@ -676,11 +604,11 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'], function(c
 		     */
 		    isRunningOnSmartphone : function() {
 				// Testing if user-Agent-/ or appVersion-String contains
-				// 'android' or 'iOS'
-				// at the moment only android-, ios and symbian-strings are
-				// 'implemented'
+				// 'Android' or 'iOS'
+				// at the moment only Android-, iOS and Symbian-strings are 'implemented'
 				var testString = navigator.userAgent.toLowerCase()
 									+ navigator.appVersion.toLowerCase();
+				
 				if ((testString.indexOf("android") > -1)
 					|| (testString.indexOf("ios") > -1)
 					|| (testString.indexOf("symbian") > -1)) {
@@ -1018,10 +946,11 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'], function(c
 		     * TODO implement with HTML5 functions (in addition to / instead of
 		     * cordova)?
 		     * 
+		     * @depends Cordova: org.apache.cordova.network-information
+		     * 
 		     * @function checkNetworkConnection
-		     * @private
-		     * @returns {Boolean} <code>true</code> if a network connection is
-		     *          enabled
+		     * @public
+		     * @returns {Boolean} <code>true</code> if a network connection is enabled
 		     */
 		    checkNetworkConnection : function() {
 	//        	console.log("Check network status.");
@@ -1152,7 +1081,9 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'], function(c
 //				
 //				return _defer.promise();
 			}
-	
+		    
+		    /** #@- */
+		    
 		    /**
 		     * Set to "backwards compatibility mode" (for pre version 2.0).
 		     * 
@@ -1162,556 +1093,46 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'], function(c
 		     * NOTE that once set to compatibility mode, it cannot be reset to
 		     * non-compatibility mode.
 		     * 
-		     * TODO move into separate extensions file
+		     * @async
+		     * @depends jQuery.Deferred
+		     * @depends mmir.CommonUtils.setToCompatibilityModeExtension
 		     * 
-		     * @functionOf mmir.CommonUtils.prototype
-		     * @constructor
+		     * @param {Function} [success]
+		     * 				a callback function that is invoked, after compatibility mode
+		     * 				was set (alternatively the returned promise can be used).
+		     * @returns {jQuery.Promise}
+		     * 				a Deffered.promise that is resolved, after compatibility mode
+		     * 				was set
 		     * 
-		     * @borrows mmir.CommonUtils#regexHTMLComment as
-		     *          this.html_comment_regex
-		     * @borrows mmir.CommonUtils#resizeFitToSourroundingBox as
-		     *          this.html_resize_font_to_fit_surrounding_box
-		     * @borrows mmir.CommonUtils#toJSONStringValue as
-		     *          this.to_json_string_value
-		     * @borrows mmir.CommonUtils#convertJSONStringValueToHTML as
-		     *          this.convert_to_json_value_HTML_string
-		     * @borrows mmir.CommonUtils#convertJSONStringToHTML as
-		     *          this.convert_json_to_HTML_string
-		     * @borrows mmir.CommonUtils#parseParamsToDictionary as
-		     *          this.get_params_as_dict
+		     * @see mmir.CommonUtils.setToCompatibilityModeExtension
+		     * 
 		     */
-		    ,
-		    setToCompatibilityMode : function() {
-	
-				/**
-				 * The instance that holds the extensions for compatibility
-				 * mode, which really is the CommonUtils instance.
-				 * 
-				 * @property compatibilitySelf
-				 * @type mmir.CommonUtils
-				 * @private
-				 */
-				var compatibilitySelf = this;
-	
-				/**
-				 * HTML-Dom-Element for logging directly on the main HTML-Page
-				 * as of now there is no element with the id "log" in the
-				 * index.html
-				 * 
-				 * @property debugNode
-				 * @type Element
-				 * @private
-				 * @deprecated unused
-				 */
-				var debugNode = document.getElementById("log");
-	
-				/**
-				 * Regular Expression to identify a styleSheet-tag for the
-				 * transformation of ehtml to html
-				 * 
-				 * @property styleSheetRegExp
-				 * @type String|RegExp
-				 * @private
-				 * @deprecated unused
-				 */
-				var styleSheetRegExp = /<(%=\s*stylesheet_link_tag)\s* (\"(.*)\" %)>/;
-	
-				/**
-				 * Regular Expression to identify a javascript for the
-				 * transformation of ehtml to html
-				 * 
-				 * @property javaScriptRegExp
-				 * @type String|RegExp
-				 * @private
-				 * @deprecated unused
-				 */
-				var javaScriptRegExp = /<(%=\s*javascript_include_tag)\s* (\"(.*)\" %)>/;
-	
-				/**
-				 * Regular Expression to identify content for a view-element:<br>
-				 * either _header_, _footer_, _dialogs_ or _content_
-				 * 
-				 * @deprecated old template syntax format
-				 * 
-				 * @property contentForRegExp
-				 * @type String|RegExp
-				 * @private
-				 */
-				var contentForRegExp = /<%\s*content_for\s*:([^\s]*)\s*do\s*%>(([\s|\n]*.*[\s|\n]*)*)<%\s*end\s*%>/i;
-	
-				/**
-				 * Regular Expression to identify if a partial should be
-				 * rendered inside a view (ehtml-String)
-				 * 
-				 * @deprecated old template syntax format
-				 * 
-				 * @property renderPartialRegExp
-				 * @type String|RegExp
-				 * @private
-				 */
-				var renderPartialRegExp = /<%\s*render\s*([^\s]*)\s*\{\}\s*%>/i;
-	
-				/**
-				 * Regular Expression for matching a translation-tag for the
-				 * localization of view content (ehtml-String)
-				 * 
-				 * @deprecated old template syntax format
-				 * 
-				 * @property translationRegExpString
-				 * @type String|RegExp
-				 * @private
-				 */
-				var translationRegExpString = '<%t\\s*:([^\\s]*)\\s*%>';
-	
-				// /**
-				// * The Prefix for the names of view-files - currently unused
-				// and deprecated.
-				// *
-				// * @property viewsPrefix
-				// * @type String
-				// * @private
-				// * @deprecated has no further value
-				// */
-				// var viewsPrefix = '#';
-	
-				/**
-				 * See Property:
-				 * {@link mmir.CommonUtils#setToCompatibilityMode-render_partial_regex}
-				 * <br>
-				 * This regular expression is an extension for the parsing of
-				 * the parameters of the partial (for customization) to get the
-				 * name of the corresponding controller of the partial.<br>
-				 * 
-				 * Regular Expression to identify if a partial is to be inserted
-				 * in a view. <br>
-				 * Partials are in principle customizable views, which can be
-				 * used independently from a controller and furthermore accept
-				 * parameters to customize the partial.<br>
-				 * A partial is first processed and then integrated into the
-				 * view.
-				 * 
-				 * @deprecated old template syntax format
-				 * 
-				 * @example <code>  <% render googlemap/poi_details {:curr_poi_data_jpath => new JPath(mmir.ControllerManager.getInstance().getController("googlemap").script['current_poi_meta_data'])} %></code>
-				 * @property partial_name_regex
-				 * @type String|RegExp
-				 * @public
-				 */
-				var partial_name_regex = /^([^\/]+)\/(.+)$/i;
-				compatibilitySelf.partial_name_regex = partial_name_regex;
-	
-				/**
-				 * Regular expression for the parsing of partial-files.<br>
-				 * This expression detects all variables and data-instructions
-				 * for the customization of the partial. There are 3 types of
-				 * variables or instructions:
-				 *  + <b>if-else-statement</b>, controls which part of the
-				 * partial will be displayed - depending on the condition +
-				 * <b>data-instruction</b>, which is evaluated, but not
-				 * displayed + <b>variable</b> or <b>javascript-code</b>,
-				 * which are evaluated and displayed in the view
-				 * 
-				 * Partials are principally customizable views, which can be
-				 * used independently from a controller and furthermore accept
-				 * parameters to customize the partial.<br>
-				 * A partial is first processed and then integrated into the
-				 * view.
-				 * 
-				 * @deprecated old template syntax format
-				 * 
-				 * @example <code>  {::address = address + " " + {:curr_poi_data}.query('addressBean/housenumber')}</code>
-				 * @property partial_var_pattern_regex
-				 * @type String|RegExp
-				 * @public
-				 */
-				var partial_var_pattern_regex = /(\{[^\}\{]+\})|(\{[^\{]*(\{(?=[^\}]*\}).*)\})/gmi;
-				compatibilitySelf.partial_var_pattern_regex = partial_var_pattern_regex;
-	
-				/**
-				 * Regular expression for the parsing of partial-files.<br>
-				 * This expression detects all simple variables for the
-				 * customization of the partial in the form of
-				 * <b>{:curr_poi_data}</b>.<br>
-				 * Form of <b>simple object</b>: <b>{:SIMPLE_OBJECT}</b><br>
-				 * 
-				 * Partials are principally customizable views, which can be
-				 * used independently from a controller and furthermore accept
-				 * parameters to customize the partial.<br>
-				 * A partial is first processed and then integrated into the
-				 * view.
-				 * 
-				 * 
-				 * @deprecated old template syntax format
-				 * 
-				 * @example <code>{:curr_poi_data}</code>
-				 * @property partial_var_pattern_simpleobject_regex
-				 * @type String|RegExp
-				 * @public
-				 */
-				var partial_var_pattern_simpleobject_regex = /\{:([^\}]+)\}/;
-				compatibilitySelf.partial_var_pattern_simpleobject_regex = partial_var_pattern_simpleobject_regex;
-	
-				/**
-				 * Regular expression for the parsing of partial-files.<br>
-				 * This expression detects all <b>data objects</b> for the
-				 * customization of the partial in the form of
-				 * <b>{::curr_poi_data={:curr_poi_data_jpath}}</b>.<br>
-				 * Form of <b>data object</b>: <b>{::DATA_OBJECT}</b><br>
-				 * 
-				 * Partials are principally customizable views, which can be
-				 * used independently from a controller and furthermore accept
-				 * parameters to customize the partial.<br>
-				 * A partial is first processed and then integrated into the
-				 * view.
-				 * 
-				 * 
-				 * @deprecated old template syntax format
-				 * 
-				 * @example <code>{::address = address + "&lt;br/&gt;"}</code>
-				 * @property partial_var_pattern_dataobject_regex
-				 * @type String|RegExp
-				 * @public
-				 */
-				var partial_var_pattern_dataobject_regex = /\{::([^\}\{]+)\}|\{::([^\{]*(?:\{(?:[^\}]*\}).*))\}/ig;
-				compatibilitySelf.partial_var_pattern_dataobject_regex = partial_var_pattern_dataobject_regex;
-	
-				/**
-				 * Regular expression for detecting an assignment expression in
-				 * templates, e.g. <code>{::theVariable=... }</code>.
-				 * 
-				 * 
-				 * @deprecated old template syntax format
-				 * 
-				 * @example <code>{::address = address + "&lt;br/&gt;"}</code>
-				 *          or
-				 *          <code>{::address = {:anotherVariable} + "&lt;br/&gt;"}</code>
-				 * @property partial_var_pattern_assignment_regex
-				 * @type String|RegExp
-				 * @public
-				 */
-				var partial_var_pattern_assignment_regex = /\{::([^\}\{=]+)=([^\}\{]+)\}|\{::([^\}\{=]+)=([^\{]*(?:\{(?:[^\}]*\}).*))\}/ig;
-				compatibilitySelf.partial_var_pattern_assignment_regex = partial_var_pattern_assignment_regex;
-	
-				// /**
-				// * Deprecated regular expression for partials.
-				// * @property partial_var_pattern_object_with_function_regex
-				// * @type String|RegExp
-				// * @public
-				// * @deprecated unused
-				// */
-				// var partial_var_pattern_object_with_function_regex =
-				// /\{?([^\.]+)([\.\[])([^\s\}]+)()/ig
-				// compatibilitySelf.partial_var_pattern_object_with_function_regex
-				// = partial_var_pattern_object_with_function_regex;
-	
-				/**
-				 * Regular Expression to identify content in a view that will be
-				 * inserted.<br>
-				 * The content is generated by a helper function of the
-				 * controller and usually saved as a JSON-Object with a _helper_
-				 * and _content_ part.<br>
-				 * If the string is escaped and must be unescaped a second
-				 * parameter can be given to ensure that the string will be
-				 * unescaped before the insertion in the view.
-				 * 
-				 * @deprecated old template syntax format
-				 * 
-				 * @example <code> <%= value_of(languageMenu::header, true) %></code>
-				 * @property value_of_regex
-				 * @type String|RegExp
-				 * @public
-				 */
-				var value_of_regex = /<%=\s*value_of\s*\(([^\)]*)\)\s*%>/igm;
-				compatibilitySelf.value_of_regex = value_of_regex;
-	
-				/**
-				 * See Property:
-				 * {@link mmir.CommonUtils#setToCompatibilityMode-value_of_regex}
-				 * <br>
-				 * This regular expression is an extension to parse the
-				 * parameters of the <b>value_of</b>-function.<br>
-				 * 
-				 * Regular Expression to identify content in a view that will be
-				 * inserted.<br>
-				 * The content is generated by a helper function of the
-				 * controller and usually saved as a JSON-Object with a _helper_
-				 * and _content_ part.<br>
-				 * If the string is escaped and must be unescaped a second
-				 * parameter can be given to ensure that the string will be
-				 * unescaped before the insertion in the view.
-				 * 
-				 * @deprecated old template syntax format
-				 * 
-				 * @example <code> <%= value_of(languageMenu::header, true) %></code>
-				 * @property value_of_path_regex
-				 * @type String|RegExp
-				 * @public
-				 */
-				var value_of_path_regex = /\(\s*([^\),]*),?\s*([^\)]*)\s*\)/i;
-				compatibilitySelf.value_of_path_regex = value_of_path_regex;
-	
-				/**
-				 * Regular Expression to identify if a partial is to be inserted
-				 * in a view. <br>
-				 * Partials are in principle customizable views, which can be
-				 * used independently from a controller and furthermore accept
-				 * parameters to customize the partial.<br>
-				 * A partial is first processed and then integrated into the
-				 * view.
-				 * 
-				 * @deprecated old template syntax format
-				 * 
-				 * @example <code>  <% render googlemap/poi_details {:curr_poi_data_jpath => new JPath(mmir.ControllerManager.getInstance().getController("googlemap").script['current_poi_meta_data'])} %></code>
-				 * @property render_partial_regex
-				 * @type String|RegExp
-				 * @public
-				 */
-				var render_partial_regex = /<%\s*render\s*([^\s]*)\s*\{([^\}]*)\}\s*%>/igm;
-				compatibilitySelf.render_partial_regex = render_partial_regex;
-	
-				/**
-				 * See Property:
-				 * {@link mmir.CommonUtils#setToCompatibilityMode-render_partial_regex}
-				 * <br>
-				 * This regular expression is an extension for the parsing of
-				 * the parameters of the partial (for customization).<br>
-				 * 
-				 * Regular Expression to identify if a partial is to be inserted
-				 * in a view. <br>
-				 * Partials are in principle customizable views, which can be
-				 * used independently from a controller and furthermore accept
-				 * parameters to customize the partial.<br>
-				 * A partial is first processed and then integrated into the
-				 * view.
-				 * 
-				 * @deprecated old template syntax format
-				 * 
-				 * @example <code>  <% render googlemap/poi_details {:curr_poi_data_jpath => new JPath(mmir.ControllerManager.getInstance().getController("googlemap").script['current_poi_meta_data'])} %></code>
-				 * @property partial_parameter_regex
-				 * @type String|RegExp
-				 * @public
-				 */
-				var partial_parameter_regex = /\s*:(\S*)\s*=>\s*(("([\S ]+)")|([^,]+))/i;
-				compatibilitySelf.partial_parameter_regex = partial_parameter_regex;
-	
-				/**
-				 * Appends a log-message to the main document (index.html) and
-				 * prints it in the console
-				 * 
-				 * @function log
-				 * @param {String}
-				 *            clazz A prefix for the output of the log message
-				 *            in the console
-				 * @param {String}
-				 *            logMessage The log message which should be printed
-				 * @public
-				 * @deprecated
-				 */
-				var log = function(clazz, logMessage) {
-					this.debugNode = document.getElementById("log");
-					if (this.debugNode) {
-					this.debugNode.innerHTML += "<pre>\n" + logMessage + "\n</pre>\n";
-					}
-					console.log(clazz + ":" + logMessage);
-				};
-				compatibilitySelf.log = log;
-	
-				/**
-				 * Function which transforms a ehtml string (while parsing
-				 * views) into html by replacing stylesheet-, javascript- and
-				 * content_for-tags with corresponding contents.
-				 * 
-				 * 
-				 * @deprecated used for parsing/rendering old template syntax
-				 *             format
-				 * 
-				 * @function ehtml2Html
-				 * @param {String}
-				 *            eHtmlTag A string that should be transformed from
-				 *            ehtml to html
-				 * @public
-				 * @returns {String} From ehtml into html transformed string
-				 */
-				var ehtml2Html = function(eHtmlTag) {
-	
-					var result;
-        			if (eHtmlTag.match(styleSheetRegExp)) {
-        				var group = eHtmlTag.match(styleSheetRegExp);
-        				result = eHtmlTag.replace(group[1], "link rel=\"stylesheet\" ").replace(group[2], "href=\"content/stylesheets/" + group[3] + ".css\"/");
-        			}else if (eHtmlTag.match(javaScriptRegExp)) {
-        				var group = eHtmlTag.match(javaScriptRegExp);
-        				result = eHtmlTag.replace(group[1], "script  type=\"text/javascript\" charset=\"utf-8\" ").replace(group[2], "src=\"" + group[3] + ".js\"></script");
-        			}else if (eHtmlTag.match(contentForRegExp)) {
-        				var group = eHtmlTag.match(contentForRegExp);
-        				return group;
-        			} 
-        			else {
-        				return eHtmlTag;
-        			}
-
-        			return result;
-				};
-				compatibilitySelf.ehtml2Html = ehtml2Html;
-	
-				/**
-				 * Similar to the jQuery.getScript() function - appending a url
-				 * of a javascript-source to the header of the main document.
-				 * 
-				 * @function appendJsSrcToHeader
-				 * @param {String}
-				 *            scriptSrc source of javascript-file
-				 * @public
-				 * @deprecated superseded by getLocalScript
-				 */
-				var appendJsSrcToHeader = function(scriptSrc) {
-					// appends '<script src=scriptSrc type =
-					// "text/javascript"></script>' to header
-					// thus loading it dynamically
-					var newScript = document.createElement('script');
-					newScript.type = "text/javascript";
-					newScript.src = scriptSrc;
-					document.head.appendChild(newScript);
-				};
-				compatibilitySelf.appendJsSrcToHeader = appendJsSrcToHeader;
-	
-				// /**
-				// * Get the prefix for views.
-				// * @function getViewsPrefix
-				// * @public
-				// * @returns {String} The Prefix for the file names of views
-				// * @deprecated This function is unused and superfluous
-				// */
-				// var compatibilitySelf.getViewsPrefix= function(){
-				// return viewsPrefix;
-				// };
-				// compatibilitySelf.getViewsPrefix = getViewsPrefix;
-	
-				/**
-				 * Gets the Regular Expression for translation tags.
-				 * 
-				 * @function getTranslationRegExp
-				 * @public
-				 * @returns {String} The regular expression for matching a
-				 *          translation-tag - used inside a ehtml-String
-				 */
-				var getTranslationRegExp = function() {
-					return new RegExp(translationRegExpString, 'gi');
-				};
-				compatibilitySelf.getTranslationRegExp = getTranslationRegExp;
-	
-				/**
-				 * Reformat the String representation of a date.
-				 * 
-				 * @example converts <code>2012-07-23 16:37:33.0</code> into
-				 *          &rarr; <code>23. July 2012</code>
-				 * 
-				 * @function get_date_as_string
-				 * @param {String}
-				 *            the date String in format
-				 *            <code>yyyy-mm-dd HH:mm:ss.S</code>
-				 * @param {String}
-				 *            <em>[Optional]</em> the language code (currently
-				 *            used to format the name of the month). Currently
-				 *            supported languages: <code>en, de</code>. If
-				 *            unkown or omitted, default <code>en</code> is
-				 *            used.
-				 * @return {String} a new String representation for the date
-				 * @public
-				 */
-				var get_date_as_string = function(date, languageCode) {
-					var self = this;
-					var day, month, year;
-					var date_time = date.split(" ");
-					var splited_date = date_time[0].split("-");
-					year = splited_date[0];
-					month = splited_date[1];
-	
-					// add leading zero if necessary
-					if (month.length == 1) {
-					month = '0' + month;
-					}
-					day = splited_date[2];
-
-        			var theLanguage = typeof languageCode === 'string'? languageCode.toLowerCase() : null;
-        			var monthName;
-        			if(theLanguage !== null && languageCode !== 'en' && self.months[theLanguage]){
-        				//get language specific name for month, if possible
-        				monthName = self.months[theLanguage][month];
-        			} else {
-        				//get default name for month
-        				monthName = self.months[month];
-        			}
-        			return day +". "+monthName+" "+year; 
-				};
-				compatibilitySelf.get_date_as_string = get_date_as_string;
-	
-				/**
-				 * Convert a duration (in seconds) into a String representation.
-				 * 
-				 * @example <code>2:09:19 h</code>, <code>12:05 min</code>
-				 * 
-				 * @function get_duration_as_string
-				 * @param {Integer}
-				 *            the duration in seconds
-				 * @return {String} a String representation for the duration
-				 * @public
-				 */
-				var get_duration_as_string = function(duration) {
-					var sec = duration % 60;
-					var min = (duration - sec) / 60;
-	
-					var hour = 0;
-					if (min > 59) {
-					min = min % 60;
-					hour = ((duration - (min * 60)) - sec) / 3600;
-					}
-					if (sec < 10) {
-					sec = "0" + sec;
-					}
-					if (min < 10) {
-					min = "0" + min;
-					}
-	
-					if (hour > 0) {
-					return hour + ":" + min + ":" + sec + " h";
-					} else {
-					return min + ":" + sec + " min";
-					}
-	
-				};
-				compatibilitySelf.get_duration_as_string = get_duration_as_string;
-	
-				// ////////////////////////////////////////////////////////////////////////////
-				// comp: make renamed functions available under their old name again:
-	
-				compatibilitySelf.html_comment_regex = compatibilitySelf.regexHTMLComment;
-				compatibilitySelf.html_resize_font_to_fit_surrounding_box = compatibilitySelf.resizeFitToSourroundingBox;
-				compatibilitySelf.to_json_string_value = compatibilitySelf.toJSONStringValue;
-				compatibilitySelf.convert_to_json_value_HTML_string = compatibilitySelf.convertJSONStringValueToHTML;
-				compatibilitySelf.convert_json_to_HTML_string = compatibilitySelf.convertJSONStringToHTML;
-				compatibilitySelf.get_params_as_dict = compatibilitySelf.parseParamsToDictionary;
-	
-		    }// END: setToCompatibilityMode
-	
-		};// END: var _instance = {...
-		
-		return _instance;
+		    , setToCompatibilityMode : function(success) {
+		    	
+		    	var defer = $.Deferred();
+		    	if(success){
+		    		defer.always(success);
+		    	}
+		    	
+		    	require(['commonUtilsCompatibility'],function(setCompatibility){
+		    		
+		    		setCompatibility(instance);
+		    		
+		    		defer.resolve();
+		    	});
+		    	
+		    	return defer.promise();
+		    }
+			
+		};// END: return {...
 	
     }// END: constructor()
 
     
-    	
-    	instance = new constructor($, constants);
-    	
-//		if (typeof exports !== 'undefined') {
-//			if (typeof module !== 'undefined' && module.exports) {
-//				exports = module.exports = instance;
-//			}
-//		}
-//		mmir.CommonUtils = instance;
-//		return mmir.CommonUtils;
-    	
-    	return instance;
+	instance = new constructor($, constants);
+	
+	return instance;
     
+	
 
-});//this.mmir = this.mmir || {} ));
+});

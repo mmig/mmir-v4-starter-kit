@@ -28,6 +28,11 @@
 newMediaPlugin = {
 		initialize: function(callBack){
 			
+			var _pluginName = 'nuanceTextToSpeech';
+			
+			//separator char for language- / country-code
+			var _langSeparator = '_';
+			
 			var languageManager = require('languageManager');
 			var commonUtils = require('commonUtils');  
 			
@@ -51,7 +56,9 @@ newMediaPlugin = {
 					    			text, 
 					    			successCallBack, 
 					    			failureCallBack,
-					    			languageManager.getSpeaker()["voice_lang"]
+					    			languageManager.getLanguageConfig(_pluginName, 'language', _langSeparator)
+					    			//TODO get & set voice (API in plugin is missing for that ... currently...)
+					    			//, languageManager.getLanguageConfig(_pluginName, 'voice')
 					    	);
 					    	
 					    	//TODO implement real start-callback (needs to be done within java-/javascript-plugin)

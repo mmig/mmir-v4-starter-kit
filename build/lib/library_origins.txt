@@ -10,9 +10,13 @@ Apache Ant Contrib Tasks (Apache Software License)
 Commons SCXML JS (discontinued Apache Project; Apache Software License)
 * commons-scxml-js/*
   (NOTE: this is not the complete source of the SCXML-JS project; only a part)
-  
+ 
 requirejs (MIT and/or BSD license: cf. comment/license notice in file)
 * r.js
 
 jquery-deferred for NodeJS (MIT license: cf. Readme.md file)
 * nodejs-jquery-deferred/*
+
+jsonlint (MIT license: cf. comments in *.js files)
+* jsonlint.parser.js
+* jsonlint.parser.min.js

@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html>
     <head>
+    	
+    	<!-- NOTE datebox-1.4.2 does not work well with jQuery Mobile 1.4.3
+    	          ... the older version 1.4.0 seems to work fine though. 
+    	-->
         @style( "jqm-datebox-1.4.0.min")
      	@style( "jqm-extentions" )
         @style( "application")
         @style( "flags")
         
-		@script("content/libs/jqm-datebox-1.4.0.comp.flipbox.min")
+		@script("content/libs/jqm-datebox-1.4.2.comp.flipbox.min")
+		@script("content/libs/jquery.mobile.datebox.i18n.de.utf8")
+		@script("content/libs/jquery.mobile.datebox.i18n.ja.utf8")
+		@script("content/libs/jquery.mobile.datebox.i18n.en.utf8")
         
         <!-- 
         	this comment will be ignored:
@@ -18,11 +25,11 @@
     
         <div id="pageContainer" data-role="page" class="type-interior" data-url="pageContainer" data-cache="false" >
             
-            <div id="pageHeader" data-role="header" data-position="fixed" style="height:50px; vertical-align: middle;">
+            <div id="pageHeader" data-role="header" data-position="fixed" data-theme="b" style="height:50px; vertical-align: middle;">
               @yield("header")
             </div>
             
-            <div id="pageContent" data-role="content">
+            <div id="pageContent" role="main" class="ui-content" style="padding-bottom:1px;">
               @yield("content")	
             </div>
             

@@ -22,7 +22,7 @@ define(['paramsParseFunc'], function(paramsParseFunc) {
 	if(params.has('env')){
 		var envSetting = params['env'];
 		
-		if(envSetting === 'browser' || envSetting !== 'android'){
+		if(envSetting === 'browser'){
 			isBrowserEnv = true;
 		}
 		else {
@@ -31,6 +31,7 @@ define(['paramsParseFunc'], function(paramsParseFunc) {
 		
 		if(envSetting === 'cordova' || envSetting !== 'android' || envSetting !== 'ios'){
 			isCordovaEnv = true;
+			isBrowserEnv = false;
 		}
 		else {
 			isCordovaEnv = false;

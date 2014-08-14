@@ -16,10 +16,10 @@
 	    <mkdir dir="${buildDirTempJS}" />
 	    <concat destfile="${exec.js.compile.template.parser}" fixlastline="true" overwrite="true">
 	    	<!-- TODO make generalized init-file for rhino (current file is really for creating GrammarParserGenerator) -->
-	    	<!--fileset dir="${jsSrcDirBase}tools/build/rhino" includes="InitForAntRhinoScriptEnv.js" />
-	    	<fileset dir="${jsSrcDirBase}tools/build/ant"  includes="AntFileHandler.js" /-->
-	    	<fileset dir="${jsSrcDirBase}tools/build/nodejs" includes="InitNodeJsEnv.js" />
-	    	<fileset dir="${jsSrcDirBase}tools/build/nodejs" includes="InitTemplateParserNodeJsEnv.js" />
+	    	<!--fileset dir="${jsBuildDirBase}rhino" includes="InitForAntRhinoScriptEnv.js" />
+	    	<fileset dir="${jsBuildDirBase}ant"      includes="AntFileHandler.js" /-->
+	    	<fileset dir="${jsBuildDirBase}nodejs"   includes="InitNodeJsEnv.js" />
+	    	<fileset dir="${jsBuildDirBase}nodejs"   includes="InitTemplateParserNodeJsEnv.js" />
 	    	
 	        <string>
 	            
@@ -34,10 +34,14 @@
                 var definejs = require.define;
 	    	</string>
             <!-- fileset dir="${buildDirLib}"       includes="r.js" /-->
-            <fileset dir="${jsSrcDirBase}tools/build"        includes="buildConfig.js" />
-	    	<fileset dir="${jsSrcDirBase}tools/build/nodejs" includes="NodeJsFileHandler.js" />
+            <fileset dir="${jsBuildDirBase}"        includes="buildConfig.js" />
+	    	<fileset dir="${jsBuildDirBase}nodejs"  includes="NodeJsFileHandler.js" />
             
             <string>
+                
+                //set the framework's src-path from the build-properties file
+                //  (may be different than the default value in buildConfig.js)
+                require.config({baseUrl: './${jsSrcDirBase}'});
 	    		
 	    		definejs('antlr3', function(){
 			    		
@@ -53,7 +57,7 @@
 							org.antlr.runtime.tree = {};
 						}
 	    	</string>
-            <fileset dir="${jsSrcDirBase}res/libs"         includes="antlr3-all.js" />
+            <fileset dir="${jsSrcDirBase}vendor/libs"         includes="antlr3-all.js" />
 	    	<string>
 	    			return org;
 	    		});
@@ -67,14 +71,11 @@
 	    			definejs('ES3Lexer',  function(){ return ES3Lexer; });
 	    			definejs('ES3Parser', function(){ return ES3Parser; });
 	    			
-	    			definejs('blockLexer',  function(){ return MmirScriptBlockLexer; });
-	    			definejs('blockParser', function(){ return MmirScriptBlockParser; });
-	    			
 	    			definejs('contentLexer',  function(){ return MmirScriptContentLexer; });
 	    			definejs('contentParser', function(){ return MmirScriptContentParser; });
 	    			
-	    			definejs('statementLexer',  function(){ return MmirScriptStatementLexer; });
-	    			definejs('statementParser', function(){ return MmirScriptStatementParser; });
+	    			definejs('scriptLexer',  function(){ return MmirScriptLexer; });
+	    			definejs('scriptParser', function(){ return MmirScriptParser; });
 	    			
 	    			definejs('templateLexer',  function(){ return MmirTemplateLexer; });
 	    			//definejs('templateParser', function(){ return MmirTemplateParser; });
@@ -87,7 +88,7 @@
             <string>
                 definejs('md5impl', function(){
             </string>
-			<fileset dir="${jsSrcDirBase}res/libs"         includes="md5.js" />
+			<fileset dir="${jsSrcDirBase}vendor/libs"         includes="md5.js" />
 			<string>
 			    	return CryptoJS;
 			    });
@@ -95,7 +96,7 @@
                 definejs('jsonlint', function(){
 	    	</string>
             <!-- ... and an AMD module for the jsonlint parser ... -->
-			<fileset dir="${jsSrcDirBase}res/libs"         includes="jsonlint.parser.js" />
+			<fileset dir="${buildDirLib}"         includes="jsonlint.parser.js" />
 			<string>
 					return jsl.parser;
 				});
@@ -117,7 +118,7 @@
 		    		jqueryDeferred.extend(jquery, jqueryDeferred);
 	    		
 	    	</string>
-			<fileset dir="${jsSrcDirBase}tools/build/ant"  includes="StandaloneTemplateParserExec.js" />
+			<fileset dir="${jsBuildDirBase}ant"              includes="StandaloneTemplateParserExec.js" />
 			<string>
 	    		});
 	    		

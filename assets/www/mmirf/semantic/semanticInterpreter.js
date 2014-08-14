@@ -24,32 +24,35 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-////FIXME @russa: move these globals (refactor?)
-//// overwrite/implement output functions for JS/CC compiler:
-//function _error( msg ){
-//    console.error('ERROR [SemanticInterpreter.parse]: '+msg);
-//}
-//function _warning( msg ){
-//    console.warn('WARNING [SemanticInterpreter.parse]: '+msg);   
-//}
-//function _print( msg ){
-//    console.info('INFO [SemanticInterpreter.parse]: '+msg);   
-//}
 
-////////////////////////////////////////// define: SemanticInterpreter ///////////////////////////////
-
-define(['constants', 'grammarConverter', 'grammarParserTemplate', 'jscc'], function( 
+define(['constants', 'grammarConverter', 'grammarParserTemplate', 'jscc'], 
+	/**
+	 * @name SemanticInterpreter
+	 * @exports SemanticInterpreter as mmir.SemanticInterpreter
+	 * @static
+	 * @class
+	 */
+	function (
 		constants, GrammarConverter, template, jscc
 ){
 	
-/**
- * @class
- * 
- * @see mmir.SemanticInterpreter#costructor
- */
-//mmir.SemanticInterpreter = (function(){
+	/**
+	 * The instance for the singleton SemanticInterpreter
+	 * 
+	 * @type SemanticInterpreter
+	 * @private
+	 */
 	var instance = null;
-        
+    
+	/**
+	 * The argument name when generating the grammar function:
+	 * the argument holds the raw text that will be parsed by the generated grammar.
+	 * 
+	 * NOTE: this argument/variable name must not collide with any code that is generated for the grammar.
+	 * 
+	 * @constant
+	 * @private
+	 */
     var INPUT_FIELD_NAME = 'asr_recognized_text';
     
     
@@ -63,9 +66,9 @@ define(['constants', 'grammarConverter', 'grammarParserTemplate', 'jscc'], funct
      * 					language for the generated grammar-parser.
      * 					NOTE: this should be a valid ISO language code!
      * 
-     * @constructor
-     * @augments mmir.SemanticInterpreter
-     * @memberOf mmir.SemanticInterpreter.prototype
+     * @constructs SemanticInterpreter
+     * @memberOf SemanticInterpreter.prototype
+     * @private
      */
     function constructor(doRecompile, generatedParserLanguageCode){
     
@@ -142,9 +145,14 @@ define(['constants', 'grammarConverter', 'grammarParserTemplate', 'jscc'], funct
 	     */
     	var doAddGrammar = function(id, grammarImpl){
         	
-    		
+    		//the grammar function must be "wrapped" in a GrammarConverter instance
+    		// ... if not, do so now:
         	if( ! (grammarImpl instanceof GrammarConverter)){
         		var gc = doGetGrammar(id, true);
+        		
+        		//if for this ID (= language code) no grammar-converter
+        		// exists yet, create a now one
+        		// (otherwise, re-use the existing one)
         		if(!gc){
         			gc = new GrammarConverter();
         		}
@@ -159,9 +167,11 @@ define(['constants', 'grammarConverter', 'grammarParserTemplate', 'jscc'], funct
         	grammarImplMap[id] = grammarImpl;
         	
         	if( ! isAlreadyPresent){
-	        	if(grammarImplList.length === 0){
-	        		currentGrammarId = id;
-	        	}
+        		
+        		//DISABLED: this may produce side effects (now: current grammar must be explicitly set using setCurrentGrammar(lang))
+//	        	if(grammarImplList.length === 0){
+//	        		currentGrammarId = id;
+//	        	}
 	        	grammarImplList.push(id);
         	}
         	
@@ -322,10 +332,11 @@ define(['constants', 'grammarConverter', 'grammarParserTemplate', 'jscc'], funct
             if(doRecompile === true || doRecompile === 'true'){//FIXME this option must be re-implemented (there is no 'default' grammar any more!)
             	gc.loadGrammar(build_grammar, function(){ throw 'Could not find JSON grammar file at default location'; } );
             } else if(typeof doRecompile === 'string'){
-            	//previously: STRING was interpreted as "stringified" JSON-grammar, now: as URL for the JSON grammar
-//            	gc.json_grammar_definition = JSON.parse(doRecompile);
-//            	build_grammar(gc);
-            	gc.loadGrammar(build_grammar, function(){ throw 'Could not find JSON grammar file at "'+doRecompile+'"'; } , doRecompile);
+            	//interpret STRING as URL for the JSON grammar:
+            	gc.loadGrammar(build_grammar, function(err){
+            			throw 'Could not find JSON grammar file at "'+doRecompile+'": '+err;
+            		} , doRecompile
+            	);
             } else if(typeof doRecompile === 'object'){
             	gc.json_grammar_definition = doRecompile;
             	build_grammar(gc);
@@ -338,52 +349,6 @@ define(['constants', 'grammarConverter', 'grammarParserTemplate', 'jscc'], funct
             	}
             }
         }
-        
-        var encodeSpecialChars = function(target, doAlsoEncodeUpperCase){
-        	var isString = typeof target === 'string';
-        	var str;
-        	if(isString){
-        		str = target;
-        	}
-        	else {
-        		str = JSON.stringify(target);
-        	}
-        	
-        	str = str.replace(/ö/g,'__oe__').replace(/ä/g,'__ae__').replace(/ü/g,'__ue__').replace(/ß/g,'__ss__');
-        	if(doAlsoEncodeUpperCase){
-            	str = str.replace(/Ö/g,'__Oe__').replace(/Ä/g,'__Ae__').replace(/Ü/g,'__Ue__');
-        	}
-        	
-        	if(isString){
-        		return str;
-        	}
-        	else {
-        		return JSON.parse(str);
-        	}
-        };
-        
-        var decodeSpecialChars = function(target, doAlsoDecodeUpperCase){
-        	var isString = typeof target === 'string';
-        	var str;
-        	if(isString){
-        		str = target;
-        	}
-        	else {
-        		str = JSON.stringify(target);
-        	}
-        	
-        	str = str.replace(/__oe__/g,'ö').replace(/__ae__/g,'ä').replace(/__ue__/g,'ü').replace(/__ss__/g,'ß');
-        	if(doAlsoDecodeUpperCase){
-            	str = str.replace(/__Oe__/g,'Ö').replace(/__Ae__/g,'Ä').replace(/__Ue__/g,'Ü');
-        	}
-        	
-        	if(isString){
-        		return str;
-        	}
-        	else {
-        		return JSON.parse(str);
-        	}
-        };
         
         var process_asr_semantic = function(phrase, stopwordFunc, langCode){//grammarParserCode){
 
@@ -398,23 +363,17 @@ define(['constants', 'grammarConverter', 'grammarParserTemplate', 'jscc'], funct
     			throw 'NoGrammar_'+langCode;
     		}
         	
-            var asr_recognized_text = encodeSpecialChars( phrase.toLowerCase() );
-            asr_recognized_text = stopwordFunc(asr_recognized_text.toLowerCase(), langCode);
+            var strPreparedPhrase = grammarConverter.maskString( phrase.toLowerCase() );
+            strPreparedPhrase = stopwordFunc(strPreparedPhrase, langCode);
            
-            if(IS_DEBUG_ENABLED) console.debug('SemanticInterpreter.process_asr_semantic('+langCode+'): removed stopwords, now parsing phrase "'+asr_recognized_text+'"');//debug
+            if(IS_DEBUG_ENABLED) console.debug('SemanticInterpreter.process_asr_semantic('+langCode+'): removed stopwords, now parsing phrase "'+strPreparedPhrase+'"');//debug
             
-    		grammarConverter.executeGrammar( grammarConverter.maskString(asr_recognized_text) );
-            		
-            grammarConverter.semanticAnnotationResult = decodeSpecialChars(grammarConverter.semanticAnnotationResult);
+    		grammarConverter.executeGrammar( strPreparedPhrase );
             
-            //FIXME
-            grammarConverter.semanticAnnotationResult = JSON.parse(
-            		grammarConverter.unmaskString(
-            				JSON.stringify(grammarConverter.semanticAnnotationResult) 
-            		)
-            );
-            
-//            	JSON.parse((JSON.stringify(grammarConverter.semanticAnnotationResult).replace(/__oe__/g,'ö').replace(/__ae__/g,'ä').replace(/__ue__/g,'ü').replace(/__ss__/g,'ß')));
+    		//unmask previously mask non-ASCII chars in all Strings of the returned result:
+            grammarConverter.semanticAnnotationResult = grammarConverter.unmaskJSON(
+    				grammarConverter.semanticAnnotationResult 
+    		);
             
             return grammarConverter.semanticAnnotationResult;//TODO return copy instead of original instance? 
         };
@@ -438,45 +397,82 @@ define(['constants', 'grammarConverter', 'grammarParserTemplate', 'jscc'], funct
 			return thePhrase;
 		};
         
-		/** @lends mmir.SemanticInterpreter.prototype */
+		/** @lends SemanticInterpreter.prototype */
         return { // public members
         	/**
-             * NOTE: now uses the modified implementation for stopwords.
+             * @param {String} phrase
+             * 					the phrase that will be parsed
+             * @param {String} langCode
+             * 					the language code (identifier) for the parser/grammar
+             * 
+             * @returns {Object}
+             * 				the parsing result (as processed by the parser / grammar;
+             * 				usually a JSON-like object).
              */
             getASRSemantic: function(phrase, langCode){
             	
             	return process_asr_semantic(phrase, removeStopwordsFunc, langCode);
             	
             },
-//            get_curr_asr_semantic: function(id){
-//                return doGetGrammar(id).semanticAnnotationResult;
-//            },
             /**
-             * NOTE: uses the original implementation for stopwords (has some problems for stopwords at the 
-             *  end of a sentence)
+             * @deprecated use {@link #getASRSemantic} instead
              */
             getASRSemantic_alt: function(phrase, langCode){
             	
             	return process_asr_semantic(phrase, removeStopwordsAltFunc, langCode);
             	
             },
+            /**
+             * Removes stopwords using the stopword-list from the parser/grammar
+             * for <code>lang</code>.
+             * 
+             * NOTE: <code>{@link #getASRSemantic}</code> automatically applies stopword-removal
+             * 		 (i.e. there is no need to manually remove stopwords using this function
+             * 		  when using <code>{@link #getASRSemantic}</code>).
+             * 
+             * @param {String} thePhrase
+             * 					the Phrase for which stopwords should be removed
+             * @param {String} lang
+             * 					the language code (identifier) for the parser/grammar
+             */
 			removeStopwords: function(thePhrase, lang){
 				if(!doCheckIsEnabled()){
 					console.warn('SemanticInterpreter.removeStopwords: currently disabled!');
 					return null;
 				}
-				var str = encodeSpecialChars(thePhrase, true);
+				
+				var grammarConverter = doGetGrammar(lang);
+	        	
+	        	if(!grammarConverter){
+	    			throw 'NoGrammar_'+langCode;
+	    		}
+	        	
+	            var str = grammarConverter.maskString( thePhrase );
+	            
+//				var str = grammarConverter.encodeUmlauts(thePhrase, true);
 				str = removeStopwordsFunc(str, lang);
-				return decodeSpecialChars(str, true);
+				return grammarConverter.unmaskString( str );//grammarConverter.decodeUmlauts(str, true);
 			},
+			/**
+			 * @deprecated use {@link #removeStopwords} instead
+			 */
 			removeStopwords_alt: function(thePhrase, lang){
 				if(!doCheckIsEnabled()){
 					console.warn('SemanticInterpreter.removeStopwords_alt: currently disabled!');
 					return null;
 				}
-				var str = encodeSpecialChars(thePhrase, true);
+				
+				var grammarConverter = doGetGrammar(lang);
+	        	
+	        	if(!grammarConverter){
+	    			throw 'NoGrammar_'+langCode;
+	    		}
+	        	
+	            var str = grammarConverter.maskString( thePhrase );
+	            
+//				var str = grammarConverter.encodeUmlauts(thePhrase, true);
 				str = removeStopwordsAltFunc(str, lang);
-				return decodeSpecialChars(str, true);
+				return grammarConverter.unmaskString( str );//grammarConverter.decodeUmlauts(str, true);
 			},
 			/** NOTE: the grammar must be compiled first, see getNewInstance(true) */
 			getGrammarDefinitionText: function(id){
@@ -510,12 +506,12 @@ define(['constants', 'grammarConverter', 'grammarParserTemplate', 'jscc'], funct
 	        /**
 	         * Sets the current grammar.
 	         * 
-	         * If in invocations of getASRSemantic(..) the grammar ID (e.g. language code) is missing,
+	         * If in invocations of {@link #getASRSemantic} the grammar ID (e.g. language code) is missing,
 	         * then this grammar that is set here is used.
 	         * 
 	         * The id must reference either a grammar that was compiled (i.e. generated JavaScript file)
 	         * for this id, or there must exists JSON-grammar file for which the language-dir matches the id parameter,
-	         * e.g. config/languages/[id]/grammar.json.
+	         * e.g. <code>config/languages/[id]/grammar.json</code>.
 	         * 
 	         * @param {String} id the ID for the grammar, e.g. an ISO language code
 	         * 
@@ -524,6 +520,11 @@ define(['constants', 'grammarConverter', 'grammarParserTemplate', 'jscc'], funct
 	         */
 	        setCurrentGrammar: function(id){
 	        	currentGrammarId = id;
+	        	
+	        	//set semantic-interpreter to enabled
+	        	//  (this ensures, that JSON-grammars are automatically loaded,
+	        	//   if no corresponding compiled JS-grammar is available yet) 
+	        	doSetEnabled(true);
 	        },
 	        getCurrentGrammar: function(){
 	        	return currentGrammarId;
@@ -546,30 +547,14 @@ define(['constants', 'grammarConverter', 'grammarParserTemplate', 'jscc'], funct
         };
     }
     
-//    return {
-//        getInstance: function(){
-//        
-//            if (instance === null) {
-//            
-//                instance = constructor();
-//            }
-//            return instance;
-//        }
-////    	,
-////        getNewInstance: function(doRecompile, generatedParserId){
-////            
-////            instance = constructor(doRecompile, generatedParserId);
-////            
-////            return instance;
-////        }
-//    };
-    
-//})();
-    
-    instance = constructor();
+    instance = new constructor();
     
     /**
-	 * @deprecated instead: use mmir.SemanticInterpreter directly
+	 * @deprecated instead: use <code>mmir.SemanticInterpreter</code> directly
+	 * 
+	 * @function
+	 * @name getInstance
+     * @memberOf SemanticInterpreter.prototype
 	 */
 	instance.getInstance = function(){
 		return instance;

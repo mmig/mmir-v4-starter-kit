@@ -60,6 +60,10 @@
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#b4ddb4', endColorstr='#002400',GradientType=0 ); /* IE6-9 */
 }
 
+.app_content {
+	margin-left: 1em;
+	margin-right: 1em;
+}
 
 @font-face {
 	font-family:MyFont;
@@ -140,7 +144,6 @@ textarea.ui-voice-tag-text { height: 30%; margin:10px; background:white; color:b
 
 #create_appointment #note{
 	height: 4.5em;
-	margin-left: 2%;
 	width: 97%;
 }
 

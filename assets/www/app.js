@@ -16,7 +16,7 @@ mmir.ready(function () {
 	//set default behavior for buttons:
     mmir.DialogManager.setOnPageRenderedHandler(executeAfterEachPageIsLoaded);
     //start app by triggering INIT event on dialog-engine:
-    mmir.DialogEngine.raise('init');
+    mmir.DialogManager.raise('init');
 
     
     //setup handler for BACK button (and for swipe-left gesture)
@@ -35,7 +35,7 @@ mmir.ready(function () {
         			return false; /////////////////////////// EARLY EXIT ///////////////////////////////////
         		}
         		triggerClickFeedback({haptic : false});//vibration is already triggered by system for this back-button...
-        		mmir.DialogEngine.getInstance().raise('back', {
+        		mmir.DialogManager.raise('back', {
     			    nativeBackButton : 'true'
     			});
         	}
@@ -57,9 +57,9 @@ mmir.ready(function () {
         }
         
         
-        //also trigger BACK on swipe-left gesture:
+        //also trigger BACK on swipe-right gesture:
         var $ = require('jquery');
-        $(document).on('swipeleft', backButtonHandler);
+        $(document).on('swiperight', backButtonHandler);
         
     }
     

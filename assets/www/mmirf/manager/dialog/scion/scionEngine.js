@@ -1,6 +1,9 @@
-﻿(function() {
+﻿
+//TODO doc
 
-    var _instance = null;
+define(['scion', 'scionUtil'], function( scion, scionUtil ) {
+
+//    var _instance = null;
 
     /**
      * An array containing all states active.
@@ -11,7 +14,7 @@
      */
     var statesActive = new Array();
 
-    var newInstance = function( scion, scionUtil ) {
+    var newInstance = function( scion, scionUtil, instanceContext ) {
     	
         var _interpreter = null;
 
@@ -69,7 +72,7 @@
             var isTimeout = false;
             var startTime = new Date();
             var timeout = 10000;
-
+            
             function isReady() {
                 isTimeout = new Date() - startTime > timeout;
                 if (!_interpreter && !isTimeout) {
@@ -109,39 +112,46 @@
             
         };//END: load = function(){...
 
-        /** @lends mmir.ScxmlEngine.prototype */
-        return {
-
-            getInstance: function () {
-            	return this;
-            },
-            
-            load : load,
-
-            onload : null,
-
-            doc : null,
-
-            raise : null            
-
+        /**
+    	 * @deprecated instead use the object directly
+    	 */
+        instanceContext.getInstance= function () {
+        	return this;
         };
+        instanceContext.load = load;
+        instanceContext.onload = null;
+        instanceContext.doc = null;
+        instanceContext.raise = null;
+        
+        return instanceContext;
         
     };//END: newInstance(){...
 
-    define(['scion', 'scionUtil'], function( scion, scionUtil ) {
-    	
-    	return function ( arg ) {
-    		
-            _instance = newInstance( scion, scionUtil );
-            
-            for (key in arg) {
-                _instance[key] = arg[key];
-            }
-            
-            return _instance;
-                        
-    	};
-    	
-    });
+    
+    //export:
+    
+    /**
+     * Creates a new SCION engine.
+     * 
+     * @param {Object} configuration
+     * 				The configuration object for the SCION engine:
+     * 				all properties and functions from this object will be attached
+     * 				to the returned SCION engine (i.e. the <code>context</code> object).
+     * @param {Object} context
+     * 				The context object: the SCION engine will be attached to 
+     * 				this object.
+     * @returns {Object} the created SCION engine object
+     */
+	return function (configuration , context){
+		
+        var _instance = newInstance( scion, scionUtil , context);
+        
+        for (var key in configuration) {
+            _instance[key] = configuration[key];
+        }
+        
+        return _instance;
+                    
+	};
 
-}());
+});

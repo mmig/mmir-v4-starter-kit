@@ -27,23 +27,35 @@
 
 
 
-/**
- * A class for managing the controllers of the application. <br>
- * It's purpose is to load the controllers and their views / partials and provide functions to find controllers or
- * perform actions or helper-actions.
- * 
- * This "class" is structured as a singleton - so that only one instance is in use.<br>
- * You can access the instance of the class via 
- * @example <code>mmir.ControllerManager.getInstance()</code>
- * @class ControllerManager
- * @category core
- * 
- * @see mmir.ControllerManager#_instance
- * 
- * @require jQuery.Deferred
- */
-define(['dictionary', 'controller', 'constants', 'commonUtils', 'jquery' ], function( Dictionary, Controller, constants, commonUtils, $ ) {
 
+define(['dictionary', 'controller', 'constants', 'commonUtils', 'jquery' ],
+
+	/**
+	 * A class for managing the controllers of the application. <br>
+	 * It's purpose is to load the controllers and their views / partials and provide functions to find controllers or
+	 * perform actions or helper-actions.
+	 * 
+	 * This "class" is structured as a singleton - so that only one instance is in use.<br>
+	 * 
+	 * @category core
+	 * 
+	 * @class
+	 * @name mmir.ControllerManager
+	 * @static
+	 * 
+	 * @depends jQuery.Deferred
+	 */
+	function( 
+		Dictionary, Controller, constants, commonUtils, $
+){
+	//next 2 comments are needed by JSDoc so that all functions etc. can
+	// be mapped to the correct class description
+	/** @scope mmir.ControllerManager.prototype */
+	/**
+	 * #@+
+	 * @memberOf mmir.ControllerManager.prototype 
+	 */
+	
 	// private members
 	/**
 	 * Array of controller-instances
@@ -58,13 +70,13 @@ define(['dictionary', 'controller', 'constants', 'commonUtils', 'jquery' ], func
 	 * Initialize ControllerManager:
 	 * 
 	 * Load all Controllers from /controller
-	 * that are mentioned in /config/directories.json
+	 * that are specified in /config/directories.json
 	 * 
 	 * @function _init
 	 * @param {Function} [callback] OPTIONAL
 	 * 				an optional callback that will be triggered after the controllers where loaded
 	 * @returns {Promise}
-	 * 				a Deferred.promise that will get fullfilled when controllers are loaded
+	 * 				a Deferred.promise that will get fulfilled when controllers are loaded
 	 * @private
 	 */
 	function _init(callback) {
@@ -81,13 +93,15 @@ define(['dictionary', 'controller', 'constants', 'commonUtils', 'jquery' ], func
 		
 		
 		/**
-		 * HELPER FUNC: remove file extension from file-name 
+		 * HELPER FUNC: remove file extension from file-name
+		 * @private
 		 */
 		function removeFileExt(fileName){
 	    	return fileName.replace(/\.[^.]+$/g,'');
 	    }
 		/**
 		 * HELPER FUNC: convert first letter to upper case
+		 * @private
 		 */
 	    function firstToUpperCase(name){
 	    	return name[0].toUpperCase()+name.substr(1);
@@ -95,15 +109,61 @@ define(['dictionary', 'controller', 'constants', 'commonUtils', 'jquery' ], func
 		
 		/**
 		 * This function gets the controller file names and builds a JSON object containing information about
-		 * the location, file name etc. for controllers, views, and partials.
+		 * the location, file name etc. for the controller itself, its views, partials, layout, and helper.
 		 * 
-		 * @function getViewsAndPartialsForController
-		 * @returns {JSON} JSON-Object containing controllers, views, partials and paths 
+		 * @function getControllerResources
+		 * @param {String} controllerName
+		 * 					the name of the Controller (must start with an upper case letter).
+		 * @param {String} controllerPath
+		 * 					the path (URL) where the file with the Controller's implementation
+		 * 					is located (according to information in file <code>/config/directories.json</code>,
+		 * 					i.e. {@link mmir.CommonUtils#getDirectoryStructure})
+		 * @returns {JSON} JSON-Object containing information about the controller,
+		 * 				its views, partials, and paths etc. 
 		 * @private
 		 * 
-		 * @depends commonUtils, constants
+		 * @example
+		 * //EXAMPLE for returned object:
+		 * {
+		 *   "fileName": "application",
+		 *   "name": "Application",
+		 *   "path": "controllers/application.js",
+		 *   "views": [
+		 *     {
+		 *       "name": "login",
+		 *       "path": "views/application/login.ehtml"
+		 *     },
+		 *     {
+		 *       "name": "registration",
+		 *       "path": "views/application/registration.ehtml"
+		 *     },
+		 *     {
+		 *       "name": "welcome",
+		 *       "path": "views/application/welcome.ehtml"
+		 *     }
+		 *   ],
+		 *   "partials": [
+		 *     {
+		 *       "name": "languageMenu",
+		 *       "path": "views/application/~languageMenu.ehtml"
+		 *     }
+		 *   ],
+		 *   "helper": {
+		 *     "fileName": "applicationHelper",
+		 *     "name": "ApplicationHelper",
+		 *     "path": "helpers/applicationHelper.js"
+		 *   },
+		 *   "layout": {
+		 *     "fileName": "application",
+		 *     "name": "application",
+		 *     "path": "views/layouts/application.ehtml"
+		 *   }
+		 * }
+		 * 
+		 * @depends mmir.CommonUtils
+		 * @depends mmir.Constants
 		 */
-	    function getViewsAndPartialsForController(controllerName, controllerPath){
+	    function getControllerResources(controllerName, controllerPath){
 	    	
 	    	var partialsPrefix = commonUtils.getPartialsPrefix();
 	    	var controllerFilePath = controllerPath + controllerName;
@@ -232,13 +292,13 @@ define(['dictionary', 'controller', 'constants', 'commonUtils', 'jquery' ], func
 						
 						console.info('[loadController] "'+fileName);
 
-						var tmpView = getViewsAndPartialsForController(fileName, constants.getControllerPath());
+						var ctrlInfo = getControllerResources(fileName, constants.getControllerPath());
 
-						var controller = new Controller(tmpView.name, tmpView);
+						var controller = new Controller(ctrlInfo.name, ctrlInfo);
 
-						if(tmpView.helper){
-							var helperPath = tmpView.helper.path;
-							var helperName = tmpView.helper.name; 
+						if(ctrlInfo.helper){
+							var helperPath = ctrlInfo.helper.path;
+							var helperName = ctrlInfo.helper.name;
 							controller.loadHelper(helperName,helperPath);
 						}
 
@@ -269,16 +329,17 @@ define(['dictionary', 'controller', 'constants', 'commonUtils', 'jquery' ], func
      * @private
 	 * @augments mmir.ControllerManager
 	 * @memberOf mmir.ControllerManager.prototype
+	 * @ignore
      */
 	var _instance = {
-
+			/** @scope mmir.ControllerManager.prototype */
 
 			/**
 			 * Get instance of ControllerManager.
 			 * 
 			 * @deprecated use directly: instead of <code>mmir.ControllerManager.getInstance()</code> use <code>mmir.ControllerManager</code>
 			 * 
-			 * NOTE: The ControllerManager must be initialized, before it can be used! (see {@link mmir.ControllerManager#init})
+			 * NOTE: The ControllerManager must be initialized, before it can be used! (see {@link ControllerManager#init})
 			 */
 			getInstance : function () {
 
@@ -328,7 +389,6 @@ define(['dictionary', 'controller', 'constants', 'commonUtils', 'jquery' ], func
 			 * @public
 			 */
 			perform: function(ctrlName, actionName, data){
-				//var ctrl = mmir.ControllerManager.getInstance().getController(ctrlName);
 				var ctrl = this.getController(ctrlName);
 				if (ctrl != null) {
 					return ctrl.perform(actionName, data);
@@ -381,7 +441,11 @@ define(['dictionary', 'controller', 'constants', 'commonUtils', 'jquery' ], func
 			 * </div>
 			 * 
 			 * @function init
-			 * @param {Function} [callbackFunction] The function which should be called after loading all controllers
+			 * 
+			 * @param {Function} [callback] OPTIONAL
+			 * 				an optional callback that will be triggered after the controllers where loaded
+			 * @returns {Promise}
+			 * 				a Deferred.promise that will get fulfilled when controllers are loaded
 			 * @example
 			 *  //recommended style:
 			 *  require(['controllerManager', ...], function(controllerManager, ...) {
@@ -401,9 +465,11 @@ define(['dictionary', 'controller', 'constants', 'commonUtils', 'jquery' ], func
 			init: _init
 
 	};
-
+	/**@ignore*/
 	return _instance;
-
+	
+	/** #@- */
+	
 });
 
 

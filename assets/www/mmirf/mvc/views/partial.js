@@ -25,21 +25,29 @@
  */
 
 
-define ( ['commonUtils', 'contentElement', 'renderUtils', 'parseUtils', 'storageUtils'],  function (
+define ( ['commonUtils', 'contentElement', 'renderUtils', 'parseUtils', 'storageUtils'],  
+	/**
+	 * @name Partial
+	 * @class
+	 */
+	function (
 			commonUtils, ContentElement, renderUtils, parseUtils, parser
 ){
+	/** @scope Partial.prototype */
+	/**
+	 * #@+
+	 * @memberOf Partial.prototype
+	 */
 	
 	/**
 	 * The Partial class is a containing the definition of the partial and methods to access the definition.
 	 * 
-	 * @class Partial
-	 * @constructor
+	 * @constructs Partial
 	 * @param {Object} ctrl Controller instance / object
 	 * @param {String} name Name of the Partial 
 	 * @param {String} definition Partial description
 	 * @category core
 	 */
-	
 	function Partial(ctrl, name, definition){
 //	    var HTMLCommentRegExp = /<!--[\s\S]*?-->/g;
 		
@@ -182,6 +190,8 @@ define ( ['commonUtils', 'contentElement', 'renderUtils', 'parseUtils', 'storage
 	};
 
 	return Partial;
+	
+	/** #@- */
 	
 });
 

@@ -438,6 +438,29 @@ parser.ParsingResult.prototype.isEscape = function(){
 	return this.isEscapeEnter() || this.isEscapeExit();
 };
 
+/**
+ * WARNING: do use sparingly -- an invocation triggers a list evaluation.
+ * 
+ * @returns {String} a String representation (name) for this ParsingResult's type
+ * 
+ * @see #getType
+ */
+parser.ParsingResult.prototype.getTypeName = function(){
+	
+	if(this.typeName){
+		return this.typeName;/////////////////// EARLY EXIT //////////////////////////
+	}
+	
+	for(var prop in parser.element){
+		if(parser.element.hasOwnProperty(prop) && parser.element[prop] === this.getType()){
+			this.typeName = prop;
+			return prop;/////////////////// EARLY EXIT //////////////////////////
+		}
+	}
+	
+	return void(0);
+};
+
 parser.ParsingResult.prototype.hasCallData = function(){
 	return typeof this.dataPos !== 'undefined';
 };

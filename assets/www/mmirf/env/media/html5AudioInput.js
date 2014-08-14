@@ -24,10 +24,16 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
+/**
+ * @name media.plugin.html5AudioInput
+ */
 newMediaPlugin = {
 		
+	/** @scope media.plugin.html5AudioInput.prototype */
+		
 	initialize: function(callBack, mediaManagerInstance){
+		
+		var _pluginName = 'html5AudioInput';
 		
 		var languageManager = require('languageManager');
 		var configurationManager = require('configurationManager');
@@ -35,7 +41,11 @@ newMediaPlugin = {
 		var constants = require('constants');
 		var commonUtils = require('commonUtils');
 		
+		/**
+		 * @constructs media.plugin.html5AudioInput
+		 */
 		function htmlAudioConstructor(){
+			
 			// variable that describes if recording is in process
 			var recording = false;
 			var freeIds = [true];
@@ -116,7 +126,7 @@ newMediaPlugin = {
       			 if (webSocket){
       				 webSocket.close();
       			 }
-      			 webSocket = new WebSocket(configurationManager.get("HTML5InputWebSocketAddress"));
+      			 webSocket = new WebSocket(configurationManager.getString( [_pluginName, "webSocketAddress"] ));
       			
       			 
       			 webSocket.onopen = function () {
@@ -210,7 +220,7 @@ newMediaPlugin = {
 //		    		silenceDetectionInput.onaudioprocess= function(e){};
 //		    	}
 //		    	var input = audio_context.createMediaStreamSource(stream); 	    		    
-//		    	silenceDetectionInput = createAudioScriptProcessor(input, configurationManager.get("HTML5InputSoundPackageSize"), 2, 2);
+//		    	silenceDetectionInput = createAudioScriptProcessor(input, configurationManager.get([_pluginName, "soundPackageSize"]), 2, 2);
 //		    	silenceDetectionInput.onaudioprocess = function(e){
 //		    		if (recording){
 //		    			silenceDetection.postMessage({
@@ -242,7 +252,7 @@ newMediaPlugin = {
     			}
     			
     			
-//    			silenceDetection = new Worker(configurationManager.get("HTML5InputSilenceDetectorPath"));
+//    			silenceDetection = new Worker(configurationManager.get([_pluginName, "silenceDetectorPath"]));
 //    			silenceDetection.onmessage = function (e){
 //    				if(IS_DEBUG_ENABLED) console.log(e.data);
 //    				if (e.data=='Send partial!'){
@@ -260,7 +270,7 @@ newMediaPlugin = {
 //    	    						inputId = findLowestFreeId();
 //    	    						hasActiveId = true;
 //    	    						webSocketSend("start "+ inputId);
-//    	    						buffer = configurationManager.get("HTML5InputSilenceBuffer");
+//    	    						buffer = configurationManager.get([_pluginName, "silenceBuffer"]);
 //    	    					}	else {
 //    	    						buffer = 0;
 //    	    					}
@@ -281,7 +291,7 @@ newMediaPlugin = {
 //    	    						inputId = findLowestFreeId();
 //    	    						hasActiveId = true;
 //    	    						webSocketSend("start "+ inputId);
-//    	    						buffer = configurationManager.get("HTML5InputSilenceBuffer");
+//    	    						buffer = configurationManager.get([_pluginName, "silenceBuffer"]);
 //    	    					}	else {
 //    	    						buffer = 0;
 //    	    					}
@@ -303,16 +313,16 @@ newMediaPlugin = {
 //    					}
 //    				}
 //    				if (e.data=='clear'){
-//    					recorder.clear(configurationManager.get("HTML5InputSilenceBuffer"));
+//    					recorder.clear(configurationManager.get([_pluginName, "silenceBuffer"]));
 //    				}
 //    			};
 //    			silenceDetection.postMessage({
 //    				command: 'init',
 //    				config: {
 //    					sampleRate: input.context.sampleRate,
-//    					noiseTreshold : configurationManager.get("SilenceDetectorNoiseTreshold"),
-//    					pauseCount : configurationManager.get("SilenceDetectorPauseCount"),
-//    					resetCount : configurationManager.get("SilenceDetectorResetCount")
+//    					noiseTreshold : configurationManager.get([_pluginName, "silenceDetector.noiseTreshold"]),
+//    					pauseCount : configurationManager.get([_pluginName, "silenceDetector.pauseCount"]),
+//    					resetCount : configurationManager.get([_pluginName, "silenceDetector.resetCount"])
 //    				}
 //    			});
     			
@@ -334,12 +344,12 @@ newMediaPlugin = {
     							//mediaManager.playWAV(blob,function(){},function(){alert("could not play blob");});
     	    					if (!hasActiveId) {
 			   						
-    	    						webSocketSend("language "+require('languageManager').getLanguage());//FIXME
+    	    						webSocketSend("language "+ languageManager.getLanguage());//FIXME use languageManager.getLanguageConfig(_pluginName) instead?
 			   					
     	    						inputId = findLowestFreeId();
     	    						hasActiveId = true;
     	    						webSocketSend("start "+ inputId);
-    	    						buffer = configurationManager.get("HTML5InputSilenceBuffer");
+    	    						buffer = configurationManager.get([_pluginName, "silenceBuffer"]);
     	    					}	else {
     	    						buffer = 0;
     	    					}
@@ -365,7 +375,7 @@ newMediaPlugin = {
     	    						inputId = findLowestFreeId();
     	    						hasActiveId = true;
     	    						webSocketSend("start "+ inputId);
-    	    						buffer = configurationManager.get("HTML5InputSilenceBuffer");
+    	    						buffer = configurationManager.get([_pluginName, "silenceBuffer"]);
     	    					}	else {
     	    						buffer = 0;
     	    					}
@@ -405,9 +415,9 @@ newMediaPlugin = {
     			};
     			var silenceDetectionConfig = {
 					sampleRate: input.context.sampleRate,
-					noiseTreshold : configurationManager.get("SilenceDetectorNoiseTreshold"),
-					pauseCount : configurationManager.get("SilenceDetectorPauseCount"),
-					resetCount : configurationManager.get("SilenceDetectorResetCount")
+					noiseTreshold : configurationManager.get([_pluginName, "silenceDetector.noiseTreshold"]),
+					pauseCount : configurationManager.get([_pluginName, "silenceDetector.pauseCount"]),
+					resetCount : configurationManager.get([_pluginName, "silenceDetector.resetCount"])
 				};
     			silenceDetection.postMessage({
     				command: 'initDetection',
@@ -463,6 +473,7 @@ newMediaPlugin = {
     				if(intermediateResults){
         				textProcessor = successCallback;
     				} else {
+    					/** @memberOf media.plugin.html5AudioInput.prototype */
     					textProcessor = function(e, onEnd){
     						totalText = totalText + ' '+e;
     					};
@@ -484,6 +495,7 @@ newMediaPlugin = {
     				setTimeout(function(){
     					recorder && recorder.stop();
         				if (successCallback){
+        					/** @memberOf media.plugin.html5AudioInput.prototype */
         					textProcessor = function(e){
         						if (lastBlob) {
         							successCallback(totalText+ ' ' + e);

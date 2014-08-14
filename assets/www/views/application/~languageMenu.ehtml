@@ -25,7 +25,7 @@
 		
 		@set_list_theme = 
 			@set_lang == mmir.LanguageManager.getInstance().getLanguage()?
-				'e' : 'b';
+				'b' : 'a';
 		
 		@set_list_class += 'ui-body-' + @set_list_theme;
 	}@

@@ -314,20 +314,20 @@ var ES3Lexer = function(input, state) {
         	switch (last.getType())
         	{
         	// identifier
-        		case Identifier:
+        		case this.Identifier:
         	// literals
-        		case NULL:
-        		case TRUE:
-        		case FALSE:
-        		case THIS:
-        		case OctalIntegerLiteral:
-        		case DecimalLiteral:
-        		case HexIntegerLiteral:
-        		case StringLiteral:
+        		case this.NULL:
+        		case this.TRUE:
+        		case this.FALSE:
+        		case this.THIS:
+        		case this.OctalIntegerLiteral:
+        		case this.DecimalLiteral:
+        		case this.HexIntegerLiteral:
+        		case this.StringLiteral:
         	// member access ending 
-        		case RBRACK:
+        		case this.RBRACK:
         	// function call or nested expression ending
-        		case RPAREN:
+        		case this.RPAREN:
         			return false;
         	// otherwise OK
         		default:
@@ -4646,8 +4646,8 @@ org.antlr.lang.augmentObject(ES3Lexer.prototype, {
             var _channel = org.antlr.runtime.BaseRecognizer.DEFAULT_TOKEN_CHANNEL;
             // ../ES3.g3:1151:2: ({...}? => DIV RegularExpressionFirstChar ( RegularExpressionChar )* DIV ( IdentifierPart )* )
             // ../ES3.g3:1151:4: {...}? => DIV RegularExpressionFirstChar ( RegularExpressionChar )* DIV ( IdentifierPart )*
-            if ( !(( areRegularExpressionsEnabled() )) ) {
-                throw new org.antlr.runtime.FailedPredicateException(this.input, "RegularExpressionLiteral", " areRegularExpressionsEnabled() ");
+            if ( !(( this.areRegularExpressionsEnabled() )) ) {
+                throw new org.antlr.runtime.FailedPredicateException(this.input, "RegularExpressionLiteral", " this.areRegularExpressionsEnabled() ");
             }
             this.mDIV(); 
             this.mRegularExpressionFirstChar(); 
@@ -4747,10 +4747,10 @@ org.antlr.lang.augmentObject(ES3Lexer.prototype, {
                       
                             this.emit(org.antlr.runtime.Token.EOF_TOKEN);
                             
-                            if(this.isDebug) print("exiting embedded JavaScript (ES3)");//debug
+                            if(this.isDebug) this.printDebug("exiting embedded JavaScript (ES3)");//debug
                       }
                       else {
-                            if(this.isDebug) print("closing level JavaScript (ES 3) "+this.nesting);//debug
+                            if(this.isDebug) this.printDebug("closing level JavaScript (ES 3) "+this.nesting);//debug
                             
                             this.nesting--;
                       }
@@ -6358,7 +6358,7 @@ org.antlr.lang.extend(ES3Lexer.DFA33, org.antlr.runtime.DFA, {
 
                             else if ( (LA33_39=='/') ) {s = 123;}
 
-                            else if ( ((LA33_39>='\u0000' && LA33_39<='\t')||(LA33_39>='\u000B' && LA33_39<='\f')||(LA33_39>='\u000E' && LA33_39<=')')||(LA33_39>='+' && LA33_39<='.')||(LA33_39>='0' && LA33_39<='<')||(LA33_39>='>' && LA33_39<='\u2027')||(LA33_39>='\u202A' && LA33_39<='\uFFFF')) && (( areRegularExpressionsEnabled() ))) {s = 125;}
+                            else if ( ((LA33_39>='\u0000' && LA33_39<='\t')||(LA33_39>='\u000B' && LA33_39<='\f')||(LA33_39>='\u000E' && LA33_39<=')')||(LA33_39>='+' && LA33_39<='.')||(LA33_39>='0' && LA33_39<='<')||(LA33_39>='>' && LA33_39<='\u2027')||(LA33_39>='\u202A' && LA33_39<='\uFFFF')) && (( this.areRegularExpressionsEnabled() ))) {s = 125;}
 
                             else s = 124;
 
@@ -6373,7 +6373,7 @@ org.antlr.lang.extend(ES3Lexer.DFA33, org.antlr.runtime.DFA, {
                             var index33_121 = input.index();
                             input.rewind();
                             s = -1;
-                            if ( ((LA33_121>='\u0000' && LA33_121<='\t')||(LA33_121>='\u000B' && LA33_121<='\f')||(LA33_121>='\u000E' && LA33_121<='\u2027')||(LA33_121>='\u202A' && LA33_121<='\uFFFF')) && (( areRegularExpressionsEnabled() ))) {s = 125;}
+                            if ( ((LA33_121>='\u0000' && LA33_121<='\t')||(LA33_121>='\u000B' && LA33_121<='\f')||(LA33_121>='\u000E' && LA33_121<='\u2027')||(LA33_121>='\u202A' && LA33_121<='\uFFFF')) && (( this.areRegularExpressionsEnabled() ))) {s = 125;}
 
                             else s = 192;
 

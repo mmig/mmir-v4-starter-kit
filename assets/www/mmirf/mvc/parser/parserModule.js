@@ -30,15 +30,23 @@
  * 
  */
 
-define(function(){
-
+define(
 	/**
+	 * The module that holds functions / classes for template parsing.
 	 * 
+	 * This module contains constant Definitions for the Template Parser and Renderer.
 	 * 
 	 * @category parser
-	 * @namespace This module contains constant Definitions for the Template Parser and Renderer.
-	 * @public
+	 * 
+	 * @namespace
+	 * @name parser
+	 * @exports parser as mmir.parser
+	 * 
 	 */
+	function(
+){
+
+	
 	parser = {
 			element: {}
 	};
@@ -60,6 +68,8 @@ define(function(){
 	 * 		 field: one of <code>StringLiteral</code>, <code>Identifier</code>, <code>IdentifierNameAmpersatStart</code></li>
 	 * </ul>
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -79,6 +89,8 @@ define(function(){
 	 * 		 field: one of <code>StringLiteral</code>, <code>Identifier</code>, <code>IdentifierNameAmpersatStart</code></li>
 	 * </ul>
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -97,6 +109,8 @@ define(function(){
 	 * 		 field: one of <code>StringLiteral</code>, <code>Identifier</code>, <code>IdentifierNameAmpersatStart</code></li>
 	 * </ul>
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -115,6 +129,8 @@ define(function(){
 	 * 		 field: one of <code>StringLiteral</code>, <code>Identifier</code>, <code>IdentifierNameAmpersatStart</code></li>
 	 * </ul>
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -129,6 +145,8 @@ define(function(){
 	 * A yield section corresponds to a {@link ContentElement}:
 	 * Its content can itself contain HTML content as well as template expressions.
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -147,6 +165,8 @@ define(function(){
 	 * 							function takes one argument: the current data-object.</li>
 	 * </ul>
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -165,6 +185,8 @@ define(function(){
 	 * 							function takes one argument: the current data-object.</li>
 	 * </ul>
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -186,6 +208,8 @@ define(function(){
 	 * 			(optional argument) of the helper expression. The function takes one argument: the current data-object.</li>
 	 * </ul>
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -208,6 +232,8 @@ define(function(){
 	 *  					representing an else-expression, see {@link mmir.parser.element.ELSE}.</li>
 	 * </ul>
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -226,6 +252,8 @@ define(function(){
 	 * 					if-expression (to which the else-expression belongs) evaluates to <code>false</code>.</li>
 	 * </ul>
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -262,6 +290,8 @@ define(function(){
 	 * 								 during each iteration of the for-loop.</li>
 	 * </ul>
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -286,6 +316,8 @@ define(function(){
 	 * 								(optional argument) of the render expression. The function takes one argument: the current data-object.</li>
 	 * </ul>
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -303,6 +335,8 @@ define(function(){
 	 * 	<li><strong>text</strong> {String}: the text that will be rendered (i.e. without the escape-character(s) itself).</li>
 	 * </ul>
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -320,6 +354,8 @@ define(function(){
 	 * 	<li><strong>text</strong> {String}: the text that will be rendered (i.e. without the escape-character(s) itself).</li>
 	 * </ul>
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -332,8 +368,11 @@ define(function(){
 	 * This type identifies an ITERATION type for-expression.
 	 * 
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
+	 * 
 	 * @see parser.element.FOR
 	 */
 	parser.element.FOR_TYPE_ITER		= 16384;
@@ -344,8 +383,11 @@ define(function(){
 	 * This type identifies an STEP-wise type for-expression.
 	 * 
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
+	 * 
 	 * @see parser.element.FOR
 	 */
 	parser.element.FOR_TYPE_STEP		= 32768;
@@ -363,6 +405,8 @@ define(function(){
 	 * 	<li><strong>nameType</strong>: the type of the <tt>name</tt> field: <code>StringLiteral</code></li>
 	 * </ul>
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -383,6 +427,8 @@ define(function(){
 	 * NOTE: the name of the variable is extracted from the raw-template text during processing/compilation
 	 * 		 of the Functions.
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -395,6 +441,8 @@ define(function(){
 	 * The template expression represents a template-comment: the content of the comment will be ignored
 	 * (that is: removed during processing of the template).
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {Number}
 	 * @public
 	 */
@@ -405,6 +453,8 @@ define(function(){
 	 * this name will be used for the argument name of generated/compiled Functions, and in the Function code block
 	 * appropriate getter/setter expression will be inserted.
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {String}
 	 * @public
 	 */
@@ -413,6 +463,8 @@ define(function(){
 	 * Constant for the name of the reserved <tt>data</tt> variable: the optional data argument is passed in 
 	 * into rendering-calls for views, layouts etc. (see PresentationManager)
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {String}
 	 * @public
 	 */
@@ -422,6 +474,8 @@ define(function(){
 	 * have an (optional) <tt>argument</tt> argument, which can be accessed using the variable name
 	 * within the template expressions inner content-/code-blocks. 
 	 * 
+	 * @memberOf mmir.parser
+	 * @constant
 	 * @type {String}
 	 * @public
 	 */

@@ -24,30 +24,41 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/**
- * A class for managing the language of the application. <br>
- * It's purpose is to load the controllers and their views / partials and provide functions to find controllers or
- * perform actions or helper-actions.
- * 
- * This "class" is structured as a singleton - so that only one instance is in use.<br>
- * You can access the instance of the class via 
- * @example <code>mmir.ControllerManager.getInstance()</code>
- * @class LanguageManager
- * @category core
- * 
- * @see mmir.LanguageManager#constructor
- * 
- * @depends mmir.Constants
- * @depends mmir.CommonUtils
- * @depends mmir.SemanticInterpreter
- */
-define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter'], function( 
+
+define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter'],
+		
+	/**
+	 * A class for managing the language of the application. <br>
+	 * It's purpose is to load the controllers and their views / partials and provide functions to find controllers or
+	 * perform actions or helper-actions.
+	 * 
+	 * This "class" is structured as a singleton - so that only one instance is in use.<br>
+	 * 
+	 * @name LanguageManager
+	 * @exports LanguageManager as mmir.LanguageManager
+	 * @class
+	 * 
+	 * @category core
+	 * 
+	 * 
+	 * @depends mmir.Constants
+	 * @depends mmir.CommonUtils
+	 * @depends mmir.SemanticInterpreter
+	 */
+	function( 
 			constants, configurationManager, commonUtils, semanticInterpreter
 ){
+			//next 2 comments are needed by JSDoc so that all functions etc. can
+			// be mapped to the correct class description
+			/** @scope mmir.LanguageManager.prototype */
+			/**
+			 * #@+
+			 * @memberOf mmir.LanguageManager.prototype 
+			 */
 			
 		    /**
 		     * Object containing the instance of the class
-		     * {@link mmir.LanguageManager}
+		     * {@link LanguageManager}
 		     * 
 		     * @property instance
 		     * @type Object
@@ -57,7 +68,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 
 		    /**
 		     * JSON object containing the contents of a dictionary file - which are
-		     * found in 'config/languages/&lt;language&gt;/dictionary.dic'.
+		     * found in 'config/languages/&lt;language&gt;/dictionary.json'.
 		     * 
 		     * @property dictionary
 		     * @type JSON
@@ -75,13 +86,13 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		    var currentLanguage = null;
 
 		    /**
-		     * A JSON-Object holding the information on the currently loaded speaker.
+		     * A JSON-Object holding the speech-configuration for the currently loaded language.
 		     * 
-		     * @property currentSpeaker
+		     * @property currentSpeechConfig
 		     * @type JSON-Object
 		     * @private
 		     */
-		    var currentSpeaker = null;
+		    var currentSpeechConfig = null;
 
 		    /**
 		     * An array of all available languages.
@@ -119,7 +130,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		    function setLanguage(lang) {
 		        if ((lang) && (currentLanguage != lang)) {
 		            loadDictionary(lang);
-		            loadSpeaker(lang);
+		            loadSpeechConfig(lang);
 		            requestGrammar(lang);
 		        }
 		        return currentLanguage;
@@ -212,33 +223,33 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		        return semanticInterpreter.getCurrentGrammar();
 		    }
 		    /**
-		     * Loads the speaker info for the provided language and updates the current
+		     * Loads the speech-configuration for the provided language and updates the current
 		     * language.
 		     * 
-		     * @function loadSpeaker
-		     * @param {String}
-		     *            lang The language of the speaker info which should be loaded.
+		     * @function loadSpeechConfig
+		     * @param {String} lang
+		     *            The language of the speech-configuration which should be loaded.
 		     * @returns {String} The (new) current language
 		     * @async
 		     * @private
 		     */
-		    function loadSpeaker(lang) {
+		    function loadSpeechConfig(lang) {
 
 		        if (lang && currentLanguage != lang) {
 		            currentLanguage = lang;
 		        }
+		        var path = constants.getLanguagePath() + lang + "/" + constants.getSpeechConfigFileName();
 		        $.ajax({
 		            async : false,
 		            dataType : "json",
-		            url : constants.getLanguagePath() + lang + "/" + constants.getSpeakerFileName(),
+		            url : path,
 		            success : function(data) {
 		                // console.log("[LanguageManager] Success. " + data);
-		                currentSpeaker = data;// jQuery.parseJSON(data);
+		                currentSpeechConfig = data;// jQuery.parseJSON(data);
 		                // console.log("[LanguageManager] " + JSON.stringify(dictionary));
 		            },
-		            error : function(data) {
-		                // print out an error message
-		                console.error("[LanguageManager] Error: " + data + '"'); // error
+		            error : function(xhr, statusStr, error) {
+		                console.error("[LanguageManager] Error loading speech configuration from \""+path+"\": " + error? error.stack? error.stack : error : ''); // error
 		            }
 		        });
 		        return currentLanguage;
@@ -260,15 +271,16 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		        if (lang && currentLanguage != lang) {
 		            currentLanguage = lang;
 		        }
+		        var path = constants.getLanguagePath() + lang + "/" + constants.getDictionaryFileName();
 		        $.ajax({
 		            async : false,
 		            dataType : "json",
-		            url : constants.getLanguagePath() + lang + "/" + constants.getDictionaryFileName(),                                                                                                                                                                     // "/dictionary.dic",
+		            url : path,
 		            success : function(data) {
 		                dictionary = data;
 		            },
-		            error : function(data) {
-		                console.error("[LanguageManager] Error. " + data); // error
+		            error : function(xhr, statusStr, error) {
+		                console.error("[LanguageManager] Error loading language dictionary from \""+path+"\": " + error? error.stack? error.stack : error : ''); // error
 		            }
 		        });
 		        return currentLanguage;
@@ -299,34 +311,69 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		    }
 
 		    /**
-		     * Constructor-Method of Class {@link mmir.LanguageManager}.<br>
+		     * Constructor-Method of Singleton mmir.LanguageManager.<br>
 		     * 
-		     * @constructor
-		     * @augments mmir.LanguageManager
-		     * @memberOf mmir.LanguageManager.prototype
+		     * @constructs LanguageManager
+		     * @memberOf LanguageManager.prototype
+		     * @private
+		     * 
 		     */
 		    function constructor() {
-		    	
+		    			    	
 		        var _isInitialized = false;
 		        
-		        /** @lends mmir.LanguageManager.prototype */
+		        /** @lends LanguageManager.prototype */
 		        return {
 		        	
+		        	/**
+		        	 * @param {String} [lang] OPTIONAL
+		        	 * 				a language code for setting the current language and
+		        	 * 				selecting the corresponding language resources
+		        	 */
 		        	init: function(lang){
-		        		if ((!lang || lang.length < 1) && (!currentLanguage || currentLanguage.length < 1)) {
+		        		
+		        		if (!lang && !currentLanguage) {
 
-				            var appLang = constants.getLanguage();
-				            if (appLang && appLang.length > 0) {
+		        			//try to retrieve language from configuration:
+				            var appLang = configurationManager.get("language");
+				            if (appLang) {
+				            	
 				                lang = appLang;
-				                console.info("[LanguageManager] No language specified. Using language from mmir.constants '" + appLang + "'.");
-				            } else {
-				                if (languages.length > 0) {
-				                    console.info("[LanguageManager] No language specified. Using first language in directory '" + constants.getLanguagePath() + "': '" + languages[0] + "'.");
-				                } else {
-				                    console.warn("[LanguageManager] No language specified. And no language could be read from directory '" + constants.getLanguagePath() + "'.");
-				                }
+				                console.info("[LanguageManager] No language argument specified: using language from configuration '" + appLang + "'.");
+				                
 				            }
-				        }
+				            else {
+				            	
+					            appLang = constants.getLanguage();
+					            
+				            	if (appLang) {
+				            
+					                lang = appLang;
+					                console.info("[LanguageManager] No language argument specified: using language from mmir.constants '" + appLang + "'.");
+					            }
+				            	else {
+					            	
+					                if (languages.length > 0) {
+					                	
+					                	appLang = this.determineLanguage(lang);
+					                	if(appLang){
+					                		
+					                		lang = appLang;
+					                		
+					                		console.info("[LanguageManager] No language argument specified: used determinLanguage() for selecting language '" + appLang + "'.");
+					                	}
+					                }
+					                
+					            }//END: else(consts::lang)
+				            	
+				            }//END: else(config::lang)
+				        
+			        		if(!lang){
+			        			console.warn("[LanguageManager.init] No language specified. And no language could be read from directory '" + constants.getLanguagePath() + "'.");
+			        		}
+			        		
+				        }//END: if(!lang && !currentLanguage)
+		        		
 
 				        // get all the languages/dictionaries by name
 				        languages = commonUtils.getDirectoryContents(constants.getLanguagePath());
@@ -334,7 +381,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 				        if (IS_DEBUG_ENABLED) console.debug("[LanguageManager] Found dictionaries for: " + JSON.stringify(languages));// debug
 
 				        loadDictionary(lang);   
-				        loadSpeaker(lang);
+				        loadSpeechConfig(lang);
 				        requestGrammar(lang, true);//2nd argument TRUE: if no grammar is available for lang, try to find/set any available grammar
 				        
 				        _isInitialized = true;
@@ -348,6 +395,8 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 				     * from {@link mmir.Configuration} is used or the first language found
 				     * in the language directory.
 				     * 
+				     * @deprecated instead use LanguageManager directly (NOTE: before starting to use LanguageManager, init() has to be invoked once)
+				     * 
 				     * @param {String} [lang] OPTIONAL
 				     *            The language which should be used throughout the
 				     *            application.
@@ -356,9 +405,6 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		        		
 		        		if(_isInitialized === false){
 		        			_isInitialized = true;
-		        			if(!lang){
-			        			lang = configurationManager.get("language");
-			        		}
 		        			this.init(lang);
 		        		}
 		        		else if(lang) {
@@ -407,23 +453,26 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		            },
 
 		            /**
-		             * If a Speaker exists for the given language, 'true' is returned.
-		             * Else the method returns 'false'.
+		             * If a speech-configuration (file) exists for the given language.
 		             * 
 		             * @function existsDictionary
-		             * @returns {Boolean} True if a Speaker exists for given language.
-		             * @param {String}
-		             *            Language String, i.e.: en, de
+		             * @returns {Boolean}
+		             * 				<code>true</code>if a speech-configuration exists for given language.
+		             * 				Otherwise <code>false</code>.
+		             * 
+		             * @param {String} lang
+		             *            the language for which existence of the configuration should be checked, e.g. en, de
+		             *            
 		             * @public
 		             */
-		            existsSpeaker : function(lang) {
+		            existsSpeechConfig : function(lang) {
 		                var langFiles = null;
 		                var retValue = false;
 
 		                if (lang != null) {
 		                    langFiles = commonUtils.getDirectoryContents(constants.getLanguagePath() + lang);
 		                    if (langFiles != null) {
-		                        if (langFiles.indexOf(constants.getSpeakerFileName()) > -1) {
+		                        if (langFiles.indexOf(constants.getSpeechConfigFileName()) > -1) {
 		                            retValue = true;
 		                        }
 		                    }
@@ -607,7 +656,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 
 		                    if (IS_DEBUG_ENABLED)
 		                        console.debug("[LanguageManager] Next language is " + currentLanguage);// debug
-		                    loadSpeaker(currentLanguage);
+		                    loadSpeechConfig(currentLanguage);
 		                    return loadDictionary(currentLanguage);
 		                }
 		                return currentLanguage;
@@ -626,14 +675,40 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		            getText : function(textVarName) {
 		                return internalGetText(textVarName);
 		            },
+		            
+		            getLanguageConfig : function(pluginId, feature, separator) {
+		                
+		                //if nothing is specfied:
+		            	//	return default language-setting
+		                if(typeof pluginId === 'undefined'){
+		                	return currentSpeechConfig.language; /////////// EARLY EXIT ///////////////
+		                }
+		                
+		                //ASSERT pluginId is defined
+		                
+		                //default feature is language
+		                if(typeof feature === 'undefined'){
+		                	feature = 'language';
+		                }
 
-		            /**
-		             * @returns {JSON-Object} The current Speaker Code
-		             */
-		            getSpeaker : function() {
-		                return currentSpeaker;
+		                var value;
+		                if(currentSpeechConfig.plugins && currentSpeechConfig.plugins[pluginId] && typeof currentSpeechConfig.plugins[pluginId][feature] !== 'undefined'){
+		                	//if there is a plugin-specific setting for this feature
+		                	value = currentSpeechConfig.plugins[pluginId][feature];
+		                }
+		                else if(feature !== 'plugins' && typeof currentSpeechConfig[feature] !== 'undefined'){
+		                	//otherwise take the default setting (NOTE: the name "plugins" is not allowed for features!)
+		                	value = currentSpeechConfig[feature];
+		                }
+		                
+		                //if there is a separator specified: replace default separator '-' with this one
+		                if(value && typeof separator !== 'undefined'){
+		                	value.replace(/-/, separator);
+		                }
+		                
+		                return value;
 		            }
-
+		            
 		            /**
 		             * Set to "backwards compatibility mode" (for pre version 2.0).
 		             * 
@@ -643,103 +718,34 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		             * NOTE that once set to compatibility mode, it cannot be reset to
 		             * non-compatibility mode.
 		             * 
-		             * TODO move into separate extensions file
-		             * 
-		             * @functionOf mmir.LanguageManager.prototype
-		             * @constructor
-		             * 
-		             * @borrows mmir.LanguageManager#getLanguage as
-		             *          this.getCurrentLanguage
-		             * @borrows mmir.LanguageManager#existsGrammar as
-		             *          this.existsGrammarForLanguage
-		             * @borrows mmir.LanguageManager#existsDictionary as
-		             *          this.existsDictionaryForLanguage
-		             * @borrows mmir.LanguageManager#existsSpeaker as
-		             *          this.existsSpeakerForLanguage
-		             * @borrows mmir.LanguageManager#setNextLanguage as
-		             *          this.cycleLanguages
+		             * @async
+				     * @depends jQuery.Deferred
+				     * @depends mmir.LanguageManager.setToCompatibilityModeExtension
+				     * 
+				     * @param {Function} [success]
+				     * 				a callback function that is invoked, after compatibility mode
+				     * 				was set (alternatively the returned promise can be used).
+				     * @returns {Promise}
+				     * 				a Deffered.promise that is resolved, after compatibility mode
+				     * 				was set
+				     * 
+				     * @see mmir.LanguageManager.setToCompatibilityModeExtension
 		             */
-		            ,
-		            setToCompatibilityMode : function() {
-		                /**
-		                 * The instance that holds the extensions for compatibility
-		                 * mode, which really is the LanguageManager instance.
-		                 * 
-		                 * @property compatibilitySelf
-		                 * @type mmir.LanguageManager
-		                 * @private
-		                 */
-		                var compatibilitySelf = this;
-
-		                /**
-		                 * This function is used to localize the view description
-		                 * (ehtml) before they are displayed.
-		                 * 
-		                 * @function translateHTML
-		                 * @param {String}
-		                 *            html The (HTML) string which is to be localized
-		                 *            into the currently used language
-		                 * @returns {String} The localized (HTML) string
-		                 * @public
-		                 * @deprecated used for old template format
-		                 * 
-		                 * @requires requires that CommonUtils is set to
-		                 *           setToCompatibilityMode:
-		                 *           {@link mmir.CommonUtils#setToCompatibilityMode}
-		                 */
-		                var translateHTML = function(html) {
-		                    var translationRegExp = commonUtils.getTranslationRegExp();
-		                    if (html.match(translationRegExp)) {
-		                        while (tre = translationRegExp.exec(html)) {
-		                            var translated = internalGetText(tre[1]);
-		                            html = html.replace(tre[0], translated);
-		                        }
-		                    }
-		                    return html;
-		                };
-		                compatibilitySelf.translateHTML = translateHTML;
-
-		                /**
-		                 * 
-		                 * 
-		                 * This function changes the application language and, if
-		                 * requested, renders the current view again, so that the change
-		                 * of the language is applied to the currently displayed view.
-		                 * After changing the language (and re-rendering the view) an
-		                 * event "language_choosen" is raised on the DialogEngine.<br>
-		                 * 
-		                 * <div class="box important"> <b>Note:</b> Momentarily this
-		                 * function is used by 'controllers/application.js' to generate
-		                 * a menu to choose the application language.<br>
-		                 * This should better be implemented as a partial. </div>
-		                 * 
-		                 * @function changeLanguage
-		                 * @param {String}
-		                 *            newLang The new language which is to be used
-		                 *            henceforth
-		                 * @param {Boolean}
-		                 *            doReRenderView Should the currently displayed view
-		                 *            be rendered again in the new language?
-		                 * @returns {String} The translation of the keyword
-		                 * @public
-		                 */
-		                var changeLanguage = function(newLang, doReRenderView) {
-
-		                    if (IS_DEBUG_ENABLED)
-		                        console.debug("[Language] selected " + newLang);// debug
-
-		                    // instance.setLanguage(newLang);
-		                    this.setLanguage(newLang);
-
-		                    if (doReRenderView == true) {
-		                        mmir.PresentationManager.reRenderView();
-		                    }
-		                    mmir.DialogEngine.raise("language_choosen", newLang);
-		                };
-		                compatibilitySelf.changeLanguage = changeLanguage;
-
-		                compatibilitySelf.getCurrentLanguage = compatibilitySelf.getLanguage;
-		                compatibilitySelf.cycleLanguages = compatibilitySelf.setNextLanguage;
+		            , setToCompatibilityMode : function(success) {
+		            	
+		            	var defer = $.Deferred();
+				    	if(success){
+				    		defer.always(success);
+				    	}
+				    	
+				    	require(['languageManagerCompatibility'],function(setCompatibility){
+				    		
+				    		setCompatibility(instance);
+				    		
+				    		defer.resolve();
+				    	});
+				    	
+				    	return defer.promise();
 		                
 		            }//END: setToCompatibilityMode()
 		            
@@ -748,42 +754,14 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		        
 		    }//END: construcor = function(){...
 
-		    
-//		    (function init (){
-//		    	var _instance = {
-//	    			getInstance: function () {
-//	    				if (!instance) {
-//	    					var langCode = configurationManager.get("language");
-//	    					instance = constructor(langCode);
-//
-//	    				} 
-//
-//	    				return instance;
-//
-//	    			}
-//		    	};		
-//
-//		    	mmir.LanguageManager = _instance;
-//		    }());	
-		    	
-//	    	var langCode = configurationManager.get("language");
-//	    	instance = new constructor(langCode);
-//	    	
-//	    	/**
-//	    	 * @deprecated instead: use mmir.LanguageManager directly
-//	    	 */
-//			instance.getInstance = function(){
-//				return instance;
-//			};
-//			mmir.LanguageManager = instance;
-//
-//			return instance;
-		    
+		    		    
 		    //FIXME as of now, the LanguageManager needs to be initialized,
 		    //		either by calling getInstance() or init()
 		    //		-> should this be done explicitly (async-loading for dictionary and grammar? with returned Deferred.promise?)
 		    instance = new constructor();
 		    		    
 		    return instance;
+		    
+		    /** #@- */
 			
 });

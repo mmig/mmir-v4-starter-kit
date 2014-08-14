@@ -58,7 +58,7 @@ public class MMIGAppActivity extends DroidGap {
 		// in this case, try to increase the timeout:
 		super.setIntegerProperty("loadUrlTimeoutValue", 120000);
 		
-		super.loadUrl("file:///android_asset/www/index.html?env=android");
+		super.loadUrl("file:///android_asset/www/index.html?env=cordova");
 
 //		CookieManager.getInstance().setAcceptCookie(true);
 		

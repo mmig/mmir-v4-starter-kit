@@ -25,24 +25,31 @@
  */
 
 
-define (['commonUtils', 'viewConstants', 'yield', 'renderUtils', 'parseUtils', 'storageUtils' ], function(//TODO storageUtils
+define (['commonUtils', 'viewConstants', 'yield', 'renderUtils', 'parseUtils', 'storageUtils' ],
+	/**
+	 * @name Layout
+	 * @class
+	 */
+	function(//TODO storageUtils
 		commonUtils, ViewConstants, YieldDeclaration, renderer, parser, storageUtils
 ) {
 	
-//	window.Layout = Layout || {};
 
+/** @scope Layout.prototype */
+/**
+ * #@+
+ * @memberOf Layout.prototype
+ */
 	
-	
-	/**
-	 * The Layout class 
-	 * The constructor parses the layout and divides them into containers (headerContents, bodyContents, dialogsContents).
-	 * 
-	 * @class Layout
-	 * @constructor
-	 * @param {String} name Name of the Layout 
-	 * @param {String} definition layout description
-	 * @category core
-	 */
+/**
+ * The Layout class 
+ * The constructor parses the layout and divides them into containers (headerContents, bodyContents, dialogsContents).
+ * 
+ * @constructs Layout
+ * @param {String} name Name of the Layout 
+ * @param {String} definition layout description
+ * @category core
+ */
 function Layout(name, definition, remote, ignoreMissingBody){
 //		console.log("[Layout] initialize '"+name+"'.");
 
@@ -629,4 +636,6 @@ Layout.prototype.stringify = function(){
 //	};
 
 	return Layout;
+	
+	/**  #@- */
 });

@@ -14,25 +14,26 @@
     
 	<!-- ############# Initialization and Property Defintions ############# -->
 	
-	<property name="buildSettingsFile" value="build.settings" />
-	<property name="buildSettingsFileDefault" value="build.settingsDefault" />
+	<property name="file.build.properties" value="build.properties" />
+	<property name="file.build.settings" value="build.settings" />
+	<property name="file.default.build.settings" value="build.settingsDefault" />
 	
 	<!-- create the settings-file (as a copy of the default settings) if not present: -->
 	<!-- NOTE: 	granularity="9223372000000"
-				is a WORKAROUND that ensures that build.settings if not overwritten,
+				is a WORKAROUND that ensures that ${file.build.settings} will not be overwritten,
 				even if the default-settings-file is newer (it actually will only
-				work as long as the settings-file is not older than ~ 292 years than
+				work as long as the settings-file is not older than ~ 292 years in comparison to
 				the default-settings-file).
 	-->
-	<copy file="${buildSettingsFileDefault}" tofile="${buildSettingsFile}" overwrite="false" granularity="9223372036854"/>
+	<copy file="${file.default.build.settings}" tofile="${file.build.settings}" overwrite="false" granularity="9223372036854"/>
 	
 	<!-- if settings-file is not present, abort build: -->
-	<available file="build.settings" property="build.settings.present"/>
-	<fail unless="build.settings.present" message="Missing settings-file: ${buildSettingsFile}" />
+	<available file="${file.build.settings}" property="is.build.settings.present"/>
+	<fail unless="is.build.settings.present" message="Missing settings-file: ${file.build.settings}" />
 	
 	<!-- load settings and properties -->
-	<property file="build.settings" />
-	<property file="build.properties" />
+	<property file="${file.build.settings}" />
+	<property file="${file.build.properties}" />
 
 	<property name="base.js.compile.grammar.parser.generator" value="${buildDirTempJS}${tempCompileGrammarParserGeneratorJSFile}" />
 	<property name="exec.js.compile.grammar.parser.generator" value="${buildDirTempJS}${tempCompileGrammarParserGeneratorJSExecFile}" />
@@ -42,17 +43,20 @@
 	<property name="exec.nodejs" value="${nodeJsDir}${nodeJsExec}" />
 	
 	
-	<property name="in.file.DialogEngine" location="${SCXMLDialogEngineDir}${SCXMLDialogEngineXMLFile}" />
-	<property name="in.file.InputEngine" location="${SCXMLInputEngineDir}${SCXMLInputEngineXMLFile}" />
-	<property name="out.file.DialogEngine" location="${JSOutDialogEngineDir}${SCXMLDialogEngineOutfile}" />
-	<property name="out.file.InputEngine" location="${JSOutInputEngineDir}${SCXMLInputEngineOutfile}" />
+	<property name="file.in.DialogEngine"  location="${SCXMLDialogEngineDir}${SCXMLDialogEngineXMLFile}" />
+	<property name="file.in.InputEngine"   location="${SCXMLInputEngineDir}${SCXMLInputEngineXMLFile}" />
+	<property name="file.out.DialogEngine" location="${JSOutDialogEngineDir}${SCXMLDialogEngineOutfile}" />
+	<property name="file.out.InputEngine"  location="${JSOutInputEngineDir}${SCXMLInputEngineOutfile}" />
+	
+	<!-- convert Strings to file references (where necessary): -->
+	<property name="file.build.scxmljs.dir" location="${buildSCXMLJSDir}"/>
 
 	<!-- ############# Main Build Targets ############# -->
 
 	<target name="clean" depends="cleanTempFilesGrammarParserGenerator,cleanCompiledGrammarParserGeneratorDir" description="remove generated and intermediate files">
 		<delete file="${outputDirectoryParseFileJson}"/>
-		<delete file="${out.file.DialogEngine}"/>
-		<delete file="${out.file.InputEngine}"/>
+		<delete file="${file.out.DialogEngine}"/>
+		<delete file="${file.out.InputEngine}"/>
 	</target>
 
 	<!--
@@ -65,18 +69,18 @@
 			
 			NOTE: This target tries to use NodeJS as execution environment; 
 			      if the NodeJS executable location cannot be verified, the Rhino envrionment is used 
-			      (see build.settings for NodeJS settings/paths and 
+			      (see ${file.build.settings} for NodeJS settings/paths and 
 			       build.properties for Rhino (js-XX.jar) JAR path; 
 			       the Rhino JAR should be included by default in build/libs/)
 			
 	  -->
 	<target name="build" depends="checkNodeJsAvailable,generateFileListJSONFile" description="main build target">
-		<echo>Running build, NodeJS not available?  ${isNodeJsUnavailable}</echo>
+		<echo>Running build, NodeJS not available?  ${is.available.nodejs}</echo>
 		<antcall target="-callBuildRhino" inheritAll="true" inheritRefs="true">
-			<param name="is.invoke.not.with.nodejs" value="${isNodeJsUnavailable}"/>
+			<param name="is.invoke.not.with.nodejs" value="${is.available.nodejs}"/>
 		</antcall>
 		<antcall target="-callBuildNodeJs" inheritAll="true" inheritRefs="true">
-			<param name="is.invoke.not.with.nodejs" value="${isNodeJsUnavailable}"/>
+			<param name="is.invoke.not.with.nodejs" value="${is.available.nodejs}"/>
 		</antcall>
 	</target>
 	
@@ -176,8 +180,8 @@
 	</macrodef>
 
 	<target name="generateFileListJSONObject">
-		<script language="javascript" src="${jsSrcDirBase}tools/build/ant/AntScriptFileListGenerator.js">
-		</script>
+	    <property name="file.script.generate.filelist" location="${jsBuildDirBase}ant/AntScriptFileListGenerator.js"/>
+		<script language="javascript" src="${file.script.generate.filelist}"></script>
 	</target>
 
 	<target name="generateFileListJSONFile" depends="createGeneratedGrammarParserDir,createCompiledDialogEngineDir,createCompiledInputEngineDir,createGeneratedTemplateDir,generateFileListJSONObject">
@@ -202,29 +206,35 @@
 	-->
 	
 	<target name="checkDialogEngineUpToDate">
-		<condition property="isDialogEngineUpToDate" else="false">
+		<condition property="is.up.to.date.DialogEngine" else="false">
 	        <and>
 	            <!-- does (compiled) JavaScript file exist? -->
-				<available file="${out.file.DialogEngine}"	     property="isDialogEngineUpToDate" />
-			    <!-- has SCXML file changed? -->
-				<checksum  file="${in.file.DialogEngine}" verifyProperty="isDialogEngineUpToDate"/>
+				<available file="${file.out.DialogEngine}"	     property="is.up.to.date.DialogEngine" />
+			    
+			    <!-- check, if the SCXML file has changed by its checksum -->
+				<checksum
+				    file="${file.in.DialogEngine}"
+				    toDir="${JSOutDialogEngineDir}"
+			    	fileExt=".checksum.txt"
+			    	pattern="{0}&#09;"
+				    verifyProperty="is.up.to.date.DialogEngine"/>
 		    </and>
 	    </condition>
-		<echo>Is file ${out.file.DialogEngine} up-to-date? -> ${isDialogEngineUpToDate}</echo>
+		<echo>Is file ${file.out.DialogEngine} up-to-date? -> ${is.up.to.date.DialogEngine}</echo>
 	</target>
 	
 	<target name="createCompiledDialogEngineDir" description="Create base directory for generated/generated SCXML JavaScript interpreter files">
 		<mkdir dir="${JSOutDialogEngineDir}"/>
 	</target>
 
-	<target name="compileDialogEngine" depends="checkDialogEngineUpToDate,createCompiledDialogEngineDir" unless="${isDialogEngineUpToDate}">
-
+	<target name="compileDialogEngine" depends="checkDialogEngineUpToDate,createCompiledDialogEngineDir" unless="${is.up.to.date.DialogEngine}">
+	    
 		<java	
 			classname="org.mozilla.javascript.tools.shell.Main"
-			resultproperty="exec.dialog.engine.result" output="${out.file.DialogEngine}" errorproperty="compile.dialog.engine.err"
+			resultproperty="exec.dialog.engine.result" output="${file.out.DialogEngine}" errorproperty="compile.dialog.engine.err"
 			logError="true">
 			
-			<arg line="-opt -1 ${buildSCXMLJSDir}/runner.js ${buildSCXMLJSDir} src/javascript/scxml/cgf/main --backend state --beautify --ie ${in.file.DialogEngine}"/>
+			<arg line="-opt -1 ${file.build.scxmljs.dir}/runner.js ${file.build.scxmljs.dir} src/javascript/scxml/cgf/main --backend state --beautify --ie ${file.in.DialogEngine}"/>
 										          
 			<classpath>
 	           <pathelement location="${pathRhinoJar}"/>
@@ -243,16 +253,22 @@
 	</target>
 	
 	<target name="compileDialogEngineSuccess" unless="${compile.dialog.engine.failure}">
-		<checksum file="${in.file.DialogEngine}" />
-		<echo>JavaScript DialogEngine file at ${out.file.DialogEngine}.</echo>
+		
+		<checksum
+		    file="${file.in.DialogEngine}"
+		    toDir="${JSOutDialogEngineDir}"
+			fileExt=".checksum.txt"
+	    	pattern="{0}&#09;" />
+		
+		<echo>JavaScript DialogEngine file at ${file.out.DialogEngine}.</echo>
 	</target>
 	
 	<target name="compileDialogEngineFail" if="${compile.dialog.engine.failure}">
 		<loadresource property="compile.dialog.engine.err.out">
-			<file file="${out.file.DialogEngine}" />
+			<file file="${file.out.DialogEngine}" />
 		</loadresource>
-		<delete file="${out.file.DialogEngine}" />
-		<echo>FAILED to generated file ${out.file.DialogEngine}.</echo>
+		<delete file="${file.out.DialogEngine}" />
+		<echo>FAILED to generated file ${file.out.DialogEngine}.</echo>
 		<fail message="Error: ${line.separator}${compile.dialog.engine.err}${line.separator}${compile.dialog.engine.err.out}">
 		</fail>
 	</target>
@@ -272,29 +288,34 @@
 	-->
 
 	<target name="checkInputEngineUpToDate">
-		<condition property="isInputEngineUpToDate" else="false">
+		<condition property="is.up.to.date.InputEngine" else="false">
 	        <and>
 	            <!-- does (compiled) JavaScript file exist? -->
-				<available file="${out.file.InputEngine}"       property="isInputEngineUpToDate" />
+				<available file="${file.out.InputEngine}"       property="is.up.to.date.InputEngine" />
 			    <!-- has SCXML file changed? -->
-				<checksum  file="${in.file.InputEngine}" verifyProperty="isInputEngineUpToDate"/>
+				<checksum
+				    file="${file.in.InputEngine}"
+				    toDir="${JSOutInputEngineDir}"
+					fileExt=".checksum.txt"
+			    	pattern="{0}&#09;"
+				    verifyProperty="is.up.to.date.InputEngine"/>
 		    </and>
 	    </condition>
-		<echo>Is file ${out.file.InputEngine} up-to-date? -> ${isInputEngineUpToDate}</echo>
+		<echo>Is file ${file.out.InputEngine} up-to-date? -> ${is.up.to.date.InputEngine}</echo>
 	</target>
 	
 	<target name="createCompiledInputEngineDir" description="Create base directory for generated/generated SCXML JavaScript interpreter files">
 		<mkdir dir="${JSOutInputEngineDir}"/>
 	</target>
 	
-	<target name="compileInputEngine" depends="checkInputEngineUpToDate,createCompiledInputEngineDir" unless="${isInputEngineUpToDate}">
+	<target name="compileInputEngine" depends="checkInputEngineUpToDate,createCompiledInputEngineDir" unless="${is.up.to.date.InputEngine}">
 				
 		<java	
 			classname="org.mozilla.javascript.tools.shell.Main"
-			resultproperty="exec.input.engine.result" output="${out.file.InputEngine}" errorproperty="compile.input.engine.err"
+			resultproperty="exec.input.engine.result" output="${file.out.InputEngine}" errorproperty="compile.input.engine.err"
 			logError="true">
 			
-			<arg line="-opt -1 ${buildSCXMLJSDir}/runner.js ${buildSCXMLJSDir} src/javascript/scxml/cgf/main --backend state --beautify --ie ${in.file.InputEngine}"/>
+			<arg line="-opt -1 ${file.build.scxmljs.dir}/runner.js ${file.build.scxmljs.dir} src/javascript/scxml/cgf/main --backend state --beautify --ie ${file.in.InputEngine}"/>
 										          
 			<classpath>
 	           <pathelement location="${pathRhinoJar}"/>
@@ -313,16 +334,22 @@
 	</target>
 	
 	<target name="compileInputEngineSuccess" unless="${compile.input.engine.failure}">
-		<checksum file="${in.file.InputEngine}" />
-		<echo>JavaScript InputEngine file at ${out.file.InputEngine}.</echo>
+		
+		<checksum
+		    file="${file.in.InputEngine}"
+		    toDir="${JSOutInputEngineDir}"
+			fileExt=".checksum.txt"
+	    	pattern="{0}&#09;" />
+		
+		<echo>JavaScript InputEngine file at ${file.out.InputEngine}.</echo>
 	</target>
 	
 	<target name="compileInputEngineFail" if="${compile.input.engine.failure}">
 		<loadresource property="compile.input.engine.err.out">
-			<file file="${out.file.InputEngine}" />
+			<file file="${file.out.InputEngine}" />
 		</loadresource>
-		<delete file="${out.file.InputEngine}" />
-		<echo>FAILED to generated file ${out.file.InputEngine}.</echo>
+		<delete file="${file.out.InputEngine}" />
+		<echo>FAILED to generated file ${file.out.InputEngine}.</echo>
 		<fail message="Error: ${line.separator}${compile.input.engine.err}${line.separator}${compile.input.engine.err.out}">
 		</fail>
 	</target>
@@ -350,18 +377,21 @@
 	    <mkdir dir="${buildDirTempJS}" />
 		<concat destfile="${base.js.compile.grammar.parser.generator}" fixlastline="true" outputencoding="UTF-8">
             
-            <string>
-                //var requiren = require;
-                var require = require('./../../lib/r.js');
-                var definejs = require.define;
-	    	</string>
-            <fileset dir="${jsSrcDirBase}tools/build"      includes="buildConfig.js" />
+            <fileset dir="${jsBuildDirBase}"                 includes="buildConfig.js" />
             
+            <string>
+                
+                //set the framework's src-path from the build-properties file
+                //  (may be different than the default value in buildConfig.js)
+                require.config({baseUrl: './${jsSrcDirBase}'});
+                
+            </string>
             <!-- build AMD module for CryptoJS/md5 library: -->
             <string>
+                
                 definejs('md5impl', function(){
             </string>
-			<fileset dir="${jsSrcDirBase}res/libs"         includes="md5.js" />
+			<fileset dir="${jsSrcDirBase}vendor/libs"         includes="md5.js" />
 			<string>
 			    	return CryptoJS;
 			    });
@@ -369,22 +399,29 @@
                 definejs('jsonlint', function(){
 	    	</string>
             <!-- ... and an AMD module for the jsonlint parser ... -->
-			<fileset dir="${jsSrcDirBase}res/libs"         includes="jsonlint.parser.js" />
+			<fileset dir="${buildDirLib}"         includes="jsonlint.parser.js" />
 			<string>
 					return jsl.parser;
 				});
 			    	    		
-	    		var checksumUtils = require('checksumUtils');
-	    		checksumUtils.init( require('md5impl') );
+	    		var checksumUtils;	    		
 	    		var jsl;
 	    		
-	    		require(['jsonlint', 'jquery'], function(jsonlint){
+	    		// * load dependencies (SemanticInterpreter, jQuery) 
+	    		// * setup JSON parser (for creating detailed error messages)
+	    		// * initialize checksum-utils (with loaded dependencies) 
+	    		require(['semanticInterpreter', 'jquery', 'jsonlint', 'md5impl','checksumUtils'], function(jsonlint){
+		    		
 		    		jsl = {
 		    			parser: require('jsonlint')
 		    		};
-	    		
+		    		
+	    			checksumUtils = require('checksumUtils');
+	    			checksumUtils.init( require('md5impl') );
+	    			
+	    			//start the standalone-grammar parser / generator: 
 	    	</string>
-			<fileset dir="${jsSrcDirBase}tools/build/ant"  includes="StandaloneSemanticParserCompileExec.js" />
+			<fileset dir="${jsBuildDirBase}ant"  includes="StandaloneSemanticParserCompileExec.js" />
 			<string>
 	    		});
 	    		
@@ -399,8 +436,8 @@
 	</target>
 	
 	<target name="createGrammarLanguageList" depends="generateFileListJSONObject" description="create comma-separated list with language codes for available JSON grammar files">
-		<script language="javascript" src="${jsSrcDirBase}tools/build/ant/AntScriptGrammarLanguageList.js">
-		</script>
+		<property name="file.script.create.grammar" location="${jsBuildDirBase}ant/AntScriptGrammarLanguageList.js"/>
+		<script language="javascript" src="${file.script.create.grammar}"></script>
 	</target>
 
 	<target name="createGeneratedGrammarParserDir" description="Create base directory for generated semantic parser files">
@@ -413,19 +450,27 @@
 	</target>
 
 	<target name="checkGeneratedGrammarParserUpToDate">
-		<condition property="isCompiledGrammarUpToDate" else="false">
+		<condition property="is.up.to.date.grammarjs" else="false">
 			<and>
 				<!-- does (compiled) JavaScript file exist? -->
 				<available 
 			    	file="${outDirCompiledGrammar}${grammarLanguageCode}_${outFileCompiledGrammar}"
-			    	property="isCompiledGrammarUpToDate" />
-				<!-- has JSON file changed? -->
+			    	property="is.up.to.date.grammarjs" />
+				<!-- 
+					check, if the JSON file has changed by its checksum
+					
+					NOTE: this uses the checksum-file that is created by the JavaScript code
+					      (which uses checksumUtils.js creating a file like: MD5<tab char><file size>)
+				-->
 				<checksum  
 			    	file="${grammarDefinitionJsonDir}${grammarLanguageCode}/${grammarDefinitionJsonFile}"
-			    	verifyProperty="isCompiledGrammarUpToDate"/>
+			    	toDir="${outDirCompiledGrammar}"
+			    	fileExt="_${grammarLanguageCode}.checksum.txt"
+			    	pattern="{0}&#09;"
+			    	verifyProperty="is.up.to.date.grammarjs"/>
 			</and>
 		</condition>
-		<echo>Exists file ${outDirCompiledGrammar}${grammarLanguageCode}_${outFileCompiledGrammar}, and is file ${grammarDefinitionJsonDir}${grammarLanguageCode}/${grammarDefinitionJsonFile} up-to-date? -> ${isCompiledGrammarUpToDate}</echo>
+		<echo>Exists file ${outDirCompiledGrammar}${grammarLanguageCode}_${outFileCompiledGrammar}, and is file ${grammarDefinitionJsonDir}${grammarLanguageCode}/${grammarDefinitionJsonFile} up-to-date? -> ${is.up.to.date.grammarjs}</echo>
 	</target>
 
 	<!-- ############# Build Targets: GrammarParser generation with default JavaScript environment #############
@@ -440,9 +485,9 @@
 	<target name="createGrammarParserGeneratorScriptFileDefault" depends="createBaseParserScriptFile">
 		<echo message="Building complete js file ${exec.js.compile.grammar.parser.generator} for default ANT script environment..." />
 		<concat destfile="${exec.js.compile.grammar.parser.generator}" fixlastline="true" outputencoding="UTF-8">
-			<fileset dir="${jsSrcDirBase}tools/build/ant" includes="InitAntDefaultEnv.js" />
-			<fileset dir="${jsSrcDirBase}tools/build/ant" includes="InitGrammarGeneratorAntDefaultEnv.js" />
-			<fileset dir="${jsSrcDirBase}tools/build/ant" includes="AntFileHandler.js" />
+			<fileset dir="${jsBuildDirBase}ant" includes="InitAntDefaultEnv.js" />
+			<fileset dir="${jsBuildDirBase}ant" includes="InitGrammarGeneratorAntDefaultEnv.js" />
+			<fileset dir="${jsBuildDirBase}ant" includes="AntFileHandler.js" />
 			<fileset file="${base.js.compile.grammar.parser.generator}" />
         </concat>
 		<echo message="${exec.js.compile.grammar.parser.generator} built." />
@@ -451,12 +496,11 @@
 	<target name="executeGrammarParserGeneratorDefaultEnv" 
 		depends="checkGeneratedGrammarParserUpToDate,createGeneratedGrammarParserDir,createGrammarParserGeneratorScriptFileDefault" 
 		description="Compile GrammarParserGenerator script with default JavaScript environment (very very slow!!!)"
-		unless="${isCompiledGrammarUpToDate}">
+		unless="${is.up.to.date.grammarjs}">
 
 		<echo message="Running default ANT script environment with script file ${exec.js.compile.grammar.parser.generator} and arguments ${grammarDefinitionJsonDir}, ${grammarDefinitionJsonFile}, ${grammarLanguageCode}, ${outDirCompiledGrammar}, ${outFileCompiledGrammar}..." />
 		<script language="javascript" src="${exec.js.compile.grammar.parser.generator}">
 		</script>
-		<checksum file="${grammarDefinitionJsonDir}${grammarLanguageCode}/${grammarDefinitionJsonFile}" />
 	</target>
 	
 	<target name="compileGrammarParserDefaultEnv" depends="executeGrammarParserGeneratorDefaultEnv,cleanTempFilesGrammarParserGenerator" description="Compile (and clean up)  GrammarParserGenerator script with default JavaScript environment (very very slow!!!)">
@@ -483,24 +527,24 @@
 	-->
 	
 	<target name="checkRhinoAvailable">
-		<condition property="isRhinoUnavailable" else="false">
+		<condition property="is.available.rhino" else="false">
 			<not>
 				<available file="${pathRhinoJar}"/>
 			</not>
 		</condition>
 	</target>
 	
-	<target name="verifyRhinoAvailable" depends="checkRhinoAvailable" if="${isRhinoUnavailable}">
-		<fail message="Rhino library (JAR) is missing: invalid path ${pathRhinoJar}.">
+	<target name="verifyRhinoAvailable" depends="checkRhinoAvailable" if="${is.available.rhino}">
+		<fail message="Rhino library (JAR) is missing: invalid path ${pathRhinoJar}. Check / correct in file ${file.build.properties}.">
 		</fail>
 	</target>
 
 	<target name="createGrammarParserGeneratorScriptFileRhino" depends="verifyRhinoAvailable,createBaseParserScriptFile">
 		<echo message="Building complete js file ${exec.js.compile.grammar.parser.generator} for Rhino environment..." />
 		<concat destfile="${exec.js.compile.grammar.parser.generator}" fixlastline="true" outputencoding="UTF-8">
-			<fileset dir="${jsSrcDirBase}tools/build/rhino" includes="InitRhinoEnv.js" />
-			<fileset dir="${jsSrcDirBase}tools/build/rhino" includes="InitGrammarGeneratorRhinoEnv.js" />
-			<fileset dir="${jsSrcDirBase}tools/build/ant" includes="AntFileHandler.js" />
+			<fileset dir="${jsBuildDirBase}rhino" includes="InitRhinoEnv.js" />
+			<fileset dir="${jsBuildDirBase}rhino" includes="InitGrammarGeneratorRhinoEnv.js" />
+			<fileset dir="${jsBuildDirBase}ant"   includes="AntFileHandler.js" />
 			<fileset file="${base.js.compile.grammar.parser.generator}" />
         </concat>
 		<echo message="${exec.js.compile.grammar.parser.generator} built." />
@@ -509,13 +553,12 @@
 	<target name="executeGrammarParserGeneratorRhinoEnv"
 		depends="checkGeneratedGrammarParserUpToDate,createGeneratedGrammarParserDir,createGrammarParserGeneratorScriptFileRhino"
 		description="Compile GrammarParserGenerator script with Rhino environment (slow)"
-		unless="${isCompiledGrammarUpToDate}">
+		unless="${is.up.to.date.grammarjs}">
 
-		<echo message="Running Rhino environment with script file ${exec.js.compile.grammar.parser.generator} and arguments ${grammarDefinitionJsonDir}, ${grammarDefinitionJsonFile}, ${grammarLanguageCode}, ${outDirCompiledGrammar}, ${outFileCompiledGrammar}..." />
+		<echo message="Running Rhino environment with script file ${exec.js.compile.grammar.parser.generator} and arguments ${grammarDefinitionJsonDir}, ${grammarDefinitionJsonFile}, ${grammarLanguageCode}, ${outDirCompiledGrammar}, ${outFileCompiledGrammar}, ${buildDirLib}r.js..." />
 		<exec executable="java" failonerror="true">
-			<arg line="-jar ${pathRhinoJar} -opt -1 ${exec.js.compile.grammar.parser.generator} ${grammarDefinitionJsonDir} ${grammarDefinitionJsonFile} ${grammarLanguageCode} ${outDirCompiledGrammar} ${outFileCompiledGrammar}" />
+			<arg line="-jar ${pathRhinoJar} -opt -1 ${exec.js.compile.grammar.parser.generator} ${grammarDefinitionJsonDir} ${grammarDefinitionJsonFile} ${grammarLanguageCode} ${outDirCompiledGrammar} ${outFileCompiledGrammar} ${buildDirLib}r.js" />
         </exec>
-		<checksum file="${grammarDefinitionJsonDir}${grammarLanguageCode}/${grammarDefinitionJsonFile}" />
 	</target>
 	
 	<target name="compileGrammarParserRhinoEnv" depends="executeGrammarParserGeneratorRhinoEnv,cleanTempFilesGrammarParserGenerator" description="Compile (and clean up) GrammarParserGenerator script with Rhino environment (slow)">
@@ -541,25 +584,61 @@
 				  See the web page of node.js for executables for your platform (e.g. Windows, Mac, Linux). 
 	-->
 	
+	
 	<target name="checkNodeJsAvailable">
-		<condition property="isNodeJsUnavailable" else="false">
-			<not>
-				<available file="${exec.nodejs}"/>
-			</not>
+		<condition property="is.available.nodejs" else="false">
+		    <and>
+		        <!-- manually disable check for NodeJS executable:
+		        	 specifiy a property doIgnoreMissingNodeJsPath and set it to true
+		        	 
+		        	 (if doIgnoreMissingNodeJs is missing or set to false, the check
+		        	  will be performed).
+		          -->
+		        <not><and>
+		            <isset property="doIgnoreMissingNodeJsPath"/>
+		        	<istrue value="${doIgnoreMissingNodeJsPath}"/>
+		        </and></not>
+		        
+				<not>
+					<available file="${exec.nodejs}"/>
+				</not>
+		    </and>
 		</condition>
 	</target>
 	
-	<target name="verifyNodeJsAvailable" depends="checkNodeJsAvailable" if="${isNodeJsUnavailable}">
-		<fail message="NodeJS exectuable is missing: invalid path ${exec.nodejs}: ${isNodeJsUnavailable}">
+	<target name="verifyNodeJsAvailable" depends="checkNodeJsAvailable" if="${is.available.nodejs}">
+	    
+	    <echo message="Path to NodeJS file is not accessible? ${is.available.nodejs}" />
+	
+	    <input
+		    message="NodeJS exectuable seems to be missing.${line.separator}${line.separator}
+		    		NOTE: If NodeJS is configured to be executable GLOBALLY,${line.separator}
+		    		      this message can be ignored${line.separator}
+		    		      (i.e. if runnable by entering the command without${line.separator}
+		    		       path from anywhere in a command prompt).${line.separator}
+		    		       ${line.separator}
+		    		       You can avoid this prompt by specifying the absolute path to${line.separator}
+		    		       the NodeJS exectuable in the ${file.build.settings} file.${line.separator}
+		    		${line.separator}${line.separator}
+		    		Continue anyway (y/n)?"
+		    validargs="y,n"
+		    defaultvalue="y"
+		    addproperty="do.continue"/>
+	    <condition property="do.abort">
+	        <equals arg1="n" arg2="${do.continue}"/>
+	    </condition>
+		<fail 
+		    if="${do.abort}" 
+		    message="Aborted: NodeJS exectuable is missing and/or invalid path specified. Tested command line: '${exec.nodejs}'">
 		</fail>
 	</target>
 
 	<target name="createGrammarParserGeneratorScriptFileNodeJs" depends="verifyNodeJsAvailable,createBaseParserScriptFile">
 		<echo message="Building complete js file ${exec.js.compile.grammar.parser.generator} for node.js environment..." />
 		<concat destfile="${exec.js.compile.grammar.parser.generator}" fixlastline="true" outputencoding="UTF-8">
-			<fileset dir="${jsSrcDirBase}tools/build/nodejs" includes="InitNodeJsEnv.js" />
-			<fileset dir="${jsSrcDirBase}tools/build/nodejs" includes="InitGrammarGeneratorNodeJsEnv.js" />
-			<fileset dir="${jsSrcDirBase}tools/build/nodejs" includes="NodeJsFileHandler.js" />
+			<fileset dir="${jsBuildDirBase}nodejs" includes="InitNodeJsEnv.js" />
+			<fileset dir="${jsBuildDirBase}nodejs" includes="InitGrammarGeneratorNodeJsEnv.js" />
+			<fileset dir="${jsBuildDirBase}nodejs" includes="NodeJsFileHandler.js" />
 			<fileset file="${base.js.compile.grammar.parser.generator}" />
         </concat>
 		<echo message="${exec.js.compile.grammar.parser.generator} built." />
@@ -569,7 +648,7 @@
 	<target name="executeGrammarParserGeneratorNodeJsEnv" 
 		depends="checkGeneratedGrammarParserUpToDate,createGeneratedGrammarParserDir,createGrammarParserGeneratorScriptFileNodeJs" 
 		description="Compile GrammarParserGenerator script with node.js environment (fast)"
-		unless="${isCompiledGrammarUpToDate}">
+		unless="${is.up.to.date.grammarjs}">
 
 		<echo message="Running node.js environment with script file ${exec.js.compile.grammar.parser.generator} and arguments ${grammarDefinitionJsonDir}, ${grammarDefinitionJsonFile}, ${grammarLanguageCode}, ${outDirCompiledGrammar}, ${outFileCompiledGrammar}..." />
 		<exec executable="${exec.nodejs}" failonerror="true">
@@ -579,8 +658,9 @@
 			<arg value="${grammarLanguageCode}"/>
 			<arg value="${outDirCompiledGrammar}"/>
             <arg value="${outFileCompiledGrammar}"/>
+            <arg value="./../../lib/r.js"/>
         </exec>
-		<checksum file="${grammarDefinitionJsonDir}${grammarLanguageCode}/${grammarDefinitionJsonFile}" />
+		
 	</target>
 
 	<target name="compileGrammarParserNodeJsEnv" depends="executeGrammarParserGeneratorNodeJsEnv,cleanTempFilesGrammarParserGenerator" description="Compile (and clean up) GrammarParserGenerator script with node.js environment (fast)">
@@ -590,7 +670,7 @@
 	<target name="compileGrammarParserNodeJsEnvAllLanguages" depends="createGeneratedGrammarParserDir,createGrammarLanguageList" description="Compile (and clean up) GrammarParserGenerator script for all Languages with node.js environment (fast)">
 		<!-- NOTE: ${grammarJsonFileLanguageList} is generated by target createGrammarLanguageList -->
 		<foreach 
-			list="${grammarLanguageList}" 
+			list="${grammarLanguageList}"
 			delimiter=","
 			target="executeGrammarParserGeneratorNodeJsEnv" 
 			param="grammarLanguageCode"

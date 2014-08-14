@@ -25,252 +25,6 @@
  */
 
 
-
-var print = function(msg){//FIXME
-	if ( IS_DEBUG_ENABLED ) console.log(msg);
-};
-
-var printInfo = function(prefix, msg){//FIXME
-	if ( IS_DEBUG_ENABLED ) console.info(parserCreatePrintMessage(prefix,msg));
-};
-
-var parserPrintDebug = function(prefix, msg){//FIXME
-	if ( IS_DEBUG_ENABLED ) console.debug(parserCreatePrintMessage(prefix,msg));
-};
-
-var parserPrintInfo = function(prefix, msg){//FIXME
-	console.info(parserCreatePrintMessage(prefix,msg));
-};
-
-var parserPrintWarning = function(prefix, msg){//FIXME
-	console.warn(parserCreatePrintMessage(prefix,msg));
-};
-
-var parserPrintError = function(prefix, msg){//FIXME
-	console.error(parserCreatePrintMessage(prefix,msg));
-};
-
-/** TODO move this function
- *
- * Get the index in the String str, where line number lineNo
- * starts.
- * 
- * New lines begin after \n, \r\n, or \r.
- * 
- * If lineNo is <= 1, the function returns always 0.
- * 
- * If the lineNo is greater than the count of lines in str, the string length itself is returned. 
- * 
- * @function getIndexForLine
- * @param {String} str the string
- * @param {Number} lineNo the line number (first line is 1)
- */
-var getIndexForLine = (function(){
-	var detectLinebreak = /(\r?\n|\r)/igm;
-	return function(str, lineNo){
-		if(lineNo <= 1){
-			return 0;
-		}
-		var match;
-		var count = 1;
-		while(match = detectLinebreak.exec(str)){
-			//ASSERT: lineNo >= 2
-			if(++count == lineNo){
-				break;
-			}
-		}
-		
-		//reset regexpr:
-		detectLinebreak.lastIndex = 0;
-		
-		if(match){
-			return match.index + match[1].length;
-		}
-		//request line-no. >= 2 AND loop "detect enough" linebreaks => the request line index starts after strings ends => return string's length
-		return str.length;
-	};
-})();
-
-/** TODO move this function
- *
- * Get the line in the String str, in which the char at index is included.
- * 
- * New lines begin after \n, \r\n, or \r,
- * e.g. for line X: 
- * <pre>
- *  ...\r\n
- *        ^
- * </pre>
- * the line number will be X (i.e. the line-break itself is still included in the current line).
- * 
- * If index is < 0, the function returns always 1.
- * 
- * If the index is greater than str.length, -1 is returned. 
- * 
- * @function getLineForIndex
- * @param {String} str the string
- * @param {Number} index the char index for which to find the line number (first line is 1)
- */
-var getLineForIndex = (function(){
-	var detectLinebreak = /(\r?\n|\r)/ig;
-	return function(str, index){
-		if(index < 0){
-			return 1;
-		}
-		if(index >= str.length){
-			return -1;
-		}
-		//ASSERT index is at least within line 1
-		var match;
-		var count = 1;
-		var isNextLineFound = false;
-		while(match = detectLinebreak.exec(str)){
-			if(match.index + match[1].length > index){
-				isNextLineFound = true;
-				break;
-			}
-			++count;
-		}
-		
-		//reset regexpr:
-		detectLinebreak.lastIndex = 0;
-		
-		if(match){
-			//need to reset regexpr for next call:
-			detectLinebreak.test(str);
-		}
-		if(!isNextLineFound){
-			//loop ended prematurely: fix line-count
-			return count - 1;
-		}
-		return count;
-	};
-})();
-
-/** TODO move this function
- *
- * @function extractErrorPosition
- */
-extractErrorPosition = (function(){
-	var detectLine = /line (\d+):(\d+)/i;
-	return function extractErrorPositionImpl(msg, offset, originalContent){
-//		console.log('\nTEST1_extractErrorPositionImpl with arguments '+arguments.length+'\n');
-		var result = detectLine.exec(msg);
-		
-		//reset regexpr:
-		detectLine.lastIndex = 0;
-		
-//		console.log('\nTEST2_result for "'+msg+'": '+result+'\n');
-		var pos = null;
-		if(result){
-			pos = {
-					line: parseInt(result[1],10),
-					index: parseInt(result[2],10)
-			};
-//			console.log('\nTEST3_pos: '+JSON.stringify(pos)+', offset: '+offset+'\n');
-			
-			if(offset && offset !== 0){
-//				console.log('\nTEST4_offset: '+offset+'\n');
-				var lineOffset = getLineForIndex(originalContent, offset);
-				var newLine = lineOffset + pos.line - 1;
-				var fixed = msg.substring(0,result.index + 'line '.length) + newLine + ':' + pos.index + msg.substring(result.index + result[0].length);
-				pos.text = fixed;
-				pos.originalLine = pos.line;
-				pos.line = newLine;
-//				pos.originalContent = originalContent;
-//				pos.offset = offset + pos.index;
-			}
-			else {
-				pos.text = msg;
-			}
-		}
-		return pos;
-	};
-})();
-
-var CURRENT_PARSED_VIEW = null;//FIXME
-var parserCreatePrintMessage = function(prefix, msg){//FIXME
-	if(CURRENT_PARSED_VIEW != null){
-		
-		var rootView = null;
-		var details = '';
-		if(CURRENT_PARSED_VIEW.getController){
-			details += 'CTRL("' + CURRENT_PARSED_VIEW.getController().getName() + '")';
-		}
-		
-		if(CURRENT_PARSED_VIEW.getView){
-			if(details.length > 0){
-				details += '->';
-			}
-			details += 'VIEW("' + CURRENT_PARSED_VIEW.getView().getName() + '")';
-			rootView = CURRENT_PARSED_VIEW.getView();
-		}
-		
-		if(details.length > 0){
-			details += '->';
-		}
-		details += CURRENT_PARSED_VIEW.constructor.name;
-		
-		if(CURRENT_PARSED_VIEW.getName){
-			details += '("' + CURRENT_PARSED_VIEW.getName() + '")';
-		}
-		
-		if(rootView && typeof CURRENT_PARSED_VIEW.getStart !== 'undefined'){
-			
-			var pos = extractErrorPosition(msg, CURRENT_PARSED_VIEW.getStart(), rootView.getDefinition());
-//			console.log('\nTEST_A_pos: '+JSON.stringify(pos)+', offset: '+CURRENT_PARSED_VIEW.getStart() +'\n');
-			if(pos){
-
-				msg = pos.text;
-				
-				//msg += '\n\t at line '+pos.line+', index '+pos.index;
-				var content = rootView.getDefinition();
-				var line = null;
-				var offset = CURRENT_PARSED_VIEW.getStart();
-
-				
-				if(content){
-					var start = getIndexForLine(content, pos.line);
-					var end = start;
-					var len = content.length;
-					while(end < len && (content[end] != '\r' && content[end] != '\n')){
-						++end;
-					}
-					
-					line = content.substring(start,end);
-				}
-				
-				if(line){
-					
-					//marker for "pointing" the error
-					var marker = [];
-					for(var i=0; i < pos.index; ++i){
-						if(line[i] == '\t'){
-							//need to include tabs themselves, since they
-							//  take more than 1 char-positions when displayed:
-							marker.push('\t');
-						}
-						else {
-							marker.push(' ');
-						}
-					}
-					//add marker symbol, that points to error in the line above:
-					marker.push('^');
-	
-					msg += ' at line '+pos.line+':';
-					msg += '\n "'+line+'"';        //<- the line with the error
-					msg += '\n  '+marker.join(''); //<- the marker line (will only be correctly aligned for fixed-width fonts)
-				}
-			}
-		}
-		
-		return prefix + 'in ' + details + ' - ' + msg;
-	}
-	else {
-		return prefix+msg;
-	}
-};
-
 /**
  * A Utility class for parsing (eHTML) templates.<br>
  * 
@@ -286,15 +40,458 @@ var parserCreatePrintMessage = function(prefix, msg){//FIXME
 //(function ( mmir ) {
 
 define([ 'parserModule', 'parsingResult', 'templateProcessor'
-        , 'templateLexer', 'ES3Lexer', 'ES3Parser', 'blockLexer'
-        , 'blockParser', 'statementLexer', 'statementParser', 'contentLexer', 'contentParser'
-        , 'antlr3'
-    ], function( parser, ParsingResult, templateProcessor
-    	, MmirTemplateLexer, ES3Lexer, ES3Parser, MmirScriptBlockLexer
-    	, MmirScriptBlockParser, MmirScriptStatementLexer, MmirScriptStatementParser, MmirScriptContentLexer, MmirScriptContentParser
-    	, org
+        , 'templateLexer', 'ES3Lexer', 'ES3Parser', 'contentLexer', 'contentParser'
+        , 'scriptLexer', 'scriptParser', 'antlr3'
+    ], 
+    
+    /**
+     * Utility functions for parsing templates (and template elements, e.g. JS-parts of template expressions)
+     * 
+     * @class
+     * @name ParserUtils
+     * @exports ParserUtils as mmir.parser.ParserUtils
+     * @static
+     * 
+     * @public
+     */
+    function( parser, ParsingResult, templateProcessor
+    	, MmirTemplateLexer, ES3Lexer, ES3Parser, MmirScriptContentLexer, MmirScriptContentParser
+    	, MmirScriptLexer, MmirScriptParser, org
 ){
+
+	////////////////////////////////////helper for debugging / printing error details ////////////////////////
+
+	//-2: internal debug
+	//-1: interanl info
+	// 0: debug
+	// 1: info
+	// 2: warn
+	// 3: error
+	//TODO make this set-able (export getter/setter? use configurationManager?)
+	var errorLevel = 2;
+	
+
+	/**
+	 * HELPER print internal debug messages during parsing (VERY VERBOSE)
+	 */
+	parser.print = function(msg){//FIXME
+		if ( errorLevel <= -2 ) console.log(msg);
+	};
+
+	/**
+	 * HELPER print internal, informational messages during parsing (VERBOSE)
+	 */
+	parser.printInfo = function(prefix, msg){//FIXME
+		if (  errorLevel <= -1 ) console.info(parser.parserCreatePrintMessage(prefix,msg));
+	};
+
+	/**
+	 * HELPER print debug messages during parsing
+	 */
+	parser.parserPrintDebug = function(prefix, msg, source){//FIXME
+		if (  errorLevel <= 0  ) console.debug(parser.parserCreatePrintMessage(prefix,msg, source));
+	};
+
+	/**
+	 * HELPER print informational messages during parsing
+	 */
+	parser.parserPrintInfo = function(prefix, msg, source){//FIXME
+		if (  errorLevel <= 1  ) console.info(parser.parserCreatePrintMessage(prefix,msg, source));
+	};
+	
+	/**
+	 * HELPER print warnings during parsing
+	 */
+	parser.parserPrintWarning = function(prefix, msg, source){//FIXME
+		if (  errorLevel <= 2  ) console.warn(parser.parserCreatePrintMessage(prefix,msg, source));
+	};
+
+	/**
+	 * HELPER print errors during parsing
+	 */
+	parser.parserPrintError = function(prefix, msg, source){
+		if (  errorLevel <= 3  ) console.error(parser.parserCreatePrintMessage(prefix,msg, source));
+	};
+	
+	/**
+	 * HELPER: attach internal print-functions to all classes (ie. prototypes) in the list
+	 */
+	var _attachInternalPrintFunc = function(list){
+		var _prototype;
+		for(var i=0, size=list.length; i < size; ++i){
+			_prototype = list[i].prototype;
+			_prototype.printInfo  = parser.printInfo;
+			_prototype.printDebug = parser.print;
+		}
+	};
+	
+	//attach the internal debug/print functions to all lexers/parsers:
+	// (-> see import-list in define() above)
+	_attachInternalPrintFunc([
+		MmirTemplateLexer, ES3Lexer, ES3Parser, MmirScriptContentLexer, MmirScriptContentParser
+		, MmirScriptLexer, MmirScriptParser
+	]);
+
+	var _currentParsedView = null;//FIXME make this an argument in the printXXX functions (e.g. the current mechanism will not work, if templates are parsed concurrently/in parallel/using threads)
+	
+	/**
+	 * Creates a message with parsing-information.
+	 * 
+	 * In case the <code>msg</code> is an error message containing relative/incorrect location information,
+	 * an heuristic will be used to fix the location information; in addition the references location
+	 * will be extracted from the source-String and a "pointer-String" will be generated, e.g.
+	 * <pre>
+	 * 	source:   "  	@{  mmmm.['sd']=wer ;}@"
+	 * 	pointer:  "  	        ^"
+	 * </pre>
+	 * 
+	 * @function
+	 * @param {String} prefix
+	 * 					a prefix for the message
+	 * @param {String} msg
+	 * 					the original message (may contain location-information "line <line_i>:<position_j>")
+	 * @param {Object} [tokenSource] OPTIONAL
+	 * 					the token-source, from where the error/message was triggered
+	 * 					If the argument has the field <code>tokenSource.offset</code> (Number)
+	 * 					 if will be used to correct/fix the location information in the original message.
+	 * 					If the argument has the fields <code>tokenSource.start</code> (Number) and
+	 * 					 <code>tokenSource.end</code> (Number), then this will be used to correct/fix
+	 * 					 the location information in the original message text.
+	 * @param {Object} [viewObj] OPTIONAL
+	 * 					currently not used!
+	 * 					(will replace _currentParsedView in the future!)
+	 */
+	parser.parserCreatePrintMessage = (function(){//return function(prefix, msg, tokenSource, viewObj)
 		
+		/**
+		 *
+		 * Get the index in the String str, where line number lineNo
+		 * starts.
+		 * 
+		 * New lines begin after \n, \r\n, or \r.
+		 * 
+		 * If lineNo is <= 1, the function returns always 0.
+		 * 
+		 * If the lineNo is greater than the count of lines in str, the string length itself is returned. 
+		 * 
+		 * @function getIndexForLine
+		 * @param {String} str the string
+		 * @param {Number} lineNo the line number (first line is 1)
+		 * 
+		 * @private? used by parserCreatePrintMessage
+		 */
+		var getIndexForLine = (function(){
+			
+			var detectLinebreak = /(\r?\n|\r)/igm;
+			
+			return function(str, lineNo){
+				if(lineNo <= 1){
+					return 0;
+				}
+				var match;
+				var count = 1;
+				while(match = detectLinebreak.exec(str)){
+					//ASSERT: lineNo >= 2
+					if(++count == lineNo){
+						break;
+					}
+				}
+				
+				//reset regexpr:
+				detectLinebreak.lastIndex = 0;
+				
+				if(match){
+					return match.index + match[1].length;
+				}
+				
+				//request line-no. >= 2 AND loop "detect enough" linebreaks => the request line index starts after strings ends => return string's length
+				return str.length;
+			};
+		})();//END getIndexForLine
+
+		/**
+		 *
+		 * Get the line in the String str, in which the char at index is included.
+		 * 
+		 * New lines begin after \n, \r\n, or \r,
+		 * e.g. for line X: 
+		 * <pre>
+		 *  ...\r\n
+		 *        ^
+		 * </pre>
+		 * the line number will be X (i.e. the line-break itself is still included in the current line).
+		 * 
+		 * If index is < 0, the function returns always 1.
+		 * 
+		 * If the index is greater than str.length, -1 is returned. 
+		 * 
+		 * @function getLineForIndex
+		 * @param {String} str the string
+		 * @param {Number} index the char index for which to find the line number (first line is 1)
+		 * 
+		 * @private? used by extractErrorPosition
+		 * 
+		 */
+		var getLineForIndex = (function(){
+			
+			var detectLinebreak = /(\r?\n|\r)/ig;
+			
+			return function(str, index){
+				if(index < 0){
+					return 1;
+				}
+				if(index >= str.length){
+					return -1;
+				}
+				//ASSERT index is at least within line 1
+				var match;
+				var count = 1;
+				var isNextLineFound = false;
+	            var currentPos = -1;
+	            var lastPos = 0;
+				while(match = detectLinebreak.exec(str)){
+	                currentPos = match.index + match[1].length;
+					if(currentPos > index){
+						isNextLineFound = true;
+						break;
+					}
+	                lastPos = currentPos;
+					++count;
+				}
+				
+				//reset regexpr:
+				detectLinebreak.lastIndex = 0;
+				            
+				return {
+					line : count,
+					index: index - lastPos
+				};
+			};
+		})();//END getLineForIndex
+
+		/**
+		 * 
+		 * @private used by parserCreatePrintMessage()
+		 *
+		 * @function extractErrorPosition
+		 */
+		var extractErrorPosition = (function(){
+			
+			var detectLineNo = /line (\d+):(-?\d+)/i;
+			
+			return function extractErrorPositionImpl(msg, offset, originalContent, tokenSource){
+//				console.log('\nTEST1_extractErrorPositionImpl with arguments '+arguments.length+'\n');
+				
+				var result = detectLineNo.exec(msg);
+				
+				//reset regexpr:
+				detectLineNo.lastIndex = 0;
+				
+//				console.log('\nTEST2_result for "'+msg+'": '+result+'\n');
+				var pos = null;
+				if(result){
+					
+					var line = parseInt(result[1],10);
+					var index = parseInt(result[2],10);
+					
+					var isCorrected = false;
+					
+					if(tokenSource){
+						
+						//if we have "invalid" position-info.:
+						//  -> the error probably occured at the very beginning of the parsed expression
+						//  -> try to extract position from parent parser/lexer
+						if(line === 0 || index === -1){
+							line  = tokenSource.getLine();
+							index = tokenSource.getCharPositionInLine();
+						}
+						
+						//if there is an offest supplied by the tokenSource -> use it:
+						if(tokenSource.offset){
+							
+							var iOffset = tokenSource.offset;
+//							if(line === 1){
+//								//
+//								//this position information is derived from a script-eval (-> ConentElement.ScriptEvalError)
+//								// -> need to increase offset by 1 or 2, since all script-elements have
+//								//    an additional, internal offset of 1 or 2 (this is only an heuristical value...)
+//								// e.g. @( ...
+//								//      @{ ...
+//								//   @for( ...
+//								iOffset += 2;
+//							}
+							
+							var contentOffset = getLineForIndex(originalContent, iOffset);
+							
+							//if it is "relatively" the first line, we need to adjust to index 
+							//   (i.e. the position within the line)
+							if(line === 1){
+								index += contentOffset.index;
+							}
+							
+							//adjust the line, i.e. make "relative" -> "absolute" line number
+							line += contentOffset.line - 1;
+							
+							isCorrected = true;
+						}
+						
+					}
+					
+					pos = {
+							line: line,
+							index: index
+					};
+//					console.log('\nTEST3_pos: '+JSON.stringify(pos)+', offset: '+offset+'\n');
+					
+					if(offset && offset !== 0){
+//						console.log('\nTEST4_offset: '+offset+'\n');
+						
+						var newLine = line;
+						var newIndex = index;
+						if( ! isCorrected){
+							var lineOffset = getLineForIndex(originalContent, offset);
+							if(line < 2){
+								newIndex = lineOffset.index + index;
+								pos.originalIndex = index;
+								pos.index = newIndex;
+							}
+							newLine = lineOffset.line + line - 1;
+							pos.originalLine = line;
+							pos.line = newLine;
+						}
+						
+						var fixed = msg.substring(0,result.index + 'line '.length) + newLine + ':' + newIndex + msg.substring(result.index + result[0].length);
+						pos.text = fixed;
+//						pos.originalContent = originalContent;
+//						pos.offset = offset + pos.index;
+					}
+					else {
+						pos.text = msg;
+					}
+				}
+				else if(tokenSource && tokenSource.start && tokenSource.end){
+					
+					pos = getLineForIndex(originalContent, tokenSource.start);
+					pos.text = ' near /';
+				}
+				
+				return pos;
+			};
+		})();//END extractErrorPosition
+		
+		/**
+		 * Create a message for parsing-information.
+		 * 
+		 * In case the <code>msg</code> is an error message containing relative/incorrect location information,
+		 * an heuristic will be used to fix the location information; in addition the references location
+		 * will be extracted from the source-String and a "pointer-String" will be generated, e.g.
+		 * <pre>
+		 * 	source:   "  	@{  mmmm.['sd']=wer ;}@"
+		 * 	pointer:  "  	        ^"
+		 * </pre>
+		 * 
+		 * @param {String} prefix
+		 * 					a prefix for the message
+		 * @param {String} msg
+		 * 					the original message (may contain location-information "line <line_i>:<position_j>")
+		 * @param {Object} [tokenSource] OPTIONAL
+		 * 					the token-source, from where the error/message was triggered
+		 * 					If the argument has the field <code>tokenSource.offset</code> (Number)
+		 * 					 if will be used to correct/fix the location information in the original message.
+		 * 					If the argument has the fields <code>tokenSource.start</code> (Number) and
+		 * 					 <code>tokenSource.end</code> (Number), then this will be used to correct/fix
+		 * 					 the location information in the original message text.
+		 * @param {Object} [viewObj] OPTIONAL
+		 * 					currently not used!
+		 * 					(will replace _currentParsedView in the future!)
+		 */
+		return function parserCreatePrintMessageImpl(prefix, msg, tokenSource, viewObj){//FIXME
+			var currentView = _currentParsedView;
+			if(currentView != null){
+				
+				var rootView = null;
+				var details = '';
+				if(currentView.getController){
+					details += 'CTRL("' + currentView.getController().getName() + '")';
+				}
+				
+				if(currentView.getView){
+					if(details.length > 0){
+						details += '->';
+					}
+					details += 'VIEW("' + currentView.getView().getName() + '")';
+					rootView = currentView.getView();
+				}
+				
+				if(details.length > 0){
+					details += '->';
+				}
+				details += currentView.constructor.name;
+				
+				if(currentView.getName){
+					details += '("' + currentView.getName() + '")';
+				}
+				
+				if(rootView && typeof currentView.getStart !== 'undefined'){
+					
+					var pos = extractErrorPosition(msg, currentView.getOffset(), rootView.getDefinition(), tokenSource);
+		//			console.log('\nTEST_A_pos: '+JSON.stringify(pos)+', offset: '+currentView.getStart() +'\n');
+					if(pos){
+		
+						msg = pos.text;
+						
+						//msg += '\n\t at line '+pos.line+', index '+pos.index;
+						var content = rootView.getDefinition();
+						var line = null;
+						var offset = currentView.getStart();
+		
+						
+						if(content){
+							var start = getIndexForLine(content, pos.line);
+							var end = start;
+							var len = content.length;
+							while(end < len && (content[end] != '\r' && content[end] != '\n')){
+								++end;
+							}
+							
+							line = content.substring(start,end);
+						}
+						
+						if(line){
+							
+							//marker for "pointing" the error
+							var marker = [];
+							for(var i=0; i < pos.index; ++i){
+								if(line[i] == '\t'){
+									//need to include tabs themselves, since they
+									//  take more than 1 char-positions when displayed:
+									marker.push('\t');
+								}
+								else {
+									marker.push(' ');
+								}
+							}
+							//add marker symbol, that points to error in the line above:
+							marker.push('^');
+			
+							msg += ' at line '+pos.line+':';
+							msg += '\n "'+line+'"';        //<- the line with the error
+							msg += '\n  '+marker.join(''); //<- the marker line (will only be correctly aligned for fixed-width fonts)
+						}
+					}
+				}
+				
+				return prefix + 'in ' + details + ' - ' + msg;
+			}
+			else {
+				return prefix+msg;
+			}
+		};//END parserCreatePrintMessage
+		
+	})();
+	
+	//////////////////////////////////// END: helper for debugging, error details etc. ////////////////////////
+
 		/**
 	     * Object containing the instance of the class ParserUtils 
 	     * 
@@ -303,63 +500,36 @@ define([ 'parserModule', 'parsingResult', 'templateProcessor'
 	     * @private
 	     */
 	    var instance = null;
-		
-//		mmir.parser = mmir.parser || {};
-	    
-		/**
-	     * Object containing the instance of the class {@link mmir.ParserUtils} 
-	     * 
-	     * @function getInstance
-	     * @returns {Object} Object containing the instance of the class {@link mmir.ParserUtils}
-	     * @public
-	     */
-		
-//		mmir.parser.ParserUtils = {	
-//				
-//		        	getInstance: function(){
-//		        		if (instance === null) {
-//		        			instance = constructor();
-//		        		}
-//		        		return instance;
-//		        	}
-//		};
-//		
 
 	    var isDebug = true;//TODO read/set from configuration
 	    
 	    MmirTemplateLexer.prototype.emitErrorMessage = function(msg) {
-	    	parserPrintError('[ERROR] TemplateLexer: ',msg);
+	    	parser.parserPrintError('[ERROR] TemplateLexer: ', msg, this);
 		};
 //		MmirTemplateParser.prototype.emitErrorMessage = function(msg) {
-//			parserPrintError('[ERROR] TemplateParser: ',msg);
+//			parser.parserPrintError('[ERROR] TemplateParser: ',msg);
 //		};
 		
 		ES3Lexer.prototype.emitErrorMessage = function(msg) {
-			parserPrintError('[ERROR] JavaScriptLexer_ES3: ',msg);
+			parser.parserPrintError('[ERROR] JavaScriptLexer_ES3: ', msg, this);
 		};
 		ES3Parser.prototype.emitErrorMessage = function(msg) {
-			parserPrintError('[ERROR] JavaScriptParser_ES3: ',msg);
+			parser.parserPrintError('[ERROR] JavaScriptParser_ES3: ', msg, this.getTokenStream().getTokenSource());
 		};
 		
-		MmirScriptBlockLexer.prototype.emitErrorMessage = function(msg) {
-			parserPrintError('[ERROR] ScriptBlockLexer: ',msg);
+		MmirScriptLexer.prototype.emitErrorMessage = function(msg) {
+			var mode = this.isStatementMode()? 'Statement' : 'Block';
+			parser.parserPrintError('[ERROR] Script'+mode+'Lexer: ',msg, this);
 		};
-		MmirScriptBlockParser.prototype.emitErrorMessage = function(msg) {
-			parserPrintError('[ERROR] ScriptBlockParser: ',msg);
-		};
-		
-		MmirScriptStatementLexer.prototype.emitErrorMessage = function(msg) {
-			parserPrintError('[ERROR] ScriptStatementLexer: ',msg);
-		};
-		MmirScriptStatementParser.prototype.emitErrorMessage = function(msg) {
-			parserPrintError('[ERROR] ScriptStatementParser: ',msg);
+		MmirScriptParser.prototype.emitErrorMessage = function(msg) {
+			parser.parserPrintError('[ERROR] ScriptParser: ',msg, this.getTokenStream().getTokenSource());
 		};
 		
 		MmirScriptContentLexer.prototype.emitErrorMessage = function(msg) {
-			parserPrintError('[ERROR] ContentLexer: ',msg);
+			parser.parserPrintError('[ERROR] ContentLexer: ',msg, this);
 		};
 		MmirScriptContentParser.prototype.emitErrorMessage = function(msg) {
-			parserPrintError('[ERROR] ContentParser: ',msg);
+			parser.parserPrintError('[ERROR] ContentParser: ',msg, this.getTokenStream().getTokenSource());
 		};
 		
 		function internalParse(text) {
@@ -395,14 +565,16 @@ define([ 'parserModule', 'parsingResult', 'templateProcessor'
 			return result;
 		}
 		
-		function internalParseJS(text, entryRuleName) {
+		function internalParseJS(text, entryRuleName, offset) {
 		  	
 		  	var input = new org.antlr.runtime.ANTLRStringStream(text);
 		  	var lexer = new ES3Lexer(input);
 		  	lexer.isDebug = isDebug;
+		  	lexer.offset = offset;
 		  	
 		  	var tokens = new org.antlr.runtime.CommonTokenStream(lexer);
 			var parser = new ES3Parser(tokens);
+			parser.offset = offset;
 			
 			if(!entryRuleName){
 //			var parseResult = 
@@ -456,16 +628,17 @@ define([ 'parserModule', 'parsingResult', 'templateProcessor'
 //		};
 		
 	    /**
-		 * Constructor-Method of Class {@link mmir.parser.ParserUtils}
+		 * Constructor-Method of Singleton mmir.parser.ParserUtils
 		 * 
-		 * @constructor
-		 * @augments mmir.parser.ParserUtils
-		 * @memberOf mmir.parser.ParserUtils.prototype
+		 * @constructs ParserUtils
+		 * @memberOf ParserUtils.prototype
+		 * @private
+		 * @ignore
 		 */
 	    function constructor(){
 	        //private members (currently none)
 	    	
-	    	/** @lends mmir.parser.ParserUtils.prototype */
+	    	/** @lends ParserUtils.prototype */
 	    	return {
 	        	//public members:
 
@@ -479,10 +652,10 @@ define([ 'parserModule', 'parsingResult', 'templateProcessor'
 	    		parse: function(rawTemplateString, view){
 	    			
 	    			if(view){
-	    				CURRENT_PARSED_VIEW = view;
+	    				_currentParsedView = view;
 	    			}
 	    			else {
-	    				CURRENT_PARSED_VIEW = null;
+	    				_currentParsedView = null;
 	    			}
 	    			
 	    			return internalParse(rawTemplateString);
@@ -496,22 +669,29 @@ define([ 'parserModule', 'parsingResult', 'templateProcessor'
 	    		 * @param {Object} [view] (optional) the view to which the <tt>rawTemplateString</tt> belongs (only used for error messages)
 	    		 * @returns {mmir.parser.ParsingResult} the parsing result 
 	    		 */
-	    		parseJS: function(rawTemplateString, parseEntryRuleName, view){
+	    		parseJS: function(rawTemplateString, parseEntryRuleName, view, inViewOffset){
 	    			
-	    			//in case only 2 arguments are present: is 2nd the View object?
-	    			if(!view && typeof parseEntryRuleName !== 'string' && typeof parseEntryRuleName === 'object'){
+	    			//in case only 2 or 3 arguments are present: is 2nd the View object?
+	    			if(!inViewOffset && typeof parseEntryRuleName !== 'string' && typeof parseEntryRuleName === 'object'){
+	    				
+	    				if(typeof view === 'number'){
+	    					inViewOffset = view;
+	    				}
+	    				
 	    				view = parseEntryRuleName;
 	    				parseEntryRuleName = null;
+	    				
+	    				
 	    			}
 	    			
 	    			if(view){
-	    				CURRENT_PARSED_VIEW = view;
+	    				_currentParsedView = view;
 	    			}
 	    			else {
-	    				CURRENT_PARSED_VIEW = null;
+	    				_currentParsedView = null;
 	    			}
 	    			
-	    			return internalParseJS(rawTemplateString, parseEntryRuleName);
+	    			return internalParseJS(rawTemplateString, parseEntryRuleName, inViewOffset);
 	    		}
 	    	};//END: return{}
 	    	
@@ -520,7 +700,11 @@ define([ 'parserModule', 'parsingResult', 'templateProcessor'
 	    instance = new constructor();
 
 	    /**
-	     * @deprecated instead, use object directly (i.e. omit getInstance() call)
+	     * @deprecated instead, use ParseUtils object directly (i.e. omit getInstance() call)
+	     * 
+		 * @function
+		 * @name getInstance
+	     * @memberOf ParserUtils.prototype
 	     */
 	    instance.getInstance = function(){
 	    	return this;

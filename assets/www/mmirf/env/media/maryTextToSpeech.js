@@ -28,6 +28,8 @@
 newMediaPlugin = {
 		initialize: function(callBack){
 			
+			var _pluginName = 'maryTextToSpeech';
+			
 			var languageManager = require('languageManager');
 			var configurationManager = require('configurationManager');
 			var mediaManager = require('mediaManager');
@@ -61,12 +63,13 @@ newMediaPlugin = {
 				return text.split("#");
 			};
 			var generateTTSURL = function(text){
-//				text = text.replace(/\s/g, '%20');
 				text = encodeURIComponent(text);
-				var speaker = languageManager.getSpeaker();
-				var lang = speaker["lang_simple"];
-				var voice = speaker["speaker"];
-				return configurationManager.get("HTML5OutputServerBasePath")+'process?INPUT_TYPE=TEXT&OUTPUT_TYPE=AUDIO&INPUT_TEXT=' + text + '&LOCALE='+lang+'&VOICE='+voice+'&AUDIO=WAVE_FILE';
+				var lang = languageManager.getLanguageConfig(_pluginName);
+				var voice = languageManager.getLanguageConfig(_pluginName, 'voice');
+				
+				var voiceParamStr = voice? '&VOICE='+voice : '';
+				
+				return configurationManager.get([_pluginName, "serverBasePath"])+'process?INPUT_TYPE=TEXT&OUTPUT_TYPE=AUDIO&INPUT_TEXT=' + text + '&LOCALE='+lang + voiceParamStr + '&AUDIO=WAVE_FILE';
 			};
 			
 			var playNext = function playNext(){
@@ -74,7 +77,9 @@ newMediaPlugin = {
 				playIndex++;
 				if (playIndex<(audioArray.length)){
 					ttsMedia=audioArray[playIndex];
-					console.log("LongTTS playing "+playIndex+ " '"+sentenceArray[playIndex]+ "'" + (!audioArray[playIndex].isEnabled()?' DISABLED':''));
+
+					console.log("LongTTS playing "+playIndex+ " '"+sentenceArray[playIndex]+ "'" + (!audioArray[playIndex].isEnabled()?' DISABLED':''));//FIXME debug
+					
 					audioArray[playIndex].setVolume(volume);
 					audioArray[playIndex].play();
 					loadNext();

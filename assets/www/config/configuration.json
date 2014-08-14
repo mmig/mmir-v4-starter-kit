@@ -1,16 +1,35 @@
 {
     "language": "en",
     "usePrecompiledViews": "false",
-    "silenceDetectorNoiseTreshold": "0.1",
-    "silenceDetectorPauseCount": "3",
-    "silenceDetectorMinimalSpeachCount": "3",
-    "silenceDetectorResetCount": "15",
-    "HTML5InputSilenceBuffer": "2000000",
-    "HTML5InputWebSocketAddress": "ws://localhost:9999",
-    "HTML5InputSoundPackageSize": "4096",
-    "HTML5InputSilenceDetectorPath": "mmirf/env/media/silenceDetection.js",
-    "HTML5OutputServerBasePath": "http://mary.dfki.de:59125/",
-    "autoLogin": "true",
-    "TEST_prefetchRemoteResources": "false",
-    "TEST_resetStylesBeforeLoad": "true"
+    
+    "html5AudioInput": {
+	    "silenceDetector": {
+	    	"noiseTreshold": "0.1",
+		    "pauseCount": "3",
+		    "minimalSpeachCount": "3",
+		    "resetCount": "15"
+		},
+		
+		"silenceBuffer": "2000000",
+	    "webSocketAddress": "ws://localhost:9999",
+	    "soundPackageSize": "4096",
+	    "silenceDetectorPath": "mmirf/env/media/silenceDetection.js"
+    },
+    
+    "maryTextToSpeech": {
+    	"serverBasePath": "http://mary.dfki.de:59125/"
+    },
+    
+    "mediaManager": {
+    	"plugins": {
+    		"browser": ["html5AudioOutput.js",
+    		            "webkitAudioInput.js",
+    		            "maryTextToSpeech.js"
+    		],
+    		"cordova": ["cordovaAudioOutput.js",
+    		            "nuanceAudioInput.js",
+    		            "nuanceTextToSpeech.js"
+    		]
+    	}
+    }
 }

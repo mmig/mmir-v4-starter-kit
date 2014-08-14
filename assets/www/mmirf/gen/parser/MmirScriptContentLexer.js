@@ -302,7 +302,7 @@ org.antlr.lang.augmentObject(MmirScriptContentLexer.prototype, {
               		if(this.nesting == 0){
               	                this.emit(org.antlr.runtime.Token.EOF_TOKEN);
               	                
-              	                if(this.isDebug) print("exiting embedded CONTENT");//debug
+              	                if(this.isDebug) this.printDebug("exiting embedded CONTENT");//debug
                               }
                               else {
                               	--this.nesting;

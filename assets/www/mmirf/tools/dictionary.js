@@ -24,14 +24,20 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-define(function(){
+define(
+	/**
+	 * @name Dictionary
+	 * @class
+	 * 
+	 */
+	function(
+){
 
 /**
  * A dictionary (or map) for key-value storage and access.
  * 
- * @class Dictionary
+ * @constructs Dictionary
  */
-
 function Dictionary() {
 
 	/**

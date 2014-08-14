@@ -24,9 +24,15 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
+/**
+ * @name media.plugin.webkitAudioInput
+ */
 newMediaPlugin = {
+
+		/** @scope media.plugin.webkitAudioInput.prototype */
 		initialize: function(callBack, logvalue){
+
+			var _pluginName = 'webkitAudioInput';
 			
 			var languageManager = require('languageManager');
 
@@ -262,24 +268,19 @@ newMediaPlugin = {
                     // set intermediate_results - for access by stopRecord
                     intermediate_results = intermediateResults;
                     
-                    // set recognition language 
-                    var langStr = languageManager.getSpeaker()["voice_lang"];
-                    if(langStr){
-                    	//normalize language code: config uses underline as separator:
-                    	recognition.lang = langStr.replace('_','-');
-                    }
-                    else {
+                    // set recognition language
+                    var langStr = languageManager.getLanguageConfig(_pluginName);
+                    if(!langStr){
                     	//default:
-                    	recognition.lang = "en-US";
+                    	langStr = "en-US";
                     }
+                	recognition.lang = langStr;
                     
                     // do not stop recognition on silence
                     recognition.continuous = true;
                     
-                    /***********************/
                     // get results continuously
                     recognition.interimResults = (loglevel >= 4) ? true : false;
-                    /***********************/
 
 					currentFailureCallback = failureCallback;
 					currentSuccessCallback = successCallback;
@@ -430,15 +431,12 @@ newMediaPlugin = {
                     final_recognition_result = "";
                     
                     // recognition.lang = "en-US";
-                    var langStr = languageManager.getSpeaker()["voice_lang"];
-                    if(langStr){
-                    	//normalize language code: config uses underline as separator:
-                    	recognition.lang = langStr.replace('_','-');
-                    }
-                    else {
+                    var langStr = languageManager.getLanguageConfig(_pluginName);
+                    if(!langStr){
                     	//default:
-                    	recognition.lang = "en-US";
+                    	langStr = "en-US";
                     }
+                	recognition.lang = langStr;
 
                     // stop recognition on silence
                     recognition.continuous = false;

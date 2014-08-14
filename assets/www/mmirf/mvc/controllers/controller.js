@@ -25,18 +25,30 @@
  */
 
 
-define ( [ 'commonUtils', 'helper' ], function ( commonUtils, Helper ) {
+define ( [ 'commonUtils', 'helper' ],
+	/**
+	 * @name Controller
+	 * @class
+	 */
+	function (
+			commonUtils, Helper
+){
+	
+	/** @scope Controller.prototype */
+	/**
+	 * #@+
+	 * @memberOf Controller.prototype
+	 */
+	
 	/**
 	 * The Controller Class is a kind of interface-class which gives access to the methods of a controller and its helper. <br>
 	 * Also holds information about views and partials associated with the controller.
 	 * 
-	 * @class Controller
-	 * @constructor
+	 * @constructs Controller
 	 * @param {String} name Name of the Controller
 	 * @param {Object} jsonDef Information about the controllers views and partials 
 	 * @category core
 	 */
-
 	function Controller(name, jsonDef){
 //	    console.log("controller name " + name);
 	    /**
@@ -391,4 +403,5 @@ define ( [ 'commonUtils', 'helper' ], function ( commonUtils, Helper ) {
 
 	return Controller;
 	
+	/** #@- */
 });

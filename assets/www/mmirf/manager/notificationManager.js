@@ -24,14 +24,29 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/**
- * @class NotificationManager
- * 
- * @depends Dictionary
- * @depends mmir.MediaManager
- */
 
-define(['module', 'constants', 'mediaManager', 'dictionary'], function(module, constants, mediaManager, Dictionary){
+define(['module', 'constants', 'mediaManager', 'dictionary'], 
+	/**
+	 * 
+	 * @name mmir.NotificationManager
+	 * @static
+	 * @class
+	 * 
+	 * @depends Dictionary
+	 * @depends mmir.MediaManager
+	 */
+	function(
+		module, constants, mediaManager, Dictionary
+){
+	//next 2 comments are needed by JSDoc so that all functions etc. can
+	// be mapped to the correct class description
+	/** @scope mmir.NotificationManager.prototype */
+	/**
+	 * #@+
+	 * @memberOf mmir.NotificationManager.prototype 
+	 */
+	
+	
     //private members
 	
 	
@@ -45,11 +60,9 @@ define(['module', 'constants', 'mediaManager', 'dictionary'], function(module, c
     //private methods
     
     /**
-	 * Constructor-Method of Class {@link mmir.NotificationManager}.<br> 
+	 * Constructor-Method of Singleton mmir.NotificationManager.<br> 
 	 * 
-	 * @constructor
-	 * @augments mmir.NotificationManager
-	 * @memberOf mmir.NotificationManager.prototype
+	 * @constructs NotificationManager
 	 */
     function constructor(){
     	
@@ -58,26 +71,42 @@ define(['module', 'constants', 'mediaManager', 'dictionary'], function(module, c
     	//VIBRATE initialization:
     	var isHapticEnabled = true;
 
+    	/**
+    	 * Implementation for vibrate-function:
+    	 * platform-dependent (if platform/device does not support it: as stub-function)
+    	 * 
+    	 * @function
+    	 * @private
+    	 * @param {Number} milliseconds
+    	 */
     	var doVibrate = null;
-    	if(isCordovaEnv){
-    		
-    		if(navigator.notification && navigator.notification.vibrate){
-//	    		console.debug('Vibrate: navigator.notification');
-	    		doVibrate = function(n){ navigator.notification.vibrate(n); };
-    		}
-    		else {
-    			console.warn('mmir.NotificationManager.INIT: could not detect navigator.notification.vibrate, using NOOP dummy instead.');
-        		doVibrate = function(n){ console.debug('mmir.NotificationManager.vibrate('+n+') triggered (but no VIBRATE function available).'); };// DEBUG
-    		}
-    	}
-    	else if (navigator.vibrate){
-//    		console.debug('Vibrate API');
-    		doVibrate = function(n){ navigator.vibrate(n); };
-    	}
-    	else if (navigator.webkitVibrate){
-//    		console.debug('Vibrate: webkit');
-    		doVibrate = function(n){ navigator.webkitVibrate(n); };
-    	}
+    	
+    	var _init = function(){
+	    	if(isCordovaEnv){
+	    		
+	    		if(navigator.notification && navigator.notification.vibrate){
+//		    		console.debug('Vibrate: navigator.notification');
+	    			/** @ignore */
+		    		doVibrate = function(n){ navigator.notification.vibrate(n); };
+	    		}
+	    		else {
+	    			console.warn('mmir.NotificationManager.INIT: could not detect navigator.notification.vibrate, using NOOP dummy instead.');
+	    			/** @ignore */
+	        		doVibrate = function(n){ console.error('mmir.NotificationManager.vibrate('+n+') triggered (but no VIBRATE function available).'); };// DEBUG
+	    		}
+	    		
+	    	}
+	    	else if (navigator.vibrate){
+//	    		console.debug('Vibrate API');
+	    		/** @ignore */
+	    		doVibrate = function(n){ navigator.vibrate(n); };
+	    	}
+	    	else if (navigator.webkitVibrate){
+//	    		console.debug('Vibrate: webkit');
+	    		/** @ignore */
+	    		doVibrate = function(n){ navigator.webkitVibrate(n); };
+	    	}
+    	};
     	
     	
     	//SOUND / BEEP initialization:
@@ -394,8 +423,8 @@ define(['module', 'constants', 'mediaManager', 'dictionary'], function(module, c
     		);
     	}
     	
-    	/** @lends mmir.NotificationManager.prototype */
-        return { //public members and methods
+    	return { //public members and methods
+    		/** @scope mmir.NotificationManager.prototype */
             
         	/**
         	 * Trigger a haptic vibration feedback.
@@ -523,34 +552,30 @@ define(['module', 'constants', 'mediaManager', 'dictionary'], function(module, c
             	//initialize sound (identified by its name):
         		playAudioSound(name, 0);
             }
+            , init: function(){
+            	_init();
+            	this.init = function(){ return this; };
+            	
+            	return this;
+            }
         };
     }
-//    return {
-//        /**
-//         * Get the instance of the singleton {@link mmir.NotificationManager} 
-//         * 
-//         * @function getInstance
-//         * @returns {Object} the instance for singleton {@link mmir.NotificationManager}
-//         * @public
-//         */
-//        getInstance: function(){
-//            if (instance === null) {
-//                instance = constructor();
-//            }
-//            return instance;
-//        }
-//    };
     
     instance = new constructor();
-    
-    /**
+    	    
+	/**
 	 * @deprecated instead: use mmir.NotificationManager directly
+	 * 
+	 * @function
+	 * @name getInstance
+	 * @memberOf mmir.NotificationManager.prototype 
 	 */
 	instance.getInstance = function(){
 		return instance;
 	};
-    
+    		
     return instance;
-//})();
+    
+    /** #@- */
     
 });//END: define(..., function(){...

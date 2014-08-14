@@ -26,54 +26,61 @@
 
 	
 define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
-        	, 'ES3Lexer', 'ES3Parser', 'blockLexer', 'blockParser'
-        	, 'statementLexer', 'statementParser', 'contentLexer', 'contentParser'
-        	, 'antlr3'
+        	, 'ES3Lexer', 'ES3Parser', 'contentLexer', 'contentParser'
+        	, 'scriptLexer', 'scriptParser', 'antlr3'
         ], function ( 
         	  mmir, commonUtils, parser, ParsingResult
-        	, ES3Lexer, ES3Parser, MmirScriptBlockLexer, MmirScriptBlockParser
-        	, MmirScriptStatementLexer, MmirScriptStatementParser, MmirScriptContentLexer, MmirScriptContentParser
-        	, org
-){
+        	, ES3Lexer, ES3Parser, MmirScriptContentLexer, MmirScriptContentParser
+        	, MmirScriptLexer, MmirScriptParser, org
+){//hidden dependency: templateParserUtils (for parser.printInfo
+
+		//TODO move to separate file (extension-file):
+		//START extensions
+		/**
+		 * @memberOf ES3Parser.prototype
+		 */
+		ES3Parser.prototype.getVarReferences = function(){
+			
+			var size = this.ampersatIdentifiers.length;
+			
+			if(size === 0){
+				return null;
+			}
+			
+			var varRefs = new Array(size);
+			for(var i=0; i < size; ++i){
+				var ref = this.ampersatIdentifiers[i];
 				
-//		mmir.parser = mmir.parser || {};
+				var refObj = new ParsingResult(ref);
+	//			refObj.start = ref.start;
+				
+				//correct end-position (token's stop-index is exactly the last char-index, whereas ParsingResult's end-position is token.stopIndex + 1)
+				refObj.end = refObj.getEnd() + 1;
+				
+				refObj.type = parser.element.VAR_REFERENCE;
+				
+				varRefs[i] = refObj;
+			}
+			return varRefs;
+		};
+		//END extensions
+	
+		var parserModule = parser;
 		/**
 		 * "Processor" for the template parse-results:
 		 * 
 		 * This function is used by the generated (antlr) parsers.
 		 * 
-		 * @augments mmir.Parser
+		 * @name mmir.parser.TemplateProcessor
+		 * @class
 		 */
 		parser.extendMmirTemplateProcessor = function(theLexerInstance) {
 
-			
-			//TODO move to separate file (extension-file):
-			//START extensions
-			ES3Parser.prototype.getVarReferences = function(){
-				
-				var size = this.ampersatIdentifiers.length;
-				
-				if(size === 0){
-					return null;
-				}
-				
-				var varRefs = new Array(size);
-				for(var i=0; i < size; ++i){
-					var ref = this.ampersatIdentifiers[i];
-					
-					var refObj = new ParsingResult(ref);
-//					refObj.start = ref.start;
-					
-					//correct end-position (token's stop-index is exactly the last char-index, whereas ParsingResult's end-position is token.stopIndex + 1)
-					refObj.end = refObj.getEnd() + 1;
-					
-					refObj.type = parser.element.VAR_REFERENCE;
-					
-					varRefs[i] = refObj;
-				}
-				return varRefs;
-			};
-			//END extensions
+			/** @scope mmir.parser.TemplateProcessor.prototype */
+			/**
+			 * #@+
+			 * @memberOf mmir.parser.TemplateProcessor.prototype
+			 */
 			
 			theLexerInstance.INTERNAL_INCLUDE_SCRIPT 	= parser.element.INCLUDE_SCRIPT;
 			theLexerInstance.INTERNAL_INCLUDE_STYLE 	= parser.element.INCLUDE_STYLE;
@@ -135,13 +142,19 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 			
 			var isArray = commonUtils.isArray;
 			
-			var JS_TOKENS = null;
-			function getTokenName(tokenType, parser){
-				if(!JS_TOKENS){
-					JS_TOKENS = parser.getTokenNames();
-				}
-				return JS_TOKENS[tokenType];
-			}
+			var getTokenName = (function(){
+				
+				var _jsTokens = null;
+				
+				return function getTokenNameImpl(tokenType, parser){
+			
+					if(!_jsTokens){
+						_jsTokens = parser.getTokenNames();
+					}
+					return _jsTokens[tokenType];
+				};
+				
+			})();
 			//theLexerInstance.getTokenName = getTokenName;
 			
 			function getFirstChild(treeNode, strChildType, parser){
@@ -170,9 +183,10 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				var start = subTree.getToken().getStartIndex();
 				if(typeof start === 'number' && start !== -1){
 					if(!buffer){
-						buffer = new Object();
-						buffer.start = null;
-						buffer.end = null;
+						buffer ={
+								start: null,
+								stop: null
+						};
 					}
 					
 					if(buffer.start == null || start < buffer.start){
@@ -204,6 +218,10 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 			}
 			
 			function getStringFor(boundriesObj, tokens, offset){
+				
+				if(!boundriesObj){
+					return '';
+				}
 				
 				var start = boundriesObj.start - offset;
 				var end = boundriesObj.end - offset;  
@@ -274,7 +292,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				parsingObj.scriptContent = result;
 				
 				if(!parsingObj.scriptContent){
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - BLOCK] WARNING: ','invalid "script block" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - BLOCK] WARNING: ','invalid "script block" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					return;
 				}
 				
@@ -288,7 +306,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				parsingObj.scriptContent = result;
 				
 				if(!parsingObj.scriptContent){
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - STATEMENT] WARNING: ','invalid "script statement" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - STATEMENT] WARNING: ','invalid "script statement" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					return;
 				}
 				
@@ -306,7 +324,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				parsingObj.scriptPath = getStringForSubTree(tree.getChild(0), tokens, offset);//createJSObjectFrom(tree.getChild(0), null, parser );
 				
 				if(!parsingObj.scriptPath){
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - SCRIPT LINK] WARNING: ','invalid "include script statement" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - SCRIPT LINK] WARNING: ','invalid "include script statement" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					return;
 				}
 				
@@ -324,7 +342,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				parsingObj.stylePath = getStringForSubTree(tree.getChild(0), tokens, offset);//createJSObjectFrom(tree.getChild(0), null, parser );
 				
 				if(!parsingObj.stylePath){
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - STYLE LINK] WARNING: ','invalid "include style statement" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - STYLE LINK] WARNING: ','invalid "include style statement" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					return;
 				}
 				
@@ -342,7 +360,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				parsingObj.name = getStringForSubTree(tree.getChild(0), tokens, offset);//createJSObjectFrom(tree.getChild(0), null, parser );
 				
 				if(!parsingObj.name || parsingObj.name.length === 0){
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - LOCALIZE] WARNING: ','invalid "localize statement" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - LOCALIZE] WARNING: ','invalid "localize statement" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					return;
 				}
 				
@@ -360,7 +378,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				parsingObj.name = getStringForSubTree(tree.getChild(0), tokens, offset);//createJSObjectFrom(tree.getChild(0), null, parser );
 				
 				if(!parsingObj.name || parsingObj.name.length === 0){
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - VAR DECLARATION] WARNING: ','invalid "var declaration statement" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - VAR DECLARATION] WARNING: ','invalid "var declaration statement" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					return;
 				}
 				
@@ -391,7 +409,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				}
 				
 				if(!parsingObj.helper || parsingObj.helper.length === 0){
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - HELPER CALL] WARNING: ','invalid "helper function statement" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - HELPER CALL] WARNING: ','invalid "helper function statement" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					return;
 				}
 				
@@ -432,7 +450,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				}
 				
 				if(false){//!parsingObj.partialName || parsingObj.partialName.length === 0){ TODO implement check
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - RENDER PARTIAL] WARNING: ','invalid "render partial statement" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - RENDER PARTIAL] WARNING: ','invalid "render partial statement" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					return;
 				}
 				
@@ -450,7 +468,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				parsingObj.name = getStringForSubTree(tree.getChild(0), tokens, offset);//createJSObjectFrom(tree.getChild(0), null, parser );
 				
 				if(!parsingObj.name || parsingObj.name.length === 0){
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - YIELD DECLARATION] WARNING: ','invalid "yield declaration" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - YIELD DECLARATION] WARNING: ','invalid "yield declaration" at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					return;
 				}
 				
@@ -466,10 +484,10 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				
 				parsingObj.nameType = getTokenName( tree.getChild(0).getType(), parser);
 				parsingObj.name = getStringForSubTree(tree.getChild(0), tokens, offset);//createJSObjectFrom(tree.getChild(0), null, parser );
-				
+				parsingObj.contentOffset = parsingObj.end + 1 + 2;// +2:  "){"
 				
 				if(!parsingObj.name){
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - YIELD CONTENT PARAMETER] WARNING: ','invalid "content for specification" (missing name) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - YIELD CONTENT PARAMETER] WARNING: ','invalid "content for specification" (missing name) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					return;
 				}
 			}
@@ -480,7 +498,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				parsingObj.content = result;
 				
 				if(!parsingObj.content){
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - YIELD CONTENT] WARNING: ','invalid "content for specification" (missing content) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - YIELD CONTENT] WARNING: ','invalid "content for specification" (missing content) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					return;
 				}
 				
@@ -495,12 +513,13 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 //				var tree = result.tree;
 //				parsingObj.exprType = getTokenName( tree.getChild(0).getType(), parser);
 //				parsingObj.expr = createJSObjectFrom(tree.getChild(0), null, parser );
-		//
+				parsingObj.contentOffset = parsingObj.end + 1 + 2;// +2:  "){"
+
 //				var lastElem = theLexerInstance.lastParsedElement;
 				parsingObj.ifExpr = tokens.toString();
 				
 				if(!parsingObj.ifExpr){
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - IF EXPR] WARNING: ','invalid "if statement" (missing expression) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - IF EXPR] WARNING: ','invalid "if statement" (missing expression) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					return;
 				}
 			}
@@ -511,7 +530,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				parsingObj.content = result;
 				
 				if(!parsingObj.content){
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - IF CONTENT] WARNING: ','invalid "if statement" (missing content) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - IF CONTENT] WARNING: ','invalid "if statement" (missing content) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					return;
 				}
 				
@@ -525,13 +544,15 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				parsingObj.content = result;
 				
 				if(!parsingObj.content){
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - ELSE CONTENT] WARNING: ','invalid "else statement" (missing content) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - ELSE CONTENT] WARNING: ','invalid "else statement" (missing content) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					return;
 				}
 				
+				parsingObj.contentOffset = parsingObj.start + 1;// +1:  "{"
+				
 				var lastElem = theLexerInstance.lastParsedElement;
 				if(lastElem.type !== IF_TYPE){
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - ELSE CONTENT] WARNING: ','invalid "else statement" (missing content) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - ELSE CONTENT] WARNING: ','invalid "else statement" (missing content) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					
 					throw new org.antlr.runtime.NoViableAltException('invalid else statement: missing preceeding IF!', -1, -1, tokens);
 				}
@@ -539,7 +560,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				var lastIf = theLexerInstance.ifs[theLexerInstance.ifs.length-1];
 				if(lastIf.elseContent){
 					
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - ELSE CONTENT] WARNING: ','invalid "else statement" (ELSE already defined) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - ELSE CONTENT] WARNING: ','invalid "else statement" (ELSE already defined) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					
 					throw new org.antlr.runtime.NoViableAltException('invalid else statement: too many ELSE definitions - ELSE clause is already defined!', -1, -1, tokens);
 				}
@@ -561,6 +582,8 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				parsingObj.forControlType = getTokenName( tree.getChild(0).getType(), parser);
 				//parsingObj.forControl = createJSObjectFrom(tree.getChild(0), null, parser );
 				
+				parsingObj.contentOffset =  parsingObj.end + 1 + 2;// +2:  "){"
+				
 //				parsingObj.forControl = tokens.toString();
 				
 				if(parsingObj.forControlType === 'FORITER'){
@@ -577,7 +600,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				}
 				
 //				if(!parsingObj.expr){
-//					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - FOR EXPR] WARNING: ','invalid "for statement" (missing control statement) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+//					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - FOR EXPR] WARNING: ','invalid "for statement" (missing control statement) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 //					return;
 //				}
 			}
@@ -588,7 +611,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				parsingObj.content = result;
 				
 				if(!parsingObj.content){
-					if(theLexerInstance.isDebug) parserPrintWarning('[TemplateProcessor - FOR CONTENT] WARNING: ','invalid "for statement" (missing content) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
+					if(theLexerInstance.isDebug) parser.parserPrintWarning('[TemplateProcessor - FOR CONTENT] WARNING: ','invalid "for statement" (missing content) at ['+parsingObj.start+','+parsingObj.end+'] -> "'+theLexerInstance.input.data.substring(parsingObj.start,parsingObj.end)+'"');//debug
 					return;
 				}
 				
@@ -599,10 +622,14 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 			
 			var getLexerFor = function (self, parserType, input){
 				if(self.PARSER_SCRIPT_BLOCK === parserType){
-					return new MmirScriptBlockLexer(input);
+					var scriptLexer = new MmirScriptLexer(input);
+					scriptLexer.setBlockMode();
+					return scriptLexer;
 				}
 				else if(self.PARSER_SCRIPT_STATEMENT === parserType){
-					return new MmirScriptStatementLexer(input);
+					var scriptLexer = new MmirScriptLexer(input);
+					scriptLexer.setStatementMode();
+					return scriptLexer;
 				}
 				else if(self.PARSER_SCRIPT_CONTENT === parserType){
 					return new MmirScriptContentLexer(input);
@@ -610,16 +637,16 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				else if(self.PARSER_JS_CODE === parserType){
 					return new ES3Lexer(input);
 				}
-				parserPrintWarning('[TemplateProcessor - creating Lexer] WARNING: ','getLexerFor unkonwn parser type '+parserType);
+				parser.parserPrintWarning('[TemplateProcessor - creating Lexer] WARNING: ','getLexerFor unkonwn parser type '+parserType);
 				return null;
 			};
 			
 			var getParserFor = function (self, parserType, tokens){
 				if(self.PARSER_SCRIPT_BLOCK === parserType){
-					return new MmirScriptBlockParser(tokens);
+					return new MmirScriptParser(tokens);
 				}
 				else if(self.PARSER_SCRIPT_STATEMENT === parserType){
-					return new MmirScriptStatementParser(tokens);
+					return new MmirScriptParser(tokens);
 				}
 				else if(self.PARSER_SCRIPT_CONTENT === parserType){
 					return new MmirScriptContentParser(tokens);
@@ -627,7 +654,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				else if(self.PARSER_JS_CODE === parserType){
 					return new ES3Parser(tokens);
 				}
-				parserPrintWarning('[TemplateProcessor - creating parser] WARNING: ','getParserFor unkonwn parser type '+parserType);
+				parser.parserPrintWarning('[TemplateProcessor - creating parser] WARNING: ','getParserFor unkonwn parser type '+parserType);
 				return null;
 			};
 			
@@ -648,7 +675,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 					msg = '';
 				}
 				
-				if(self.isDebug) print('enter embedded '+msg);//debug
+				if(self.isDebug) theLexerInstance.printDebug('enter embedded '+msg);//debug
 				
 				var lexer = getLexerFor(self, parserType, self.input);
 
@@ -670,7 +697,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 					var start = result.start;//tokens.getTokens()[0].getStartIndex();
 					var end = result.end;//tokens.getTokens()[tokens.size()-1].getStopIndex();
 					
-					printInfo(msg+'_tokens('+start+'->'+end+')',tokens);
+					theLexerInstance.printInfo(msg+'_tokens('+start+'->'+end+')',tokens);
 				}
 				
 				var parser = getParserFor(self, parserType, tokens);
@@ -678,7 +705,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 				parser.isDebug = self.isDebug;
 				var parseResult = parser[entryFunc]();
 						
-				if(self.isDebug) print(msg+'.'+entryFunc+'() result: >'+parseResult+'<');//debug
+				if(self.isDebug) theLexerInstance.printDebug(msg+'.'+entryFunc+'() result: >'+parseResult+'<');//debug
 				
 				if(result.rawResult){
 					if(isArray(result.rawResult)){
@@ -726,7 +753,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 			theLexerInstance.processEscape = function (replacementText, msg){
 				
 				if(msg && typeof self !== 'undefined' && self.isDebug){//debug
-					printInfo(msg);
+					theLexerInstance.printInfo(msg);
 				}
 				
 				var result = new ParsingResult(null);
@@ -739,7 +766,7 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 			theLexerInstance.processComment = function (msg){
 				
 				if(msg && typeof self !== 'undefined' && self.isDebug){//debug
-					printInfo(msg);
+					theLexerInstance.printInfo(msg);
 				}
 				
 				var result = new ParsingResult(null);
@@ -763,6 +790,8 @@ define([	  'core', 'commonUtils', 'parserModule', 'parsingResult'
 			theLexerInstance.enterJavaScript = function (currentChannel, entryFunc, processFunc, msg, parseResultObject){
 				return doEnter(theLexerInstance.PARSER_JS_CODE, theLexerInstance, currentChannel, entryFunc, processFunc, parseResultObject, msg);
 			};
+			
+			/** #@- */
 
 		};//END: extendMmirTemplateProcessor(){
 		

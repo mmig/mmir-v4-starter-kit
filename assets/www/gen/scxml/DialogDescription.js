@@ -341,7 +341,6 @@ function StatechartExecutionContext() {
                     preemptedBasicStates: {},
                     action: function() {
                         //transition action
-                        MY_GLOBAL = 'mich wieder wegmachen';
                         var isChanged = _event.data && _event.data.changed ? _event.data.changed : false;
                         if (isChanged) {
                             mmir.DialogManager.render('Application', 'login');
@@ -426,7 +425,6 @@ function StatechartExecutionContext() {
                         preemptedBasicStates: {},
                         action: function() {
                             //transition action
-                            MY_GLOBAL = 'mich wieder wegmachen';
                             var isChanged = _event.data && _event.data.changed ? _event.data.changed : false;
                             if (isChanged) {
                                 mmir.DialogManager.render('Application', 'login');

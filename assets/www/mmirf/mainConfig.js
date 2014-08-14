@@ -25,13 +25,6 @@ require.config({
 ////	        
 ////	        , template: 'mmir'
 //	    }
-//	    
-//	    , 'presentationManager': {
-////	    	addons: [
-////			      "content/stylesheets/jqm-datebox-1.4.0.min.css"
-////			    , "content/libs/jqm-datebox-1.4.0.comp.flipbox.min.js"
-////			]
-//	    }
 	    
 
 	    
@@ -44,9 +37,9 @@ require.config({
  	    , 'main': 'main'
  	    
 	    // lib
- 	    , 'jquery': 'res/libs/jquery-1.9.1'
- 	    , 'scion': 'res/libs/scion-amd'
- 	    , 'cordova': 'res/libs/cordova-2.8.1'
+ 	    , 'jquery': 'vendor/libs/jquery-1.11.1'
+ 	    , 'scion': 'vendor/libs/scion-amd'
+ 	    , 'cordova': 'vendor/libs/cordova-2.8.1'
 	    
 	    // globals and AMDs
  	    , 'constants': 'tools/constants'
@@ -77,11 +70,11 @@ require.config({
 	    
 	    , 'presentationManager':  'manager/presentationManager'
 	    
-	    , 'jqm': 'res/libs/jquery.mobile-1.3.1'
-	    , 'jqmSimpleModal': 'res/libs/jquery.simplemodal-1.4.4'
+	    , 'jqm': 'vendor/libs/jquery.mobile-1.4.3'
+	    , 'jqmSimpleModal': 'vendor/libs/jquery.simplemodal-1.4.4'
 
 	    // @chsc03 required by parseUtils and all its dependencies declared in presentationManager
-	    , 'antlr3' : 'res/libs/antlr3-all'
+	    , 'antlr3' : 'vendor/libs/antlr3-all'
 	    
 	    , 'configurationManager': 'manager/settings/configurationManager'
 	    	
@@ -113,10 +106,8 @@ require.config({
 	    , 'parseUtils': 'mvc/parser/templateParseUtils'				
 	    , 'ES3Lexer': 'gen/parser/ES3Lexer'
 	    , 'ES3Parser': 'gen/parser/ES3Parser'
-	    , 'blockLexer': 'gen/parser/MmirScriptBlockLexer'
-	    , 'blockParser': 'gen/parser/MmirScriptBlockParser'
-	    , 'statementLexer': 'gen/parser/MmirScriptStatementLexer'
-	    , 'statementParser': 'gen/parser/MmirScriptStatementParser'
+	    , 'scriptLexer': 'gen/parser/MmirScriptLexer'
+	    , 'scriptParser': 'gen/parser/MmirScriptParser'
 	    , 'contentLexer': 'gen/parser/MmirScriptContentLexer'
 	    , 'contentParser': 'gen/parser/MmirScriptContentParser'				
 	    , 'templateLexer': 'gen/parser/MmirTemplateLexer'
@@ -127,15 +118,18 @@ require.config({
 	    , 'parsingResult': 'mvc/parser/parsingResult'
 	    	
     	//grammar related
-		, 'jscc' : 'res/libs/jscc-amd'
+		, 'jscc' : 'vendor/libs/jscc-amd'
 		, 'grammarConverter' : 'semantic/grammarConverter'
 		, 'grammarParserTemplate' : 'semantic/grammarParserTemplate'
 		, 'semanticInterpreter' : 'semantic/semanticInterpreter'
-		, 'jsonlint' : 'res/libs/jsonlint.parser'
 
 		//MD5 checksum computation (for check pre-compiled resources, like grammars (JSON->JS), and templates (eHTML->JS)
-		, 'md5' : 'res/libs/md5'
+		, 'md5' : 'vendor/libs/md5'
 		, 'checksumUtils' : 'tools/checksumUtils'
+
+
+	    , 'commonUtilsCompatibility' : 'tools/extensions/CommonUtilsCompatibility'
+	    , 'languageManagerCompatibility' : 'tools/extensions/LanguageManagerCompatibility'
 	    
 	},//END: paths : {
 
@@ -146,10 +140,6 @@ require.config({
 	    , 'antlr3': {			
 	    	exports : 'org'
 	    }
-	    
-		, 'jsonlint': {
-			exports : 'jsl.parser'
-		}
 		
 		, 'md5': {
 			exports : 'CryptoJS'
@@ -157,10 +147,8 @@ require.config({
 		
 		, 'ES3Lexer': {'exports': 'ES3Lexer'}
 		, 'ES3Parser': {'exports': 'ES3Parser'}
-		, 'blockLexer': {'exports': 'MmirScriptBlockLexer'}
-		, 'blockParser': {'exports': 'MmirScriptBlockParser'}
-    	, 'statementLexer': {'exports': 'MmirScriptStatementLexer'}
-    	, 'statementParser': {'exports': 'MmirScriptStatementParser'}
+    	, 'scriptLexer': {'exports': 'MmirScriptLexer'}
+    	, 'scriptParser': {'exports': 'MmirScriptParser'}
     	, 'contentLexer': {'exports': 'MmirScriptContentLexer'}
     	, 'contentParser': {'exports': 'MmirScriptContentParser'}
     	, 'templateLexer': {'exports': 'MmirTemplateLexer'}
@@ -180,7 +168,7 @@ define('jqmCss', ['jquery'], function loadJqmCss($) {
 	$("<link/>", {
 	    rel: "stylesheet",
 	    type: "text/css",
-	    href: "mmirf/res/styles/jquery.mobile-1.3.1.min.css"
+	    href: "mmirf/vendor/styles/jquery.mobile-1.4.3.min.css"
 	}).appendTo("head");
 	
 });

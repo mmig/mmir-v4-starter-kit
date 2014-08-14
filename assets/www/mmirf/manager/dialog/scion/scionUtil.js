@@ -1,3 +1,6 @@
+
+//TODO doc
+	
 define(['dictionary', 'stringExtension'], function(Dictionary) {
 
 	return function(_scion) {
@@ -6,8 +9,8 @@ define(['dictionary', 'stringExtension'], function(Dictionary) {
 		 * if (testbed._util) return testbed._util;
 		 */
 
-		var _states = [], _transitions = new Dictionary(); // FIXME is  it  necessary to use  the  dictionary  object?
-		_events = new Dictionary(); // FIXME using dictionary is convenient for debugging purpose
+		var _states = [], _transitions = new Dictionary();
+		_events = new Dictionary();
 		
 
 		(function() {

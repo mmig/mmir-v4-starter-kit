@@ -503,20 +503,20 @@ function areRegularExpressionsEnabled ()
 	switch (last.getType())
 	{
 	// identifier
-		case Identifier:
+		case this.Identifier:
 	// literals
-		case NULL:
-		case TRUE:
-		case FALSE:
-		case THIS:
-		case OctalIntegerLiteral:
-		case DecimalLiteral:
-		case HexIntegerLiteral:
-		case StringLiteral:
+		case this.NULL:
+		case this.TRUE:
+		case this.FALSE:
+		case this.THIS:
+		case this.OctalIntegerLiteral:
+		case this.DecimalLiteral:
+		case this.HexIntegerLiteral:
+		case this.StringLiteral:
 	// member access ending 
-		case RBRACK:
+		case this.RBRACK:
 	// function call or nested expression ending
-		case RPAREN:
+		case this.RPAREN:
 			return false;
 	// otherwise OK
 		default:
@@ -1148,7 +1148,7 @@ fragment RegularExpressionChar
 	;
 
 RegularExpressionLiteral
-	: { areRegularExpressionsEnabled() }?=> DIV RegularExpressionFirstChar RegularExpressionChar* DIV IdentifierPart*
+	: { this.areRegularExpressionsEnabled() }?=> DIV RegularExpressionFirstChar RegularExpressionChar* DIV IdentifierPart*
 	;
 
 //MODIFCATON: detect entering/exiting embbeded JavaScript, whereas the script is embedded in ()-brackets:
@@ -1161,10 +1161,10 @@ RPAREN	: ')'
           
                 this.emit(org.antlr.runtime.Token.EOF_TOKEN);
                 
-                if(this.isDebug) print("exiting embedded JavaScript (ES3)");//debug
+                if(this.isDebug) this.printDebug("exiting embedded JavaScript (ES3)");//debug
           }
           else {
-                if(this.isDebug) print("closing level JavaScript (ES 3) "+this.nesting);//debug
+                if(this.isDebug) this.printDebug("closing level JavaScript (ES 3) "+this.nesting);//debug
                 
                 this.nesting--;
           }

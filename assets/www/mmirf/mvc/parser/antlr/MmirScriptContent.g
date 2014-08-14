@@ -54,7 +54,7 @@ options {
 
 main returns[String theText]
 	@after{
-		if(this.isDebug) printInfo('CONTENT_text', $theText);//debug
+		if(this.isDebug) this.printInfo('CONTENT_text', $theText);//debug
 	}
 	: t=text { $theText = ($t.text?$t.text:''); } (NL t=text { $theText = $theText + '\r\n' + ($t.text?$t.text:''); })*
 	;
@@ -72,7 +72,7 @@ content returns[String theContent]
 		var theString = this.input.getTokenSource().input.data;
 		$theContent = theString.substring(startPos, end);
 		
-		if(this.isDebug) print('CONTENT_content -> content= "'+$theContent+'"');//debug
+		if(this.isDebug) this.printDebug('CONTENT_content -> content= "'+$theContent+'"');//debug
 	}
 	: (NL|WS)* start='{'  
 		(
@@ -88,13 +88,13 @@ content returns[String theContent]
 	{
 		startPos = start.getStartIndex()+1;
 		
-		if(this.isDebug) print('CONTENT_content -> start at '+startPos);//debug
+		if(this.isDebug) this.printDebug('CONTENT_content -> start at '+startPos);//debug
 	}
 	;
 
-other	: COMMENT  {if(this.isDebug) printInfo('CONTENT_comment',$COMMENT.text);/*debug*/}
-	| STRING   {if(this.isDebug) printInfo('CONTENT_String' ,$STRING.text);/*debug*/}
-		| SSTRING  {if(this.isDebug) printInfo('CONTENT_string' ,$SSTRING.text);/*debug*/}
+other	: COMMENT  {if(this.isDebug) this.printInfo('CONTENT_comment',$COMMENT.text);/*debug*/}
+	| STRING   {if(this.isDebug) this.printInfo('CONTENT_String' ,$STRING.text);/*debug*/}
+		| SSTRING  {if(this.isDebug) this.printInfo('CONTENT_string' ,$SSTRING.text);/*debug*/}
 	;
 	
 line_end:	NL | EOF;
@@ -136,7 +136,7 @@ DoExit	:	'}@'
 		if(this.nesting == 0){
 	                this.emit(org.antlr.runtime.Token.EOF_TOKEN);
 	                
-	                if(this.isDebug) print("exiting embedded CONTENT");//debug
+	                if(this.isDebug) this.printDebug("exiting embedded CONTENT");//debug
                 }
                 else {
                 	--this.nesting;

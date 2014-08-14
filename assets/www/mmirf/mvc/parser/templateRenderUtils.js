@@ -25,50 +25,35 @@
  */
 
 
-/**
- * A Utility class for rendering parsed (eHTML) templates, or more specifically ParsingResult objects.<br>
- * 
- * @example <code>mmir.parser.RenderUtils.render(parseResult, contentElementList);</code>
- * @class RenderUtils
- * @category parser
- * 
- * @see mmir.parser.RenderUtils#constructor
- */
+
 define (['commonUtils', 'languageManager', 'controllerManager', 'presentationManager', 'parserModule', 'viewConstants'
-   ], function (
+   ], 
+   
+   /**
+    * A Utility class for rendering parsed (eHTML) templates, or more specifically ParsingResult objects.<br>
+    * 
+    * @example <code>mmir.parser.RenderUtils.render(parseResult, contentElementList);</code>
+    * @category parser
+    * 
+    * @class
+    * @name RenderUtils
+    * @export RenderUtils as mmir.parser.RenderUtils
+    * @public
+    * @static
+    * 
+    */   
+   function (
 		   commonUtils, languageManager, controllerManager, presentationManager, parser, ViewConstants
 ) {
 		/**
 	     * Object containing the instance of the class RenderUtils 
 	     * 
 	     * @property instance
-	     * @type mmir.parser.RenderUtils
+	     * @type RenderUtils
 	     * @private
 	     */
 	    var instance = null;
-	    
-	    /**
-	     * Object containing the instance of the class {@link mmir.ParserUtils} 
-	     * 
-	     * @function getInstance
-	     * @returns {Object} Object containing the instance of the class {@link mmir.ParserUtils}
-	     * @public
-	     */		
-
-		
-//		mmir.parser = mmir.parser || {};
-//		mmir.parser.RenderUtils = {	
-//		        	getInstance: function(){
-//		        		if (instance === null) {
-//		        			instance = constructor();
-//		        		}
-//		        		return instance;
-//		        	}
-//		};
-		
-		
-		
-		
+	    		
 		//internal "constants" for the RENDERING mode
 		var RENDER_MODE_LAYOUT 			= 0;
 		var RENDER_MODE_PARTIAL 		= 2; 
@@ -102,11 +87,12 @@ define (['commonUtils', 'languageManager', 'controllerManager', 'presentationMan
 		};
 		
 	    /**
-		 * Constructor-Method of Class {@link mmir.parser.RenderUtils}
+		 * Constructor-Method of Singleton mmir.parser.RenderUtils
 		 * 
-		 * @constructor
-		 * @augments mmir.parser.RenderUtils
-		 * @memberOf mmir.parser.RenderUtils.prototype
+		 * @constructs RenderUtils
+		 * @memberOf RenderUtils.prototype
+		 * @private
+		 * @ignore
 		 */
 	    function constructor(){
 	        //private members.
@@ -577,8 +563,24 @@ define (['commonUtils', 'languageManager', 'controllerManager', 'presentationMan
 	    				//make the prop-name available in inner FOR-block through the data-object:
 	    				data[elem.forPropName] = current;
 	    				
-	    				//render inner FOR-content:
-	    				renderContentElement(elem.content, renderingBuffer, data);
+	    				try{
+	    					
+		    				//render inner FOR-content:
+		    				renderContentElement(elem.content, renderingBuffer, data);
+		    				
+	    				} catch(err){
+	    					//FIXME experimental mechanism for BREAK within @for
+	    					//      (need to add syntax for this: @break)
+	    					
+	    					//simulate BREAK statement:
+	    					if(err == 'break'){//FIXME use internal/private element for this! (add @break to syntax?)
+	    						break;
+	    					}
+	    					else {
+	    						//if it is an error: re-throw it
+	    						throw err;
+	    					}
+	    				}
 	    			}
 	    		}
 	    		else {
@@ -588,8 +590,22 @@ define (['commonUtils', 'languageManager', 'controllerManager', 'presentationMan
 	    			
 	    			while( elem.forConditionEval(data) ){
 	    				
-	    				//render inner FOR-content:
-	    				renderContentElement(elem.content, renderingBuffer, data);
+	    				try{
+	    					
+		    				//render inner FOR-content:
+		    				renderContentElement(elem.content, renderingBuffer, data);
+		    				
+	    				} catch(err){
+	    					
+	    					//simulate BREAK statement:
+	    					if(err == 'break'){//FIXME use internal/private element for this! (add @break to syntax?)
+	    						break;
+	    					}
+	    					else {
+	    						//if it is an error: re-throw it
+	    						throw err;
+	    					}
+	    				}
 	    				
 	    				//execute INCREMENT of FOR-statement:
 	    				elem.forIncrementEval(data);
@@ -777,7 +793,7 @@ define (['commonUtils', 'languageManager', 'controllerManager', 'presentationMan
 				return dataArgs;
 	    	}
 	    	
-	    	/** @lends mmir.parser.RenderUtils.prototype */
+	    	/** @lends RenderUtils.prototype */
 	    	return {
 	        	//public members:
 	    		
@@ -880,7 +896,11 @@ define (['commonUtils', 'languageManager', 'controllerManager', 'presentationMan
 	    instance = new constructor();
 	    
 	    /**
-	     * @deprecated instead, use object directly (i.e. omit getInstance() call)
+	     * @deprecated instead, use RenderUtils object directly (i.e. omit getInstance() call)
+	     * 
+		 * @function
+		 * @name getInstance
+	     * @memberOf RenderUtils.prototype
 	     */
 	    instance.getInstance = function(){
 	    	return this;

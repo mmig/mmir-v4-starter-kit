@@ -1,4 +1,22 @@
-(function initMmir() {
+(
+/**
+ * Main module / namespace for the MMIR framework.
+ * 
+ * On initialization, a global module <code>window.mmir</code> is created.
+ * 
+ * If called multiple times, the existing module instance is returned.
+ * 
+ * If a function <code>require</code> exists, the module tries to registers itself
+ * according to the <em>RequireJS</em> interface (using the default as its module name, i.e. "core").
+ * 
+ * @name mmir
+ * @export initMmir as mmir
+ * @class
+ * 
+ * @returns the module instance <code>mmir</code>
+ * 
+ */
+function initMmir() {
     
 	if(window.mmir){
 		if(typeof define === 'function'){
@@ -36,6 +54,19 @@
 				}
 			},
 			
+			/**
+			 * Register callbacks for initialization-event of framework.
+			 * 
+			 * If used after framework has been initialized, the callback is invoked immediately.
+			 * 
+			 * @memberOf mmir
+			 * @name ready
+			 * @function
+			 * @public
+			 * 
+			 * @param {Function} func
+			 * 				callback Function that will be triggered when the framework has been initialized 
+			 */
 			ready : function(func) {
 		
 				//SPECIAL MODE: if already active, execute the callback 
