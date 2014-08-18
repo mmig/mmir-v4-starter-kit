@@ -3,7 +3,6 @@
       @localize("welcome_header")
    </h1>
    
-   <a href="external.html" class="ui-btn ui-btn-b ui-mini ui-btn-inline ui-btn-right ui-icon-arrow-u-r ui-btn-icon-left">Leave...</a>
 }@
 
 @contentFor("content"){
