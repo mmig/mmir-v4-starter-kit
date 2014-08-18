@@ -1,0 +1,20 @@
+@contentFor("header"){
+   <h1>
+      @localize("welcome_header")
+   </h1>
+   
+   <a href="external.html" class="ui-btn ui-btn-b ui-mini ui-btn-inline ui-btn-right ui-icon-arrow-u-r ui-btn-icon-left">Leave...</a>
+}@
+
+@contentFor("content"){
+
+<div class="app_content">
+   <h2>
+      @localize("welcome_text")@(mmir.User.getInstance() ? ', '+ mmir.User.getInstance().getName() : '')
+   </h2>
+   <button id="appointmentButton" name="appointment_btn" data-inline="true" data-icon="plus">
+   	 @localize("create_appointment")
+   </button>
+</div>
+
+}@

@@ -1,0 +1,322 @@
+<scxml initial="input_manager_initial_state" name="input" version="0.9" xmlns="http://www.w3.org/2005/07/scxml">
+ <!--
+	Copyright (C) 2012-2013 DFKI GmbH
+	Deutsches Forschungszentrum fuer Kuenstliche Intelligenz
+	German Research Center for Artificial Intelligence
+	http://www.dfki.de
+
+	Permission is hereby granted, free of charge, to any person obtaining a 
+	copy of this software and associated documentation files (the 
+	"Software"), to deal in the Software without restriction, including 
+	without limitation the rights to use, copy, modify, merge, publish, 
+	distribute, sublicense, and/or sell copies of the Software, and to 
+	permit persons to whom the Software is furnished to do so, subject to 
+	the following conditions:
+
+	The above copyright notice and this permission notice shall be included 
+	in all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
+	OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
+	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
+	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ -->
+ 
+ <state id="input_manager_initial_state" initial="touch_input" name="input_manager_initial_state"><!--   node-size-and-position x=10.0 y=40.0 w=1490.0 h=620.0  -->
+  
+  <datamodel>
+   <data expr="new Object()" id="data"></data>
+  </datamodel>
+ 
+  <transition event="speech_input_event" target="speech_input"></transition>
+  <transition event="touch_input_event" target="touch_input"></transition>
+  
+  <state id="speech_input" name="speech_input"><!--   node-size-and-position x=20.0 y=44.0 w=170.0 h=20.0  -->
+   <datamodel>
+    <data expr="&#039;&#039;" id="command_name"></data>
+    <data expr="{}" id="command"></data>
+    <data expr="{&quot;Emma&quot;: { &quot;medium&quot;: &quot;acoustic&quot; , &quot;mode&quot; : &quot;voice&quot; }}" id="emma"></data>
+   </datamodel>
+   <onentry>
+    <script> 
+       			var actionName;
+           	 	for (name in _event.data) {
+           	 		if(name == 'phrase'){
+           	 			continue;
+           	 		}
+           	 		if(_event.data.hasOwnProperty(name)){
+	       				actionName = name;
+	       				break;
+       				}
+       			}
+       			
+       			console.log('InputManager: setting command_name to "'+actionName+'" for event-data '+JSON.stringify(_event.data));
+        	</script>
+    <assign expr="actionName" location="command_name"></assign>
+    <assign expr="_event.data" location="command"></assign>
+   </onentry>
+   <transition cond="command_name == &#039;Send&#039;" target="send"></transition>
+   <transition cond="command_name == &#039;Play&#039;" target="play"></transition>
+   <transition cond="command_name == &#039;Record&#039;" target="record"></transition>
+   <transition cond="command_name == &#039;ShowInfo&#039;" target="show_info"></transition>
+   <transition cond="command_name == &#039;Rating&#039;" target="rating"></transition>
+   <transition cond="command_name == &#039;RadarStart&#039;" target="start_radar"></transition>
+   <transition cond="command_name == &#039;ShowPOIs&#039;" target="show_pois"></transition>
+   <transition cond="command_name == &#039;ShowAppointments&#039;" target="show_appointments"></transition>
+   <transition cond="command_name == &#039;CreateAppointment&#039;" target="create_appointment"></transition>
+   <transition cond="command_name == &#039;RecordMemo&#039;" target="record_memo"></transition>
+   <transition cond="command_name == &#039;FindPerson&#039;" target="find_person"></transition>
+   <transition cond="command_name == &#039;NoMatch&#039;" target="no_match"></transition>
+  </state>
+  <state id="no_match" name="no_match"><!--   node-size-and-position x=610.0 y=50.0 w=120.0 h=20.0  -->
+   <onentry>
+    <script>
+		    var dm = null;//TODO: mmir.CalendarModel.getInstance().getDiscourseManager();
+		   	if (dm == null) {
+		   		var msg = mmir.LanguageManager.getInstance().getText(&#039;did_not_understand_msg&#039;);
+				mmir.MediaManager.textToSpeech(msg);
+			} else {
+				dm.getCommand().parse(command);
+			}
+   </script>
+   </onentry>
+  </state>
+  <state id="send" name="send"><!--   node-size-and-position x=940.0 y=60.0 w=70.0 h=20.0  -->
+   <onentry>
+    <script>
+	    mmir.CalendarModel.getInstance().clearDiscourseManager();
+	    
+	    //dummy code:
+		console.info(&#039;sending ....&#039;)
+		alert(&#039;sending ....&#039;);
+	</script>
+   </onentry>
+  </state>
+  <state id="play" name="play"><!--   node-size-and-position x=460.0 y=150.0 w=70.0 h=20.0  -->
+   <onentry>
+    <script>
+        //dummy code:
+        console.info(&#039;play something ...&#039;)
+        alert(&#039;play something ...&#039;);
+    </script>
+   </onentry>
+  </state>
+  <state id="record" name="record"><!--   node-size-and-position x=1220.0 y=160.0 w=90.0 h=20.0  -->
+   <onentry>
+    <script>
+	    mmir.CalendarModel.getInstance().clearDiscourseManager();
+		mmir.DialogManager.raise(&#039;click_on_rec_btn&#039;);
+	</script>
+   </onentry>
+  </state>
+  <state id="show_info" name="show_info"><!--   node-size-and-position x=650.0 y=140.0 w=130.0 h=20.0  -->
+   <onentry>
+    <script>
+	    mmir.CalendarModel.getInstance().clearDiscourseManager();
+		mmir.DialogManager.raise(&#039;poi.display_details&#039;);
+	</script>
+   </onentry>
+  </state>
+  <state id="rating" name="rating"><!--   node-size-and-position x=10.0 y=240.0 w=90.0 h=20.0  -->
+   <onentry>
+    <script>
+	    mmir.CalendarModel.getInstance().clearDiscourseManager();
+        //dummy code:
+        console.info(&#039;rating ...&#039;)
+		alert(&#039;rating ....&#039;);
+	</script>
+   </onentry>
+  </state>
+  <state id="start_radar" name="start_radar"><!--   node-size-and-position x=400.0 y=30.0 w=150.0 h=20.0  -->
+   <onentry>
+    <script>
+	    mmir.CalendarModel.getInstance().clearDiscourseManager();
+		mmir.DialogManager.raise(&#039;click_on_radar_btn&#039;);
+	</script>
+   </onentry>
+  </state>
+  <state id="play_radio" name="play_radio"><!--   node-size-and-position x=880.0 y=200.0 w=140.0 h=20.0  -->
+   <onentry>
+    <script>
+	    mmir.CalendarModel.getInstance().clearDiscourseManager();
+		mmir.DialogManager.raise(&#039;click_on_start_radio_btn&#039;, emma);
+	</script>
+   </onentry>
+  </state>
+  <state id="play_audio" name="play_audio"><!--   node-size-and-position x=710.0 y=210.0 w=140.0 h=20.0  -->
+   <onentry>
+    <script>
+	    mmir.CalendarModel.getInstance().clearDiscourseManager();
+		mmir.DialogManager.raise(&#039;click_on_start_audio_btn&#039;, emma);
+	</script>
+   </onentry>
+  </state>
+  <state id="play_voice" name="play_voice"><!--   node-size-and-position x=540.0 y=220.0 w=140.0 h=20.0  -->
+   <onentry>
+    <script>
+	    mmir.CalendarModel.getInstance().clearDiscourseManager();
+		mmir.MediaManager.textToSpeech(&#039;Sie können zurzeit nur Audio und lokationsbasiertes Radio abspielen.&#039;,null, null);
+	</script>
+   </onentry>
+  </state>
+  <state id="show_appointments" name="show_appointments"><!--   node-size-and-position x=1090.0 y=190.0 w=230.0 h=20.0  -->
+   <onentry>
+    <script>
+	    mmir.CalendarModel.getInstance().clearDiscourseManager();
+		mmir.DialogManager.raise(&#039;show_appointments_speech&#039;, command);
+	</script>
+   </onentry>
+  </state>
+  <state id="create_appointment" name="create_appointment"><!--   node-size-and-position x=100.0 y=220.0 w=240.0 h=20.0  -->
+   <onentry>
+    <script>
+	    mmir.CalendarModel.getInstance().clearDiscourseManager();
+		mmir.DialogManager.raise(&#039;create_appointment_speech&#039;, command);
+	</script>
+   </onentry>
+  </state>
+  <state id="record_memo" name="record_memo"><!--   node-size-and-position x=1271.0 y=113.0 w=150.0 h=20.0  -->
+   <onentry>
+    <script>
+	    mmir.CalendarModel.getInstance().clearDiscourseManager();
+	    mmir.DialogManager.performHelper(&#039;Calendar&#039;, &#039;capture&#039;);
+	</script>
+   </onentry>
+  </state>
+  <state id="find_person" name="find_person"><!--   node-size-and-position x=1070.0 y=70.0 w=150.0 h=20.0  -->
+   <onentry>
+    <script>
+	    mmir.CalendarModel.getInstance().clearDiscourseManager();
+	    mmir.DialogManager.perform(&#039;Calendar&#039;, &#039;find_person&#039;, command);
+	</script>
+   </onentry>
+  </state>
+  <state id="show_pois" name="show_pois"><!--   node-size-and-position x=320.0 y=190.0 w=130.0 h=20.0  -->
+   <onentry>
+    <script>
+	    mmir.CalendarModel.getInstance().clearDiscourseManager();
+        //dummy code:
+        console.info(&#039;showing some pois ...&#039;)
+		alert(&#039;showing some pois ...&#039;);
+	</script>
+   </onentry>
+  </state>
+  
+  <state id="touch_input" initial="start_touch" name="touch_input"><!--   node-size-and-position x=20.0 y=270.0 w=1370.0 h=320.0  -->
+   
+   <state id="start_touch" name="start_touch"><!--   node-size-and-position x=20.0 y=50.0 w=150.0 h=20.0  -->
+    
+
+<!-- EXAMPLE forward event data as EMMA object (i.e. with metadata and the original event-data as property evtdata):    
+    <onentry>
+     <script>
+         data = { &quot;Emma&quot; : { &quot;medium&quot; : &quot;tactile&quot; , &quot;mode&quot; : &quot;gui&quot; }};
+     </script>
+     <assign expr="{}" location="data.evtdata"></assign>
+    </onentry>
+    
+    <onexit>
+     <assign expr="_event.data" location="data.evtdata.data"></assign>
+    </onexit>
+    
+    EXAMPLE forward event-data normally (without EMMA metadata) 
+-->
+	<onentry>
+     <assign expr="{}" location="data"></assign>
+    </onentry>
+	<onexit>
+     <assign expr="_event.data" location="data"></assign>
+    </onexit>
+    
+    <transition event="back" target="back"></transition>
+    <transition event="click_on_login_btn" target="login"></transition>
+    <transition event="click_on_register_btn" target="register"></transition>
+    <transition event="click_on_sign_up_btn" target="sign_up"></transition>
+    
+    <transition event="click_on_appointment_btn" target="appointment"></transition>
+    <transition event="click_on_save_appointment_btn" target="save_appointment"></transition>
+    <transition event="click_on_discard_appointment_btn" target="discard_appointment"></transition>
+    
+    <transition event="click_on_language_btn" name="click_on_language_btn" target="language_btn"><!--   edge-path [language_btn]  x=400.0 y=540.0 pointx=1.0 pointy=-10.0 offsetx=140.0 offsety=0.0  --></transition>
+    <transition event="language_choosen" name="language_choosen" target="language_chosen"><!--   edge-path [language_chosen]  x=400.0 y=810.0 pointx=1.0 pointy=10.0 offsetx=-110.0 offsety=0.0  --></transition>
+    
+   </state>
+   
+   <state id="back" name="back"><!--   node-size-and-position x=20.0 y=250.0 w=70.0 h=20.0  -->
+    <onentry>
+     <script>
+         mmir.DialogManager.raise(&#039;back&#039;); 
+	 </script>
+    </onentry>
+   </state>
+   
+   <state id="login" name="login"><!--   node-size-and-position x=360.0 y=280.0 w=80.0 h=20.0  -->
+    <onentry>
+     <script>
+         mmir.DialogManager.raise(&#039;click_on_login_btn&#039;);
+	 </script>
+    </onentry>
+   </state>
+   
+   <state id="register" name="register"><!--   node-size-and-position x=560.0 y=240.0 w=120.0 h=20.0  -->
+    <onentry>
+     <script>
+         mmir.DialogManager.raise(&#039;click_on_register_btn&#039;); 
+	 </script>
+    </onentry>
+   </state>
+   
+   <state id="sign_up" name="sign_up"><!--   node-size-and-position x=1010.0 y=250.0 w=100.0 h=20.0  -->
+    <onentry>
+     <script>
+         mmir.DialogManager.raise(&#039;click_on_sign_up_btn&#039;); 
+	 </script>
+    </onentry>
+   </state>
+   
+   <state id="appointment" name="appointment"><!--   node-size-and-position x=1010.0 y=250.0 w=100.0 h=20.0  -->
+    <onentry>
+     <script>
+         mmir.DialogManager.raise(&#039;click_on_appointment_btn&#039;); 
+	 </script>
+    </onentry>
+   </state>
+   
+   <state id="save_appointment" name="save_appointment"><!--   node-size-and-position x=1010.0 y=250.0 w=100.0 h=20.0  -->
+    <onentry>
+     <script>
+         mmir.DialogManager.raise(&#039;click_on_save_appointment_btn&#039;); 
+	 </script>
+    </onentry>
+   </state>
+   
+   <state id="discard_appointment" name="discard_appointment"><!--   node-size-and-position x=1010.0 y=250.0 w=100.0 h=20.0  -->
+    <onentry>
+     <script>
+         mmir.DialogManager.raise(&#039;click_on_discard_appointment_btn&#039;); 
+	 </script>
+    </onentry>
+   </state>
+   
+   <state id="language_btn" name="language_btn"><!--   node-size-and-position x=30.0 y=530.0 w=80.0 h=20.0  -->
+    <onentry>
+     <script>
+         mmir.DialogManager.raise(&#039;click_on_language_btn&#039;, data);
+	</script>
+    </onentry>
+   </state>
+   
+   <state id="language_chosen" name="language_chosen"><!--   node-size-and-position x=640.0 y=800.0 w=100.0 h=20.0  -->
+    <onentry>
+     <script>
+         mmir.DialogManager.raise(&#039;language_choosen&#039;, data);         
+     </script>
+    </onentry>
+   </state>
+   
+  </state>
+ </state>
+</scxml>

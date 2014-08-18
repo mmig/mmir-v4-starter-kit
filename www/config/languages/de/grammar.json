@@ -1,0 +1,29 @@
+{
+  "example_phrase": "Bitte abspielen",
+  "stop_word": [
+    "bitte"
+  ],
+  "tokens": {
+    "V_PLAY_INF": [
+      "wiedergeben",
+      "spielen",
+      "abspielen",
+      "hören",
+      "anhören",
+      "erkennen"
+    ],
+    "REST": [
+      "[a-zA-Z_]+"
+    ]
+  },
+  "utterances": {
+    "PLAY": {
+      "phrases": [
+        "V_PLAY_INF"
+      ],
+      "semantic": {
+        "Play": {}
+      }
+    }
+  }
+}

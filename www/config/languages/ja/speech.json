@@ -1,0 +1,9 @@
+{	
+	"language": "ja-JP",
+	
+	"plugins": {
+		"nuanceAudioInput": {
+			"language": "jpn-JPN"
+		}
+	}
+}

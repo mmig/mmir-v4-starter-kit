@@ -1,0 +1,64 @@
+{
+  "example_phrase" : "Turn the light in the kitchen on",
+  "stop_word": [
+    "in",
+    "switch",
+    "turn",
+    "turned",
+    "please",
+    "the",
+    "and"
+  ],
+  "tokens": {
+    "ROOM": [
+      "bed room",
+      "bath room",
+      "kitchen",
+      "living room"
+    ],
+    "DEVICE": [
+	     "light",
+	     "oven",
+	     "hob one",
+	     "hob two",
+	     "hob three",
+	     "hob four"
+    ],
+    "ALL_DEVICES": [
+  	     "lights",
+  	     "oven",
+  	     "hob"
+    ],
+    "STATE": [
+       "on",
+       "off"
+    ],
+    "REST": [
+      "[a-zA-Z_]+"
+    ]
+  },
+  "utterances": {
+	  
+    "CTRL_DEVICE": {
+      "phrases": [
+        "DEVICE ROOM STATE",
+        "ROOM DEVICE STATE"
+      ],
+      "semantic": {
+        "location": "_$room[0]",
+        "target": "_$device[0]",
+        "action": "_$state[0]"
+      }
+    },
+    "CTRL_ALL_DEVICES": {
+      "phrases": [
+        "ALL_DEVICES STATE",
+        "STATE ALL_DEVICES"
+      ],
+      "semantic": {
+        "target": "_$all_devices[0]",
+        "action": "_$state[0]"
+      }
+    }
+  }
+}
