@@ -1,7 +1,7 @@
 ﻿
-version notes for MMIG Starter Kit (v 3.0beta2)
+version notes for MMIG Starter Kit (v 3.0beta3)
 
- * using Cordova 2.8.x library (modified; source code included in JAR)
+ * using Cordova 3.5.x library
  * using jQuery 1.11.x library
  * using jQuery Mobile 1.4.x library
  
@@ -9,6 +9,14 @@ version notes for MMIG Starter Kit (v 3.0beta2)
  --------------
  Change Log
  --------------
+ 
+##################
+ Version 3.0beta3
+##################
+ 
+ * changed to Cordova 3.x
+ * new project structure for Cordova 3.x
+
 ##################
  Version 3.0beta2
 ##################
