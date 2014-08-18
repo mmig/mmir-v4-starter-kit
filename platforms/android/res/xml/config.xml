@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="de.dfki.iui.mmir.starterkit" version="3.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <preference name="loglevel" value="DEBUG" />
+    <preference name="AndroidLaunchMode" value="singleTop" />
+    <feature name="App">
+        <param name="android-package" value="org.apache.cordova.App" />
+    </feature>
+    <feature name="QueuePlugin">
+        <param name="android-package" value="de.dfki.iui.mmir.plugins.QueuePlugin" />
+    </feature>
+    <feature name="File">
+        <param name="android-package" value="org.apache.cordova.file.FileUtils" />
+        <param name="onload" value="true" />
+    </feature>
+    <feature name="Media">
+        <param name="android-package" value="org.apache.cordova.media.AudioHandler" />
+    </feature>
+    <feature name="NetworkStatus">
+        <param name="android-package" value="org.apache.cordova.networkinformation.NetworkManager" />
+    </feature>
+    <feature name="Vibration">
+        <param name="android-package" value="org.apache.cordova.vibration.Vibration" />
+    </feature>
+    <name>MMIRStarterKit</name>
+    <description>
+        A sample Apache Cordova application for the MMIR StarterKit.
+    </description>
+    <author email="" href="http://github.com/mmig/mmir-starter-kit">
+        DFKI MMIG Team
+    </author>
+    <content src="index.html?env=cordova" />
+    <access origin="*" />
+</widget>
