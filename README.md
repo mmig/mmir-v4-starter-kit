@@ -51,14 +51,15 @@ Activated platforms
 
 ##### Prerequisites
 
-Installed Cordova 3.x environment.
+Installed Cordova 3.x environment (see [Cordova][0] documentation on CLI based development for more details).
 
 
 ###### Custom Cordova Plugins
 
-If you plan to use the MMIR framework in combination with SCION within an environment that __does not__
-support HTML5 ```WebWorkers```, you need the [Queue Plugin][6] that allows to extend SCION with an
-event queue.
+If you plan to use the MMIR framework in combination with SCION (that is: make use of
+the framework's ```DialogManager``` and/or ```InputManager```) within an environment that __does not__
+support HTML5 ```WebWorkers```, you need the [Queue Plugin][6] for extending the framework's SCION  
+integration with an event queue.
 
 NOTE: The Queue Plugin is already installed for the StarterKit example.
 
