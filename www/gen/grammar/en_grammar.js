@@ -495,8 +495,8 @@ switch( match )
 }
 
 
-function __parse( src, err_off, err_la )
-{ theGrammarConverterInstance.semanticAnnotationResult={};
+function __parse( src, err_off, err_la, semanticAnnotationResult )
+{
 	var		sstack			= new Array();
 	var		vstack			= new Array();
 	var 	err_cnt			= 0;
@@ -744,7 +744,7 @@ switch( act )
 	break;
 	case 1:
 	{
-		  _$result['semantic'] = _$result['semantic'].replace(/"{/g,'{').replace(/}"/g,'}'); console.log(_$result);  theGrammarConverterInstance.semanticAnnotationResult = _$result
+		  _$result['semantic'] = _$result['semantic'].replace(/"{/g,'{').replace(/}"/g,'}'); console.log(_$result); semanticAnnotationResult.result = _$result
 	}
 	break;
 	case 2:
@@ -952,7 +952,10 @@ function __dbg_parsetree_phpSyntaxTree( nodes, tree )
 }
 
 
-__parse( asr_recognized_text, new Array(), new Array());
+
+var _semanticAnnotationResult = { result: {}};
+__parse( asr_recognized_text, new Array(), new Array(), _semanticAnnotationResult);
+return _semanticAnnotationResult.result;
 };
 semanticInterpreter.addGrammar("en", grammarFunc);
 
