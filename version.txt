@@ -9,6 +9,12 @@ version notes for MMIG Starter Kit (v 3.0beta3)
  --------------
  Change Log
  --------------
+
+##################
+ Version 3.0beta3
+##################
+ 
+ * removed un-documented/private field semanticAnnotationResult from GrammarConverter: now using local variable for handling result of grammar execution
  
 ##################
  Version 3.0beta3
