@@ -76,6 +76,10 @@
 		 					, 'env': buildLibDir+'envDetectBuild'
 		 					, 'jqm': buildLibDir+'jqueryMobileDummy'
 		 					
+		 					//parsingResult has a hidden dependency on org.antrl
+		 					// (need custom module-definition -> see below)
+		 					, 'parsingResult': void(0)
+		 					
 		 					//"remove" configs for ANTRL parsers:
 		 					//  these need to be initilized separately -> see below definejs(..)
 		 					//  ...since requirejs' shim does not work in nodejs
@@ -131,9 +135,28 @@
 	    	<string>
 	    	    
 	    			require(['antlr3'], function(org){
+	    			
+	    				//re-route the define-call from parsingResult.js
+	    				// in order to "add" its hidden dependency on org.antlr:
+	    				var define = function(){
+	    					var size = arguments.length + 1;
+	    					var args = new Array(size);
+	    					
+	    					//insert module name:
+	    					args[0] = 'parsingResult';
+	    					
+	    					//... and copy arguments from original call
+	    					for(var i=1; i != size; ++i){
+	    						args[i]=arguments[i-1];
+	    					}
+	    					
+	    					return definejs.apply(window, args);
+	    				};
+	    				
 	    	</string>
 	        <fileset dir="${jsSrcDirBase}gen/parser"       includes="*.js" excludes="MmirTemplateParser.js" />
 	    	<string>
+	    	    
 		    			definejs('ES3Lexer',  function(){ return ES3Lexer; });
 		    			definejs('ES3Parser', function(){ return ES3Parser; });
 		    			
@@ -149,6 +172,32 @@
 		    		});
 	    	</string>
 	    	
+	    	<string>
+	    	    
+	    			require(['antlr3'], function(org){
+	    			
+	    				//re-route the define-call from parsingResult.js
+	    				// in order to "add" its hidden dependency on org.antlr:
+	    				var define = function(){
+	    					var size = arguments.length + 1;
+	    					var args = new Array(size);
+	    					
+	    					//insert module name:
+	    					args[0] = 'parsingResult';
+	    					
+	    					//... and copy arguments from original call
+	    					for(var i=1; i != size; ++i){
+	    						args[i]=arguments[i-1];
+	    					}
+	    					
+	    					return definejs.apply(window, args);
+	    				};
+	    				
+	    	</string>
+	        <fileset dir="${jsSrcDirBase}mvc/parser"       includes="parsingResult.js"/>
+	    	<string>
+	    	    	});//END of custom define-definition for parsingResult
+	    	</string>
 	    	
             <!-- build AMD module for CryptoJS/md5 library: -->
             <string>
