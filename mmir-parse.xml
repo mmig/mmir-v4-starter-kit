@@ -8,8 +8,27 @@
 	<import file="mmir-build.xml"/>
 
 	<!--  ############# Build Targets: tasks for Templates (.ehtml) #############  -->
-			 
-	<target name="createTemplateParserFile" depends="generateFileListJSONFile">
+	
+	<!-- delete all compiled template files: -->
+	<target name="cleanTemplateFiles">
+	    <delete dir="${jsGenDirBase}views"/>
+	</target>
+	
+	<!-- 
+		Parses all (view) templates *.ehtml and stores compiled templates (*.js).
+		
+		Parsing the templates will automatically check, if there are (syntax) errors
+		in the template files.
+		
+		In addition to storing the compiled templates, checksum-files are created too
+		The checksums are calculated with regard to the original template files *.ehtml:
+		 these can be used to determine if the compiled template file is up-to-date.
+		
+		NOTE: Currently, this target will alway create the compiled template files
+		      (regardless whether or not the checkusm-files would indicate no changes or not).
+		
+	-->
+	<target name="createTemplateParserFile" depends="cleanTemplateFiles,generateFileListJSONFile">
 	    <echo message="Building script file ${exec.js.compile.template.parser} for parsing templates (.ehtml)..." />
 	    <mkdir dir="${buildDir}" />
 	    <mkdir dir="${buildDirBin}" />
