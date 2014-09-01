@@ -9,6 +9,20 @@
     border-bottom-width: 0px;
 }
 
+/**
+ * not-inline:
+ * special class for "resetting" behavior since jQuery Mobile 1.4.2
+ * -> buttons in header and footers are now displayed inline by default
+ * 
+ * -> using class not-inline restores the old "full-width" behavior
+ */
+button.ui-btn.not-inline {
+	width: 100%;
+}
+[class*="ui-block-"] > button.ui-btn.not-inline {
+	margin-right: 0;
+	margin-left: 0;
+}
 
 /* text input label */
 label.ui-input-text {
