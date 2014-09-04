@@ -49,8 +49,6 @@
   
   Application.prototype.on_page_load_login = function (){
 		
-		var isUseAlphaMagLanguageSelection = mmir.ConfigurationManager.getInstance().get('ALPHA_MapLanguageSelection');
-
 		var self = this;
 		
 		//handle language selection:
@@ -77,11 +75,7 @@
 		
 				//TODO trigger click-feedback
 		
-				var isChanged = self.changeLanguage(lang, false);
-				
-				if(isUseAlphaMagLanguageSelection){
-					mmir.DialogManager.showWaitDialog();//actually this does not really work, but at least something is shown...
-				}
+				var isChanged = self.changeLanguage(lang);
 				
 				mmir.InputManager.raise('touch_input_event');
 				mmir.InputManager.raise('language_choosen', {changed: isChanged});
@@ -89,27 +83,35 @@
 				return false;
 		});
 		
-//		if(isUseAlphaMagLanguageSelection){
-//			mmir.DialogManager.showWaitDialog();//actually this does not really work, but at least something is shown...
-//			mmir.DialogManager.performHelper('Calendar', 'update_language');
-//		}
+		$('#modal').on('vclick', function(e){
+			e.preventDefault();
+			self.slide_up_language_menu();
+			return false;
+		})
 		
-		
+		this.initAsrTestInput();
+	};
+
+  Application.prototype.initAsrTestInput = function(){
+
+		//TODO need to track ASR active/inactive state across pages
+	    //     cancel ASR on page-change (and app-pause)?
+
 		var isAsrActive = false;
 		
 		var setActive = function(button, setToActive){
 			var label = 'start';
-			var theming = 'c';//<- jQuery UI theme
+			var theming = 'a';//<- jQuery UI theme
 			if(setToActive === true){
 				label = 'stop';
 				theming = 'b';
 			}
 			
 			//use jQuery Mobile function to change button-label:
-			button.val(label).button('refresh');
+			button.text(label);
 
-			//change theme (actually, we need to change the button's parent theme)
-			button.parent().buttonMarkup({theme: theming});
+			//change theme (i.e. marking as active/inactive)
+			button.buttonMarkup({theme: theming});
 		};
 		
 		$('#asr').on('vclick', function(event) {
@@ -130,7 +132,7 @@
 					}, function(e){
 						console.error('Error using startRecord: '+ e);
 					}
-					, false //isUseIntermediateResultsMode
+					, true //isUseIntermediateResultsMode
 					);
 			} else {
 				mmir.MediaManager.getInstance().stopRecord(function(text, idInfo){
@@ -188,18 +190,8 @@
 		
 		$('#clear').on('vclick', function(event) {
 			$('#asr-text').val('');
-		});
-	};
-
-	//DISABLED: now a @-statement within the template-definition is used
-//  Application.prototype.on_page_load_welcome = function (){
-//	  if(typeof mmir.User.getInstance() !== 'undefined'){
-//		  var userName = mmir.User.getInstance().getName();
-//		  if(userName){
-//			  $('#user-name').text(', '+userName);
-//		  }
-//	  }
-//  };
+		});  
+  };
   
   Application.prototype.login = function(){
       var email = $('#emailField #email').val();
@@ -234,34 +226,31 @@
 
   Application.prototype.slide_down_language_menu = function() {
 	  var langMenu = $('#language-menu-panel');
-	  langMenu.slideDown();
+	  langMenu.slideDown(function(){$('#modal').show();});
   };
 
   Application.prototype.slide_up_language_menu = function() {
+	  $('#modal').hide();
 	  $('#language-menu-panel').slideUp();
   };
 
   /**
    * 
-   * This function changes the application language and, if requested, renders the current view again, so that 
-   * the change of the language is applied to the currently displayed view. 
+   * This function changes the application language.
+   * 
+   * NOTE: the current view needs to updated separately (if necessary).
    * 
    * @function changeLanguage
-   * @param {String} newLang The new language which is to be used henceforth
-   * @param {Boolean} doReRenderView Should the currently displayed view be rendered again in the new language?
+   * @param {String} newLang The new language which is to be used
    * @returns {Boolean} <code>true</code> if the language has change, <code>false</code> otherwise
    * @public
    */
-  Application.prototype.changeLanguage = function(newLang, doReRenderView) {
+  Application.prototype.changeLanguage = function(newLang) {
 
-	  if(IS_DEBUG_ENABLED) console.debug("[Language] selected " + newLang);//debug
+	  console.debug("[Language] selected " + newLang);//debug
 
 	  var currLang = mmir.LanguageManager.getInstance().getLanguage();
 	  var newLang = mmir.LanguageManager.getInstance().setLanguage(newLang);
-
-	  if (doReRenderView == true){
-		  mmir.PresentationManager.getInstance().reRenderView();
-	  }
 	  
 	  //also set the new language for jqm plugin datebox:
 	  jQuery.mobile.datebox.prototype.options.useLang = newLang;
