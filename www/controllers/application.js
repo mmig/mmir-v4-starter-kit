@@ -73,7 +73,8 @@
 		
 				var lang = $(this).attr('lang');
 		
-				//TODO trigger click-feedback
+				//see app.js:
+				mmir.app.triggerClickFeedback();
 		
 				var isChanged = self.changeLanguage(lang);
 				
@@ -83,11 +84,27 @@
 				return false;
 		});
 		
+		//handle click on language-button in footer
+		$('#lang_button').on('vclick', function(e){
+			e.preventDefault();
+
+			mmir.app.triggerClickFeedback();
+			
+			mmir.InputEngine.raise('touch_input_event');
+			mmir.InputEngine.raise('click_on_language_btn');
+			return false;
+		});
+		
+		//handle click on modal-layer
+		// (visible when language menu is open)
 		$('#modal').on('vclick', function(e){
 			e.preventDefault();
+
+			mmir.app.triggerClickFeedback();
+			
 			self.slide_up_language_menu();
 			return false;
-		})
+		});
 		
 		this.initAsrTestInput();
 	};

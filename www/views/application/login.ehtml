@@ -76,7 +76,7 @@
 }@
 
 @contentFor("footer"){    
-    <div id="lang_button" class="footer_button" style="width: 56px; height: 100%; display: table; float: right;" onclick="mmir.InputEngine.raise('touch_input_event'); mmir.InputEngine.raise('click_on_language_btn');">
+    <div id="lang_button" class="footer_button" style="width: 56px; height: 100%; display: table; float: right;">
 		<div id='flags-@localize("current_language")' style="display: table-cell; vertical-align: middle;width: 100%; height:100%;" class="flags footer_button">
 			<div style="display: table; width: 100%; height:100%;">
 	    		<div class="center_element lang_button_text footer_button_line_height" style="display: table-cell; vertical-align:middle; text-align: center;">
