@@ -1,74 +1,48 @@
 MMIR Starter Kit
 ===========
 
-### MMIR - Multimodal Mobile Interaction and Rendering framework
 
-----
+The MMIR StarterKit is a small example application for the MMIR framework that can run locally in an (HTML5 capable)
+internet browser, and using the [Cordova framework][0], it can also be run as an Android app.
 
-#### Introduction
+For more detailed information on the MMIR framework see documentation at the [MMIR repository][8]
 
-This StarterKit is a small example application for the MMIR framework that can run locally in an (HTML5 capable) internet browser, and using the [Cordova framework][0], it can also be run as an Android app.
-
-
-This is an ALPHA version for the MMIR framework (CAUTION: significant parts of the framework -- such as the API,
-used technology etc. -- may still be subject to change)
-
-As a goal, this frameworks aims to provide a lightweight multimodal dialog manager that -- for instance -- can run
-on mobile devices. The base technology is HTML5 (JavaScript).
-
-A core concept for the framework is the MVC (Model View Controller) pattern. The framework provides a template
-mechanism similar to JSP (Java Server Pages), ASP (Active Server Pages), and alike.
-
-The state of the dialog system can be tracked and manipulated based on a finite-state machine (FSM).
-The framework uses SCXML (State Chart XML) via [SCION][1]: SCION is a JavaScript-based interpreter for SCXML files.
-
-The framework core and its extensions are implemented as AMD (Asynchronous Module Definition) using [RequireJS][3].
-
-
-The StarterKit provides basic capabilities for recognizing speech input (ASR, using the Google Speech Recognition service), and speech output (TTS, using [MARY][2]).
-
-NOTE 1: There are some restrictions for ASR when running the StarterKit in a browser environment:
- * microphone access: currently only Google Chrome (version 21.x.x), and Firefox (version 20.x) allow access to the microphone resource for speech input
- * silence detection: currently only Google Chrome (version 25.x.x) and Firefox (version 26.x) provide an implementation for the AudioContext object, which is needed by our implementation for the end-of-speech detection (aka silence detection) 
-
-NOTE 2: Since the Google Speech Recognition service now requires registration and an API key (and has a volume limit), the
-        use of the general (i.e. _HTML5 based_) ASR solution of the framework is rather limited.
-        However, for the browser environment Google Chrome, we recommend the _webkitAudioInput_ plugin that makes use of the
-        [Web Speech API][7] (which, unfortunately, currently only Chrome supports).
+WARINING: _this project includes resources from [MMIR-lib][4] at `www/mmirf/` and
+          resources from [MMIR-tooling][5] at `build/`. Beware, that the files used in this
+          example project may not be the most current version of these resources.
+          For your own MMIR-based applications you should use the resources from
+          [MMIR-lib][4] and [MMIR-tooling][5] directly._
 
 ----
 
 #### Details
 
-This is an example application that uses the [MMIR framework][4] (included 
-as GIT subtree reference in ```/www/mmirf```).
+This is an example application that uses the [MMIR framework][4] (included as GIT subtree reference in ```/www/mmirf```).
 
 Basic integration into the Cordova 3 build process is done by including the [MMIR tools][5]
 (as GIT subtree reference in ```/build```; note: running the default ```ant``` task in within the build/tool directory will
 copy the build-resources into the projects root directory).
 
-Activated platforms
+Activated platforms _(for Cordova 3.x)_:
+ * `android`
+ * 
+
 
 ##### Prerequisites
 
-Installed Cordova 3.x environment (see [Cordova][0] documentation on CLI based development for more details).
+Installed Cordova 3.x environment (see Cordova documentation on CLI based development for more details).
 
+##### Additional Prerequisites: Android
 
-###### Custom Cordova Plugins
-
-If you plan to use the MMIR framework in combination with SCION (that is: make use of
-the framework's ```DialogManager``` and/or ```InputManager```) within an environment that __does not__
-support HTML5 ```WebWorkers```, you need the [Queue Plugin][6] for extending the framework's SCION  
-integration with an event queue.
-
-NOTE: The Queue Plugin is already installed for the StarterKit example.
+The StarerKit includes `android` as target platform for Cordova. However, you need to have the the 
+development tools for Android installed, if you want to build and run the application on Android.
 
 ##### Build
 
 After checking out the the project, you need to run ```cordova build``` within the project directory. 
 
 
-##### Platform: Android
+###### Platform: Android
 
 For platform-specific development, the Android projects can be imported into Eclipse (see
 Cordova's platform guides for Android for prerequisites etc.):
@@ -86,6 +60,11 @@ in the project's root.
 After changing files, you need to run ```cordova build``` in order to propagate the changes
 from the ```/www``` directory to the ```/platform/android/assets/www``` directory.
 
+
+###### Platform: xxxx
+
+TODO
+
 ----
 
 #### License
@@ -99,3 +78,4 @@ If not stated otherwise, the code, resource files etc. is provided under the MIT
 [5]: https://github.com/mmig/mmir-tooling
 [6]: https://github.com/mmig/mmir-plugin-scionqueue
 [7]: https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html
+[8]: https://github.com/mmig/mmir
