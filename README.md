@@ -1,9 +1,10 @@
-MMIR Starter Kit
+[MMIR Starter Kit][0]
 ===========
 
+![MMIR Logo][./platforms/android/res/drawable/icon.png]
 
 The MMIR StarterKit is a small example application for the MMIR framework that can run locally in an (HTML5 capable)
-internet browser, and using the [Cordova framework][0], it can also be run as an Android app.
+internet browser, and using the [Cordova framework][1], it can also be run as an Android app.
 
 For more detailed information on the MMIR framework see documentation at the [MMIR repository][8]
 
@@ -70,12 +71,9 @@ TODO
 #### License
 If not stated otherwise, the code, resource files etc. is provided under the MIT license (see license file).
 
-[0]: http://cordova.apache.org/
-[1]: https://github.com/jbeard4/SCION
-[2]: http://mary.dfki.de/
-[3]: http://requirejs.org/
+[0]: https://github.com/mmig/mmir-starter-kit
+[1]: http://cordova.apache.org/
 [4]: https://github.com/mmig/mmir-lib
 [5]: https://github.com/mmig/mmir-tooling
 [6]: https://github.com/mmig/mmir-plugin-scionqueue
-[7]: https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html
 [8]: https://github.com/mmig/mmir
