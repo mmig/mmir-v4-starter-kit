@@ -141,32 +141,33 @@ mmir.ready(function () {
     	
     	var isUseEndOfSpeechDetection = IS_WITH_END_OF_SPEECH_DETECTION;
     	
-    	var successFunc = function recognizeSuccess (res){
+    	var successFunc = function recognizeSuccess (asr_result){
     		
-    		console.log("[AudioInput] finished recoginition: "  + JSON.stringify(res));
+    		console.log("[AudioInput] finished recoginition: "  + JSON.stringify(asr_result));
 
-    		var asr_result = res;
-    		if(res['result']){
-    			asr_result = res['result'];
+    		if(asr_result){
+    			
+	    		mmir.MediaManager.textToSpeech(asr_result,
+	    				function(){ console.debug('Synthesized "'+asr_result+'".');}, 
+	    				function(err){ console.error('Could not synthesize "'+asr_result+'": '+err);}
+	    		);
+	
+	    		var result = mmir.SemanticInterpreter.getASRSemantic(asr_result);
+	    		var semantic;
+		
+	    		if (result.semantic != null) {
+	    			semantic = JSON.parse(result.semantic);
+	    			semantic.phrase = asr_result;
+	    			console.log("semantic : " + result.semantic);
+	    		}
+	    		else {
+	    			semantic = JSON.parse('{ "NoMatch": { "phrase": "'+asr_result+'" }}');
+	    		}
+	    		mmir.InputEngine.raise("speech_input_event",  semantic);
+    		
     		}
     		
-    		mmir.MediaManager.textToSpeech(asr_result, function(){}, function(){});
-
-    		var result = mmir.SemanticInterpreter.getASRSemantic(asr_result);
-    		var semantic;
-
     		$('#mic_button').removeClass('footer_button_clicked');
-    				
-    		if (result.semantic != null) {
-    			semantic = JSON.parse(result.semantic);
-    			semantic.phrase = res;
-    			console.log("semantic : " + result.semantic);
-    		}
-    		else {
-    			semantic = JSON.parse('{ "NoMatch": { "phrase": "'+asr_result+'" }}');
-    		}
-    		mmir.InputEngine.raise("speech_input_event",  semantic);
-    		
     	};
     	
     	var errorFunc = function recognizeError (err){
@@ -174,7 +175,7 @@ mmir.ready(function () {
     		console.error('[AudioInput] Error while finishing recoginition: '+JSON.stringify(err));
     		
 
-       		var msg = JSON.stringify(err);//mobileDS.LanguageManager.getInstance().getText('did_not_understand_msg');
+       		var msg = JSON.stringify(err);//mmir.LanguageManager.getText('did_not_understand_msg');
     		mmir.MediaManager.textToSpeech(msg, null, null);
     	};
     	
@@ -198,7 +199,7 @@ mmir.ready(function () {
 //    				function printResult(res){
 //    					console.log("[AudioInput] start recoginition: "  + res);
 //    				}
-    					successFunc//FIXME should have different call for start/start-and-receive-intermediate-results ...
+    				successFunc//FIXME should have different call for start/start-and-receive-intermediate-results ...
     				, function(err){
     					$('#mic_button').removeClass('footer_button_clicked');
     					setTimeout(function(){errorFunc(err);}, 0);
@@ -217,7 +218,6 @@ mmir.ready(function () {
 
     			console.log("[AudioInput] speech recoginition with automtic END OF SPEECH detection: already in progress, stopping now...");
     			
-    			
     			mmir.MediaManager.stopRecord(
     				function printResult(res){
     					console.log("[AudioInput] MANUALLY stopped recoginition: "  + JSON.stringify(res));
@@ -235,9 +235,9 @@ mmir.ready(function () {
     			console.log("[AudioInput] starting recoginition with automatic END OF SPEECH detection now...");
     			
     			$('#mic_button').addClass('footer_button_clicked');
-    			setTimeout(function(){
+//    			setTimeout(function(){
     				mmir.MediaManager.recognize(successFunc, errorFunc);
-    			}, 1000);
+//    			}, 1000);
     		}
     	}
     }
