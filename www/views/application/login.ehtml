@@ -47,6 +47,30 @@
     
     <br/>
     
+    @*
+     * Example with GUI elements for Speech Input
+     * Handlers for the GUI controls are added in the controller
+     * (see controllers/application.js).
+     *  
+     * Activate this by removing the enclosing comment-statements @* ... *@
+    @*
+    <hr/>
+    
+    <div class="ui-field-contain">
+	    <label for="asr-text">Speech Input Test:</label>
+	    <textarea id="asr-text" name="asr-text" rows="5"></textarea>
+    </div>
+    
+    <button id="asr"  name="asr" data-inline="true">start</button>
+    
+    <button id="clear"  name="clear" data-inline="true">clear</button>
+    
+    
+    <span>Partial Result: <span id="asr-status"></span></span>
+    
+    <br/>
+    *@
+    
 </div>
 
 }@
@@ -65,6 +89,18 @@
 
 @contentFor("dialogs"){
   
+  <div id="modal" style="
+	    width: 100%;
+	    height: 100%;
+	    position: fixed;
+	    top: 0px;
+	    left: 0px;
+	    display: none;
+	    z-index: 999;
+	    background-color: grey;
+	    opacity: 0.5;
+	"></div>
+	
   <blockquote id="language-menu-panel" class='ui-language-panel login_background_gradient ui-body-a ui-corner-all'>
   	@helper('get_language_menu') @*render('Application', 'languageMenu')*@
   </blockquote>
