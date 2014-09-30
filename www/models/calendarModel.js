@@ -38,9 +38,9 @@ mmir.CalendarModel = (function(){
         return {
         
             save_appointment: function(data, cb_func){
-                //We suppose the appointment should be created at a server
-                //running on 'calendar_server_url' and send the information 
-                //via http-post-request to that server.
+            	//We assume that the appointment should be created at a 
+                //server running on 'THE-CALENDAR-SERVER-URL' and send   
+                //the information via POST request to that server.
                 var user_name = mmir.ModelManager.getModel('User').getInstance().getName();
                 
                 var calendar_server_url = 'calendar_server_url';//mmir.ConfigurationManager.get('calendar_server_url');
@@ -51,20 +51,19 @@ mmir.CalendarModel = (function(){
                     data: data,
                     success: cb_func
                 };
-            	
-//                $.ajax(options);
                 
-                //if you only want to test that you have successfully pass the
-                // process of adding new model-controller-view comment out the 
-                // whole AJAX request and add just call the call back function as 
-                // follows:
-
-                //MOCKing AJAX request:
-            	console.info('MOCK AJAX request with options: '+JSON.stringify(options));
-            	if(cb_func){
-            		cb_func();
-            	}
-            	//END: MOCKing AJAX request
+                //MOCK AJAX function:
+                var send = function(options){
+                	console.info('MOCK AJAX request with options: '+JSON.stringify(options));
+                	if(options.success){
+                		options.success();
+                	}
+                };
+                
+                //MOCK AJAX request:
+                send(options);
+                
+//              $.ajax(options);
             }
             
         };
