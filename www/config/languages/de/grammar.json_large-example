@@ -1,5 +1,5 @@
 {
-  "example_phrase": "Radio spielen",
+  "example_phrase": "erstelle einen Termin am 16.07.2018 um 15:30 Uhr",
   "stop_word": [
     "bitte",
     "doch",
@@ -212,10 +212,10 @@
     "STREET": [
       "[a-zA-Z_]+ str",
       "[a-zA-Z_]+ straße",
-      "[a-zA-Z_]+ str.",
+      "[a-zA-Z_]+ str\\.",
       "[a-zA-Z_]+str",
       "[a-zA-Z_]+straße",
-      "[a-zA-Z_]+str.",
+      "[a-zA-Z_]+str\\.",
       "[a-zA-Z_]+damm"
     ],
     "MUSIC": [
@@ -372,9 +372,9 @@
         "timerange": {
           "time1": {
             "number": "_$number[0]",
-            "timeValue": "_$time[0]['semantic']"
+            "timeValue": "_$time[0]['semantic'].time"
           },
-          "time2": "_$time[1]['semantic']"
+          "time2": "_$time[1]['semantic'].time"
         }
       }
     },
@@ -388,8 +388,8 @@
       "semantic": {
         "NoMatch": {},
         "datetime": {
-          "time": "_$time[0]['semantic']",
-          "date": "_$date[0]['semantic']"
+          "time": "_$time[0]['semantic'].time",
+          "date": "_$date[0]['semantic'].date"
         }
       }
     },
@@ -601,7 +601,7 @@
       ],
       "semantic": {
         "ShowAppointments": {
-          "datetime": "_$datetime[0]['semantic']"
+          "datetime": "_$datetime[0]['semantic'].datetime"
         }
       }
     },
@@ -613,8 +613,8 @@
       "semantic": {
         "ShowAppointments": {
           "prep1": "_$preposition[0]",
-          "datetime": "_$datetime[0]['semantic']",
-          "datetime2": "_$datetime[1]['semantic']"
+          "datetime": "_$datetime[0]['semantic'].datetime",
+          "datetime2": "_$datetime[1]['semantic'].datetime"
         }
       }
     },
@@ -648,10 +648,10 @@
       "semantic": {
         "CreateAppointment": {
           "prep1": "_$preposition[0]",
-          "date": "_$date[0]['semantic']",
-          "time": "_$time[0]['semantic']",
-          "timerange": "_$timerange[0]['semantic']",
-          "full_title": "_$full_title[0]['semantic']"
+          "date": "_$date[0]['semantic'].date",
+          "time": "_$time[0]['semantic'].time",
+          "timerange": "_$timerange[0]['semantic'].timerange",
+          "full_title": "_$full_title[0]['semantic'].title"
         }
       }
     },
