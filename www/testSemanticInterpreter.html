@@ -909,7 +909,7 @@ var jsl = {};
 	var print = (function () {
 		var outputBox;
 		return function(text) {
-			text = text.replace(/[^\r]\n/g, "\r\n");
+			text = text.replace(/([^\r])\n/g, "$1\r\n");
 			if (!outputBox)
 				outputBox = document.getElementById("outputBox");
 			if(typeof text == "string") {
@@ -926,7 +926,7 @@ var jsl = {};
 	var printCompile = (function () {
 		var outputBoxC;
 		return function(text) {
-			//text = text.replace(/[^\r]\n/g, "\r\n");
+			//text = text.replace(/([^\r])\n/g, "$1\r\n");
 			if (!outputBoxC)
 				outputBoxC = document.getElementById("compileOutBox");
 
@@ -937,7 +937,7 @@ var jsl = {};
 	var printCompiledParser = (function () {
 		var outputBox;
 		return function(text) {
-			//text = text.replace(/[^\r]\n/g, "\r\n");
+			//text = text.replace(/([^\r])\n/g, "$1\r\n");
 			if (!outputBox)
 				outputBox = document.getElementById("compiledParserOutBox");
 			if(typeof text == "string") {
@@ -969,7 +969,7 @@ var jsl = {};
 				}
 				text = JSON.stringify(text, null, 2);
 			} else 
-				text = text.replace(/[^\r]\n/g, "\r\n");
+				text = text.replace(/([^\r])\n/g, "$1\r\n");
 
 			if (!outputBox1)
 				outputBox1 = document.getElementById("interpretationBox");
@@ -993,7 +993,7 @@ var jsl = {};
 		var outputBox;
 		var outputBox2;
 		return function(text, text2) {
-			text = text.replace(/[^\r]\n/g, "\r\n");
+			text = text.replace(/([^\r])\n/g, "$1\r\n");
 			if (!outputBox)
 				outputBox = document.getElementById("stopwordBox");
 			if(typeof text == "string") {
@@ -1006,7 +1006,7 @@ var jsl = {};
 			}
 			
 			if(isEnableAlternateStopwordProcessing){
-				text2 = text2.replace(/[^\r]\n/g, "\r\n");
+				text2 = text2.replace(/([^\r])\n/g, "$1\r\n");
 				if (!outputBox2)
 					outputBox2 = document.getElementById("stopwordBox2");
 				if(typeof text2 == "string") {
@@ -1024,7 +1024,7 @@ var jsl = {};
 	var printInput = (function () {
 		var outputBox;
 		return function(text) {
-			//text = text.replace(/[^\r]\n/g, "\r\n");
+			//text = text.replace(/([^\r])\n/g, "$1\r\n");
 			if (!outputBox)
 				outputBox = document.getElementById("inputBox");
 			
