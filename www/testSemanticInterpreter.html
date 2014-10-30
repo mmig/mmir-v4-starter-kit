@@ -107,12 +107,14 @@ var GrammarValidator;
 	var start = (function(){
 			
 		require(['jquery', 'constants', 'commonUtils', 'languageManager', 'semanticInterpreter', 'grammarConverter'
-		         , 'jsonlint', 'jqm'
+		         , 'jsonlint', 'grammarValidator', 'jqm'
 					
 			], function(
 					$, constants, commonUtils,languageManager,semanticInterpreter,grammarConverter
-					,jsonlint
+					,jsonlint, grammarValidator
 			) {
+			
+			 GrammarValidator = grammarValidator;
 			 
 			 $(function() {
 			
@@ -456,6 +458,8 @@ var GrammarValidator;
 		
 		var doInit = function(){
 			
+			validateJsonGrammar();
+			
 			semanticInterpreter = mmir.SemanticInterpreter.getInstance();
 			semanticInterpreter.createGrammar(theJSONgrammar, getLanguage());
 			
@@ -664,6 +668,8 @@ var GrammarValidator;
 		}
 		
 		clearOut();
+		
+		validateJsonGrammar();
 		
 		semanticInterpreter = mmir.SemanticInterpreter.getInstance();
 		
@@ -1321,6 +1327,23 @@ var GrammarValidator;
 		}
 		
 		return true;
+	}
+	
+	function validateJsonGrammar(){
+		var validator = new GrammarValidator(theJSONgrammar);
+		
+		var problems = validator.validateStructure();
+
+		var problems2 = validator.validateIdDuplicates();
+		var problems3 = validator.validateTokenDuplicates();
+		var problems4 = validator.validateUtteranceDuplicates();
+		
+		var list = problems.concat(problems2, problems3, problems4);
+		if(list.length){
+			print('Validation errors for JSON grammar:\n--------------\n'
+					+list.map(function(v){ return '  ' + v.toString();}).join('\n') + '\n--------------\n'
+			);
+		}
 	}
 	
 	function createLanguageMenu (arrayLang, defaultSelection){
