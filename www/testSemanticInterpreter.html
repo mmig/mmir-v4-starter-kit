@@ -89,7 +89,7 @@ var GrammarValidator;
 			//grammar related
 			, 'jscc' : 'mmirf/vendor/libs/jscc-amd'
 			, 'grammarConverter' : 'mmirf/semantic/grammarConverter'
-			, 'grammarParserTemplate' : 'mmirf/semantic/grammarParserTemplate'
+			, 'grammarTemplate': 'mmirf/semantic/grammarTemplate'
 			, 'semanticInterpreter' : 'mmirf/semantic/semanticInterpreter'
 			
 			, 'grammarValidator' : 'appTestSemantic/jsonGrammarValidator'
@@ -461,25 +461,26 @@ var GrammarValidator;
 			validateJsonGrammar();
 			
 			semanticInterpreter = mmir.SemanticInterpreter.getInstance();
-			semanticInterpreter.createGrammar(theJSONgrammar, getLanguage());
+			semanticInterpreter.createGrammar(theJSONgrammar, getLanguage(), function(){
 			
-			printGrammarDefinition();
-			printInput(JSON.stringify(theJSONgrammar, null, 2));
-			printCompiledParserDefinition();
+				printGrammarDefinition();
+				printInput(JSON.stringify(theJSONgrammar, null, 2));
+				printCompiledParserDefinition();
 			
-			var examplePhrase;
-			if(typeof theJSONgrammar.example_phrase !== 'undefined'){
-				examplePhrase = theJSONgrammar.example_phrase;
-			}
-			else {
-				examplePhrase = DEFAULT_EXAMPLE_PHRASE;
-			}
+				var examplePhrase;
+				if(typeof theJSONgrammar.example_phrase !== 'undefined'){
+					examplePhrase = theJSONgrammar.example_phrase;
+				}
+				else {
+					examplePhrase = DEFAULT_EXAMPLE_PHRASE;
+				}
 			
-			interpretElement.value = examplePhrase;
-			processInterpretation();
+				interpretElement.value = examplePhrase;
+				processInterpretation();
 			
 			
-			_hideLoader();
+				_hideLoader();
+			});
 		};
 		
 		_showLoader('Compiling JSON Grammar...', 50, doInit);
@@ -720,17 +721,18 @@ var GrammarValidator;
 		}
 
 		var doParseAndCompile = function(){
-			semanticInterpreter.createGrammar(theJSONgrammar, langCode);
-			printGrammarDefinition();
-			printCompiledParserDefinition();
+			semanticInterpreter.createGrammar(theJSONgrammar, langCode, function(){
+				printGrammarDefinition();
+				printCompiledParserDefinition();
 			
-			if(typeof theJSONgrammar.example_phrase !== 'undefined'){
-				var examplePhrase = theJSONgrammar.example_phrase;
-				interpretElement.value = examplePhrase;
-				processInterpretation();
-			}
+				if(typeof theJSONgrammar.example_phrase !== 'undefined'){
+					var examplePhrase = theJSONgrammar.example_phrase;
+					interpretElement.value = examplePhrase;
+					processInterpretation();
+				}
 			
-			_hideLoader();
+				_hideLoader();
+			});
 		};
 		
 		_showLoader('Parsing and Compiling JSON Grammar...', 50, doParseAndCompile);

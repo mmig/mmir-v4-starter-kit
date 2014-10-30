@@ -152,18 +152,17 @@ mmir.ready(function () {
 	    				function(err){ console.error('Could not synthesize "'+asr_result+'": '+err);}
 	    		);
 	
-	    		var result = mmir.SemanticInterpreter.getASRSemantic(asr_result);
-	    		var semantic;
-		
-	    		if (result.semantic != null) {
-	    			semantic = JSON.parse(result.semantic);
-	    			semantic.phrase = asr_result;
-	    			console.log("semantic : " + result.semantic);
-	    		}
-	    		else {
-	    			semantic = JSON.parse('{ "NoMatch": { "phrase": "'+asr_result+'" }}');
-	    		}
-	    		mmir.InputEngine.raise("speech_input_event",  semantic);
+	    		mmir.SemanticInterpreter.getASRSemantic(asr_result, function(result){
+		    		if (result.semantic != null) {
+		    			semantic = result.semantic;
+		    			semantic.phrase = asr_result;
+		    			console.log("semantic : " + result.semantic);
+		    		}
+		    		else {
+		    			semantic = { "NoMatch": { "phrase": asr_result }};
+		    		}
+		    		mmir.InputEngine.raise("speech_input_event",  semantic);
+    			});
     		
     		}
     		
