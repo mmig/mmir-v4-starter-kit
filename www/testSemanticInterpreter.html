@@ -87,19 +87,25 @@ var GrammarValidator;
 		    , 'configurationManager': 'mmirf/manager/settings/configurationManager'
 		    
 			//grammar related
-			, 'jscc' : 'mmirf/vendor/libs/jscc-amd'
 			, 'grammarConverter' : 'mmirf/semantic/grammarConverter'
-			, 'grammarTemplate': 'mmirf/semantic/grammarTemplate'
 			, 'semanticInterpreter' : 'mmirf/semantic/semanticInterpreter'
+			, 'jscc':  'mmirf/vendor/libs/jscc-amd'
+			, 'jison': 'mmirf/vendor/libs/jison'
+			, 'pegjs': 'mmirf/vendor/libs/peg-0.8.0'
+			, 'jsccGen':  'mmirf/env/grammar/jsccGenerator'
+			, 'jisonGen': 'mmirf/env/grammar/jisonGenerator'
+			, 'pegjsGen': 'mmirf/env/grammar/pegjsGenerator'
 			
 			, 'grammarValidator' : 'appTestSemantic/jsonGrammarValidator'
 			, 'jsonlint': 'appTestSemantic/libs/jsonlint-loc'
+			, 'esprima' : 'appTestSemantic/libs/esprima'
 		},
 	
 		shim : {
 		    
 		      'jqm': ['jquery']
 			, 'jsonlint' : {exports: 'jsonlint'}
+			, 'pegjs':       	{exports: 'PEG'}
 	
 		}
     });
@@ -272,6 +278,18 @@ var GrammarValidator;
 		});
 		
 	}
+	
+	require(['pegjs'], function(PEG){
+		PEG.printError = _error;
+	});
+	
+	require(['jison'], function(jison){
+		jison.printError = _error;
+	});
+	
+	require(['esprima'], function(jsParser){
+		
+	});
 	
 	require(['jscc'], function(jscc){
 		
@@ -466,6 +484,8 @@ var GrammarValidator;
 				printGrammarDefinition();
 				printInput(JSON.stringify(theJSONgrammar, null, 2));
 				printCompiledParserDefinition();
+				
+				doProcessEvalErrors(getLanguage());
 			
 				var examplePhrase;
 				if(typeof theJSONgrammar.example_phrase !== 'undefined'){
@@ -724,6 +744,8 @@ var GrammarValidator;
 			semanticInterpreter.createGrammar(theJSONgrammar, langCode, function(){
 				printGrammarDefinition();
 				printCompiledParserDefinition();
+				
+				doProcessEvalErrors(langCode);
 			
 				if(typeof theJSONgrammar.example_phrase !== 'undefined'){
 					var examplePhrase = theJSONgrammar.example_phrase;
@@ -737,6 +759,37 @@ var GrammarValidator;
 		
 		_showLoader('Parsing and Compiling JSON Grammar...', 50, doParseAndCompile);
 
+	}
+	
+	function doProcessEvalErrors(langCode){
+		
+		var getLocationAsString = function(e){
+			return 'line ' + e.lineNumber 
+							+ ':' + e.column
+							+ '(offset ' + e.index + ')';
+		};
+		var currentGrammar = semanticInterpreter.getGrammarConverter(langCode);
+		if(currentGrammar.executeGrammar.hasErrors){
+			var jsParser = require('esprima');
+			var text = currentGrammar.getJSGrammar();
+			
+			try {
+				var syntax = jsParser.parse(text, { tolerant: true, loc: true });
+	            var errors = syntax.errors;
+	            
+	            if (errors.length > 0) {
+	                _error( 'Invalid JavaScript code for grammar "'+langCode+'". Total issues: ' + errors.length );
+	                for (i = 0; i < errors.length; i += 1) {
+	                    _error( '    At ' + getLocationAsString(errors[i]) + ': ' + errors[i].description );
+	                }
+	            }
+			} catch (err){
+				_error( err.description + ' in JavaScript code for grammar "'+langCode
+						+'" at ' + getLocationAsString(err)
+				);
+				console.error(err);
+			}
+		}
 	}
 	
 	function processInterpretation(){
