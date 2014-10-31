@@ -1,7 +1,8 @@
 (function(){
   var semanticInterpreter = require("semanticInterpreter");
+var fileFormatVersion = 3;
 var grammarFunc = function(asr_recognized_text){
-  var theGrammarConverterInstance = this;
+var theGrammarConverterInstance = this;
 
  
   var _$result = '';
@@ -28,7 +29,7 @@ var grammarFunc = function(asr_recognized_text){
 	Features:
 	- Parser trace messages
 	- Integrated panic-mode error recovery
-	- Parse tree construction for the JS/CC web environment
+	MOD REDUCED: removed -> Parse tree construction for the JS/CC web environment
 */
 
 var _dbg_withtrace		= false;
@@ -652,12 +653,12 @@ switch( act )
 	break;
 	case 1:
 	{
-		  _$result['semantic'] = _$result['semantic'].replace(/"{/g,'{').replace(/}"/g,'}'); console.log(_$result); semanticAnnotationResult.result = _$result
+		  console.log(_$result); semanticAnnotationResult.result = _$result; 
 	}
 	break;
 	case 2:
 	{
-		 rval = vstack[ vstack.length - 1 ]; var play_temp = {}; play_temp['phrases'] = {};play_temp['phrases']['v_play_inf'] = {};play_temp['phrases']['v_play_inf'][0] = vstack[ vstack.length - 1 ]; var _$phrase = rval; play_temp['phrase']=_$phrase; play_temp['semantic'] = '{"Play":{}}'; _$play[_$phrase] = play_temp; _$result = play_temp; 
+		 rval = vstack[ vstack.length - 1 ]; var play_temp = {}; play_temp['phrases'] = {};play_temp['phrases']['v_play_inf'] = [];play_temp['phrases']['v_play_inf'][0] = vstack[ vstack.length - 1 ]; var _$phrase = rval; play_temp['phrase']=_$phrase; play_temp['semantic'] = {"Play":{}}; _$play[_$phrase] = play_temp; _$result = play_temp; 
 	}
 	break;
 	case 3:
@@ -729,123 +730,13 @@ switch( act )
 	return err_cnt;
 }
 
-function __dbg_image( name )
-{
-	return "<img src=\"img/" + name + ".png\" style=\"border: 0px; margin: 0px; padding: 0px;\" />";
-}
-
-function __dbg_get_tree_depth( nodes, tree, max )
-{
-	var		tmp		= 0;
-	
-	for( var i = 0; i < tree.length; i++ )
-	{
-		if( nodes[ tree[i] ].child.length > 0 )
-			if( max < ( tmp = __dbg_get_tree_depth( nodes, nodes[ tree[i] ].child, max+1 ) ) )
-				max = tmp;
-	}
-	
-	return max;
-}
-
-function __dbg_parsetree( prev, cnt, depth, nodes, tree )
-{
-	var str = new String();
-	
-	if( cnt == 0 )
-		str += "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"parsetree\">";
-	
-	if( !prev )
-		prev = new Array();
-		
-	if( cnt > 0 )
-		prev[cnt-1] = true;
-			
-	for( var i = 0; i < tree.length; i++ )
-	{
-		str += "<tr>";
-
-		for( var j = 0; j < cnt; j++ )
-		{
-			str += "<td>";
-
-			if( prev[j] )
-			{
-				if( j == cnt - 1 && i == tree.length - 1 )
-					str += __dbg_image( "ll" );
-				else if( j == cnt - 1 )
-					str += __dbg_image( "la" );
-				else
-					str += __dbg_image( "l" );
-			}
-			else
-				str += __dbg_image( "e" );
-				
-			str += "</td>";
-		}
-		
-		if( cnt > 0 && i == tree.length - 1 )
-			prev[cnt-1] = false;
-
-		str += "<td>";
-		if( nodes[ tree[i] ].child.length > 0 )
-			if( cnt == 0 )
-				str += __dbg_image( "rn" );
-			else
-				str += __dbg_image( "n" );	
-		else
-			str += __dbg_image( "t" );
-		str += "</td>";
-		
-		str += "<td class=\"node_name\" colspan=\"" + ( depth - cnt + 1 ) + "\">" + nodes[ tree[i] ].sym ;
-		if( nodes[ tree[i] ].att && nodes[ tree[i] ].att != "" )
-			str += ":<span>" + nodes[ tree[i] ].att + "</span>" ;
-			
-		str += "</td>";
-
-		if( nodes[ tree[i] ].child.length > 0 )
-			str += __dbg_parsetree( prev, cnt+1, depth, nodes, nodes[ tree[i] ].child );
-	}
-	
-	if( cnt == 0 )
-		str += "</table>";
-	
-	return str;
-}
-
-function __dbg_parsetree_phpSyntaxTree( nodes, tree )
-{
-	var str = new String();
-	
-	for( var i = 0; i < tree.length; i++ )
-	{
-		str += " [ ";
-
-		str += nodes[ tree[i] ].sym;
-		if( nodes[ tree[i] ].att && nodes[ tree[i] ].att != "" )
-		{
-			var attr = new String( nodes[ tree[i] ].att );
-			str += ":\"" + attr.replace( / |\t|\r|\n|\[|\]/g, "_" ) + "\"";
-		}
-			
-		str += " ";
-
-		if( nodes[ tree[i] ].child.length > 0 )
-			str += __dbg_parsetree_phpSyntaxTree( nodes, nodes[ tree[i] ].child );
-
-		str += " ] ";
-	}
-	
-	return str;
-}
-
-
 
 var _semanticAnnotationResult = { result: {}};
 __parse( asr_recognized_text, new Array(), new Array(), _semanticAnnotationResult);
 return _semanticAnnotationResult.result;
+
 };
-semanticInterpreter.addGrammar("de", grammarFunc);
+semanticInterpreter.addGrammar("de", grammarFunc, fileFormatVersion);
 
 semanticInterpreter.setStopwords("de",["bitte"]);
 return grammarFunc;
