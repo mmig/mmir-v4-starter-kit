@@ -25,21 +25,21 @@
   ],
   "tokens": {
     "UNDEF_ARTICLE": [
-      "ein",
-      "eine",
       "eines",
       "einen",
       "einer",
-      "einem"
+      "einem",
+      "eine",
+      "ein"
     ],
     "PP_MINE": [
-      "mein",
+      "meinen",
       "meine",
-      "meinen"
+      "mein"
     ],
     "V_PLAY_IMP": [
-      "spiel",
-      "spiele"
+      "spiele",
+      "spiel"
     ],
     "V_PLAY_INF": [
       "spielen",
@@ -57,8 +57,8 @@
       "abspielt"
     ],
     "V_SHOW_IMP": [
-      "zeig",
-      "zeige"
+      "zeige",
+      "zeig"
     ],
     "V_SHOW_INF": [
       "zeigen",
@@ -113,18 +113,18 @@
       "aupeo"
     ],
     "AUDIOTAG": [
-      "audiotag",
       "audiotags",
+      "audiotag",
       "audionotiz"
     ],
     "VOICETAG": [
-      "voicetag",
       "voicetags",
+      "voicetag",
       "sprachnotiz",
-      "kommentar",
       "kommentare",
-      "bewertung",
-      "bewertungen"
+      "kommentar",
+      "bewertungen",
+      "bewertung"
     ],
     "SOCIAL_NETWORK": [
       "twitter",
@@ -133,17 +133,17 @@
       "voice2social"
     ],
     "TWEET": [
-      "tweet",
       "tweeten",
-      "tweete"
+      "tweete",
+      "tweet"
     ],
     "INFO": [
-      "info",
-      "information",
       "informationen",
+      "information",
+      "info",
       "daten",
-      "detail",
-      "details"
+      "details",
+      "detail"
     ],
     "PREPOSITION": [
       "an",
@@ -172,16 +172,16 @@
     "POI_CATEGORY": [
       "cafe",
       "restaurant",
-      "bar",
       "bars",
+      "bar",
       "clubs"
     ],
     "LOCATION_NAME": [
       "mitte",
       "schöneberg",
-      "berlin",
       "moabit",
       "berlin hauptbahnhof",
+      "berlin",
       "tiergarten",
       "zoo",
       "wedding",
@@ -210,12 +210,12 @@
       "hier"
     ],
     "STREET": [
-      "[a-zA-Z_]+ str",
       "[a-zA-Z_]+ straße",
       "[a-zA-Z_]+ str\\.",
-      "[a-zA-Z_]+str",
+      "[a-zA-Z_]+ str",
       "[a-zA-Z_]+straße",
       "[a-zA-Z_]+str\\.",
+      "[a-zA-Z_]+str",
       "[a-zA-Z_]+damm"
     ],
     "MUSIC": [
@@ -245,8 +245,8 @@
       "thema"
     ],
     "DATENUMBER": [
-      "[0-9]+\\.[0-9]+\\.",
-      "[0-9]+\\.[0-9]+\\.[0-9]+"
+      "[0-9]+\\.[0-9]+\\.[0-9]+",
+      "[0-9]+\\.[0-9]+\\."
     ],
     "DATE_VARIABLE": [
       "heute",
@@ -286,8 +286,8 @@
       "uhr"
     ],
     "STARS": [
-      "stern",
-      "sterne"
+      "sterne",
+      "stern"
     ],
     "MORE": [
       "mehr"
@@ -299,9 +299,9 @@
       "und"
     ],
     "ALL": [
-      "alle",
       "allen",
-      "alles"
+      "alles",
+      "alle"
     ],
     "THAT": [
       "dazu"
@@ -311,9 +311,9 @@
       "gefällt"
     ],
     "MICRO": [
-      "mikro",
       "mikrophon",
-      "mikrofon"
+      "mikrofon",
+      "mikro"
     ],
     "CAFE": [
       "monopol"
@@ -334,10 +334,10 @@
   "utterances": {
     "DATE": {
       "phrases": [
-        "ORDINAL",
-        "ORDINAL MONTH",
         "ORDINAL MONTH NUMBER",
+        "ORDINAL MONTH",
         "DATENUMBER",
+        "ORDINAL",
         "DATE_VARIABLE"
       ],
       "semantic": {
@@ -380,10 +380,10 @@
     },
     "DATETIME": {
       "phrases": [
-        "DATE",
-        "TIME",
         "DATE TIME",
-        "DATE PREPOSITION TIME"
+        "DATE PREPOSITION TIME",
+        "DATE",
+        "TIME"
       ],
       "semantic": {
         "NoMatch": {},
@@ -439,9 +439,9 @@
     },
     "PLAY_RADIO": {
       "phrases": [
-        "V_PLAY_IMP RADIO",
         "V_PLAY_IMP RADIO PREPOSITION",
         "V_PLAY_IMP RADIO THAT",
+        "V_PLAY_IMP RADIO",
         "RADIO V_PLAY_INF",
         "RADIO V_PLAY_FIN",
         "THAT RADIO V_PLAY_INF",
@@ -457,8 +457,8 @@
     },
     "PLAY_AUDIOTAGS": {
       "phrases": [
-        "V_PLAY_IMP AUDIOTAG",
         "V_PLAY_IMP AUDIOTAG PREPOSITION",
+        "V_PLAY_IMP AUDIOTAG",
         "AUDIOTAG V_PLAY_INF",
         "AUDIOTAG V_PLAY_FIN",
         "V_PLAY_INF AUDIOTAG"
@@ -471,8 +471,8 @@
     },
     "PLAY_VOICETAGS": {
       "phrases": [
-        "V_PLAY_IMP VOICETAG",
         "V_PLAY_IMP VOICETAG PREPOSITION",
+        "V_PLAY_IMP VOICETAG",
         "VOICETAG V_PLAY_INF",
         "VOICETAG V_PLAY_FIN",
         "V_PLAY_INF VOICETAG"
@@ -485,8 +485,8 @@
     },
     "RECORD_AUDIOTAG": {
       "phrases": [
-        "V_RECORD_IMP AUDIOTAG",
         "V_RECORD_IMP AUDIOTAG PREPOSITION",
+        "V_RECORD_IMP AUDIOTAG",
         "AUDIOTAG V_RECORD_INF",
         "V_RECORD_INF AUDIOTAG"
       ],
@@ -498,8 +498,8 @@
     },
     "RECORD_VOICETAG": {
       "phrases": [
-        "V_RECORD_IMP VOICETAG",
         "V_RECORD_IMP VOICETAG PREPOSITION",
+        "V_RECORD_IMP VOICETAG",
         "VOICETAG V_RECORD_INF",
         "V_RECORD_INF VOICETAG",
         "VOICETAG PREPOSITION CAFE"
@@ -523,10 +523,10 @@
       "phrases": [
         "V_SEND_IMP PREPOSITION SOCIAL_NETWORK",
         "V_SEND_IMP SOCIAL_NETWORK",
-        "PREPOSITION SOCIAL_NETWORK V_SEND_INF",
-        "PREPOSITION SOCIAL_NETWORK V_SEND_FIN",
         "PREPOSITION SOCIAL_NETWORK AND SOCIAL_NETWORK V_SEND_INF",
         "PREPOSITION SOCIAL_NETWORK AND SOCIAL_NETWORK V_SEND_FIN",
+        "PREPOSITION SOCIAL_NETWORK V_SEND_INF",
+        "PREPOSITION SOCIAL_NETWORK V_SEND_FIN",
         "PREPOSITION ALL V_SEND_INF",
         "PREPOSITION ALL V_SEND_FIN",
         "AUDIOTAG PREPOSITION SOCIAL_NETWORK V_SEND_INF",
@@ -549,8 +549,8 @@
     "SEND_TWEET": {
       "phrases": [
         "TWEET",
-        "V_SEND_IMP TWEET",
         "V_SEND_IMP TWEET PREPOSITION",
+        "V_SEND_IMP TWEET",
         "TWEET V_SEND_INF",
         "TWEET V_SEND_FIN"
       ],
@@ -562,9 +562,9 @@
     },
     "SHOW_INFO": {
       "phrases": [
-        "V_SHOW_IMP INFO",
-        "V_SHOW_IMP INFO THAT",
         "V_SHOW_IMP INFO PREPOSITION",
+        "V_SHOW_IMP INFO THAT",
+        "V_SHOW_IMP INFO",
         "INFO V_SHOW_INF",
         "MORE INFO",
         "INFO THAT"
@@ -607,8 +607,8 @@
     },
     "SHOW_APPOINTMENTs_FROM_TO": {
       "phrases": [
-        "V_SHOW_IMP PP_MINE APPOINTMENTS PREPOSITION DATETIME PR_UPTO DATETIME",
-        "V_SHOW_IMP PP_MINE APPOINTMENTS PREPOSITION DATETIME PR_UPTO PREPOSITION DATETIME"
+        "V_SHOW_IMP PP_MINE APPOINTMENTS PREPOSITION DATETIME PR_UPTO PREPOSITION DATETIME",
+        "V_SHOW_IMP PP_MINE APPOINTMENTS PREPOSITION DATETIME PR_UPTO DATETIME"
       ],
       "semantic": {
         "ShowAppointments": {
@@ -620,30 +620,30 @@
     },
     "CREATE_APPOINTMENTS": {
       "phrases": [
-        "CREATE DATE UNDEF_ARTICLE APPOINTMENT",
         "CREATE DATE UNDEF_ARTICLE APPOINTMENT PREPOSITION TIME",
         "CREATE DATE UNDEF_ARTICLE APPOINTMENT PREPOSITION TIMERANGE",
+        "CREATE DATE UNDEF_ARTICLE APPOINTMENT",
         "CREATE DATE PREPOSITION TIME UNDEF_ARTICLE APPOINTMENT",
         "CREATE DATE PREPOSITION TIMERANGE UNDEF_ARTICLE APPOINTMENT",
-        "CREATE DATE UNDEF_ARTICLE APPOINTMENT FULL_TITLE",
-        "CREATE DATE UNDEF_ARTICLE APPOINTMENT PREPOSITION TIME FULL_TITLE",
         "CREATE DATE UNDEF_ARTICLE APPOINTMENT PREPOSITION TIMERANGE FULL_TITLE",
-        "CREATE DATE PREPOSITION TIME UNDEF_ARTICLE APPOINTMENT FULL_TITLE",
+        "CREATE DATE UNDEF_ARTICLE APPOINTMENT PREPOSITION TIME FULL_TITLE",
+        "CREATE DATE UNDEF_ARTICLE APPOINTMENT FULL_TITLE",
         "CREATE DATE PREPOSITION TIMERANGE UNDEF_ARTICLE APPOINTMENT FULL_TITLE",
-        "CREATE UNDEF_ARTICLE APPOINTMENT PREPOSITION DATE",
-        "CREATE UNDEF_ARTICLE APPOINTMENT PREPOSITION TIME",
-        "CREATE UNDEF_ARTICLE APPOINTMENT PREPOSITION TIMERANGE",
+        "CREATE DATE PREPOSITION TIME UNDEF_ARTICLE APPOINTMENT FULL_TITLE",
         "CREATE UNDEF_ARTICLE APPOINTMENT PREPOSITION DATE PREPOSITION TIMERANGE",
         "CREATE UNDEF_ARTICLE APPOINTMENT PREPOSITION DATE PREPOSITION TIME",
-        "CREATE UNDEF_ARTICLE APPOINTMENT REST PREPOSITION DATE PREPOSITION TIMERANGE",
-        "CREATE UNDEF_ARTICLE APPOINTMENT REST PREPOSITION DATE PREPOSITION TIME",
-        "CREATE UNDEF_ARTICLE APPOINTMENT PREPOSITION DATE FULL_TITLE",
-        "CREATE UNDEF_ARTICLE APPOINTMENT PREPOSITION TIME FULL_TITLE",
+        "CREATE UNDEF_ARTICLE APPOINTMENT PREPOSITION TIMERANGE",
+        "CREATE UNDEF_ARTICLE APPOINTMENT PREPOSITION TIME",
+        "CREATE UNDEF_ARTICLE APPOINTMENT PREPOSITION DATE",
         "CREATE UNDEF_ARTICLE APPOINTMENT PREPOSITION TIMERANGE FULL_TITLE",
+        "CREATE UNDEF_ARTICLE APPOINTMENT PREPOSITION TIME FULL_TITLE",
+        "CREATE UNDEF_ARTICLE APPOINTMENT PREPOSITION DATE FULL_TITLE",
         "CREATE UNDEF_ARTICLE APPOINTMENT PREPOSITION DATE PREPOSITION TIMERANGE FULL_TITLE",
         "CREATE UNDEF_ARTICLE APPOINTMENT PREPOSITION DATE PREPOSITION TIME FULL_TITLE",
         "CREATE UNDEF_ARTICLE APPOINTMENT REST PREPOSITION DATE PREPOSITION TIMERANGE FULL_TITLE",
-        "CREATE UNDEF_ARTICLE APPOINTMENT REST PREPOSITION DATE PREPOSITION TIME FULL_TITLE"
+        "CREATE UNDEF_ARTICLE APPOINTMENT REST PREPOSITION DATE PREPOSITION TIME FULL_TITLE",
+        "CREATE UNDEF_ARTICLE APPOINTMENT REST PREPOSITION DATE PREPOSITION TIMERANGE",
+        "CREATE UNDEF_ARTICLE APPOINTMENT REST PREPOSITION DATE PREPOSITION TIME"
       ],
       "semantic": {
         "CreateAppointment": {
@@ -667,8 +667,8 @@
     },
     "RECORD_MEMO": {
       "phrases": [
-        "V_RECORD_IMP UNDEF_ARTICLE VOICETAG PREPOSITION",
-        "V_RECORD_IMP PP_MINE UNDEF_ARTICLE VOICETAG PREPOSITION"
+        "V_RECORD_IMP PP_MINE UNDEF_ARTICLE VOICETAG PREPOSITION",
+        "V_RECORD_IMP UNDEF_ARTICLE VOICETAG PREPOSITION"
       ],
       "semantic": {
         "RecordMemo": {}
@@ -676,11 +676,11 @@
     },
     "FIND_MUSIC": {
       "phrases": [
-        "WHERE V_PLAY_FIN MUSIC",
         "WHAT V_PLAY_FIN PREPOSITION MUSIC AND MUSIC POI_CATEGORY",
         "V_FIND_IMP MUSIC PREPOSITION NEAR_TO_ME",
         "WHAT V_PLAY_FIN PREPOSITION LOCATION",
-        "WHERE V_PLAY_FIN LOCATION MUSIC"
+        "WHERE V_PLAY_FIN LOCATION MUSIC",
+        "WHERE V_PLAY_FIN MUSIC"
       ],
       "semantic": {
         "ShowPOIs": {
@@ -693,12 +693,12 @@
     },
     "START_RADAR": {
       "phrases": [
-        "RADAR",
         "RADAR PREPOSITION",
         "RADAR V_OPEN_INF",
         "RADAR V_OPEN_FIN",
-        "V_OPEN_FIN RADAR",
         "RADAR V_SHOW_INF",
+        "RADAR",
+        "V_OPEN_FIN RADAR",
         "V_FIND_IMP PREPOSITION MUSIC PREPOSITION NEAR_TO_ME"
       ],
       "semantic": {
