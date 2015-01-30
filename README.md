@@ -28,6 +28,10 @@ Activated platforms _(for Cordova 3.x)_:
  * `android`
  * 
 
+###### Demo
+Try the online demo for the "browser environment" at the [demo page][9].
+
+NOTE: At the moment, speech input in the "browser environment" only works for current versions of Chrome (> v25).
 
 ##### Prerequisites
 
@@ -77,3 +81,4 @@ If not stated otherwise, the code, resource files etc. is provided under the MIT
 [5]: https://github.com/mmig/mmir-tooling
 [6]: https://github.com/mmig/mmir-plugin-scionqueue
 [8]: https://github.com/mmig/mmir
+[9]: http://mmig.github.io/mmir-starter-kit/www
