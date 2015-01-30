@@ -28,10 +28,18 @@ Activated platforms _(for Cordova 3.x)_:
  * `android`
  * 
 
+----
+
 ###### Demo
+
 Try the online demo for the "browser environment" at the [demo page][9].
 
+There is also a demo page for the [grammar editor / tester][10] (for testing the grammar that is used for evaluating speech input).
+
 NOTE: At the moment, speech input in the "browser environment" only works for current versions of Chrome (> v25).
+
+
+----
 
 ##### Prerequisites
 
@@ -75,10 +83,11 @@ TODO
 #### License
 If not stated otherwise, the code, resource files etc. is provided under the MIT license (see license file).
 
-[0]: https://github.com/mmig/mmir-starter-kit
-[1]: http://cordova.apache.org/
-[4]: https://github.com/mmig/mmir-lib
-[5]: https://github.com/mmig/mmir-tooling
-[6]: https://github.com/mmig/mmir-plugin-scionqueue
-[8]: https://github.com/mmig/mmir
-[9]: http://mmig.github.io/mmir-starter-kit/www
+ [0]: https://github.com/mmig/mmir-starter-kit
+ [1]: http://cordova.apache.org/
+ [4]: https://github.com/mmig/mmir-lib
+ [5]: https://github.com/mmig/mmir-tooling
+ [6]: https://github.com/mmig/mmir-plugin-scionqueue
+ [8]: https://github.com/mmig/mmir
+ [9]: http://mmig.github.io/mmir-starter-kit/www
+[10]: http://mmig.github.io/mmir-starter-kit/www/testSemanticInterpreter.html
