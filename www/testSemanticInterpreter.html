@@ -86,6 +86,12 @@ var GrammarValidator;
 		    , 'languageManager': 'mmirf/manager/settings/languageManager'
 		    , 'configurationManager': 'mmirf/manager/settings/configurationManager'
 		    
+		    
+			//MD5 checksum computation: for checking pre-compiled resources, e.g.
+			//    grammars (JSON->JS), and templates (eHTML->JS)
+			, 'md5' : 'mmirf/vendor/libs/md5'
+			, 'checksumUtils' : 'mmirf/tools/checksumUtils'
+				
 			//grammar related
 			, 'grammarConverter' : 'mmirf/semantic/grammarConverter'
 			, 'semanticInterpreter' : 'mmirf/semantic/semanticInterpreter'
@@ -105,7 +111,9 @@ var GrammarValidator;
 		    
 		      'jqm': ['jquery']
 			, 'jsonlint' : {exports: 'jsonlint'}
-			, 'pegjs':       	{exports: 'PEG'}
+			, 'pegjs':     {exports: 'PEG'}
+			
+			, 'md5':       {exports : 'CryptoJS'}
 	
 		}
     });
@@ -317,6 +325,12 @@ var GrammarValidator;
 	
 	//TODO: (1) load directory_strucutre file and detect available JSON grammars, (2) create drop-down menu for languages
 	//semanticInterpreter.setCurrentGrammar('de');
+	
+	var checksumUtils;
+	require(['checksumUtils'],function(checksum){
+		checksumUtils = checksum;
+		checksumUtils.init();
+	});
 
 	var inputElement;
 	var interpretElement;
@@ -941,6 +955,8 @@ var GrammarValidator;
 		outputBox.textContent="";
 		outputJSBox = document.getElementById("compiledParserOutBox");
 		outputJSBox.textContent="";
+		checksumOutputBox = document.getElementById("compiledParserChecksumOutBox");
+		checksumOutputBox;
 		clearInterpret();
 		clearStopword();
 	}
@@ -1001,18 +1017,28 @@ var GrammarValidator;
 	
 	var printCompiledParser = (function () {
 		var outputBox;
+		var checksumOutputBox1;
+		var checksumOutputBox2;
 		return function(text) {
 			//text = text.replace(/([^\r])\n/g, "$1\r\n");
 			if (!outputBox)
 				outputBox = document.getElementById("compiledParserOutBox");
-			if(typeof text == "string") {
-				outputBox.textContent = text + "\r\n";
-			} else {
-				for(var i=0;i<text.length;i++) {
-					outputBox.appendChild(document.createTextNode(text[i]
-							+ "\r\n"));
-				}
-			}
+			
+			if (!checksumOutputBox1)
+				checksumOutputBox1 = document.getElementById("compiledParserChecksumOutBox1");
+			
+			if (!checksumOutputBox2)
+				checksumOutputBox2 = document.getElementById("compiledParserChecksumOutBox2");
+			
+			outputBox.textContent = text + "\r\n";
+			
+			//generate checksum-info for the original JSON-grammar and store it to a checksum-file:
+			// (in order to allow up-to-date checking in reference to the JSON-definition file)
+			var checksumInfo = checksumUtils.createContent( $('#inputBox').val() );
+			checksumOutputBox1.textContent = checksumInfo;
+
+			checksumInfo = checksumUtils.createContent( $('#inputBox').val().replace(/\n/igm, '\r\n') );
+			checksumOutputBox2.textContent = checksumInfo;
 		};
 	})();
 	
@@ -1140,6 +1166,28 @@ var GrammarValidator;
 				outputBox = document.getElementById('compiledParserOutBox');
 			
 			outputBox.select();
+		};
+	})();
+	
+	var selectChecksum1 = (function () {
+		var checksumOutputBox;
+		return function(text) {
+			
+			if (!checksumOutputBox)
+				checksumOutputBox = document.getElementById("compiledParserChecksumOutBox1");
+			
+			checksumOutputBox.select();
+		};
+	})();
+	
+	var selectChecksum2 = (function () {
+		var checksumOutputBox;
+		return function(text) {
+			
+			if (!checksumOutputBox)
+				checksumOutputBox = document.getElementById("compiledParserChecksumOutBox2");
+			
+			checksumOutputBox.select();
 		};
 	})();
 	
@@ -1922,8 +1970,23 @@ var GrammarValidator;
 			<div style="clear:both;"></div>
 			
 			<textarea id="compiledParserOutBox" readonly="readonly"></textarea>
+			
+			<br/>
+			<div>Checksum (<code>\n</code>):</div>
+			<div style="float:left;">
+				<input type="button" onclick="selectChecksum1();" value="Select All"/>
+			</div>
+			<textarea id="compiledParserChecksumOutBox1" readonly="readonly"></textarea>
+			
+			<br/>
+			<div>Checksum (<code>\r\n</code>):</div>
+			<div style="float:left;">
+				<input type="button" onclick="selectChecksum2();" value="Select All"/>
+			</div>
+			<textarea id="compiledParserChecksumOutBox2" readonly="readonly"></textarea>
 		</div>
     </div></div>
 	
 </body>
-</html>                                                                                                                                                                            
+</html>
+                                                  
