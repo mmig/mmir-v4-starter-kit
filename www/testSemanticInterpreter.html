@@ -300,6 +300,18 @@ var GrammarValidator;
 		jscc.set_printInfo(_print);
 	});
 	
+	//ID for the grammar generator / engine -- see mmirf/env/grammar/*
+	var grammarGenerator;
+	
+	//parse query / search string for this document -> extract paramaters
+	require(['paramsParseFunc'], function(parseUrlQueries){
+		var params = parseUrlQueries(document.location.search);
+		
+		if(params.has('gen')){
+			grammarGenerator = params['gen'];
+		}
+	});
+	
 	var semanticInterpreter;// = mmir.SemanticInterpreter.getInstance();
 	//semanticInterpreter.get_json_grammar_url = function(id) { return 'config/languages/'+id+'/grammar.json'; };
 	
@@ -323,6 +335,10 @@ var GrammarValidator;
 	
 		semanticInterpreter = mmir.SemanticInterpreter.getInstance();
 		semanticInterpreter.get_json_grammar_url = function(id) { return 'config/languages/'+id+'/grammar.json'; };
+		
+		if(grammarGenerator && grammarGenerator !== semanticInterpreter.getGrammarEngine()){
+			semanticInterpreter.setGrammarEngine(grammarGenerator);
+		}
 		
 		var languageManager = mmir.LanguageManager.getInstance();
 				
