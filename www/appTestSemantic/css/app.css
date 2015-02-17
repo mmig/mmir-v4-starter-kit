@@ -1,0 +1,61 @@
+
+		
+.grid {
+	display: inline-table;
+}
+.grid-cell {
+	display: table-cell;
+	vertical-align: bottom;
+}
+
+#language-selection-area .ui-select {
+	display: inline;
+}
+
+#outputBox {
+	font-family:monospace;
+	font-size:12px;
+	white-space: pre;
+	overflow:scroll;
+	border: thin solid lightGrey;
+	height: 300px;
+	width:100%;
+}
+
+code {
+	white-space: pre;
+}
+
+#compileOutBox, #compiledParserOutBox {
+	font-family:monospace;
+	font-size:12px;
+	white-space: pre;
+	overflow:scroll;
+	border: thin solid lightGrey;
+	height: 50% !important;
+	width:100%;
+}
+
+#compiledParserOutBox {
+	height: 600px;
+}
+
+#interpretationBox, #interpretationBoxAlt {
+	font-family:monospace;
+	font-size:12px;
+	white-space: pre;
+	overflow:scroll;
+	border: thin solid lightGrey;
+	height: 300px;
+	width:100%;
+}
+
+#stopwordBox, #stopwordBox2 {
+	font-family:monospace;
+	font-size:12px;
+	white-space: pre;
+	overflow:scroll;
+	border: thin solid lightGrey;
+	height: 3em;
+	width:100%;
+}
