@@ -30,6 +30,14 @@ define(['commonUtils'], function(utils){
 	
 	var isArray = utils.isArray;
 	
+	var isPlainObject = function(obj){
+		return typeof obj === 'object' && obj !== null && ! isArray(obj);
+	};
+	
+	var toTypeString = function(obj){
+		return isArray(obj)? 'Array' : obj===null? 'NULL' : typeof obj;
+	};
+	
 	var isUpperCase = function(str){//ignore underscores
 		for(var i=0, len = str.length; i < len; ++i){
 			if( /[a-z]/.test(str.charAt(i)) ){
@@ -77,25 +85,25 @@ define(['commonUtils'], function(utils){
 		if( ! isArray( this.grammar[STOPWORDS] )){
 			
 			var msg = this.grammar[STOPWORDS]? 
-					 'Unknown specification for STOPWORDS: using type "'+(typeof this.grammar[STOPWORDS])+'" (expected Array)'
+					 'Unknown specification for STOPWORDS: using type "'+ toTypeString(this.grammar[STOPWORDS])+'" (expected Array)'
 					:'No STOPWORDS specified';
 					
 			problems.push(new Problem([STOPWORDS], msg, 'ERROR'));
 		}
 
-		if(typeof this.grammar[TOKEN] !== 'object'){
+		if( ! isPlainObject(this.grammar[TOKEN] )){
 			
 			var msg = this.grammar[TOKEN]? 
-					 'Unknown specification for TOKENS: using type "'+(typeof this.grammar[TOKEN])+'" (expected JSON object)'
+					 'Unknown specification for TOKENS: using type "'+ toTypeString(this.grammar[TOKEN])+'" (expected JSON object)'
 					:'No TOKENS specified';
 					
 			problems.push(new Problem([TOKEN], msg, 'ERROR'));
 		}
 		
-		if(typeof this.grammar[UTTERANCE] !== 'object'){
+		if( ! isPlainObject(this.grammar[UTTERANCE] )){
 			
 			var msg = this.grammar[UTTERANCE]? 
-					 'Unknown specification for UTTERANCES: using type "'+(typeof this.grammar[UTTERANCE])+'" (expected JSON object)'
+					 'Unknown specification for UTTERANCES: using type "'+toTypeString(this.grammar[UTTERANCE])+'" (expected JSON object)'
 					:'No UTTERANCES specified';
 					
 			problems.push(new Problem([UTTERANCE], msg, 'ERROR'));
@@ -132,7 +140,7 @@ define(['commonUtils'], function(utils){
 				if( ! isUpperCase(t)){
 					problems.push(new Problem(
 							[TOKEN, t],
-							'TOKEN name is not upper case',
+							'TOKEN name "'+t+'" is not upper case',
 							'WARN'
 					));
 				}
@@ -140,14 +148,14 @@ define(['commonUtils'], function(utils){
 				if( ! hasIdStart(t)){
 					problems.push(new Problem(
 							[TOKEN, t],
-							'TOKEN name starts with invalid CHAR (only ASCII is allowed)',
+							'TOKEN name "'+t+'" starts with invalid CHAR (only ASCII is allowed)',
 							'ERROR'
 					));
 				}
 				if( ! isId(t)){
 					problems.push(new Problem(
 							[TOKEN, t],
-							'TOKEN name has invalid CHAR(s) (only ASCII is allowed)',
+							'TOKEN name "'+t+'" has invalid CHAR(s) (only ASCII is allowed)',
 							'ERROR'
 					));
 				}
@@ -157,7 +165,7 @@ define(['commonUtils'], function(utils){
 				if( ! isArray(tlist) ){
 					problems.push(new Problem(
 							[TOKEN, t],
-							'TOKEN field is not an array, but instead has type: '+(typeof tlist),
+							'TOKEN field "'+t+'" is not an array, but instead has type: '+ toTypeString(tlist),
 							'ERROR'
 					));
 				}
@@ -168,7 +176,7 @@ define(['commonUtils'], function(utils){
 					if(size < 1){
 						problems.push(new Problem(
 								[TOKEN, t],
-								'TOKEN has no values (i.e. has empty array)',
+								'TOKEN field "'+t+'" has no values (i.e. is empty array)',
 								'WARN'
 						));
 					}
@@ -180,11 +188,14 @@ define(['commonUtils'], function(utils){
 						if(typeof v !== 'string'){
 							problems.push(new Problem(
 									[TOKEN, t, i, v],
-									'TOKEN value is not a STRING, but has type'+(typeof v),
+									'TOKEN value is not a STRING, but has type '+ toTypeString(v),
 									'WARN'
 							));
 						}
 					}
+
+					// 6. TODO check for *simplified* RegExpr & validate that they can be created
+					//         (e.g. see env/grammar/jisonGenerator.js -> _convertRegExpr(), _checkIfNotRegExpr())
 				}
 				
 				
@@ -204,9 +215,14 @@ define(['commonUtils'], function(utils){
 	 * 
 	 * @returns {Array}
 	 */
-	GrammarValidator.prototype._validateUtteranceStructure = function(){
+	GrammarValidator.prototype._validateUtteranceStructure = function(idMap){
 		var problems = [];
-			
+		var full = '$$';
+		
+		if(!idMap){
+			idMap = this.validateIdDuplicates(true);
+		}
+		
 		for(var u in this.grammar[UTTERANCE]){
 			
 			if(this.grammar[UTTERANCE].hasOwnProperty(u)){
@@ -215,7 +231,7 @@ define(['commonUtils'], function(utils){
 				if( ! isUpperCase(u)){
 					problems.push(new Problem(
 							[UTTERANCE, u],
-							'UTTERANCE name is not upper case',
+							'UTTERANCE name "'+u+'" is not upper case',
 							'WARN'
 					));
 				}
@@ -223,14 +239,14 @@ define(['commonUtils'], function(utils){
 				if( ! hasIdStart(u)){
 					problems.push(new Problem(
 							[UTTERANCE, u],
-							'UTTERANCE name starts with invalid CHAR (only ASCII is allowed)',
+							'UTTERANCE name "'+u+'" starts with invalid CHAR (only ASCII is allowed)',
 							'ERROR'
 					));
 				}
 				if( ! isId(u)){
 					problems.push(new Problem(
 							[UTTERANCE, u],
-							'UTTERANCE name has invalid CHAR(s) (only ASCII is allowed)',
+							'UTTERANCE name "'+u+'" has invalid CHAR(s) (only ASCII is allowed)',
 							'ERROR'
 					));
 				}
@@ -245,13 +261,19 @@ define(['commonUtils'], function(utils){
 					));
 				}
 				
+
+				// TODO check for variable-entries in SEMANTIC field (see SEMANTIC creation in env/grammar/...Generator.js)
 				
 				var plist = this.grammar[UTTERANCE][u][PHRASES];
 				// 4. verify phrase-field is an array
 				if( ! isArray(plist)){
+					var msg = typeof plist !== 'undefined'?
+							'PHRASES field is not an array, but instead has type: '+ toTypeString(plist) :
+							'PHRASES field is missing';
+							
 					problems.push(new Problem(
 							[UTTERANCE, u, PHRASES],
-							'PHRASES field is not an array, but instead has type: '+(typeof plist),
+							msg,
 							'ERROR'
 					));
 				}
@@ -262,7 +284,7 @@ define(['commonUtils'], function(utils){
 					if(size < 1){
 						problems.push(new Problem(
 								[UTTERANCE, u, PHRASES],
-								'UTTERANCE has no values (i.e. has empty array)',
+								'UTTERANCE\'s PHRASES has no values (i.e. is empty array)',
 								'WARN'
 						));
 					}
@@ -274,16 +296,30 @@ define(['commonUtils'], function(utils){
 						if(typeof v !== 'string'){
 							problems.push(new Problem(
 									[UTTERANCE, u, PHRASES, i, v],
-									'PHRASE value is not a STRING, but has type'+(typeof v),
+									'PHRASE value is not a STRING, but has type '+ toTypeString(v),
 									'WARN'
 							));
 						}
-//						else {
-//							//TODO tokenize phrase and verify that only existing TOKEN- and UTTERANCE-IDs are used
-//							var phraseWords = v.split(/\s/);
-//							for(...){
-//						}
+						else {
+							
+							// 7. verify that the words within phrases reference either TOKENs or UTTERANCE
+							//    i.e. "split" phrase and verify that only existing TOKEN- and UTTERANCE-IDs are used
+							var phraseWords = v.split(/\s+/);
+							var pwi = 0, pwlen = phraseWords.length;
+							var pword;
+							for(; pwi < pwlen; ++pwi){
+								pword = phraseWords[pwi];
+								if( ! (idMap[pword] && idMap[pword].state === full)){
+									problems.push(new Problem(
+											[UTTERANCE, u, PHRASES, i, v, pwi, pword],
+											'PHRASE reference "'+pword+'" is not defined (i.e. not TOKEN nor UTTERANCE)',
+											'ERROR'
+									));
+								}
+							}
+						}
 					}
+					
 				}
 				
 			}
@@ -291,6 +327,91 @@ define(['commonUtils'], function(utils){
 		
 		
 		return problems;
+	};
+	
+	/**
+	 * Validate Stopwords: 
+	 * 	* the same stopword should not be defined multiple times
+	 *  * stopwords should have type STRING
+	 *  * TODO stopwords may be RegExp (only "simplified" version allowed?)
+	 * 
+	 * @see Problem
+	 * 
+	 * @param {Boolean} [isReturnIdMap]
+	 * 				if present and <code>true</code>, then the created
+	 * 				Map object is returned, containing all IDs
+	 * 
+	 * @returns {Array<Problems> | Map<String,Location>}
+	 * 			either a list of all found Problems (may be empty),
+	 * 			or the created Map that
+	 * 			contains the "location" for all IDs:
+	 * 			MAP = {
+	 * 				//location for ID "id":
+	 * 				"id": {	
+	 * 					"state": "$$", // internally used marker
+	 * 					"location": ["path", "to", "id"] // list of nested properties / objects to the ID
+	 * 				},
+	 * 				//location for ID "someOtherId":
+	 * 				"someOtherId": { 
+	 * 					...
+	 * 			}
+	 * 
+	 * 			in the example result above, the ID "id" would be located at:
+	 * 			
+	 * 			{
+	 * 				"path": {
+	 * 					"to": "id"
+	 * 				}
+	 * 			}
+	 * 			
+	 * 			in the JSON grammar.
+	 */
+	GrammarValidator.prototype.validateStopwords = function(isReturnIdMap){
+		
+		var problems = [];
+		
+		var map = {};
+		var full = '$$';
+		
+		var i,size,sw;
+		
+		// 1. stopwords should only occur / be defined once
+		// 2. stopword entries should have type STRING
+		// 3. TODO check for RegExpr & validate that they can be compile / created
+
+		
+		for(i=0, size = this.grammar[STOPWORDS].length; i < size; ++i){
+			
+			sw = this.grammar[STOPWORDS][i];
+			
+			// 1. for each stopword name: verify it does not already exist (using the map)
+			if(map[sw] && map[sw].state === full){
+				problems.push(new Problem(
+						[STOPWORDS, i, sw],
+						'STOPWORD "'+sw+'" was already defined at ' + getLoc( map[sw].location ),
+						'WARN'
+				));
+			}
+			else {
+				map[sw] = {
+					state: full,
+					location: [STOPWORDS, i, sw]
+				};
+			}
+			
+			// 2. stopword entry should have type STRING
+			if(typeof sw !== 'string'){
+				problems.push(new Problem(
+						[STOPWORDS, i, sw],
+						'STOPWORD value is not a STRING, but has type '+ toTypeString(sw),
+						'WARN'
+				));
+			}
+			
+		}
+		
+		return isReturnIdMap? map : problems;
+		
 	};
 	
 	/**
@@ -346,7 +467,7 @@ define(['commonUtils'], function(utils){
 					//NOTE this should never happen, since here, we only have TOKEN names...
 					problems.push(new Problem(
 							[TOKEN, t],
-							'TOKEN name already exists at ' + getLoc( map[t].location ),
+							'TOKEN name "'+t+'" already exists at ' + getLoc( map[t].location ),
 							'ERROR'
 					));
 				}
@@ -369,7 +490,7 @@ define(['commonUtils'], function(utils){
 					//UTTERANCE name may collide with a TOKEN name...
 					problems.push(new Problem(
 							[UTTERANCE, u], 
-							'UTTERANCE name already exists at ' + getLoc( map[u].location ),
+							'UTTERANCE name "'+u+'" already exists at ' + getLoc( map[u].location ),
 							'ERROR'
 					));
 				}
@@ -419,6 +540,11 @@ define(['commonUtils'], function(utils){
 			if(this.grammar[TOKEN].hasOwnProperty(t)){
 					
 				var tlist = this.grammar[TOKEN][t];
+				if(!isArray(tlist)){
+					//validation error for this is created in _validateTokenStructure
+					continue;
+				}
+				
 				var v;
 				// for each token-entry: verify it does not already exist (using the map)
 				for(var i=0, size = tlist.length; i < size; ++i){
@@ -428,8 +554,8 @@ define(['commonUtils'], function(utils){
 					if(map[v] && map[v].state === full){
 						problems.push(new Problem(
 								[TOKEN, t, i, v],
-								'TOKEN value already exists at ' + getLoc( map[v].location ),
-								'ERROR'
+								'TOKEN value "'+v+'" already exists at ' + getLoc( map[v].location ),
+								'WARN'
 						));
 					}
 					else {
@@ -464,6 +590,9 @@ define(['commonUtils'], function(utils){
 			if(this.grammar[UTTERANCE].hasOwnProperty(u)){
 					
 				var plist = this.grammar[UTTERANCE][u][PHRASES];
+				if(!plist){
+					break;
+				}
 				var size = plist.length;
 				
 				var v;
@@ -476,8 +605,8 @@ define(['commonUtils'], function(utils){
 					if(map[v] && map[v].state === full){
 						problems.push(new Problem(
 								[UTTERANCE, u, PHRASES, i, v],
-								'PHRASE value already exists at ' + getLoc( map[v].location ),
-								'ERROR'
+								'PHRASE "'+v+'" already exists at ' + getLoc( map[v].location ),
+								'WARN'
 						));
 					}
 					else {
