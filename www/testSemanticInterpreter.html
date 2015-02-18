@@ -50,21 +50,22 @@
 	
 	<script type="text/javascript" src="mmirf/vendor/libs/require.js"></script>
 	
-	<script type="text/javascript" src="appTestSemantic/init.js"></script>
+	<script type="text/javascript" src="appTestSemantic/config.js"></script>
 		
 	<style type="text/css">
 	</style>
 
 	<script type="text/javascript" src="appTestSemantic/app.js"></script>
 	
-	<script type="text/javascript" src="appTestSemantic/initJqmNav.js"></script>
+	<!-- script type="text/javascript" src="appTestSemantic/initJqmNav.js"></script-->
 	
 </head>
 
 <body>
 
 
-<!-- ################### Popup dialog: ################################# -->				
+<!-- ################### Popup dialog: ################################# -->
+<div style="display:none">			
 	<div data-role="popup" id="parseErrorPopup" data-overlay-theme="a" data-theme="a" data-dismissible="false" class="ui-corner-all">
 	    <div data-role="header" data-theme="a" class="ui-corner-top">
 	        <h1 id="parseErrorPopupTitle">a short title</h1>
@@ -75,7 +76,93 @@
 	        <!-- a href="#" data-role="button" data-inline="true" data-rel="back" data-theme="b">OK</a-->
 	    </div>
 	</div>
+	
+	<div data-role="popup" id="popupMaskingInfo" class="ui-content" data-theme="a" style="max-width:350px;">
+	  <p><h3>Preview masking (for non-ASCII characters)</h3>
+	    
+	    If the JSON values contain <strong>unicode</strong>
+	  	characters (i.e. non-ASCII chars), they will get <em>masked</em> before creating
+	  	the JS/CC definition, and compiling the executable JavaScript grammar.
+	  	<br/><br/>
+	  	You can preview the effects of <em>masking</em> by using
+	  	<strong>mask</strong> and <strong>unmask</strong>.
+	  	<br/><br/>
+	  	
+	  	<strong>NOTE</strong> that the grammar will not be able
+	  	to detect tokens that correspond to the masking pattern itself,
+	  	e.g. the token <code>~~751F~~</code> will not be detected, but
+	  	instead its <em>unmasked</em> representation <code>&#x751F;</code>.
+	  	<br/><br/>
+	  </p>
+	</div>
+	
+	<div data-role="popup" id="popupGrammarIdInfo" class="ui-content" data-theme="a" style="max-width:350px;">
+	  <p>The <strong>Grammar ID</strong> 
+	  	is internally used to identify the grammar, that is, 
+	  	the ID is used to manage multiple grammars.<br/>
+	  	If a grammar with the same ID already exists, it will replaced.<br/>
+	  </p>
+	</div>
 
+	<div data-role="popup" id="popupFormatConversionInfo" class="ui-content" data-theme="a" style="max-width:600px;">
+	  <p><h3>Upgrading old umlaut-encoded JSON grammars</h3>
+	     
+	  	 The old file format for JSON grammars used a special masking
+	     for non-ASCII umlauts (e.g. &#246; or &#196;; also for &#223;).
+	     <p>
+	     For example:
+	     <code>&#246;</code> &rarr; <code>__oe__</code>
+	     </p>
+	     <p>
+	     The <b>old</b> file format was targeted at ASCII encoded files which
+	     required that the masking was already used in the JSON files
+	     themselves.
+	     <br/>
+	     For example:
+	<pre> "stop_word": [
+	    "ich",
+	    "m__oe__chte",
+	    ...</pre>
+	     </p>
+	     <p>
+	     The <b>new</b> file format internally uses a generic masking for all
+	     non-ASCII characters. But more importantly, it targets UTF-8
+	     encoded files which allows using (almost all) unicode characters
+	     directly within the JSON files; i.e. <b>no masking</b> in the 
+	     files themselves is required.
+	     <br/>
+	     For example:
+	<pre> "stop_word": [
+	    "ich",
+	    "m&#246chte",
+	    ...</pre>
+	    or alternatively with new masking:
+	<pre> "stop_word": [
+	    "ich",
+	    "m~~00F6~~chte",
+	    ...</pre>
+	    				 
+	     </p>
+	     <p>
+	     Unfortunately the new masking-mechanism is incompatible with 
+	     the old one, i.e. JSON files which contain the old masking 
+	     will not work correctly with the new masking.
+	     <br/>
+	     As a result, old-style formatted JSON files (with masking)
+	     must be converted, i.e. old-style masking must be revered
+	     (unmasked) so that the either no masking is done or,
+	     alternatively, the new masking style may be used, too.
+	     </p>
+	     <p>
+	     For this purpose, the <b>upgrade</b> button will convert 
+	     old-style masked umlauts back to the unmasked, original
+	     umlauts; and the <b>downgrade</b> button will reverse that
+	     effect (i.e. apply old-stlye masking).
+	     </p>
+	     
+	  </p>
+	</div>
+</div>
 <!-- ##################################### SECTION: Introduction / heading  ######################################## -->
     
     <div id="semantic-test-main" style="height: 400px"></div>
@@ -175,16 +262,9 @@
 					data-role="button" 
 					data-inline="true" 
 					data-transition="pop">
-					 
 					Grammar ID information
 				</a>
-				<div data-role="popup" id="popupGrammarIdInfo" class="ui-content" data-theme="a" style="max-width:350px;">
-				  <p>The <strong>Grammar ID</strong> 
-				  	is internally used to identify the grammar, that is, 
-				  	the ID is used to manage multiple grammars.<br/>
-				  	If a grammar with the same ID already exists, it will replaced.<br/>
-				  </p>
-				</div>
+				
 			</div>
 			
 			<div class="grid-cell" style="padding-left:2em;"><div data-role="collapsible" data-collapsed="true" id="grammarTools">
@@ -204,27 +284,9 @@
 						data-role="button" 
 						data-inline="true" 
 						data-transition="pop">
-						 
 						Masking information
 					</a>
-					<div data-role="popup" id="popupMaskingInfo" class="ui-content" data-theme="a" style="max-width:350px;">
-					  <p><h3>Preview masking (for non-ASCII characters)</h3>
-					    
-					    If the JSON values contain <strong>unicode</strong>
-					  	characters (i.e. non-ASCII chars), they will get <em>masked</em> before creating
-					  	the JS/CC definition, and compiling the executable JavaScript grammar.
-					  	<br/><br/>
-					  	You can preview the effects of <em>masking</em> by using
-					  	<strong>mask</strong> and <strong>unmask</strong>.
-					  	<br/><br/>
-					  	
-					  	<strong>NOTE</strong> that the grammar will not be able
-					  	to detect tokens that correspond to the masking pattern itself,
-					  	e.g. the token <code>~~751F~~</code> will not be detected, but
-					  	instead its <em>unmasked</em> representation <code>&#x751F;</code>.
-					  	<br/><br/>
-					  </p>
-					</div>
+					
 				</div>
 				
 				<div id="format-converter" style="padding-left:2em;float:left;">
@@ -240,67 +302,9 @@
 						data-role="button" 
 						data-inline="true" 
 						data-transition="pop">
-						 
 						Upgrade information
 					</a>
-					<div data-role="popup" id="popupFormatConversionInfo" class="ui-content" data-theme="a" style="max-width:600px;">
-					  <p><h3>Upgrading old umlaut-encoded JSON grammars</h3>
-					     
-					  	 The old file format for JSON grammars used a special masking
-					     for non-ASCII umlauts (e.g. &#246; or &#196;; also for &#223;).
-					     <p>
-					     For example:
-					     <code>&#246;</code> &rarr; <code>__oe__</code>
-					     </p>
-					     <p>
-					     The <b>old</b> file format was targeted at ASCII encoded files which
-					     required that the masking was already used in the JSON files
-					     themselves.
-					     <br/>
-					     For example:
-	<pre> "stop_word": [
-	    "ich",
-	    "m__oe__chte",
-	    ...</pre>
-					     </p>
-					     <p>
-					     The <b>new</b> file format internally uses a generic masking for all
-					     non-ASCII characters. But more importantly, it targets UTF-8
-					     encoded files which allows using (almost all) unicode characters
-					     directly within the JSON files; i.e. <b>no masking</b> in the 
-					     files themselves is required.
-					     <br/>
-					     For example:
-	<pre> "stop_word": [
-	    "ich",
-	    "m&#246chte",
-	    ...</pre>
-	    				 or alternatively with new masking:
-	<pre> "stop_word": [
-	    "ich",
-	    "m~~00F6~~chte",
-	    ...</pre>
-	    				 
-					     </p>
-					     <p>
-					     Unfortunately the new masking-mechanism is incompatible with 
-					     the old one, i.e. JSON files which contain the old masking 
-					     will not work correctly with the new masking.
-					     <br/>
-					     As a result, old-style formatted JSON files (with masking)
-					     must be converted, i.e. old-style masking must be revered
-					     (unmasked) so that the either no masking is done or,
-					     alternatively, the new masking style may be used, too.
-					     </p>
-					     <p>
-					     For this purpose, the <b>upgrade</b> button will convert 
-					     old-style masked umlauts back to the unmasked, original
-					     umlauts; and the <b>downgrade</b> button will reverse that
-					     effect (i.e. apply old-stlye masking).
-					     </p>
-					     
-					  </p>
-					</div>
+					
 				</div>
 			</p>
 		</div></div>

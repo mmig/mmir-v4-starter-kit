@@ -198,70 +198,109 @@ var ERROR_MARKER, WARNING_MARKER, BOOKMARK_MARKER;
 				 	 // start the app
 					 .then(function() {
 					 
-						initJqmBookmarking();
-						initPage();				
+//						initJqmBookmarking();// in initJqmNav.js
+						initPage();// in app.js
 	
 					 });
 				 
 				 
 				 
+//				 $('#semantic-test-main').w2layout({
+//				        name: 'GrammarTester',
+//				        panels: [
+//				            { type: 'top', size: 60 },
+//				            { type: 'left', size: 150, resizable: true },
+//				            { type: 'right', size: 150, resizable: true }
+//				        ]
+//				 });
+//				 
+//				 w2ui.GrammarTester.set('main', {
+//					 content: '<div id="tabs" style="width: 100%;"></div><div id="selected-tab" style="padding: 10px 0px">tab1</div>',
+//					 title: 'Semantic Tester',
+////					 content: $('#inputBox')[0],
+////					 tabs: {
+////					        name     : 'tabs',
+////					        active     : 'tab1',
+////					        tabs    : [
+////					            { id: 'tab1', caption: 'Tab 1' },
+////					            { id: 'tab2', caption: 'Tab 2' },
+////					            { id: 'tab3', caption: 'Tab 3' },
+////					            { id: 'tab4', caption: 'Tab 4' }
+////					        ],
+////					        onClick: function (event) {
+////					            $('#selected-tab').html(event.target);
+////					        }
+////					 },
+//					 toolbar: {
+//						 items: [
+//						         { id: 'bt1', type: 'button', caption: 'Button 1', img: 'icon-page' },
+//						         { id: 'bt2', type: 'button', caption: 'Button 2', img: 'icon-page' },
+//						         { id: 'bt3', type: 'button', caption: 'Button 3', img: 'icon-page' }
+//					         ],
+//				         onClick: function (event) {
+//				        	 console.log('event toolbar');
+//				         }
+//					 } 
+//
+//				 });
+//				 
+//				 $('#tabs').w2tabs({
+//				        name     : 'tabs',
+//				        active     : 'tab1',
+//				        tabs    : [
+//				            { id: 'tab1', caption: 'Tab 1' },
+//				            { id: 'tab2', caption: 'Tab 2' },
+//				            { id: 'tab3', caption: 'Tab 3' },
+//				            { id: 'tab4', caption: 'Tab 4' }
+//				        ],
+//				        onClick: function (event) {
+//				            $('#selected-tab').html(event.target);
+//				        }
+//				 });
+//				 
+//				 w2ui.GrammarTester.showTabs('main');
+//				 w2ui.GrammarTester.showToolbar('main');
+				 
+				 var pstyle = 'border: 1px solid #dfdfdf; padding: 5px;';
 				 $('#semantic-test-main').w2layout({
 				        name: 'GrammarTester',
 				        panels: [
-				            { type: 'top', size: 60 },
-				            { type: 'left', size: 150, resizable: true },
-				            { type: 'right', size: 150, resizable: true }
+//				            { type: 'top', size: 50, resizable: true, style: pstyle, content: 'top' },
+				            { type: 'left', size: 200, resizable: true, style: pstyle, content: 'left' },
+				            { type: 'main', style: pstyle + 'border-top: 0px;', content: 'main', 
+				                tabs: {
+				                    active: 'tab1',
+				                    tabs: [
+				                        { id: 'tab1', caption: 'Tab 1' },
+				                        { id: 'tab2', caption: 'Tab 2' },
+				                        { id: 'tab3', caption: 'Tab 3' },
+				                    ],
+				                    onClick: function (event) {
+				                        this.owner.content('main', event);
+				                    }
+				                },
+				                toolbar: {
+				                    items: [
+				                        { type: 'check',  id: 'item1', caption: 'Check', img: 'icon-page', checked: true },
+				                        { type: 'break',  id: 'break0' },
+				                        { type: 'menu',   id: 'item2', caption: 'Drop Down', img: 'icon-folder', items: [
+				                            { text: 'Item 1', icon: 'icon-page' }, 
+				                            { text: 'Item 2', icon: 'icon-page' }, 
+				                            { text: 'Item 3', value: 'Item Three', icon: 'icon-page' }
+				                        ]},
+				                        { type: 'break', id: 'break1' },
+				                        { type: 'radio',  id: 'item3',  group: '1', caption: 'Radio 1', img: 'icon-page', hint: 'Hint for item 3', checked: true },
+				                        { type: 'radio',  id: 'item4',  group: '1', caption: 'Radio 2', img: 'icon-page', hint: 'Hint for item 4' },
+				                        { type: 'spacer' },
+				                        { type: 'button',  id: 'item5',  caption: 'Item 5', icon: 'w2ui-icon-check', hint: 'Hint for item 5' }
+				                    ],
+				                    onClick: function (event) {
+				                        this.owner.content('main', event);
+				                    }
+				                }
+				            }
 				        ]
-				 });
-				 
-				 w2ui.GrammarTester.set('main', {
-					 content: '<div id="tabs" style="width: 100%;"></div><div id="selected-tab" style="padding: 10px 0px">tab1</div>',
-					 title: 'Semantic Tester',
-//					 content: $('#inputBox')[0],
-//					 tabs: {
-//					        name     : 'tabs',
-//					        active     : 'tab1',
-//					        tabs    : [
-//					            { id: 'tab1', caption: 'Tab 1' },
-//					            { id: 'tab2', caption: 'Tab 2' },
-//					            { id: 'tab3', caption: 'Tab 3' },
-//					            { id: 'tab4', caption: 'Tab 4' }
-//					        ],
-//					        onClick: function (event) {
-//					            $('#selected-tab').html(event.target);
-//					        }
-//					 },
-					 toolbar: {
-						 items: [
-						         { id: 'bt1', type: 'button', caption: 'Button 1', img: 'icon-page' },
-						         { id: 'bt2', type: 'button', caption: 'Button 2', img: 'icon-page' },
-						         { id: 'bt3', type: 'button', caption: 'Button 3', img: 'icon-page' }
-					         ],
-				         onClick: function (event) {
-				        	 console.log('event toolbar');
-				         }
-					 } 
-
-				 });
-				 
-				 $('#tabs').w2tabs({
-				        name     : 'tabs',
-				        active     : 'tab1',
-				        tabs    : [
-				            { id: 'tab1', caption: 'Tab 1' },
-				            { id: 'tab2', caption: 'Tab 2' },
-				            { id: 'tab3', caption: 'Tab 3' },
-				            { id: 'tab4', caption: 'Tab 4' }
-				        ],
-				        onClick: function (event) {
-				            $('#selected-tab').html(event.target);
-				        }
-				 });
-				 
-				 w2ui.GrammarTester.showTabs('main');
-				 w2ui.GrammarTester.showToolbar('main');
-				 
-
+				    });
 			 });
 
 	 });
