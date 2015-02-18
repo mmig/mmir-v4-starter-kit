@@ -380,34 +380,43 @@ define(['commonUtils'], function(utils){
 		// 3. TODO check for RegExpr & validate that they can be compile / created
 
 		
-		for(i=0, size = this.grammar[STOPWORDS].length; i < size; ++i){
+		if( isArray(this.grammar[STOPWORDS]) ){
+			for(i=0, size = this.grammar[STOPWORDS].length; i < size; ++i){
 			
-			sw = this.grammar[STOPWORDS][i];
-			
-			// 1. for each stopword name: verify it does not already exist (using the map)
-			if(map[sw] && map[sw].state === full){
-				problems.push(new Problem(
-						[STOPWORDS, i, sw],
-						'STOPWORD "'+sw+'" was already defined at ' + getLoc( map[sw].location ),
-						'WARN'
-				));
+				sw = this.grammar[STOPWORDS][i];
+				
+				// 1. for each stopword name: verify it does not already exist (using the map)
+				if(map[sw] && map[sw].state === full){
+					problems.push(new Problem(
+							[STOPWORDS, i, sw],
+							'STOPWORD "'+sw+'" was already defined at ' + getLoc( map[sw].location ),
+							'WARN'
+					));
+				}
+				else {
+					map[sw] = {
+						state: full,
+						location: [STOPWORDS, i, sw]
+					};
+				}
+				
+				// 2. stopword entry should have type STRING
+				if(typeof sw !== 'string'){
+					problems.push(new Problem(
+							[STOPWORDS, i, sw],
+							'STOPWORD value is not a STRING, but has type '+ toTypeString(sw),
+							'WARN'
+					));
+				}
+				
 			}
-			else {
-				map[sw] = {
-					state: full,
-					location: [STOPWORDS, i, sw]
-				};
-			}
-			
-			// 2. stopword entry should have type STRING
-			if(typeof sw !== 'string'){
-				problems.push(new Problem(
-						[STOPWORDS, i, sw],
-						'STOPWORD value is not a STRING, but has type '+ toTypeString(sw),
-						'WARN'
-				));
-			}
-			
+		} else {
+			var msg = typeof this.grammar[STOPWORDS] === 'undefined'? 'Missing' : 'Wrong type ('+(typeof this.grammar[STOPWORDS])+') for'; 
+			problems.push(new Problem(
+					[STOPWORDS],
+					msg+' STOPWORD list: must have property "'+STOPWORDS+'" with Array-value, e.g.: "'+STOPWORDS+'": []',
+					'ERROR'
+			));
 		}
 		
 		return isReturnIdMap? map : problems;
