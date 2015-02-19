@@ -31,23 +31,12 @@
 		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	-->
 	
-    <link rel="stylesheet" href="appTestSemantic/css/jqueryui/jquery-ui.css" />
     <link rel="stylesheet" href="appTestSemantic/css/built-editor.css" />
     <link rel="stylesheet" href="appTestSemantic/css/w2ui-1.4.2.css" />
+    <link rel="stylesheet" href="appTestSemantic/css/font-awesome.css" />
     
     <link rel="stylesheet" href="appTestSemantic/css/app.css" />
-    
-	<!-- script type="text/javascript">
-		//disable jQuery Mobiles navigation/history handling (-> allow simple # links within page)
-		//NOTE this needs to be done, before jQuery Mobile JS is loaded!
-		$(document).on("mobileinit", function(){
-			$.mobile.hashListeningEnabled = false;
-			$.mobile.pushStateEnabled = false;
-			$.mobile.linkBindingEnabled = false;
-		});
-	</script-->
-	
-	
+    	
 	<script type="text/javascript" src="mmirf/vendor/libs/require.js"></script>
 	
 	<script type="text/javascript" src="appTestSemantic/config.js"></script>
@@ -63,9 +52,387 @@
 
 <body>
 
+<div id="full">
 
+    <div id="semantic-test-main" style="height: 100%;"></div>
+    
+</div>
+
+<div id="gui-elements" style="display:none">
+
+	<!-- editor element / placeholder -->
+	<pre id="inputBox" class="editor"></pre>
+
+	<!-- error/warning output box (console) -->
+	<div id="console-element">
+		<div id="outputBox" class="outbox"></div>
+	</div>
+	
+	<!-- interpertation element (input/output for semantics) -->
+	<div id="interpreter-element" class="side-panel">
+		
+		<form id="form-test-semantic">
+			<div class="">
+				<h5>Test Semantics:</h5>
+				<input type="text" id="interpretationInputBox"></input>
+				<button id="btn-test-semantic" class="btn">Process</button>
+			</div>
+		</form>
+		
+		<div class="" id="defaultProcInterpretationCol">
+			<h5>Result:</h5>
+			<div id="interpretationBox" class="outbox"></div>
+		</div>
+		
+		<div class="hidden" id="altProcInterpretationCol">
+			<h5>Alternate Interpreter Result:
+				<span class="text hint small">
+					(using alternate method for stopword removal)
+				</span>
+			</h5>
+			<div id="interpretationBoxAlt" class="outbox"></div>
+		</div>
+		
+		<div id="benchmark-semantic-element">
+			<br/>
+			<button id="btn-benchmark-semantic" class="btn">Benchmark...</button>
+			<br/>
+			&nbsp;<span id="benchmark-time"></span>
+			
+			<div id="benchmark-alt-semantic" class="hidden">
+				<br/>
+				&nbsp;<span id="benchmark-time-mod"></span>
+			</div>
+			
+		</div>
+	</div>
+	
+	<!-- outbox for intermediate grammar definition (e.g. jscc / jison / pegjs) -->
+	<div id="intermediate-grammar-element">
+		<textarea id="compileOutBox" readonly="readonly" class="outbox"></textarea>
+	</div>
+	
+	<!-- outbox for compiled/executable JavaScript grammar code -->
+	<div id="compiled-grammar-element">
+		<textarea id="compiledParserOutBox" readonly="readonly" class="outbox"></textarea>
+	</div>
+	
+</div>
+
+<div style="display:none">
+
+    <a name="top"></a>
+    <h1>Semantic Parser Test: Grammar Compiler</h1>
+    
+    <div data-role="collapsible" data-collapsed="true">
+	   <h3>Introduction</h3>
+	   <p>
+		    <div style="font-size: 0.9em;width: 100%; white-space: normal !important;">
+		    <strong>NOTE:</strong>
+				On initial load of the page, the <tt>Language</tt> list 
+		    	is loaded from the file <code>config/directories.json</code>: for each found language
+		    	directory (<code>config/languages/</code>),	an entry is generated -- on selection, the
+		    	corresponing JSON file is attempted to be read and compiled.<br/>
+		    	<i>Note, that there may not be a JSON file for the lanuage available -- in this case an
+		    	 error message will be shown on selection.</i><br/>
+		    	
+		    	<p>You can use the file selector, for loading a JSON grammar from  the local file system</p>
+		    	
+		    	<p>Alternatively, you can enter (e.g. copy&paste) a JSON-formatted grammar into the 
+		    	<i>JSON Grammar Definition</i> field and then press the <i>parse</i> button.</p>
+		    	<br/>
+		    </div>
+		</p>
+	</div>
+    
+    <hr/>
+		    		
+    <div id="toc">
+	    <h5  style="display:inline"> TOC: </h5>
+	    <fieldset data-role="controlgroup" data-mini="true" data-type="horizontal" style="display:inline;padding-left:2em;">	
+	    			<a class="ui-btn ui-corner-all ui-btn-b ui-icon-arrow-d ui-btn-icon-left" href="#json-grammar">JSON Grammar</a>
+	    			<a class="ui-btn ui-corner-all ui-btn-b ui-icon-arrow-d ui-btn-icon-left" href="#interpreter-tester">TEST interpretation</a> 
+	    			<a class="ui-btn ui-corner-all ui-btn-b ui-icon-arrow-d ui-btn-icon-left" href="#stopword-tester">TEST stopword processing</a>
+	    			<a class="ui-btn ui-corner-all ui-btn-b ui-icon-arrow-d ui-btn-icon-left" href="#jsjc-grammar">JS/JC Grammar</a>
+	    			<a class="ui-btn ui-corner-all ui-btn-b ui-icon-arrow-d ui-btn-icon-left" href="#compiled-parser">Compiled parser code</a>
+	    </fieldset>  
+    </div>
+    <hr/>
+</div>
+
+<!-- ##################################### SECTION: JSON Grammar Definition  ######################################## -->
+<div style="display:none">  
+	<div id="load-tools" class="ui-body-d" style="float:right;padding:1em;margin:0.5em;">
+		<h4  class="grid-cell" style="vertical-align: middle;">Load Grammar Options: </h4>
+		<div id="language-selection-area" class="grid-cell">
+			<div id="lang-selector-manual-input">
+				<!-- label for="lang-selector-field">Language:</label--> 
+				<input type="text" id="lang-selector-field" />
+			</div>
+			<div id="lang-selector" style="display:none;"></div>
+		</div>
+		<div class="grid-cell">
+			<input type="file" id="file-selector" accept="text" name="files[]" />
+		</div>
+	</div>
+	
+    
+	<a name="json-grammar"></a>
+	<div style="float:left;" class="grid">
+    	<div class="grid-cell" style="vertical-align: middle;padding-right:3em;">
+    		<a href="#top" class="ui-link ui-btn ui-btn-b ui-icon-arrow-u ui-btn-icon-left ui-shadow ui-corner-all ui-mini">top</a>
+    	</div>
+		<div class="grid-cell">
+    		<h2>JSON Grammar Definition:</h2> 
+    	</div>
+	</div>
+	
+	<div style="clear:both;"></div>
+		
+    <div style="float:left; width: 70%;">
+	    <h5>JSON grammar definition:</h5>
+		<!-- textarea id="inputBox" rows="20" style="width: 100%;height:300px;" data-role="none" data-enhance="false"></textarea><br/-->
+		
+		<!-- pre id="inputBox" class="editor" style="width: 100%;height:300px;"></pre><br/-->
+		
+		<div style="float:left;">
+		
+			<input type="button" onclick="selectJsonGrammar();" value="Select All" style="right:0;"/>
+			
+		</div><div style="float:right;"  class="grid">
+			
+			<div class="grid-cell">
+				<input type="button" onclick="parseInput();" value="Parse"/>
+			</div>
+			
+			<fieldset class="grid-cell" style="padding-left:0.2em;">
+				<label for="grammar-id">Grammar ID:</label>
+				<input id="grammar-id" type="text" data-inline="true"/>
+			</fieldset>
+			
+			<div class="grid-cell" style="vertical-align:top">
+				<a href="#popupGrammarIdInfo" id="openPopupGrammarIdInfo"
+					class="ui-link ui-btn ui-btn-a ui-icon-info ui-btn-icon-notext ui-btn-inline ui-shadow ui-corner-all" 
+					data-rel="popup" 
+					data-role="button" 
+					data-inline="true" 
+					data-transition="pop">
+					Grammar ID information
+				</a>
+				
+			</div>
+			
+			<div class="grid-cell" style="padding-left:2em;"><div data-role="collapsible" data-collapsed="true" id="grammarTools">
+			   <h3>JSON Grammar Tools</h3>
+			   <p>
+			   
+				<div style="padding-left:2em;float:left;">
+					<fieldset data-role="controlgroup" data-type="horizontal">
+						<input type="button" onclick="maskJsonValues()" value="mask"/>
+						<input type="button" onclick="unmaskJsonValues()" value="unmask"/>
+					</fieldset>
+				</div>
+				<div class="grid-cell" style="vertical-align:middle">
+					<a href="#popupMaskingInfo" id="openPopupMaskingInfo"
+						class="ui-link ui-btn ui-btn-a ui-icon-info ui-btn-icon-notext ui-btn-inline ui-shadow ui-corner-all"
+						data-rel="popup" 
+						data-role="button" 
+						data-inline="true" 
+						data-transition="pop">
+						Masking information
+					</a>
+					
+				</div>
+				
+				<div id="format-converter" style="padding-left:2em;float:left;">
+					<fieldset data-role="controlgroup" data-type="horizontal">
+						<input type="button" onclick="convertFromOldJSONFormat()" value="upgrade"/>
+						<input type="button" onclick="convertToOldJSONFormat()" value="downgrade"/>
+					</fieldset>
+				</div>
+				<div class="grid-cell" style="vertical-align:middle">
+					<a href="#popupFormatConversionInfo" id="openPopupFormatConversionInfo"
+						class="ui-link ui-btn ui-btn-a ui-icon-info ui-btn-icon-notext ui-btn-inline ui-shadow ui-corner-all"
+						data-rel="popup" 
+						data-role="button" 
+						data-inline="true" 
+						data-transition="pop">
+						Upgrade information
+					</a>
+					
+				</div>
+			</p>
+		</div></div>
+			
+		</div>
+		<div style="clear:both;"></div>
+		
+		<!-- input type="button" onclick="clearOut();" value="Clear"/-->
+		
+		<br/>
+    </div>
+    <!-- div style="float:right; width: 27%;">
+	    <h5>Output/Error:</h5>
+	    <div id="outputBox" class="outbox"></div>
+    </div-->
+	
+	<div style="clear: both;"></div>
+</div>
+<!-- ##################################### SECTION: Semantic Parser Test: Interpertation  ######################################## -->
+    
+    <div style="display: none;float:left; clear: left; width: 100%;"><div style="clear: right; width: 100%;">
+	
+		<table width="100%" border="0">
+			<tr>
+				<td colspan="3">
+					<hr/>
+					<a name="interpreter-tester"></a><br/>
+					<div style="float:left;" class="grid">
+				    	<div class="grid-cell" style="vertical-align: middle;padding-right:3em;">
+				    		<a href="#top" class="ui-link ui-btn ui-btn-b ui-icon-arrow-u ui-btn-icon-left ui-shadow ui-corner-all ui-mini">top</a>
+				    	</div>
+						<div class="grid-cell">
+							<h2>Semantic Parser Test: Interpertation</h2>
+				    	</div>
+					</div>
+				</td>
+			</tr>
+			<!-- tr>
+				<td valign="top">
+					<h5>TEST Interpret Sentence:</h5>
+					<textarea id="interpretationInputBox" rows="1" cols="30"></textarea>
+					<br/>
+					<input type="button" onclick="processInterpretation();" value="Interpret"/>
+					<br/>
+					<input type="button" onclick="benchmarkInterpretation();" value="Benchmark"/>
+					<br/>
+					<span id="time"></span>
+					<br/>
+					<span id="time-mod"></span>
+				</td>
+				<td valign="top" id="defaultProcInterpretationCol">
+					<h5>Interpreter Result:</h5>
+					<div id="interpretationBox" class="outbox"></div>
+				</td>
+				<td valign="top" id="altProcInterpretationCol">
+					<h5>Alternate Interpreter Result:
+						<span style="font-size:x-small;font-weight: lighter;">
+							(using alternate method for stopword removal)
+						</span>
+					</h5>
+					<div id="interpretationBoxAlt"></div>
+				</td>
+			</tr-->
+			<tr>
+				<td colspan="3">
+					<hr/>
+					<a name="stopword-tester"></a><br/>
+					
+					<div style="float:left;" class="grid">
+				    	<div class="grid-cell" style="vertical-align: middle;padding-right:3em;">
+				    		<a href="#top" class="ui-link ui-btn ui-btn-b ui-icon-arrow-u ui-btn-icon-left ui-shadow ui-corner-all ui-mini">top</a>
+				    	</div>
+						<div class="grid-cell">
+							<h2>Semantic Parser Test: Stopword</h2>
+				    	</div>
+					</div>
+				</td>
+				
+			</tr>
+			<tr>
+				<td valign="top">
+					<h5>TEST Process Stopwords:</h5>
+					<textarea id="stopwordInputBox" rows="1" cols="30"></textarea>
+					<br/>
+					<input type="button" onclick="stopword();" value="Apply Stopwords"/>
+				</td>
+				<td valign="top" id="defaultProcStopwordCol">
+					<h5>Stopword Result:</h5>
+					<div id="stopwordBox" class="outbox"></div>
+				</td>
+				<td valign="top" id="altProcStopwordCol">					
+					<h5>Stopword Result 
+							<span style="font-size:x-small;font-weight: lighter;">
+								(alternative stopword processing method)
+							</span>:
+					</h5>
+					<div id="stopwordBox2" class="outbox"></div>
+				</td>
+			</tr>
+		</table>
+		
+		<hr/>
+
+
+<!-- ##################################### SECTION: JS/JC Grammar Definition ######################################## -->
+    
+		
+		<div>
+			<a name="jsjc-grammar"></a>
+		    <div style="float:left;" class="grid">
+		    	<div class="grid-cell" style="vertical-align: middle;padding-right:3em;">
+		    		<a href="#top" class="ui-link ui-btn ui-btn-b ui-icon-arrow-u ui-btn-icon-left ui-shadow ui-corner-all ui-mini">top</a>
+		    	</div>
+		    	<div class="grid-cell">
+		    		<h2>JS/JC Grammar Definition (generated from JSON grammar):</h2>
+		    	</div>
+		    </div>
+			<div style="clear:both;"></div>
+		    	
+		    <p>This is the specification of grammar in <a target="jscc" href="http://jscc.phorward-software.com/">JS/CC</a> syntax</p>
+			<!-- textarea  id="compileOutBox" readonly="readonly" class="outbox"></textarea-->
+			
+			<div style="float:left;">
+				<input type="button" onclick="selectJsjcGrammar();" value="Select All"/>
+			</div>
+			<div style="clear:both;"></div>
+		</div>
+		
+		<hr/>
+
+<!-- ##################################### SECTION: Compiled Parser Code (JavaScript) ######################################## -->
+    
+		<div style="width: 100%;">
+		
+			<a name="compiled-parser"></a>
+		
+		    <div style="float:left;" class="grid">
+		    	<div class="grid-cell" style="vertical-align: middle;padding-right:3em;">
+		    		<a href="#top" class="ui-link ui-btn ui-btn-b ui-icon-arrow-u ui-btn-icon-left ui-shadow ui-corner-all ui-mini">top</a>
+		    	</div>
+		    	<div class="grid-cell">
+					<h2>Compiled Parser Code:</h2>
+		    	</div>
+		    </div>
+			<div style="clear:both;"></div>
+			
+			<p>	
+				This is the compiled JavaScript code for the grammar.
+			</p>
+			<p>
+				This code can be copied into a file: on loading (i.e. interpreting)
+				the JavaScript file, the grammar will be registered with the
+				<tt>SemanticInterpreter</tt> for the <em>Grammar ID</em> that is specified above
+				in the <a href="#json-grammar">Grammar Definition</a> section.
+			</p>
+			<div>
+				The default location for the compiled JavaScript grammar files is
+				<pre style="display:inline;">assets/www/gen/grammar/[Grammar ID]_grammar.json</pre>
+			</div>
+			<br/>
+			
+			<div style="float:left;">
+				<input type="button" onclick="selectCompiledCode();" value="Select All"/>
+			</div>
+			<div style="clear:both;"></div>
+			
+			<!-- textarea id="compiledParserOutBox" readonly="readonly" class="outbox"></textarea-->
+		</div>
+    </div></div>
+	
+	
 <!-- ################### Popup dialog: ################################# -->
-<div style="display:none">			
+<div id="dialogs" style="display:none">			
 	<div data-role="popup" id="parseErrorPopup" data-overlay-theme="a" data-theme="a" data-dismissible="false" class="ui-corner-all">
 	    <div data-role="header" data-theme="a" class="ui-corner-top">
 	        <h1 id="parseErrorPopupTitle">a short title</h1>
@@ -165,315 +532,5 @@
 </div>
 <!-- ##################################### SECTION: Introduction / heading  ######################################## -->
     
-    <div id="semantic-test-main" style="height: 400px"></div>
-    
-    <a name="top"></a>
-    <h1>Semantic Parser Test: Grammar Compiler</h1>
-    
-    <div data-role="collapsible" data-collapsed="true">
-	   <h3>Introduction</h3>
-	   <p>
-		    <div style="font-size: 0.9em;width: 100%; white-space: normal !important;">
-		    <strong>NOTE:</strong>
-				On initial load of the page, the <tt>Language</tt> list 
-		    	is loaded from the file <code>config/directories.json</code>: for each found language
-		    	directory (<code>config/languages/</code>),	an entry is generated -- on selection, the
-		    	corresponing JSON file is attempted to be read and compiled.<br/>
-		    	<i>Note, that there may not be a JSON file for the lanuage available -- in this case an
-		    	 error message will be shown on selection.</i><br/>
-		    	
-		    	<p>You can use the file selector, for loading a JSON grammar from  the local file system</p>
-		    	
-		    	<p>Alternatively, you can enter (e.g. copy&paste) a JSON-formatted grammar into the 
-		    	<i>JSON Grammar Definition</i> field and then press the <i>parse</i> button.</p>
-		    	<br/>
-		    </div>
-		</p>
-	</div>
-    
-    <hr/>
-		    		
-    <div id="toc">
-	    <h5  style="display:inline"> TOC: </h5>
-	    <fieldset data-role="controlgroup" data-mini="true" data-type="horizontal" style="display:inline;padding-left:2em;">	
-	    			<a class="ui-btn ui-corner-all ui-btn-b ui-icon-arrow-d ui-btn-icon-left" href="#json-grammar">JSON Grammar</a>
-	    			<a class="ui-btn ui-corner-all ui-btn-b ui-icon-arrow-d ui-btn-icon-left" href="#interpreter-tester">TEST interpretation</a> 
-	    			<a class="ui-btn ui-corner-all ui-btn-b ui-icon-arrow-d ui-btn-icon-left" href="#stopword-tester">TEST stopword processing</a>
-	    			<a class="ui-btn ui-corner-all ui-btn-b ui-icon-arrow-d ui-btn-icon-left" href="#jsjc-grammar">JS/JC Grammar</a>
-	    			<a class="ui-btn ui-corner-all ui-btn-b ui-icon-arrow-d ui-btn-icon-left" href="#compiled-parser">Compiled parser code</a>
-	    </fieldset>  
-    </div>
-    <hr/>
-    
-<!-- ##################################### SECTION: JSON Grammar Definition  ######################################## -->
-    
-	<div id="load-tools" class="ui-body-d" style="float:right;padding:1em;margin:0.5em;">
-		<h4  class="grid-cell" style="vertical-align: middle;">Load Grammar Options: </h4>
-		<div id="language-selection-area" class="grid-cell">
-			<div id="lang-selector-manual-input">
-				<!-- label for="lang-selector-field">Language:</label--> 
-				<input type="text" id="lang-selector-field" />
-			</div>
-			<div id="lang-selector" style="display:none;"></div>
-		</div>
-		<div class="grid-cell">
-			<input type="file" id="file-selector" accept="text" name="files[]" />
-		</div>
-	</div>
-	
-    
-	<a name="json-grammar"></a>
-	<div style="float:left;" class="grid">
-    	<div class="grid-cell" style="vertical-align: middle;padding-right:3em;">
-    		<a href="#top" class="ui-link ui-btn ui-btn-b ui-icon-arrow-u ui-btn-icon-left ui-shadow ui-corner-all ui-mini">top</a>
-    	</div>
-		<div class="grid-cell">
-    		<h2>JSON Grammar Definition:</h2> 
-    	</div>
-	</div>
-	
-	<div style="clear:both;"></div>
-		
-    <div style="float:left; width: 70%;">
-	    <h5>JSON grammar definition:</h5>
-		<!-- textarea id="inputBox" rows="20" style="width: 100%;height:300px;" data-role="none" data-enhance="false"></textarea><br/-->
-		
-		<pre id="inputBox" class="editor" style="width: 100%;height:300px;"></pre><br/>
-		
-		<div style="float:left;">
-		
-			<input type="button" onclick="selectJsonGrammar();" value="Select All" style="right:0;"/>
-			
-		</div><div style="float:right;"  class="grid">
-			
-			<div class="grid-cell">
-				<input type="button" onclick="parseInput();" value="Parse"/>
-			</div>
-			
-			<fieldset class="grid-cell" style="padding-left:0.2em;">
-				<label for="grammar-id">Grammar ID:</label>
-				<input id="grammar-id" type="text" data-inline="true"/>
-			</fieldset>
-			
-			<div class="grid-cell" style="vertical-align:top">
-				<a href="#popupGrammarIdInfo" id="openPopupGrammarIdInfo"
-					class="ui-link ui-btn ui-btn-a ui-icon-info ui-btn-icon-notext ui-btn-inline ui-shadow ui-corner-all" 
-					data-rel="popup" 
-					data-role="button" 
-					data-inline="true" 
-					data-transition="pop">
-					Grammar ID information
-				</a>
-				
-			</div>
-			
-			<div class="grid-cell" style="padding-left:2em;"><div data-role="collapsible" data-collapsed="true" id="grammarTools">
-			   <h3>JSON Grammar Tools</h3>
-			   <p>
-			   
-				<div style="padding-left:2em;float:left;">
-					<fieldset data-role="controlgroup" data-type="horizontal">
-						<input type="button" onclick="maskJsonValues()" value="mask"/>
-						<input type="button" onclick="unmaskJsonValues()" value="unmask"/>
-					</fieldset>
-				</div>
-				<div class="grid-cell" style="vertical-align:middle">
-					<a href="#popupMaskingInfo" id="openPopupMaskingInfo"
-						class="ui-link ui-btn ui-btn-a ui-icon-info ui-btn-icon-notext ui-btn-inline ui-shadow ui-corner-all"
-						data-rel="popup" 
-						data-role="button" 
-						data-inline="true" 
-						data-transition="pop">
-						Masking information
-					</a>
-					
-				</div>
-				
-				<div id="format-converter" style="padding-left:2em;float:left;">
-					<fieldset data-role="controlgroup" data-type="horizontal">
-						<input type="button" onclick="convertFromOldJSONFormat()" value="upgrade"/>
-						<input type="button" onclick="convertToOldJSONFormat()" value="downgrade"/>
-					</fieldset>
-				</div>
-				<div class="grid-cell" style="vertical-align:middle">
-					<a href="#popupFormatConversionInfo" id="openPopupFormatConversionInfo"
-						class="ui-link ui-btn ui-btn-a ui-icon-info ui-btn-icon-notext ui-btn-inline ui-shadow ui-corner-all"
-						data-rel="popup" 
-						data-role="button" 
-						data-inline="true" 
-						data-transition="pop">
-						Upgrade information
-					</a>
-					
-				</div>
-			</p>
-		</div></div>
-			
-		</div>
-		<div style="clear:both;"></div>
-		
-		<!-- input type="button" onclick="clearOut();" value="Clear"/-->
-		
-		<br/>
-    </div>
-    <div style="float:right; width: 27%;">
-	    <h5>Output/Error:</h5>
-	    <div id="outputBox"></div>
-    </div>
-	
-	<div style="clear: both;"></div>
-    
-<!-- ##################################### SECTION: Semantic Parser Test: Interpertation  ######################################## -->
-    
-    <div style="float:left; clear: left; width: 100%;"><div style="clear: right; width: 100%;">
-	
-		<table width="100%" border="0">
-			<tr>
-				<td colspan="3">
-					<hr/>
-					<a name="interpreter-tester"></a><br/>
-					<div style="float:left;" class="grid">
-				    	<div class="grid-cell" style="vertical-align: middle;padding-right:3em;">
-				    		<a href="#top" class="ui-link ui-btn ui-btn-b ui-icon-arrow-u ui-btn-icon-left ui-shadow ui-corner-all ui-mini">top</a>
-				    	</div>
-						<div class="grid-cell">
-							<h2>Semantic Parser Test: Interpertation</h2>
-				    	</div>
-					</div>
-				</td>
-			</tr>
-			<tr>
-				<td valign="top">
-					<h5>TEST Interpret Sentence:</h5>
-					<textarea id="interpretationInputBox" rows="1" cols="30"></textarea>
-					<br/>
-					<input type="button" onclick="processInterpretation();" value="Interpret"/>
-					<br/>
-					<input type="button" onclick="benchmarkInterpretation();" value="Benchmark"/>
-					<br/>
-					<span id="time"></span>
-					<br/>
-					<span id="time-mod"></span>
-				</td>
-				<td valign="top" id="defaultProcInterpretationCol">
-					<h5>Interpreter Result:</h5>
-					<div id="interpretationBox"></div>
-				</td>
-				<td valign="top" id="altProcInterpretationCol">
-					<h5>Alternate Interpreter Result:
-						<span style="font-size:x-small;font-weight: lighter;">
-							(using alternate method for stopword removal)
-						</span>
-					</h5>
-					<div id="interpretationBoxAlt"></div>
-				</td>
-			</tr>
-			<tr>
-				<td colspan="3">
-					<hr/>
-					<a name="stopword-tester"></a><br/>
-					
-					<div style="float:left;" class="grid">
-				    	<div class="grid-cell" style="vertical-align: middle;padding-right:3em;">
-				    		<a href="#top" class="ui-link ui-btn ui-btn-b ui-icon-arrow-u ui-btn-icon-left ui-shadow ui-corner-all ui-mini">top</a>
-				    	</div>
-						<div class="grid-cell">
-							<h2>Semantic Parser Test: Stopword</h2>
-				    	</div>
-					</div>
-				</td>
-				
-			</tr>
-			<tr>
-				<td valign="top">
-					<h5>TEST Process Stopwords:</h5>
-					<textarea id="stopwordInputBox" rows="1" cols="30"></textarea>
-					<br/>
-					<input type="button" onclick="stopword();" value="Apply Stopwords"/>
-				</td>
-				<td valign="top" id="defaultProcStopwordCol">
-					<h5>Stopword Result:</h5>
-					<div id="stopwordBox"></div>
-				</td>
-				<td valign="top" id="altProcStopwordCol">					
-					<h5>Stopword Result 
-							<span style="font-size:x-small;font-weight: lighter;">
-								(alternative stopword processing method)
-							</span>:
-					</h5>
-					<div id="stopwordBox2"></div>
-				</td>
-			</tr>
-		</table>
-		
-		<hr/>
-
-
-<!-- ##################################### SECTION: JS/JC Grammar Definition ######################################## -->
-    
-		
-		<div>
-			<a name="jsjc-grammar"></a>
-		    <div style="float:left;" class="grid">
-		    	<div class="grid-cell" style="vertical-align: middle;padding-right:3em;">
-		    		<a href="#top" class="ui-link ui-btn ui-btn-b ui-icon-arrow-u ui-btn-icon-left ui-shadow ui-corner-all ui-mini">top</a>
-		    	</div>
-		    	<div class="grid-cell">
-		    		<h2>JS/JC Grammar Definition (generated from JSON grammar):</h2>
-		    	</div>
-		    </div>
-			<div style="clear:both;"></div>
-		    	
-		    <p>This is the specification of grammar in <a target="jscc" href="http://jscc.phorward-software.com/">JS/CC</a> syntax</p>
-			<textarea  id="compileOutBox" readonly="readonly"></textarea>
-			
-			<div style="float:left;">
-				<input type="button" onclick="selectJsjcGrammar();" value="Select All"/>
-			</div>
-			<div style="clear:both;"></div>
-		</div>
-		
-		<hr/>
-
-<!-- ##################################### SECTION: Compiled Parser Code (JavaScript) ######################################## -->
-    
-		<div style="width: 100%;">
-		
-			<a name="compiled-parser"></a>
-		
-		    <div style="float:left;" class="grid">
-		    	<div class="grid-cell" style="vertical-align: middle;padding-right:3em;">
-		    		<a href="#top" class="ui-link ui-btn ui-btn-b ui-icon-arrow-u ui-btn-icon-left ui-shadow ui-corner-all ui-mini">top</a>
-		    	</div>
-		    	<div class="grid-cell">
-					<h2>Compiled Parser Code:</h2>
-		    	</div>
-		    </div>
-			<div style="clear:both;"></div>
-			
-			<p>	
-				This is the compiled JavaScript code for the grammar.
-			</p>
-			<p>
-				This code can be copied into a file: on loading (i.e. interpreting)
-				the JavaScript file, the grammar will be registered with the
-				<tt>SemanticInterpreter</tt> for the <em>Grammar ID</em> that is specified above
-				in the <a href="#json-grammar">Grammar Definition</a> section.
-			</p>
-			<div>
-				The default location for the compiled JavaScript grammar files is
-				<pre style="display:inline;">assets/www/gen/grammar/[Grammar ID]_grammar.json</pre>
-			</div>
-			<br/>
-			
-			<div style="float:left;">
-				<input type="button" onclick="selectCompiledCode();" value="Select All"/>
-			</div>
-			<div style="clear:both;"></div>
-			
-			<textarea id="compiledParserOutBox" readonly="readonly"></textarea>
-		</div>
-    </div></div>
-	
 </body>
 </html>                                                                                                                                                                            

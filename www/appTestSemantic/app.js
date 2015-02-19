@@ -1,4 +1,6 @@
 
+//dependencies: w2popup
+
 var IS_DEBUG_ENABLED = true;
 	
 	var IS_FILE_READING_API = false;
@@ -46,8 +48,8 @@ var IS_DEBUG_ENABLED = true;
 			$(function(){
 				$('#altProcInterpretationCol').hide();
 				$('#altProcStopwordCol').hide();
-				$('#defaultProcInterpretationCol').attr('colspan','2').css('width','50%');
-				$('#defaultProcStopwordCol').attr('colspan','2').css('width','50%');
+//				$('#defaultProcInterpretationCol').attr('colspan','2').css('width','50%');
+//				$('#defaultProcStopwordCol').attr('colspan','2').css('width','50%');
 			});
 		});
 		
@@ -92,6 +94,12 @@ var IS_DEBUG_ENABLED = true;
 	//TODO: (1) load directory_strucutre file and detect available JSON grammars, (2) create drop-down menu for languages
 	//semanticInterpreter.setCurrentGrammar('de');
 
+	var checksumUtils;
+	require(['checksumUtils'],function(checksum){
+		checksumUtils = checksum;
+		checksumUtils.init();
+	});
+	
 	var inputElement;
 	var interpretElement;
 	var stopwordElement;
@@ -141,7 +149,7 @@ var IS_DEBUG_ENABLED = true;
 			defLang = '';
 		}
 		
-		var langMenu = createLanguageMenu(langs, defLang);
+//		var langMenu = createLanguageMenu(langs, defLang);
 		var isLang = function(id){
 			for(var i=0,size=langs.length; i < size; ++i){
 				if(langs[i] === id){
@@ -151,84 +159,280 @@ var IS_DEBUG_ENABLED = true;
 			}
 		};
 		
-		$('#grammar-id').val(defLang);
+		var view = require('mainView');
+		
+
+		////////////////// Initialize Sidebar: //////////////////////////
+		
+		for(var i=0,size=langs.length; i < size; ++i){
+			view.addProjectGrammar(langs[i], semanticInterpreter.get_json_grammar_url(langs[i]));
+		}
+
+		view.selectGrammar(defLang);
+		
+		$('#grammar-id').val(defLang);//TODO replace grammar-id element with property in data-model
 		theJSONGrammarURL = semanticInterpreter.get_json_grammar_url(defLang);
 		
-		$('#lang-selector-manual-input').hide();
-		$('#lang-selector').replaceWith($.parseHTML(langMenu));
-		$('#lang-selector').selectmenu({ inline: true });
+//		$('#lang-selector-manual-input').hide();
+//		$('#lang-selector').replaceWith($.parseHTML(langMenu));
+////		$('#lang-selector').selectmenu({ inline: true });
 
-		$("#lang-selector").on( "selectmenuchange", function(event, ui) {
+		view.onGrammarSelect(function(event, ui) {
 			
-			var prevLang = $('#grammar-id').val();
+			var prevLang = view.getSelectedGrammarId();//$('#grammar-id').val();
+
+			var currentGrammarModel = view.getGrammar(event).model;
+			var currentGrammarId = currentGrammarModel.id;
 			
-			var currentLangSelection = $(this).val();
+			var currentLangSelection = currentGrammarId;//$(this).val();
 			$('#grammar-id').val(currentLangSelection);
 			
-			theJSONGrammarURL = semanticInterpreter.get_json_grammar_url(currentLangSelection);
 			
-			var callback = function (isSuccess){
-				if(isSuccess){
-					
-					//if previous selection was loaded-from-file -> remove file entry
-					//	 (a new one will be created, next time a grammar is loaded from file or textinput)
-					if( !isLang(prevLang) ){
-						$('#lang-selector option[value="'+OPTION_GRAMMAR_FROM_FILE+'"]').remove();
-						$('#lang-selector option[value="'+OPTION_GRAMMAR_FROM_TEXTINPUT+'"]').remove();
-					}
-					
-					clearInput();
-					clearOut();
-					clearInterpret();
-					clearStopword();
-					
-					initPageWithJsonGrammar();
-				}
-				else {
-					// loading failed -> "revert" selection
-					$('#lang-selector option[value="'+currentLangSelection+'"]').prop('selected', null);
-					if( isLang(prevLang) ){
-						$('#lang-selector option[value="'+prevLang+'"]').prop('selected', 'selected');
+			if(currentGrammarModel.type === 'project'){
+			
+				theJSONGrammarURL = currentGrammarModel.uri;//semanticInterpreter.get_json_grammar_url(currentLangSelection);
+				
+				var callback = function (isSuccess){
+					if(isSuccess){
+						
+//						//if previous selection was loaded-from-file -> remove file entry
+//						//	 (a new one will be created, next time a grammar is loaded from file or textinput)
+//						if( !isLang(prevLang) ){
+//							$('#lang-selector option[value="'+OPTION_GRAMMAR_FROM_FILE+'"]').remove();
+//							$('#lang-selector option[value="'+OPTION_GRAMMAR_FROM_TEXTINPUT+'"]').remove();
+//						}
+						
+						clearInput(view);
+						clearOut(view);
+						clearInterpret(view);
+						clearStopword(view);
+						
+						initPageWithJsonGrammar(view);
 					}
 					else {
-						//reset to temp-selection entry (either file or from textinput)
-						var fileSelection = $('#lang-selector option[value="'+OPTION_GRAMMAR_FROM_FILE+'"]');
-						if(fileSelection.length > 0){
-							fileSelection.prop('selected', 'selected');
+						// loading failed -> "revert" selection
+						$('#lang-selector option[value="'+currentLangSelection+'"]').prop('selected', null);
+						if( isLang(prevLang) ){
+							$('#lang-selector option[value="'+prevLang+'"]').prop('selected', 'selected');
 						}
 						else {
-							$('#lang-selector option[value="'+OPTION_GRAMMAR_FROM_TEXTINPUT+'"]').prop('selected', 'selected');
+							//reset to temp-selection entry (either file or from textinput)
+							var fileSelection = $('#lang-selector option[value="'+OPTION_GRAMMAR_FROM_FILE+'"]');
+							if(fileSelection.length > 0){
+								fileSelection.prop('selected', 'selected');
+							}
+							else {
+								$('#lang-selector option[value="'+OPTION_GRAMMAR_FROM_TEXTINPUT+'"]').prop('selected', 'selected');
+							}
 						}
+						
+						$('#lang-selector').selectmenu('refresh', true);
+						currentLangSelection = prevLang;
+						
+						$('#grammar-id').val(prevLang);
+						
 					}
-					
-					$('#lang-selector').selectmenu('refresh', true);
-					currentLangSelection = prevLang;
-					
-					$('#grammar-id').val(prevLang);
-					
-				}
-			};
-			loadJsonGrammar(callback);
-			
-		});//END: $("#lang-selector").on( "change"...
+				};
+				loadJsonGrammar(callback);
 				
-		//set current language in drop-down-box:
-		if(false || defLang){
-			var selectedLangOption = $('#lang-selector option[value="'+defLang+'"]');
-			if( ! selectedLangOption.is('selected')){
-				$('#lang-selector option:selected').prop('selected', null);
-				selectedLangOption.prop('selected', 'selected');
+			}
+			else if(currentGrammarModel.type === 'file' || currentGrammarModel.type === 'compiled'){
+				
+				theJSONgrammar = currentGrammarModel.json;
+				
+				//$('#inputBox').val(JSON.stringify(theJSONgrammar, null, 2));
+				editor.val(JSON.stringify(currentGrammarModel.json, null, 2));
+
+				initPageWithJsonGrammar(view);
+				
+			}
+			else {
+				console.error('unknow grammar data: ', currentGrammarModel);
 			}
 			
-			$('#lang-selector').selectmenu('refresh', true);
-		}
+		});//END: onGrammarSelect(function(event, ui) {
+		
+		
+
+		////////////////// Initialize Toolbar: //////////////////////////
+		
+		var createDownload = function(action){
+			var strData, fileName;
+			switch(action){
+			case 'save-json':
+				fileName = 'grammar.json';
+				strData = editor.val();
+				break;
+			case 'save-js':
+				fileName = view.getSelectedGrammarId() + '_grammar.js';
+//				strData = document.getElementById("compiledParserOutBox").textContent;
+				strData = view.getCompiledGrammarText();
+				break;
+			case 'save-checksum':
+				fileName = 'grammar.json_' + view.getSelectedGrammarId() + '.checksum.txt';
+				strData = checksumUtils.createContent( editor.val() );
+				break;
+			case 'save-grammar-def':
+				fileName = 'grammar.' +  semanticInterperter.getGrammarEngine() + '.def.txt';
+//				strData = document.getElementById("compileOutBox").textContent;
+				strData = view.getIntermediateGrammarText();
+				break;
+			default:
+				console.error('unknown SAVE operation, triggered from ', event.target);
+				return;/////////////////////// EARLY EXIT ////////////////////////////
+			}
+			
+			return {data: strData, file: fileName};
+		};
+
+		var semanticInterperter = require('semanticInterpreter');
+		var handleDownload = function(event){
+			
+			var selection = event.target? event.target : event;
+			if( ! /^select-save-action:/.test(selection)){
+				return;/////////////////////// EARLY EXIT /////////////////////////
+			}
+			
+			//extract save-action from event
+			//EXAMPLE: event.target === "select-save-action:save-js"
+			var action = /:(.+?)$/.exec(selection);
+			action = action && action.length > 1? action[1] : void(0);
+			
+			//NOTE this handler will also be called for opening/closing the menu.
+			// EXAMPLE: event.target === "select-save-action"
+			if(!action){
+				return;/////////////////////// EARLY EXIT //////////////////////
+			}
+			
+			if(action === 'save-all'){
+				var actions = ['save-json', 'save-js', 'save-checksum', 'save-grammar-def'];
+				var act, data;
+				for(var i=0,size=actions.length; i < size; ++i){
+					act = actions[i];
+					data = createDownload(act);
+					if(!data){
+						console.error('ERROR -> no data for SAVE ACTION: '+act);
+					}
+					else {
+						view.triggerDownload(data.data, data.file);
+					}
+				}
+			}
+			else {
+				var data = createDownload(action);
+				if(!data){
+					console.error('unknow SAVE ACTION: '+action);
+				}
+				else {
+					view.triggerDownload(data.data, data.file);
+				}
+			}
+			
+		};
+		
+		//TODO menu-creation (with view-internal objects) should be done within view! 
+		var saveEntries = [];
+		saveEntries.push(view.__getToolbarButton('Save JSON...', 				'save-json'));
+		saveEntries.push(view.__getToolbarButton('Save JS...', 					'save-js'));
+		saveEntries.push(view.__getToolbarButton('Save Checksum...',	 		'save-checksum'));
+		saveEntries.push(view.__getToolbarButton('Save Grammar Def...',			'save-grammar-def'));
+		saveEntries.push(view.__getToolbarButton('Save All...', 				'save-all', function(){ console.error('TODO impl. save-all!'); }));
+		
+//		view.addToolbarButton('Save JSON...', 					'save-json', handleDownload);
+//		view.addToolbarButton('Save JS...', 					'save-js', handleDownload);
+//		view.addToolbarButton('Save Checksum...',	 			'save-checksum', handleDownload);
+//		view.addToolbarButton('Save Intermediate Grammar...', 	'save-grammar-def', handleDownload);
+////		view.addToolbarButton('Save All...', 					'save-all', function(){ console.error('TODO impl. save-all!'); });
+		
+		
+		var saveActionSelectMenu = {type: 'menu',   id: 'select-save-action', caption: 'Save...', icon: 'fa fa-floppy-o', items: saveEntries};
+		view.__addToolbar(saveActionSelectMenu, {event: 'click', func: handleDownload});
+		
+		
+		
+		view.addToolbarSeparator();
+		
+		initFileApi(view);//<- adds "Load..." to toolbar
+		
+		
+		view.addToolbarSeparator();
+		
+		view.addToolbarButton('Compile', 'compile-grammar', function(){ parseInput(view); });
+		
+		semanticInterperter = require('semanticInterpreter'); 
+		var handleSelectEngine = function(event){
+			
+			var selection = event.target? event.target : event;
+			if( ! /^select-grammar-engine:/.test(selection)){
+				return;
+			}
+			
+			//extract engine-ID from event
+			//EXAMPLE: event.target === "select-grammar-engine:jison-engine"
+			var engineId = /:(.+?)$/.exec(selection);
+			engineId = engineId && engineId.length > 1? engineId[1] : void(0);
+			
+			//NOTE this handler will also be called for opening/closing the menu.
+			// EXAMPLE: event.target === "select-grammar-engine"
+			if(!engineId){
+				return;
+			}
+			
+			//extract engine name from engine-ID, EXAMPLE STRING: "jison-engine"
+			var engine = /^(.+?)-/.exec(engineId)[1];
+			
+			//select the engine:
+			semanticInterperter.setGrammarEngine(engine);
+			
+			view.setGrammarEngineSelected(semanticInterperter.getGrammarEngine());
+		};
+		
+		//TODO menu-creation (with view-internal objects) should be done within view! 
+		var engineEntries = [];
+		engineEntries.push(view.__getToolbarButton('JSCC',  'jscc-engine'));
+		engineEntries.push(view.__getToolbarButton('jison', 'jison-engine'));
+		engineEntries.push(view.__getToolbarButton('PEGjs', 'pegjs-engine'));
+		var engineSelectMenu = {type: 'menu',   id: 'select-grammar-engine', caption: 'Grammar Compiler', icon: 'fa fa-cogs', items: engineEntries};
+		view.__addToolbar(engineSelectMenu, {event: 'click', func: handleSelectEngine});
+		
+		view.selectGrammarEngine(semanticInterperter.getGrammarEngine() + '-engine');
+		
+		view.addToolbarSeparator();
+
+		view.addToolbarStateButton('Console', 'toggle-console', function(){ view.toggleConsole(); });
+		view.addToolbarStateButton('Test', 'toggle-interpreter', function(){ view.toggleInterpreter(); });
+		view.clickToolbarButton('toggle-interpreter');
+		
+		view.addToolbarSeparator();
+		
+		
+		////////////////// Intialize Test Interpretation Panel: //////////////////////////
+		
+		var handleProcessInterpretation = function(event){//expects: data.view <- view
+			event.preventDefault();
+			var view = event.data.view;
+			processInterpretation(view);
+		};
+		
+		$('#btn-test-semantic').on('click', {view: view}, handleProcessInterpretation);
+		$('#form-test-semantic').on('submit', {view: view}, handleProcessInterpretation);
+		
+		
+		var handleBenchmarkInterpretation = function(event){//expects: data.view <- view
+			event.preventDefault();
+			var view = event.data.view;
+			benchmarkInterpretation(view);
+		};
+		
+		$('#btn-benchmark-semantic').on('click', {view: view}, handleBenchmarkInterpretation);
+		
+		
+		
 		
 		//overwrite default-impl. for getLanguage (-> use grammar-ID-field value instead of input-field's)
 		getLanguage = function(){
 			return $('#grammar-id').val();
-		}
-		
-		initFileApi();
+		};
 		
 		if(!inputElement) 
 			inputElement = document.getElementById("inputBox");
@@ -241,17 +445,22 @@ var IS_DEBUG_ENABLED = true;
 			
 
 		var createInfoPopUp = function(dialogElementId, buttonId){
-			$('#'+dialogElementId).dialog({
-				modal: true,
-				dialogClass: 'info',
-				autoOpen: false
-			});
-			$('#'+buttonId).button({
-				icons: { primary: 'ui-icon-info' },
-				text: false
-			}).on('click', function(event){
-				event.preventDefault();
-				$('#'+dialogElementId).dialog('open');
+			
+//			$('#'+dialogElementId).dialog({
+//				modal: true,
+//				dialogClass: 'info',
+//				autoOpen: false
+//			});
+//			$('#'+buttonId).button({
+//				icons: { primary: 'ui-icon-info' },
+//				text: false
+//			}).on('click', function(event){
+//				event.preventDefault();
+//				$('#'+dialogElementId).dialog('open');
+//			});
+			
+			$('#'+buttonId).on('click', function(event){
+				$(this).w2overlay({ html: $('#'+dialogElementId).html()});
 			});
 		};
 		
@@ -261,7 +470,7 @@ var IS_DEBUG_ENABLED = true;
 		
 		var callback = function(isSuccess) {
 			if (isSuccess) {
-				initPageWithJsonGrammar();
+				initPageWithJsonGrammar(view);
 			} else {
 				$('#file-selector').trigger('click');
 			}
@@ -280,7 +489,7 @@ var IS_DEBUG_ENABLED = true;
 		return id;
 	}
 
-	function initPageWithJsonGrammar() {
+	function initPageWithJsonGrammar(view) {
 
 		var doInit = function() {
 
@@ -292,8 +501,7 @@ var IS_DEBUG_ENABLED = true;
 							function() {
 
 								printGrammarDefinition();
-								printInput(JSON.stringify(theJSONgrammar, null,
-										2));
+								printInput(JSON.stringify(theJSONgrammar, null, 2));
 								printCompiledParserDefinition();
 
 								doProcessEvalErrors(getLanguage());
@@ -305,8 +513,10 @@ var IS_DEBUG_ENABLED = true;
 									examplePhrase = DEFAULT_EXAMPLE_PHRASE;
 								}
 
-								interpretElement.value = examplePhrase;
-								processInterpretation();
+//								interpretElement.value = examplePhrase;
+								view.setExamplePhrase(examplePhrase);
+								
+								processInterpretation(view);
 
 								_hideLoader();
 							});
@@ -319,43 +529,51 @@ var IS_DEBUG_ENABLED = true;
 
 		if (!delay) {
 
-			if ($.mobile) {
-				$.mobile.loading('show', {
-					text : text,
-					theme : LOADER_THEME,
-					textVisible : true
-				});
+//			if ($.mobile) {
+//				$.mobile.loading('show', {
+//					text : text,
+//					theme : LOADER_THEME,
+//					textVisible : true
+//				});
+//			}
+			
+			w2popup.lock(text, true);
+			if(func){
+				func.apply(null, argsArray);
 			}
-
-			func.apply(null, argsArray)
 		} else {
 			setTimeout(function() {
-				if ($.mobile) {
-					$.mobile.loading('show', {
-						text : text,
-						theme : LOADER_THEME,
-						textVisible : true
-					});
-					setTimeout(function() {
-						func.apply(null, argsArray)
-					}, delay);
-				} else {
-					func.apply(null, argsArray)
-				}
+//				if ($.mobile) {
+//					$.mobile.loading('show', {
+//						text : text,
+//						theme : LOADER_THEME,
+//						textVisible : true
+//					});
+//					setTimeout(function() {
+//						func.apply(null, argsArray);
+//					}, delay);
+//				} else {
+				
+					w2popup.lock(text, true);
+					
+					if(func){
+						setTimeout(function() {
+							func.apply(null, argsArray);
+						}, delay);
+					}
+//				}
 			}, 50);
 		}
 
 	}
 
 	function _hideLoader() {
-		if ($.mobile) {
-			$.mobile.loading('hide');
-		}
+		w2popup.unlock();
 	}
 
 	function loadJsonGrammar(cb) {
 		if (!semanticInterpreter) {
-			semanticInterpreter = mmir.SemanticInterpreter.getInstance();
+			semanticInterpreter = mmir.SemanticInterpreter;
 		}
 
 		var successFunc = function(gcInstance) {
@@ -390,27 +608,31 @@ var IS_DEBUG_ENABLED = true;
 
 	}
 
-	function initFileApi() {
+	function initFileApi(view) {
+		
+		
 		if (window.File && window.FileReader && window.FileList && window.Blob) {
 			IS_FILE_READING_API = true;
-			$('#file-selector').on('change', loadJsonGrammarFromFile);
+			$('#file-selector').on('change', {view: view}, loadJsonGrammarFromFile);
 
-			// show / use button instead of "raw file input" element:
-			$('#file-selector')
-					.parent()
-					.append(
-							'<input type="button" id="file-load-btn" value="Load File..."></input>')
+			view.addToolbarButton('Load JSON...', 'load-grammar', function(){$('#file-selector').click();});
 
-			$('#file-load-btn')
-			//init button:
-			.button()
-			// "proxy" button-click to the file-selector element:
-			.on('click', function() {
-				$('#file-selector').click();
-			});
-
-			//hide the file-selector element:
-			$('#file-selector').hide();
+//			// show / use button instead of "raw file input" element:
+//			$('#file-selector')
+//					.parent()
+//					.append(
+//							'<input type="button" id="file-load-btn" value="Load File..."></input>');
+//
+//			$('#file-load-btn')
+//			//init button:
+//			.button()
+//			// "proxy" button-click to the file-selector element:
+//			.on('click', function() {
+//				$('#file-selector').click();
+//			});
+//
+//			//hide the file-selector element:
+//			$('#file-selector').hide();
 		} else {
 			//browser cannot load files -> hide elements
 			$('#file-selector').hide();
@@ -422,6 +644,8 @@ var IS_DEBUG_ENABLED = true;
 
 		_showLoader('Loading JSON Grammar from file...');
 
+		var view = evt.data.view;
+		
 		var files = evt.target.files; // FileList object
 
 		// Loop through the FileList (should be only one, since "multiple" is not set)
@@ -442,54 +666,60 @@ var IS_DEBUG_ENABLED = true;
 					return;///////////////////////////// EARLY EXIT ////////////////////////
 				}
 
-				var prevSel = $('#lang-selector option:selected').val();
+				var prevSel = view.getSelectedGrammarId();//$('#lang-selector option:selected').val();
 				$('#grammar-id').val(theGrammarId);
 
-				//update selection menu:
-				//	* (if previous selection was a file or compiled from textinput: remove the previous entry)
-				//	* create an entry for the file selection
-				//	* de-select previous entry
-				//	* select the new file-entry (and update selection menu)
-				$(
-						'#lang-selector  option[value="'
-								+ OPTION_GRAMMAR_FROM_FILE + '"]').remove();
-				$(
-						'#lang-selector  option[value="'
-								+ OPTION_GRAMMAR_FROM_TEXTINPUT + '"]')
-						.remove();
+//				//update selection menu:
+//				//	* (if previous selection was a file or compiled from textinput: remove the previous entry)
+//				//	* create an entry for the file selection
+//				//	* de-select previous entry
+//				//	* select the new file-entry (and update selection menu)
+//				$(
+//						'#lang-selector  option[value="'
+//								+ OPTION_GRAMMAR_FROM_FILE + '"]').remove();
+//				$(
+//						'#lang-selector  option[value="'
+//								+ OPTION_GRAMMAR_FROM_TEXTINPUT + '"]')
+//						.remove();
+//
+//				var fileOptionEntry = createLanguageMenuEntry(theGrammarId,
+//						null, null, OPTION_GRAMMAR_FROM_FILE);//lang, menuElem, defaultSelection, value);
+//				$('#lang-selector').append(
+//						$.parseHTML(fileOptionEntry.join('')));
+//
+//				//de-select previous selection
+//				$('#lang-selector option[value="' + prevSel + '"]').prop(
+//						'selected', null);
+//
+//				//select new file-entry
+//				$(
+//						'#lang-selector option[value="'
+//								+ OPTION_GRAMMAR_FROM_FILE + '"]').prop(
+//						'selected', 'selected');
+//				//update GUI
+//				$('#lang-selector').selectmenu('refresh', true);
+				
 
-				var fileOptionEntry = createLanguageMenuEntry(theGrammarId,
-						null, null, OPTION_GRAMMAR_FROM_FILE);//lang, menuElem, defaultSelection, value);
-				$('#lang-selector').append(
-						$.parseHTML(fileOptionEntry.join('')));
-
-				//de-select previous selection
-				$('#lang-selector option[value="' + prevSel + '"]').prop(
-						'selected', null);
-
-				//select new file-entry
-				$(
-						'#lang-selector option[value="'
-								+ OPTION_GRAMMAR_FROM_FILE + '"]').prop(
-						'selected', 'selected');
-				//update GUI
-				$('#lang-selector').selectmenu('refresh', true);
-
-				clearInput();
-				clearOut();
-				clearInterpret();
-				clearStopword();
+				clearInput(view);
+				clearOut(view);
+				clearInterpret(view);
+				clearStopword(view);
 
 				theJSONgrammar = $.parseJSON(theFileEvent.target.result);
 
 				if (theJSONgrammar['comment_license']) {
 					delete theJSONgrammar['comment_license'];
 				}
+				
+				view.addLoadedGrammar(theGrammarId, theJSONgrammar, theFileName);
 
-				//$('#inputBox').val(JSON.stringify(theJSONgrammar, null, 2));
-				editor.val(JSON.stringify(theJSONgrammar, null, 2));
-
-				initPageWithJsonGrammar();
+				view.selectGrammar(theGrammarId);
+				
+//				//$('#inputBox').val(JSON.stringify(theJSONgrammar, null, 2));
+//				editor.val(JSON.stringify(theJSONgrammar, null, 2));
+//
+//				initPageWithJsonGrammar(view);
+				
 				$('#file-selector').val(null);
 
 			};
@@ -528,13 +758,13 @@ var IS_DEBUG_ENABLED = true;
 		}
 	}
 
-	function parseInput() {
+	function parseInput(view) {
 
-		if (!inputTextToJSON()) {
+		if (!inputTextToJSON(view)) {
 			return;
 		}
 
-		clearOut();
+		clearOut(view);
 
 		validateJsonGrammar();
 
@@ -555,67 +785,71 @@ var IS_DEBUG_ENABLED = true;
 			}
 		}
 
-		//update entries in selection menu if necessary:
-		// -> if an entry does not yet exist:
-		//    * create a new entry for this grammar-ID
-		//    * de-deselect previous selection
-		//    * if previous was temporary entry (ie. a file or from the text-input): remove it
-		//    * select new entry (and update GUI)
-		if (!semanticInterpreter.hasGrammar(langCode)) {
+//		//update entries in selection menu if necessary:
+//		// -> if an entry does not yet exist:
+//		//    * create a new entry for this grammar-ID
+//		//    * de-deselect previous selection
+//		//    * if previous was temporary entry (ie. a file or from the text-input): remove it
+//		//    * select new entry (and update GUI)
+//		if (!semanticInterpreter.hasGrammar(langCode)) {
+//
+//			var prevSel = $('#lang-selector option:selected').val();
+//
+//			//remove temporary entries (may not exists)
+//			$(
+//					'#lang-selector  option[value="' + OPTION_GRAMMAR_FROM_FILE
+//							+ '"]').remove();
+//			$(
+//					'#lang-selector  option[value="'
+//							+ OPTION_GRAMMAR_FROM_TEXTINPUT + '"]').remove();
+//
+//			var textinputOptionEntry = createLanguageMenuEntry(langCode, null,
+//					null, OPTION_GRAMMAR_FROM_TEXTINPUT);//lang, menuElem, defaultSelection, value);
+//			$('#lang-selector').append(
+//					$.parseHTML(textinputOptionEntry.join('')));
+//
+//			//de-select previous selection
+//			$('#lang-selector option[value="' + prevSel + '"]').prop(
+//					'selected', null);
+//
+//			//select the newly generated entry:
+//			$(
+//					'#lang-selector option[value="'
+//							+ OPTION_GRAMMAR_FROM_TEXTINPUT + '"]').prop(
+//					'selected', 'selected');
+//
+//			//update GUI
+//			$('#lang-selector').selectmenu('refresh', true);
+//
+//		}
 
-			var prevSel = $('#lang-selector option:selected').val();
+//		var doParseAndCompile = function() {
+//			semanticInterpreter
+//					.createGrammar(
+//							theJSONgrammar,
+//							langCode,
+//							function() {
+//								printGrammarDefinition();
+//								printCompiledParserDefinition();
+//
+//								doProcessEvalErrors(langCode);
+//
+//								if (typeof theJSONgrammar.example_phrase !== 'undefined') {
+//									var examplePhrase = theJSONgrammar.example_phrase;
+//									interpretElement.value = examplePhrase;
+//									processInterpretation(view);
+//								}
+//
+//								_hideLoader();
+//							});
+//		};
+//
+//		_showLoader('Parsing and Compiling JSON Grammar...', 50,
+//				doParseAndCompile);
+		
+		view.addCompiledGrammar(langCode, theJSONgrammar);
 
-			//remove temporary entries (may not exists)
-			$(
-					'#lang-selector  option[value="' + OPTION_GRAMMAR_FROM_FILE
-							+ '"]').remove();
-			$(
-					'#lang-selector  option[value="'
-							+ OPTION_GRAMMAR_FROM_TEXTINPUT + '"]').remove();
-
-			var textinputOptionEntry = createLanguageMenuEntry(langCode, null,
-					null, OPTION_GRAMMAR_FROM_TEXTINPUT);//lang, menuElem, defaultSelection, value);
-			$('#lang-selector').append(
-					$.parseHTML(textinputOptionEntry.join('')));
-
-			//de-select previous selection
-			$('#lang-selector option[value="' + prevSel + '"]').prop(
-					'selected', null);
-
-			//select the newly generated entry:
-			$(
-					'#lang-selector option[value="'
-							+ OPTION_GRAMMAR_FROM_TEXTINPUT + '"]').prop(
-					'selected', 'selected');
-
-			//update GUI
-			$('#lang-selector').selectmenu('refresh', true);
-
-		}
-
-		var doParseAndCompile = function() {
-			semanticInterpreter
-					.createGrammar(
-							theJSONgrammar,
-							langCode,
-							function() {
-								printGrammarDefinition();
-								printCompiledParserDefinition();
-
-								doProcessEvalErrors(langCode);
-
-								if (typeof theJSONgrammar.example_phrase !== 'undefined') {
-									var examplePhrase = theJSONgrammar.example_phrase;
-									interpretElement.value = examplePhrase;
-									processInterpretation();
-								}
-
-								_hideLoader();
-							});
-		};
-
-		_showLoader('Parsing and Compiling JSON Grammar...', 50,
-				doParseAndCompile);
+		view.selectCompiledGrammar(langCode);
 
 	}
 
@@ -653,9 +887,9 @@ var IS_DEBUG_ENABLED = true;
 		}
 	}
 
-	function processInterpretation() {
+	function processInterpretation(view) {
 
-		var asr_result = interpretElement.value;
+		var asr_result = view.getExamplePhrase();//interpretElement.value;
 		var res = semanticInterpreter.getASRSemantic(asr_result.toLowerCase(),
 				getLanguage());
 
@@ -667,8 +901,8 @@ var IS_DEBUG_ENABLED = true;
 
 		clearInterpret();
 
-		$('#time').text('');
-		$('#time-mod').text('');
+		$('#benchmark-time').text('');
+		$('#benchmark-time-mod').text('');
 
 		printInterpretation(res);
 
@@ -679,9 +913,9 @@ var IS_DEBUG_ENABLED = true;
 		stopword(asr_result);
 	}
 
-	function benchmarkInterpretation() {
+	function benchmarkInterpretation(view) {
 
-		var asr_result = interpretElement.value;
+		var asr_result = view.getExamplePhrase();//interpretElement.value;
 		var res = semanticInterpreter.getASRSemantic(asr_result.toLowerCase(),
 				getLanguage());
 
@@ -721,7 +955,7 @@ var IS_DEBUG_ENABLED = true;
 			}
 			var diffTime = new Date() - startTime;
 
-			$('#time').text(iterations + ' interations in ' + diffTime + ' ms');
+			$('#benchmark-time').text(iterations + ' interations in ' + diffTime + ' ms');
 
 			if (isEnableAlternateStopwordProcessing) {
 				var startTimeAlt = new Date();
@@ -731,7 +965,7 @@ var IS_DEBUG_ENABLED = true;
 				}
 				var diffTimeAlt = new Date() - startTimeAlt;
 
-				$('#time-mod').text(
+				$('#benchmark-time-mod').text(
 						iterations + ' interations in ' + diffTimeAlt
 								+ ' ms (alt. method)');
 			}
@@ -753,24 +987,25 @@ var IS_DEBUG_ENABLED = true;
 	}
 
 	function stopword(text) {
-		var sw_result;
-		if (typeof text === 'undefined' || text == null) {
-			sw_result = stopwordElement.value;
-		} else {
-			sw_result = text;
-			stopwordElement.value = sw_result;
-		}
-		var res = semanticInterpreter.removeStopwords(sw_result.toLowerCase(),
-				getLanguage());
-
-		var res2;
-		if (isEnableAlternateStopwordProcessing) {
-			res2 = semanticInterpreter.removeStopwords_alt(sw_result
-					.toLowerCase(), getLanguage());
-		}
-
-		clearStopword();
-		printStopword(res, res2);
+		console.info('TODO impl. stopword(text)');
+//		var sw_result;
+//		if (typeof text === 'undefined' || text == null) {
+//			sw_result = stopwordElement.value;
+//		} else {
+//			sw_result = text;
+//			stopwordElement.value = sw_result;
+//		}
+//		var res = semanticInterpreter.removeStopwords(sw_result.toLowerCase(),
+//				getLanguage());
+//
+//		var res2;
+//		if (isEnableAlternateStopwordProcessing) {
+//			res2 = semanticInterpreter.removeStopwords_alt(sw_result
+//					.toLowerCase(), getLanguage());
+//		}
+//
+//		clearStopword();
+//		printStopword(res, res2);
 	}
 
 	function printGrammarDefinition() {
@@ -788,25 +1023,27 @@ var IS_DEBUG_ENABLED = true;
 		editor.val('');
 	}
 
-	function clearOut() {
+	function clearOut(view) {
 		var outputBox = document.getElementById("outputBox");
 		outputBox.textContent = "";
-		outputBox = document.getElementById("compileOutBox");
-		outputBox.textContent = "";
-		outputJSBox = document.getElementById("compiledParserOutBox");
-		outputJSBox.textContent = "";
-		clearInterpret();
-		clearStopword();
+//		outputBox = document.getElementById("compileOutBox");
+//		outputBox.textContent = "";
+		view.clearIntermediateGrammarText();
+//		outputJSBox = document.getElementById("compiledParserOutBox");
+//		outputJSBox.textContent = "";
+		view.clearCompiledGrammarText();
+		clearInterpret(view);
+		clearStopword(view);
 	}
 
-	function clearInterpret() {
+	function clearInterpret(view) {
 		var outputBox = document.getElementById("interpretationBox");
 		outputBox.textContent = "";
 		outputBox = document.getElementById("interpretationBoxAlt");
 		outputBox.textContent = "";
 	}
 
-	function clearStopword() {
+	function clearStopword(view) {
 		var outputBox = document.getElementById("stopwordBox");
 		outputBox.textContent = "";
 		outputBox = document.getElementById("stopwordBox2");
@@ -1183,33 +1420,33 @@ var IS_DEBUG_ENABLED = true;
 		}
 	})();
 
-	function maskJsonValues() {
+	function maskJsonValues(view) {
 
-		if (!inputTextToJSON()) {
+		if (!inputTextToJSON(view)) {
 			return;
 		}
 
 		var converter = new GrammarConverter();
 		theJSONgrammar = converter.maskJSON(theJSONgrammar);
 
-		clearInput();
+		clearInput(view);
 		printInput(JSON.stringify(theJSONgrammar, null, 2));
 	}
 
-	function unmaskJsonValues() {
-		if (!inputTextToJSON()) {
+	function unmaskJsonValues(view) {
+		if (!inputTextToJSON(view)) {
 			return;
 		}
 
 		var converter = new GrammarConverter();
 		theJSONgrammar = converter.unmaskJSON(theJSONgrammar);
 
-		clearInput();
+		clearInput(view);
 		printInput(JSON.stringify(theJSONgrammar, null, 2));
 	}
 
-	function convertFromOldJSONFormat() {
-		if (!inputTextToJSON()) {
+	function convertFromOldJSONFormat(view) {
+		if (!inputTextToJSON(view)) {
 			return;
 		}
 
@@ -1217,12 +1454,12 @@ var IS_DEBUG_ENABLED = true;
 		theJSONgrammar = converter.recodeJSON(theJSONgrammar,
 				converter.decodeUmlauts);
 
-		clearInput();
+		clearInput(view);
 		printInput(JSON.stringify(theJSONgrammar, null, 2));
 	}
 
-	function convertToOldJSONFormat() {
-		if (!inputTextToJSON()) {
+	function convertToOldJSONFormat(view) {
+		if (!inputTextToJSON(view)) {
 			return;
 		}
 
@@ -1230,11 +1467,11 @@ var IS_DEBUG_ENABLED = true;
 		theJSONgrammar = converter.recodeJSON(theJSONgrammar,
 				converter.encodeUmlauts);
 
-		clearInput();
+		clearInput(view);
 		printInput(JSON.stringify(theJSONgrammar, null, 2));
 	}
 
-	function inputTextToJSON() {
+	function inputTextToJSON(view) {
 		var text = editor.val();//inputElement.value;
 		//console.info('gammar-text: \n'+text);
 		try {
@@ -1282,7 +1519,7 @@ var IS_DEBUG_ENABLED = true;
 			selectErrorLine();
 
 			//show error in Error/Warining box
-			clearOut();
+			clearOut(view);
 			print(msg.replace(/\^\r?\n/igm, '^ \n'));//<- one "marker" at the line end gets removed -> add a space before linebreak
 
 			setTimeout(function() {
@@ -1566,15 +1803,15 @@ var IS_DEBUG_ENABLED = true;
 		return menuElem;
 	}
 
-	require(['jquery','jqueryui'], function($){
-		$(function(){
-			$('#parseErrorPopup').dialog({
-				modal: true,
-				dialogClass: 'error',
-				autoOpen: false
-			});
-		});
-	});
+//	require(['jquery','w2ui'], function($){
+//		$(function(){
+//			$('#parseErrorPopup').dialog({
+//				modal: true,
+//				dialogClass: 'error',
+//				autoOpen: false
+//			});
+//		});
+//	});
 	
 	function showError(title, caption, text, onOpenFunc, onCloseFunc) {
 
@@ -1590,16 +1827,20 @@ var IS_DEBUG_ENABLED = true;
 			text = '';
 		}
 
-		$('#parseErrorPopupTitle', dlg).html(title);
+		$('#parseErrorPopupTitle', dlg).html('');//title);
 		$('#parseErrorPopupCaption', dlg).html(caption);
 		$('#parseErrorPopupText', dlg).html(text);
 
 		if (onOpenFunc) {
-			dlg.one("dialogopen", onOpenFunc);
+			dlg.one("open", onOpenFunc);
 		}
 		if (onCloseFunc) {
-			dlg.one("dialogclose", onCloseFunc);
+			dlg.one("close", onCloseFunc);
 		}
 		
-		dlg.dialog("open");
+//		dlg.dialog("open");
+		w2popup.open({
+			title  : title,
+		    body   : dlg
+		});
 	}

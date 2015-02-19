@@ -1,4 +1,13 @@
 
+html,body {
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
+}
+
+#full {
+	height: 100%;
+}
 		
 .grid {
 	display: inline-table;
@@ -8,54 +17,88 @@
 	vertical-align: bottom;
 }
 
-#language-selection-area .ui-select {
-	display: inline;
-}
-
-#outputBox {
-	font-family:monospace;
-	font-size:12px;
-	white-space: pre;
-	overflow:scroll;
-	border: thin solid lightGrey;
-	height: 300px;
-	width:100%;
-}
-
 code {
 	white-space: pre;
 }
 
-#compileOutBox, #compiledParserOutBox {
+.hidden {
+	display: none;
+}
+
+.text.hint {
+	font-weight: lighter;
+}
+
+.text.small {
+	font-size:x-small;
+}
+	
+.outbox {
 	font-family:monospace;
 	font-size:12px;
 	white-space: pre;
 	overflow:scroll;
 	border: thin solid lightGrey;
-	height: 50% !important;
+}
+
+#outputBox {
+	height:100%;
 	width:100%;
 }
 
-#compiledParserOutBox {
-	height: 600px;
+#compileOutBox, #compiledParserOutBox, #compiledParserOutBox {
+	height:100%;
+	width:100%;
+}
+
+#interpreter-element {
+	width: 100%;
+	height: 95%;
+}
+
+#console-element, #compiled-grammar-element, #intermediate-grammar-element {
+	height:100%;
+	width:100%;
 }
 
 #interpretationBox, #interpretationBoxAlt {
-	font-family:monospace;
-	font-size:12px;
-	white-space: pre;
-	overflow:scroll;
-	border: thin solid lightGrey;
-	height: 300px;
-	width:100%;
+	height: auto;
+	width: 100%;
+}
+
+.side-panel #interpretationInputBox {
+	width: 100%;
 }
 
 #stopwordBox, #stopwordBox2 {
-	font-family:monospace;
-	font-size:12px;
-	white-space: pre;
-	overflow:scroll;
-	border: thin solid lightGrey;
 	height: 3em;
 	width:100%;
+}
+
+.side-panel #benchmark-semantic-element {
+	bottom: 0;
+	position: absolute;
+}
+
+.side-panel #benchmark-time {
+	height: 1em;
+}
+
+.editor {
+	width: 100%;
+	height: 95%;
+}
+
+/** 
+	class for setting button to "pressed-down" state in toolbar:
+	menu-button-selected
+	
+	-> copied from w2ui.css (same as table.w2ui-button.checked)
+ */
+.w2ui-toolbar table.w2ui-button.menu-button-selected {
+  border: 1px solid #aaaaaa;
+  background-color: #ffffff;
+}
+.w2ui-toolbar table.w2ui-button.menu-button-selected .w2ui-tb-caption {
+  color: #000000;
 }
