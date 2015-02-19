@@ -102,3 +102,10 @@ code {
 .w2ui-toolbar table.w2ui-button.menu-button-selected .w2ui-tb-caption {
   color: #000000;
 }
+
+/* FIX for orion editor:
+ * need to increase z-index when editor is contained in w2ui panel
+ */
+.textviewTooltip {
+	z-index: 1000;
+}
