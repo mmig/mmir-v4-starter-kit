@@ -32,5 +32,18 @@ Notes
 If you are using Chrome, `testSemanticInterpreter.html` may not work if it is opened directly 
 as a file (i.e. not servered by a web server).
 
-As a workaround, you can start Chrome with command line argument `--allow-file-access-from-files` 
-(you may need to close all other instances of Chrome first).
+As a workaround, you can start Chrome with command line argument `--allow-file-access-from-files`. 
+If an instance of Chrome is already open, you need to close all open instances of Chrome first, or
+alternatively you can use the additional command line `--user-data-dir=<path to a directory>` in order
+to start a seperate instance of Chrome (with its own user-data directory).
+
+
+Used Libraries
+---
+
+ * Orion Editor
+ * Esprima
+ * jsonlint
+ * lodash
+ * w2ui
+ * font-awesome
