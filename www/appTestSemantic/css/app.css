@@ -61,8 +61,12 @@ code {
 	width:100%;
 }
 
+#defaultProcInterpretationCol {
+	height: 70%;
+}
+
 #interpretationBox, #interpretationBoxAlt {
-	height: auto;
+	height: 100%;
 	width: 100%;
 }
 
