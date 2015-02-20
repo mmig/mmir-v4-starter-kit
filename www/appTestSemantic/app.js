@@ -389,9 +389,9 @@ var IS_DEBUG_ENABLED = true;
 		
 		//TODO menu-creation (with view-internal objects) should be done within view! 
 		var engineEntries = [];
-		engineEntries.push(view.__getToolbarButton('JSCC',  'jscc-engine'));
-		engineEntries.push(view.__getToolbarButton('jison', 'jison-engine'));
-		engineEntries.push(view.__getToolbarButton('PEGjs', 'pegjs-engine'));
+		engineEntries.push(view.__getToolbarButton('JSCC Engine',  'jscc-engine'));
+		engineEntries.push(view.__getToolbarButton('jison Engine', 'jison-engine'));
+		engineEntries.push(view.__getToolbarButton('PEGjs Engine', 'pegjs-engine'));
 		var engineSelectMenu = {type: 'menu',   id: 'select-grammar-engine', caption: 'Grammar Compiler', icon: 'fa fa-cogs', items: engineEntries};
 		view.__addToolbar(engineSelectMenu, {event: 'click', func: handleSelectEngine});
 		
