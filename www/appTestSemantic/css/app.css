@@ -70,7 +70,7 @@ code {
 	width: 100%;
 }
 
-.side-panel #interpretationInputBox {
+.side-panel #interpretationInputBox, .side-panel #stopwordInputBox {
 	width: 100%;
 }
 

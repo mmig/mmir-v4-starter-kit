@@ -1,8 +1,17 @@
 
-define(['jquery', 'w2ui'], function($){
+define(['jquery', 'viewModel', 'appUtil', 'w2ui'], function($, viewModel, util){
 	
 	var CONSOLE_PANEL = 'bottom';
 	var INTERPERTER_PANEL = 'right';
+	
+	var TAB_LABEL_EDITOR			 	= 'Editor';
+	var TAB_LABEL_INTERMEDIATE_GRAMMAR 	= 'Intermediate Grammar';
+	var TAB_LABEL_COMPILED_GRAMMAR		= 'Compiled Grammar (JS)';
+	
+
+	var TAB_ID_EDITOR				= 'tab1';
+	var TAB_ID_INTERMEDIATE_GRAMMAR = 'tab2';
+	var TAB_ID_COMPILED_GRAMMAR		= 'tab3';
 	
 	var pstyle = '';//'border: 1px solid #dfdfdf; padding: 5px;';
 	var layoutConfig = {
@@ -17,25 +26,25 @@ define(['jquery', 'w2ui'], function($){
 	            
 	            { type: 'main', style: pstyle + 'border-top: 0px;', 
 	                tabs: {
-	                    active: 'tab1',
+	                    active: TAB_ID_EDITOR,
 	                    tabs: [
-	                        { id: 'tab1', caption: 'Editor' },
-	                        { id: 'tab2', caption: 'Intermediate Grammar' },
-	                        { id: 'tab3', caption: 'Compiled Grammar (JS)' },
+	                        { id: TAB_ID_EDITOR, 				caption: TAB_LABEL_EDITOR},
+	                        { id: TAB_ID_INTERMEDIATE_GRAMMAR, 	caption: TAB_LABEL_INTERMEDIATE_GRAMMAR},
+	                        { id: TAB_ID_COMPILED_GRAMMAR, 		caption: TAB_LABEL_COMPILED_GRAMMAR},
 	                    ],
 	                    onClick: function (event) {
 //	                    	console.log('main-tab' + event);
-	                    	if(event.tab.id === 'tab1'){
+	                    	if(event.tab.id === TAB_ID_EDITOR){
 	                    		
 		                        this.owner.content('main', layoutConfig.editorEl);
 //		                        layoutConfig.editor.toFullSize();
 		                        
 	                    	}
-	                    	else if(event.tab.id === 'tab2'){
+	                    	else if(event.tab.id === TAB_ID_INTERMEDIATE_GRAMMAR){
 	                    		
 		                        this.owner.content('main', layoutConfig.grammarDefEl);
 		                        
-	                    	} else if(event.tab.id === 'tab3'){
+	                    	} else if(event.tab.id === TAB_ID_COMPILED_GRAMMAR){
 	                    		
 		                        this.owner.content('main', layoutConfig.compiledGrammarEl);
 		                        
@@ -47,7 +56,7 @@ define(['jquery', 'w2ui'], function($){
 	                    	}
 	                    },
 	            		onRefresh: function(event){
-	            			console.log('main-tab refresh ', event);
+//	            			console.log('main-tab refresh ', event);
 //	            			layoutConfig.editor.refresh();
 //	            			var parent = layoutConfig.$editorEl.parent();
 //	            			layoutConfig.$editorEl.height( layoutConfig.$editorEl.parent().height() - 31 );
@@ -89,7 +98,11 @@ define(['jquery', 'w2ui'], function($){
 //	                           { id: 'level-2-3', text: 'Level 2.3', icon: 'fa-star-empty' }
 //	                         ]
 //	                }
-            ]
+            ]//,
+//            onClick: function(event){
+//            	console.log('sidebar clicked ',event.target, ', ', event);
+//            }
+		
         }
     };//END: w2layout
 	 
@@ -134,12 +147,60 @@ define(['jquery', 'w2ui'], function($){
 	 	//w2ui.layout_main_tabs
 	 	//w2ui.layout_main_toolbar
 	 	
+		editor.getTextView().getModel().addEventListener("Changed", function(event){
+//			if(event.addedLineCount > 0 || event.removedLineCount > 0){
+//
+//				if(editor.getModel().getLineCount() > 0){
+//					editor.toFullSize();
+//				}
+//
+//			}
+			
+			_checkDirtyCompiled();
+			
+		});
+		
+//		editor.addJsonChangedListener(function(hasChanged){
+//			_setDirtyCompiled(hasChanged);
+//		});
+		
 	 	
 	}//END init();
 	
+	function _checkDirtyCompiled(viewModel){
+		
+		if(!viewModel){
+			viewModel = w2ui.sidebar.get(w2ui.sidebar.selected).model;
+		}
+		
+		var text = editor.val();
+		var itemJsonText = viewModel.getJsonText();
+		
+		if(typeof itemJsonText !== 'undefined' && itemJsonText !== text){
+			//FIXME do checksum comparison?
+			_updateDirtySaved(true);	
+		}
+		
+		var json = viewModel.getJson();
+		if(!json){
+			return; /////////// EARLY EXIT ///////////////////
+		}
+		
+		var textAsJson;
+		try{
+			textAsJson = JSON.parse(text);
+		} catch (exc){
+			//do nothing
+		}
+		
+		if(textAsJson){
+			_setDirtyCompiled( ! util.isEqual(json, textAsJson) );
+		}
+	}
+	
 	function _updateEditorSize(onlyIfVisible){
 		
-		if(w2ui.layout && (!onlyIfVisible || w2ui.layout_main_tabs.active === 'tab1')){
+		if(w2ui.layout && (!onlyIfVisible || w2ui.layout_main_tabs.active === TAB_ID_EDITOR)){
 			
 			var main = $(w2ui.layout.el('main'));
 			main.position();
@@ -147,6 +208,45 @@ define(['jquery', 'w2ui'], function($){
 			
 		}
 		
+	}
+	
+
+	var _isDirtyCompiledFlag = false;//internal flag: are compiled versions of the grammar "in sync" with text-editor?
+	function _setDirtyCompiled (isDirty){
+		
+		if(_isDirtyCompiledFlag !== isDirty){
+			_isDirtyCompiledFlag = isDirty;
+			
+			w2ui.layout_main_tabs.get(TAB_ID_COMPILED_GRAMMAR).caption = TAB_LABEL_COMPILED_GRAMMAR + (isDirty? ' *':'');
+			w2ui.layout_main_tabs.get(TAB_ID_INTERMEDIATE_GRAMMAR).caption = TAB_LABEL_INTERMEDIATE_GRAMMAR + (isDirty? ' *':'');
+			w2ui.layout_main_tabs.refresh();
+			
+		}
+	}
+	function _isDirtyCompiled(){
+		return _isDirtyCompiledFlag;
+	}
+	
+	var _isDirtySavedFlag = false;
+	function _setDirtySaved(isDirty){
+		var item = w2ui.sidebar.get(w2ui.sidebar.selected);
+		if(item && item.model){
+			item.model.setStored( ! isDirty );
+		}
+		_updateDirtySaved(isDirty);
+	}
+	function _updateDirtySaved(isDirty){
+		
+		if(_isDirtySavedFlag !== isDirty){
+			_isDirtySavedFlag = isDirty;
+			w2ui.layout_main_tabs.get(TAB_ID_EDITOR).caption = TAB_LABEL_EDITOR + (isDirty? ' *':'');
+			w2ui.layout_main_tabs.refresh();
+		}
+		
+		layoutConfig.editor.setDirty(isDirty);
+	}
+	function _isDirtySaved(){
+		return layoutConfig.editor.isDirty();
 	}
 	
 	function _getButtonIcon(buttonId){
@@ -182,43 +282,70 @@ define(['jquery', 'w2ui'], function($){
 	}
 	
 	return {
-		_breakElCount: 0,
+		_breakElCount: 0,//internal counter / ID for toolbar-breaks (i.e. separators)
 		init: init,
-		addProjectGrammar: function(id, path){
+		addProjectGrammar: function(id, path){//id MUST not exist in projectList!
+			
+			var model = viewModel.create(id, 'project', path);
+			
 			w2ui.sidebar.insert('projectList', null, 
-                { id: id, text: 'Grammar '+id, icon: 'fa fa-file-text-o', model: { id: id, type: 'project', uri: path}}
+                { id: model.viewId, text: model.getLabel(), icon: model.getIcon(), model: model}
             );
+			
+			return model;
 		},
 		addLoadedGrammar: function(id, jsonGrammar, path){
 			
-			var entry = { id: id, text: 'Grammar '+id, icon: 'fa fa-file-code-o', model: { id: id, type: 'file', json: jsonGrammar, uri: path } };
+			var model = viewModel.create(id, 'file', path, jsonGrammar);
 			
-			if(w2ui.sidebar.get(id)){
-				w2ui.sidebar.set('fileList', id, entry);
+			var entry = w2ui.sidebar.get(model.viewId);
+			
+			if(entry){
+				//update model in existing entry
+				entry.model.setJson( model.getJson() );
+				entry.model.setUrl( model.getUrl() );
+				entry.model.setStored( true );//reset "saved-dirty" flag (since this was just loaded from a file)
+				entry.model.setGrammarConverter(void(0), void(0));//reset compiled grammar -> force re-compilation
+				
+//				w2ui.sidebar.set('fileList', model.viewId, entry);
+				model = entry.model;
 			}
 			else {
+				entry = { id: model.viewId, text: model.getLabel(), icon: model.getIcon(), model: model };
 				w2ui.sidebar.insert('fileList', null, entry);
 			}
+			
+			return model;
 		},
 		addCompiledGrammar: function(id, jsonGrammar){
 			
-			var entryId = 'compiled_' + id;
-			var entry = { id: entryId, text: 'Grammar '+id, icon: 'fa fa-file', model: { id: id, type: 'compiled', json: jsonGrammar } };
+			var model = viewModel.create(id, 'compiled', null, jsonGrammar);
 			
-			if(w2ui.sidebar.get(entryId)){
-				w2ui.sidebar.set('compiledList', entryId, entry);
+			var entry = w2ui.sidebar.get(model.viewId);
+			
+			if(entry){
+				//update model in existing entry
+				entry.model.setJson( model.getJson() );
+				entry.model.setUrl( model.getUrl() );
+				entry.model.setGrammarConverter(void(0), void(0));//reset compiled grammar -> force re-compilation
+				
+//				w2ui.sidebar.set('compiledList', model.viewId, entry);
+				model = entry.model;
 			}
 			else {
+				entry = { id: model.viewId, text: model.getLabel(), icon: model.getIcon(), model: model };
 				w2ui.sidebar.insert('compiledList', null, entry);
 			}
+			
+			return model;
 		},
 		selectGrammar: function(id){
 			w2ui.sidebar.select(id);
 			w2ui.sidebar.click(id);
 		},
-		selectCompiledGrammar: function(id){
-			this.selectGrammar('compiled_'+id);
-		},
+//		selectCompiledGrammar: function(id){
+//			this.selectGrammar('compiled_'+id);
+//		},
 		getGrammar: function(id){
 			return w2ui.sidebar.get(id);
 		},
@@ -268,6 +395,13 @@ define(['jquery', 'w2ui'], function($){
 			//trigger "click" on the menu-entry:
 			w2ui.layout_main_toolbar.menuClick({item: engineMenu, subItem: engineButton});
 		},
+		updateCurrentGrammarText: function(){
+			var item = w2ui.sidebar.get(w2ui.sidebar.selected);
+			if(item){
+				item.model.setJsonText( this.getEditorText() );
+			}
+		},
+		
 		
 		addToolbarButton: function(text, id, handler){
 			var button = {type: 'button', id: id, caption: text, onClick: handler};
@@ -323,6 +457,13 @@ define(['jquery', 'w2ui'], function($){
 			layoutConfig.$grammarDefEl.find('#compileOutBox')[0].textContent = text;
 		},
 		
+		setEditorText: function(text){
+			layoutConfig.editor.val(text);
+		},
+		getEditorText: function(){
+			return layoutConfig.editor.val();
+		},
+		
 		setExamplePhrase: function(phrase){
 			console.info('TODO impl. setExamplePhrase -> '+phrase);
 //			this._examplePhrase = phrase;
@@ -335,7 +476,14 @@ define(['jquery', 'w2ui'], function($){
 			var phrase = $('#interpretationInputBox', layoutConfig.$interpreterEl).val();
 			console.info('TODO impl. getExamplePhrase -> '+phrase);
 			return phrase;
-		}
+		},
+		
+		setDirtyCompiled: _isDirtyCompiled,
+		verifyDirtyCompiled: _checkDirtyCompiled,
+		isDirtyCompiled: _isDirtyCompiled,
+		setDirtySaved: _setDirtySaved,
+		updateDirtySaved: _updateDirtySaved,
+		isDirtySaved: _isDirtySaved
 		
 	};
 });

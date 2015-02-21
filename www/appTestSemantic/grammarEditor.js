@@ -1,5 +1,5 @@
 
-define(['orioneditor'],function(_editor){
+define(['orioneditor', 'validationUtil'],function(_editor, validationUtil){
 
 	var _export = {
 			editor: void(0)
@@ -35,13 +35,17 @@ define(['orioneditor'],function(_editor){
 //
 //			}
 //		});
-
-		editor.getTextView().getModel().addEventListener("Changed", validateJsonGrammar);
+		
 
 		var _annotations = require('orion/editor/annotations');
 		var ERROR_MARKER    = _annotations.AnnotationType.ANNOTATION_ERROR;
 		var WARNING_MARKER  = _annotations.AnnotationType.ANNOTATION_WARNING;
 		var BOOKMARK_MARKER = _annotations.AnnotationType.ANNOTATION_BOOKMARK;
+		
+		editor.getTextView().getModel().addEventListener("Changed", validationUtil.initGrammarValidator(
+				editor, ERROR_MARKER, WARNING_MARKER, BOOKMARK_MARKER
+		));
+
 
 		//taken from esprima/customeditor.js:
 		editor.addErrorMarker = function (start, end, description) {
@@ -67,6 +71,23 @@ define(['orioneditor'],function(_editor){
 			annotationModel.removeAnnotations(WARNING_MARKER);
 			annotationModel.removeAnnotations(BOOKMARK_MARKER);
 		};
+		
+//		var jsonChangedListener = [];
+//		editor.addJsonChangedListener = function(handler){
+//			jsonChangedListener.push(handler);
+//		};
+//		editor.removeJsonChangedListener = function(handler){
+//			for(var i=0,size=jsonChangedListener.length; i < size; ++i){
+//				if(jsonChangedListener[i] === handler){
+//					jsonChangedListener.splice(i,1);
+//				}
+//			}
+//		};
+//		editor.fireJsonChanged = function(hasChanged){
+//			for(var i=0,size=jsonChangedListener.length; i < size; ++i){
+//				jsonChangedListener[i](hasChanged);
+//			}
+//		};
 
 		_export.editor = editor;
 		_export.ERROR_MARKER    = ERROR_MARKER;
