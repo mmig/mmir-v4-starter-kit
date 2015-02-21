@@ -6,6 +6,7 @@
  * @depends jQuery#Selector
  * @depends jQuery.innerHeight
  * @depends jQuery.scrollTop
+ * @depends jQuery.val
  * 
  * @depends <div id="outputBox"> exists
  */
@@ -198,7 +199,7 @@ define(['lodash', 'jquery'], function(lodash, $){
 				var pos = {
 					start : m.getLineStart(line - 1),
 					end : m.getLineEnd(line - 1)
-				}
+				};
 
 				console.log('selectLine(%s) -> ', line, pos);
 
@@ -216,7 +217,7 @@ define(['lodash', 'jquery'], function(lodash, $){
 			console.log('selectLine(%s) -> ', line, pos);
 
 			setSelection(ta, pos.start, pos.end, true);
-		}
+		};
 	})();
 	
 	
