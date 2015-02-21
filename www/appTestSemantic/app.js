@@ -155,11 +155,22 @@ function($, view, util
 
 		view.onGrammarSelect(function(event, ui) {
 			
-//			var prevLang = view.getSelectedGrammarId();//$('#grammar-id').val();
+			var prevLang = view.getSelectedGrammarId();//$('#grammar-id').val();
 			view.updateCurrentGrammarText();
 			
 			var currentGrammarModel = view.getGrammar(event).model;
 			var currentGrammarId = currentGrammarModel.id;
+			
+			//FIX russa: need to remove GrammarConvert from SemanticInterpreter:
+			//    otherwise, the newly compiled grammar will modified the
+			//    existing/registered grammar (with the same ID)
+			//    ... which would not be a problem, if we dicard the old grammar,
+			//    but in case of the Grammar Editor we may want to reload the
+			//    old grammar again, so we need to protect it from modification
+			//    by removing it, before we compile the new grammar.
+			if(prevLang === currentGrammarId){//need to remove old grammar (but only if they have different types ... TODO check types too)
+				semanticInterpreter.removeGrammar(prevLang);
+			}
 			
 			var currentLangSelection = currentGrammarId;//$(this).val();
 			$('#grammar-id').val(currentLangSelection);
@@ -493,6 +504,7 @@ function($, view, util
 		//do not procced, if we already have the compiled JavaScript
 		var gc = viewModel.getGrammarConverter();
 		if(gc && gc == semanticInterpreter.getGrammarConverter(viewModel.id)){
+			semanticInterpreter.addGrammar(viewModel.id, gc /*FIXME need to set file-format-version!!! */);
 			doSetViewWithCompiledGrammar();
 			return;
 		}
@@ -502,7 +514,7 @@ function($, view, util
 			semanticInterpreter
 					.createGrammar(
 							viewModel.getJson(),
-							getLanguage(),
+							viewModel.id,//getLanguage(),
 							function(grammarConverter) {
 
 								viewModel.setGrammarConverter(grammarConverter, semanticInterpreter.getGrammarEngine());
