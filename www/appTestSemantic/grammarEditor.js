@@ -1,5 +1,5 @@
 
-define(['orioneditor', 'validationUtil'],function(_editor, validationUtil){
+define(['require', 'orioneditor', 'validationUtil'],function(require, _editor, validationUtil){
 
 	var _export = {
 			editor: void(0)

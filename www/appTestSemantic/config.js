@@ -5,8 +5,10 @@
     	
     	debugMode: true,
     	
+//    	context: 'mmirtestsemint',//requirejs module context: MMIR Test Semantic Interpreter
+    	
 		config: {
-			'appInit': {
+			'initApp': {
 				grammarEditorClass: 'editor'
 			}
 		},
@@ -35,6 +37,8 @@
 	    	// grammars (JSON->JS), and templates (eHTML->JS)
 	    	, 'md5' : 'mmirf/vendor/libs/md5'
 	    	, 'checksumUtils' : 'mmirf/tools/checksumUtils'
+
+		    , 'logger' : 'mmirf/tools/logger'
 		    
 			//grammar related
 			, 'grammarConverter' : 'mmirf/semantic/grammarConverter'
@@ -57,7 +61,7 @@
 				
 			//app code
 			, 'app': 'appTestSemantic/app'
-			, 'appInit': 'appTestSemantic/appInit'
+			, 'initApp': 'appTestSemantic/initApp'
 			, 'appUtil': 'appTestSemantic/appUtil'
 			, 'validationUtil': 'appTestSemantic/validationUtil'
 			, 'grammarValidator' : 'appTestSemantic/jsonGrammarValidator'

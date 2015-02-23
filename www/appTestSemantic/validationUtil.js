@@ -1,5 +1,5 @@
 
-define(['appUtil', 'jsonlint', 'grammarValidator'], function(util, jsonparser, GrammarValidator){
+define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, jsonparser, jsparser, GrammarValidator){
 	/**
 	 * EITHER:
 	 * @param {Number} line
@@ -300,11 +300,11 @@ define(['appUtil', 'jsonlint', 'grammarValidator'], function(util, jsonparser, G
 		var currentGrammar = viewModel.getGrammarConverter();
 		var grammarId = viewModel.id;
 		if (currentGrammar.executeGrammar.hasErrors) {
-			var jsParser = require('esprima');
+//			var jsparser = require('esprima');
 			var text = currentGrammar.getJSGrammar();
 
 			try {
-				var syntax = jsParser.parse(text, {
+				var syntax = jsparser.parse(text, {
 					tolerant : true,
 					loc : true
 				});

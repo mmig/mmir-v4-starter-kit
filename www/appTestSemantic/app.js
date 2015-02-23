@@ -3,12 +3,12 @@
 
 
 
-define(['jquery', 'mainView', 'appUtil'
+define(['require', 'jquery', 'mainView', 'appUtil'
         , 'constants', 'commonUtils', 'languageManager', 'semanticInterpreter', 'grammarConverter'
         , 'mainView', 'validationUtil'
-        , 'appInit', 'w2ui'
+        , 'initApp', 'w2ui'
     ], 
-function($, view, util
+function(require, $, view, util
 		, constants, commonUtils,languageManager,semanticInterpreter, GrammarConverter
 		, mainView, validationUtil
 //		, init, w2ui //w2uipopup
