@@ -378,11 +378,23 @@ function(require, $, view, util
 			
 		};
 		
+		var _createSaveBtnInfo = function(savePath, id){
+			var infoSaveBtn = view.__getToolbarButton(savePath, id);
+			infoSaveBtn.disabled = true;
+			return infoSaveBtn;
+		};
+		
 		//TODO menu-creation (with view-internal objects) should be done within view! 
 		var saveEntries = [];
 		saveEntries.push(view.__getToolbarButton('Save JSON...', 				'save-json'));
+		saveEntries.push(_createSaveBtnInfo('/www/config/languages/&lt;ID&gt;/grammar.json', 'save-json-info'));
 		saveEntries.push(view.__getToolbarButton('Save JS...', 					'save-js'));
+		saveEntries.push(_createSaveBtnInfo('/www/gen/grammar/&lt;ID&gt;_grammar.js', 'save-js-info'));
 		saveEntries.push(view.__getToolbarButton('Save Checksum...',	 		'save-checksum'));
+		saveEntries.push(_createSaveBtnInfo('/www/gen/grammar/grammar.json_&lt;ID&gt;.checksum.txt', 'save-checksum-info'));
+		var separator = view.__getToolbarButton('', 'save-menu-separator1');
+		separator.type = 'break';
+		saveEntries.push(separator);
 		saveEntries.push(view.__getToolbarButton('Save Grammar Def...',			'save-grammar-def'));
 		saveEntries.push(view.__getToolbarButton('Save All...', 				'save-all', function(){ console.error('TODO impl. save-all!'); }));
 		
@@ -592,6 +604,17 @@ function(require, $, view, util
 		
 		view.addToolbarSeparator();
 		
+		
+		view.__addToolbar({type: 'spacer', id: 'spacer1'});
+		
+		view.addToolbarButton('Help', 'app-help', function(){ 
+			var dlg = $('#popupAppHelpInfo');
+			var title = dlg.data('title');
+			
+			_showInfoDialog(title, dlg.html());
+		});
+		
+		
 		////////////////// Intialize Test Interpretation Panel: //////////////////////////
 		
 		/**
@@ -709,7 +732,7 @@ function(require, $, view, util
 		
 		//do not proceed, if we already have the compiled JavaScript
 		var gc = viewModel.getGrammarConverter();
-		if(gc && gc == semanticInterpreter.getGrammarConverter(viewModel.id)){
+		if(gc && gc.getJSCCGrammar() && gc.getJSGrammar()){// && gc == semanticInterpreter.getGrammarConverter(viewModel.id)){
 			semanticInterpreter.addGrammar(viewModel.id, gc /*FIXME need to set file-format-version!!! */);
 			doSetViewWithCompiledGrammar();
 			return;
@@ -724,6 +747,7 @@ function(require, $, view, util
 							function(grammarConverter) {
 
 								viewModel.setGrammarConverter(grammarConverter, semanticInterpreter.getGrammarEngine());
+								view.updateGrammarItem(viewModel.viewId);
 								doSetViewWithCompiledGrammar();
 					});
 		};

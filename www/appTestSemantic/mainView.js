@@ -399,6 +399,12 @@ define(['jquery', 'viewModel', 'appUtil', 'validationUtil', 'w2ui'], function($,
 		case 'save-grammar-def':
 		case 'save-all':
 			return 'fa fa-floppy-o';//'fa fa-download';
+		case 'save-json-info':
+		case 'save-js-info':
+		case 'save-checksum-info':
+//		case 'save-grammar-def':
+//		case 'save-all':
+			return 'fa fa-hand-o-right';
 		case 'compile-grammar':
 			return 'fa fa-share-square-o';
 		case 'toggle-console':
@@ -413,6 +419,8 @@ define(['jquery', 'viewModel', 'appUtil', 'validationUtil', 'w2ui'], function($,
 			//fall through to info-upgrade
 		case 'info-upgrade':
 			return 'fa fa-info-circle';
+		case 'app-help':
+			return 'fa fa-question-circle';
 		default:
 			return;
 		}
@@ -614,6 +622,31 @@ define(['jquery', 'viewModel', 'appUtil', 'validationUtil', 'w2ui'], function($,
 		},
 		getGrammarItem: function(viewId){
 			return w2ui.sidebar.get(viewId);
+		},
+		updateGrammarItem: function(viewId){
+			var item = w2ui.sidebar.get(viewId);
+			if(!item){
+				console.error('There is no view-item with ID '+viewId);
+				return;
+			}
+			
+			var label = item.model.getLabel();
+			var icon  =  item.model.getIcon();
+			
+			var isChanged = false;
+			if(label != item.text){
+				isChanged = true;
+				item.text = label;
+			}
+			if(icon != item.icon){
+				isChanged = true;
+				item.icon = icon;
+			}
+
+			if(isChanged){
+				w2ui.sidebar.refresh();
+			}
+			
 		},
 		getSelectedGrammarItem: function(){
 			return w2ui.sidebar.get(w2ui.sidebar.selected);

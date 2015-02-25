@@ -1,8 +1,11 @@
 
 define(['dictionary', 'appUtil'], function(Dictionary, util){
 	
+	var UNINITIALIZED_ENGINE_VALUE = '&lt;uncompiled&gt;';
 	
 	function GrammarModel(grammarId, type, url, jsonStr, json){
+		
+		this.engine = UNINITIALIZED_ENGINE_VALUE;
 		
 		if(typeof grammarId === 'object'){
 			type 		= grammarId.type;
@@ -115,7 +118,7 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 	
 	
 	GrammarModel.prototype.getLabel = function(){
-		return 'Grammar '+ this.id;
+		return '<strong><pre>'+ this.id + '</pre></strong> <em class="text small hint">'+this.engine+'</em>';
 	};
 	
 	GrammarModel.prototype.getIcon = function(){

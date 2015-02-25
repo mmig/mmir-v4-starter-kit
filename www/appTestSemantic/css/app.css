@@ -21,6 +21,14 @@ code {
 	white-space: pre;
 }
 
+.key {
+	border: 1px solid gray;
+	border-radius: 2px;
+	padding: 2px;
+	font-family:monospace;
+	font-weight: bold; 
+}
+
 .hidden {
 	display: none;
 }
