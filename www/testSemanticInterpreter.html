@@ -52,6 +52,7 @@
 
     <div id="semantic-test-main" style="height: 100%;"></div>
     
+    <img id="loader-icon" height="32" width="32" scr="appTestSemantic/css/images/ajax-loader.gif"/>
 </div>
 
 
@@ -73,7 +74,7 @@
 		<form id="form-test-semantic">
 			<div class="">
 				<h5>Test Semantics:</h5>
-				<input type="text" id="interpretationInputBox"></input>
+				<input type="text" id="interpretationInputBox" autocomplete="off"></input>
 				<button id="btn-test-semantic" class="btn">Process</button>
 			</div>
 		</form>
@@ -123,19 +124,21 @@
 	
 	
 	<!-- stopword-removal tester element -->
-	<div id="stopword-element" >
-		<div valign="top">
-			<h5>TEST Process Stopwords:</h5>
-			<input type="text" id="stopwordInputBox"></input>
-			<br/>
-			<button class="btn-test-stopword">Apply Stopwords</button>onclick="stopword();"
-		</div>
+	<div id="stopword-element" class="side-panel">
+		<form id="form-test-stopword">
+			<div class="">
+				<h5>Test Stopword Removal:</h5>
+				<input type="text" id="stopwordInputBox" autocomplete="off"></input>
+				<br/>
+				<button id="btn-test-stopword" class="btn">Apply</button>
+			</div>
+		</form>
 		<div id="defaultProcStopwordCol">
-			<h5>Stopword Result:</h5>
+			<h5>After Stopword Removal:</h5>
 			<div id="stopwordBox" class="outbox"></div>
 		</div>
 		<div id="altProcStopwordCol" class="hidden">					
-			<h5>Stopword Result 
+			<h5>After Stopword Removal 
 					<span  class="text hint small">
 						(alternative stopword processing method)
 					</span>:
@@ -151,18 +154,26 @@
 <!-- ################### SECTION: Popup dialogs & tooltip dialogs ################################# -->
 <div id="dialogs" style="display:none">			
 	
-	<div data-role="popup" id="parseErrorPopup" data-overlay-theme="a" data-theme="a" data-dismissible="false" class="ui-corner-all">
-	    <div data-role="header" data-theme="a" class="ui-corner-top">
-	        <h1 id="parseErrorPopupTitle">a short title</h1>
+	<div id="errorPopup" class="ui-content ui-corner-all">
+	    <div id="errorPopupTitle" class="hidden">
+	    	<div> <i></i> &nbsp;<span>a short title</span></div>
 	    </div>
-	    <div data-theme="a" class="ui-content ui-corner-bottom ui-content">
-	        <h3 class="ui-title" id="parseErrorPopupCaption">short description or question.</h3>
-	        <p id="parseErrorPopupText">detailed description.</p>
-	        <!-- a href="#" data-role="button" data-inline="true" data-rel="back" data-theme="b">OK</a-->
+	    <div id="errorPopupContent" class="ui-content ui-corner-bottom ui-content">
+	        <h3 class="ui-title" id="errorPopupCaption">short description or question.</h3>
+	        <div id="errorPopupText">detailed description</div>
 	    </div>
 	</div>
 	
-	<div data-role="popup" id="popupMaskingInfo" class="ui-content" data-theme="a" style="max-width:350px;">
+	<div id="infoPopup"class="ui-content ui-corner-all">
+	    <div id="infoPopupTitle" class="hidden">
+	    	<div> <i></i> &nbsp;<span>a short title</span></div>
+	    </div>
+	    <div id="infoPopupContent" class="ui-content ui-corner-bottom ui-content">
+	        <div id="infoPopupText">information text</div>
+	    </div>
+	</div>
+	
+	<div id="popupMaskingInfo" class="ui-content" data-title="Masking Information">
 	  <p><h3>Preview masking (for non-ASCII characters)</h3>
 	    
 	    If the JSON values contain <strong>unicode</strong>
@@ -181,7 +192,7 @@
 	  </p>
 	</div>
 	
-	<div data-role="popup" id="popupGrammarIdInfo" class="ui-content" data-theme="a" style="max-width:350px;">
+	<div id="popupGrammarIdInfo" class="ui-content" data-title="Grammar ID information">
 	  <p>The <strong>Grammar ID</strong> 
 	  	is internally used to identify the grammar, that is, 
 	  	the ID is used to manage multiple grammars.<br/>
@@ -189,7 +200,7 @@
 	  </p>
 	</div>
 
-	<div data-role="popup" id="popupFormatConversionInfo" class="ui-content" data-theme="a" style="max-width:600px;">
+	<div id="popupFormatConversionInfo" class="ui-content" data-title="Upgrade Information">
 	  <p><h3>Upgrading old umlaut-encoded JSON grammars</h3>
 	     
 	  	 The old file format for JSON grammars used a special masking
@@ -276,10 +287,10 @@
 	</div>
     
     <div>
-    	<fieldset class="grid-cell" style="padding-left:0.2em;">
+    	<!-- >fieldset class="grid-cell" style="padding-left:0.2em;">
 			<label for="grammar-id">Grammar ID:</label>
 			<input id="grammar-id" type="text" data-inline="true"/>
-		</fieldset>
+		</fieldset-->
 		
 		<div class="grid-cell" style="vertical-align:top">
 			<a href="#popupGrammarIdInfo" id="openPopupGrammarIdInfo"

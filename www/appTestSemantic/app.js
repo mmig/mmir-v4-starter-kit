@@ -2,26 +2,44 @@
 //dependencies: w2popup
 
 
-
+/**
+  * 
+  * @class TestGrammarApp
+  * @name TestGrammarApp
+  */
 define(['require', 'jquery', 'mainView', 'appUtil'
         , 'constants', 'commonUtils', 'languageManager', 'semanticInterpreter', 'grammarConverter'
-        , 'mainView', 'validationUtil'
+        , 'mainView', 'validationUtil', 'waitDialog'
         , 'initApp', 'w2ui'
     ], 
 function(require, $, view, util
 		, constants, commonUtils,languageManager,semanticInterpreter, GrammarConverter
-		, mainView, validationUtil
+		, mainView, validationUtil, waitDialog
 //		, init, w2ui //w2uipopup
 ){
 	
+
+	/**
+	 * @private
+	 * @memberOf TestGrammarApp
+	 */
 	var IS_FILE_READING_API = false;
 	
-
-	
-	//enable/disable additional processing for stopwords by using an
-	//	alternative function for removing stopwords
+	/**
+	 * enable/disable additional processing for stopwords by using an
+	 * alternative function for removing stopwords.
+	 * 
+	 * @private
+	 * @memberOf TestGrammarApp
+	 */
 	var isEnableAlternateStopwordProcessing = false;
 	
+	/**
+	 * the document's search/query part of its URL.
+	 * @private
+	 * @type String
+	 * @memberOf TestGrammarApp
+	 */
 	var params = document.location.search;
 	if( /[\?&]enable-alt=true/igm.test(params) ){
 		isEnableAlternateStopwordProcessing = true;
@@ -41,20 +59,40 @@ function(require, $, view, util
 		
 	}
 	
-	//ID for the grammar generator / engine -- see mmirf/env/grammar/*
+	/**
+	 * ID for the grammar generator / engine -- see mmirf/env/grammar/*
+	 * 
+	 * @private
+	 * @type String
+	 * @memberOf TestGrammarApp
+	 */
 	var _initialGrammarGenerator;
 
-	//parse query/search string for grammar-generator "argument"
+	/**
+	 * parse query/search string for grammar-generator "argument"
+	 * 
+	 * @private
+	 * @type RegExp
+	 * @memberOf TestGrammarApp
+	 */
 	var matchGenParam = /[\?&]gen=([^&]+)/igm.exec(params);
 	if(matchGenParam){
 		_initialGrammarGenerator = matchGenParam[1];
 	};
 
+	/**
+	 * App initializer (triggered on-doc-ready by jQuery; see below)
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 */
+	var _initAppOnDocReady = function() {
 
-	$(function() {
-
-		//export dependencies into mmir-package:
+		//export dependencies into global mmir-package
+		// (we need to do this explicitly, since we did not use the framework's init-mechanism)
 		mmir = {
+				/** @memberOf mmir */
 				Constants: constants,
 				CommonUtils: commonUtils,
 				LanguageManager: languageManager,
@@ -69,20 +107,27 @@ function(require, $, view, util
 
 		// start the app
 		.then(function() {
-
-			initPage(semanticInterpreter);// in app.js
+			
+			//trigger initialization of the main-view:
+			initMainView(semanticInterpreter);
 
 		});
 
-
-
 		mainView.init(editor);
-	});
+	};
+	//register with jQuery ondocready:
+	$(_initAppOnDocReady);
 	
 	
 	
-	
-	var initPage = function initPageImpl(semanticInterpreter){
+	/**
+	 * Initialize the main-view 
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 */
+	var initMainView = function initPageImpl(semanticInterpreter){
 	
 //		semanticInterpreter = mmir.SemanticInterpreter.getInstance();
 		semanticInterpreter.get_json_grammar_url = function(id) { return 'config/languages/'+id+'/grammar.json'; };
@@ -144,21 +189,34 @@ function(require, $, view, util
 
 		if(defLangViewModel){
 			view.selectGrammar(defLangViewModel.viewId);
+			//HACK: UI may not be fully initialized yet
+			//		... as a result, the emulated click may not (visually) mark the entry as selected
+			//      -> need to explicitly set the entry as selected
+			view.__setGrammarSelected(defLangViewModel.viewId);
 		}
 		
-		$('#grammar-id').val(defLang);//TODO replace grammar-id element with property in data-model
-//		theJSONGrammarURL = semanticInterpreter.get_json_grammar_url(defLang);
+//		$('#grammar-id').val(defLang);//TOD replace grammar-id element with property in data-model
 		
-//		$('#lang-selector-manual-input').hide();
-//		$('#lang-selector').replaceWith($.parseHTML(langMenu));
-////		$('#lang-selector').selectmenu({ inline: true });
-
-		view.onGrammarSelect(function(event, ui) {
+		/**
+		 * Handler function that is trigger when a grammar-item is selected in main view (sidebar).
+		 * 
+		 * @private
+		 * @name onGrammarSelectHandler
+		 * @type Function
+		 * @memberOf TestGrammarApp.MainView
+		 */
+		var onGrammarSelectHandler = function(event, ui) {
 			
-			var prevLang = view.getSelectedGrammarId();//$('#grammar-id').val();
+
+			var prevGrammarItem = view.getSelectedGrammarItem();
+			var prevGrammarId, prevGrammarViewId;
+			if(prevGrammarItem){
+				prevGrammarId = prevGrammarItem.model.id;//$('#grammar-id').val();
+				prevGrammarViewId = prevGrammarItem.model.viewId;
+			}
 			view.updateCurrentGrammarText();
 			
-			var currentGrammarModel = view.getGrammar(event).model;
+			var currentGrammarModel = view.getGrammarItem(event).model;
 			var currentGrammarId = currentGrammarModel.id;
 			
 			//FIX russa: need to remove GrammarConvert from SemanticInterpreter:
@@ -168,28 +226,23 @@ function(require, $, view, util
 			//    but in case of the Grammar Editor we may want to reload the
 			//    old grammar again, so we need to protect it from modification
 			//    by removing it, before we compile the new grammar.
-			if(prevLang === currentGrammarId){//need to remove old grammar (but only if they have different types ... TODO check types too)
-				semanticInterpreter.removeGrammar(prevLang);
+			if(prevGrammarId === currentGrammarId){//need to remove old grammar (but only if they have different types ... TODO check types too)
+				semanticInterpreter.removeGrammar(prevGrammarId);
 			}
 			
 			var currentLangSelection = currentGrammarId;//$(this).val();
-			$('#grammar-id').val(currentLangSelection);
+//			$('#grammar-id').val(currentLangSelection);
 			
+			//FIXME TODO add re-load action for AJAX-loaded grammars (i.e. type 'project' / for 'file', re-load could open the file-selection dlg...?)
+			if(currentGrammarModel.type === 'project' && !currentGrammarModel.getJson() ){
 			
-			if(currentGrammarModel.type === 'project'){
-			
-//				theJSONGrammarURL = currentGrammarModel.url;//semanticInterpreter.get_json_grammar_url(currentLangSelection);
-				
 				var callback = function (jsonGrammar, grammarText){
 					if(jsonGrammar){
 						
 						currentGrammarModel.setJson(jsonGrammar);
 						currentGrammarModel.setJsonText(grammarText);
 						
-						clearInput(view);
-						clearOut(view);
-						clearInterpret(view);
-						clearStopword(view);
+						view.clearView();
 						
 						initPageWithJsonGrammar(view, currentGrammarModel, function(){
 							//set "saved-dirty" to false (this JSON was loaded from a file)
@@ -200,41 +253,22 @@ function(require, $, view, util
 					}
 					else {
 						// loading failed -> "revert" selection
-//						$('#lang-selector option[value="'+currentLangSelection+'"]').prop('selected', null);
-//						if( isLang(prevLang) ){
-//							$('#lang-selector option[value="'+prevLang+'"]').prop('selected', 'selected');
-//						}
-//						else {
-//							var OPTION_GRAMMAR_FROM_FILE = 'file-option';
-//							var OPTION_GRAMMAR_FROM_TEXTINPUT = 'textinput-option';
-//							//reset to temp-selection entry (either file or from textinput)
-//							var fileSelection = $('#lang-selector option[value="'+OPTION_GRAMMAR_FROM_FILE+'"]');
-//							if(fileSelection.length > 0){
-//								fileSelection.prop('selected', 'selected');
-//							}
-//							else {
-//								$('#lang-selector option[value="'+OPTION_GRAMMAR_FROM_TEXTINPUT+'"]').prop('selected', 'selected');
-//							}
-//						}
-//						
-//						$('#lang-selector').selectmenu('refresh', true);
-//						currentLangSelection = prevLang;
-//						
-//						$('#grammar-id').val(prevLang);
 						
 						currentGrammarModel.isMissingResource = true;
-						console.error('faild to load resource '+ currentGrammarModel.url);
-						//TODO: disable sidebar-entry & select previous entry(?)
+						console.error('faild to load grammar from "'+ currentGrammarModel.url+'"');
 						
+						//TODO: remove sidebar-entry?
+						view.disableSidbarItem(currentGrammarModel.viewId);
+						view.selectGrammar(prevGrammarViewId);
 					}
 				};
-				loadJsonGrammar(currentGrammarModel, callback);
+				_loadJsonGrammar(currentGrammarModel, callback);
 				
 			}
-			else if(currentGrammarModel.type === 'file' || currentGrammarModel.type === 'compiled'){
+			else if(currentGrammarModel.type === 'file' || currentGrammarModel.type === 'compiled' || currentGrammarModel.type === 'project'){
 				
 				//set "saved-dirty" to false, if the JSON was loaded from a file
-				var isSavedDirty = currentGrammarModel.type === 'file' || ! currentGrammarModel.isStored();
+				var isSavedDirty = currentGrammarModel.type === 'file' || currentGrammarModel.type === 'project' || ! currentGrammarModel.isStored();
 				var callback = function(){
 					view.updateDirtySaved(isSavedDirty);
 					view.verifyDirtyCompiled(currentGrammarModel);
@@ -247,18 +281,26 @@ function(require, $, view, util
 				console.error('unknow grammar data: ', currentGrammarModel);
 			}
 			
-		});//END: onGrammarSelect(function(event, ui) {
+		};//END: onGrammarSelectHandler(event, ui) {
+		view.onGrammarSelect(onGrammarSelectHandler);
 		
 		
 
 		////////////////// Initialize Toolbar: //////////////////////////
-		
+		/**
+		 * Helper for executing a specific download-action.
+		 * Used in {@link #handleDownload}.
+		 * 
+		 * @private
+		 * @type Function
+		 * @memberOf TestGrammarApp.MainView
+		 */
 		var createDownload = function(action){
 			var strData, fileName;
 			switch(action){
 			case 'save-json':
 				fileName = 'grammar.json';
-				strData = view.getEditorText();
+				strData = view.getJsonGrammarText();
 				
 				//HACK reset "saved-dirty" flag (but really we do not know, if saving was successful...)
 				view.setDirtySaved(false);
@@ -270,7 +312,7 @@ function(require, $, view, util
 				break;
 			case 'save-checksum':
 				fileName = 'grammar.json_' + view.getSelectedGrammarId() + '.checksum.txt';
-				strData = checksumUtils.createContent( view.getEditorText() );
+				strData = checksumUtils.createContent( view.getJsonGrammarText() );
 				break;
 			case 'save-grammar-def':
 				fileName = 'grammar.' +  semanticInterperter.getGrammarEngine() + '.def.txt';
@@ -285,7 +327,13 @@ function(require, $, view, util
 		};
 
 		semanticInterperter = require('semanticInterpreter');
-		
+		/**
+		 * Handler function for toolbar button/menu "Save ..."
+		 * 
+		 * @private
+		 * @type Function
+		 * @memberOf TestGrammarApp.MainView
+		 */
 		var handleDownload = function(event){
 			
 			var selection = event.target? event.target : event;
@@ -344,7 +392,12 @@ function(require, $, view, util
 //		view.addToolbarButton('Save Intermediate Grammar...', 	'save-grammar-def', handleDownload);
 ////		view.addToolbarButton('Save All...', 					'save-all', function(){ console.error('TODO impl. save-all!'); });
 		
-		
+		/**
+		 * Toolbar menu entry for save/download actions
+		 * @private
+		 * @type ToolbarMenu
+		 * @memberOf TestGrammarApp.MainView
+		 */
 		var saveActionSelectMenu = {type: 'menu',   id: 'select-save-action', caption: 'Save...', icon: 'fa fa-floppy-o', items: saveEntries};
 		view.__addToolbar(saveActionSelectMenu, {event: 'click', func: handleDownload});
 		
@@ -357,9 +410,17 @@ function(require, $, view, util
 		
 		view.addToolbarSeparator();
 		
+		
+		
 		view.addToolbarButton('Compile', 'compile-grammar', function(){ compileCurrentInput(view); });
 		
-//		semanticInterperter = require('semanticInterpreter'); 
+//		semanticInterperter = require('semanticInterpreter');
+		/**
+		 * Handler for selecting a grammar engine in toolbar menu.
+		 * @private
+		 * @type Function
+		 * @memberOf TestGrammarApp.MainView
+		 */
 		var handleSelectEngine = function(event){
 			
 			var selection = event.target? event.target : event;
@@ -396,12 +457,134 @@ function(require, $, view, util
 		engineEntries.push(view.__getToolbarButton('JSCC Engine',  'jscc-engine'));
 		engineEntries.push(view.__getToolbarButton('jison Engine', 'jison-engine'));
 		engineEntries.push(view.__getToolbarButton('PEGjs Engine', 'pegjs-engine'));
+		/**
+		 * Toolbar menu entry for selecting a grammar engine.
+		 * @private
+		 * @type ToolbarMenu
+		 * @memberOf TestGrammarApp.MainView
+		 */
 		var engineSelectMenu = {type: 'menu',   id: 'select-grammar-engine', caption: 'Grammar Compiler', icon: 'fa fa-cogs', items: engineEntries};
 		view.__addToolbar(engineSelectMenu, {event: 'click', func: handleSelectEngine});
 		
 		view.selectGrammarEngine(semanticInterperter.getGrammarEngine() + '-engine');
 		
 		view.addToolbarSeparator();
+		
+		
+		/**
+		 * Helper for getting the corresponding function name for an "recode action"
+		 * Used in {@link #handleGrammarRecode}.
+		 * @private
+		 * @type Function
+		 * @memberOf TestGrammarApp.MainView
+		 */
+		var getGrammarRecodeFunction = function(recodeFuncAction){
+			
+			switch(recodeFuncAction){
+			case 'mask':
+				return 'maskJSON';
+			case 'unmask':
+				return 'unmaskJSON';
+			case 'encode-umlauts':
+				return 'encodeUmlauts';
+			case 'decode-umlauts':
+				return 'decodeUmlauts';
+			default:
+				return;//DEFAULT: return void
+			}
+			
+		};
+		/**
+		 * Helper for getting the corresponding function name for an help/info item in the "recode menu"
+		 * Used in {@link #handleGrammarRecode}.
+		 * @private
+		 * @type Function
+		 * @memberOf TestGrammarApp.MainView
+		 */
+		var getGrammarRecodeInfo = function(recodeFuncAction){
+
+			switch(recodeFuncAction){
+			case 'info-mask':
+				return 'popupMaskingInfo';
+			case 'info-upgrade':
+				return 'popupFormatConversionInfo';
+			default:
+				return;//DEFAULT: return void
+			}
+			
+		};
+		/**
+		 * Handler for menu selection in toolbar menu "recode tools"
+		 * @private
+		 * @type Function
+		 * @memberOf TestGrammarApp.MainView
+		 */
+		var handleGrammarRecode = function(event){
+			
+			var recodeTool = event.target? event.target : event;
+			if( ! /^grammar-tool-recode:/.test(recodeTool)){
+				return;
+			}
+			
+			//extract recode-function from event
+			//EXAMPLE: event.target === "grammar-tool-recode:unmask"
+			var recodeFuncAction = /:(.+?)$/.exec(recodeTool);
+			recodeFuncAction = recodeFuncAction && recodeFuncAction.length > 1? recodeFuncAction[1] : void(0);
+			
+			var infoAction, recodeFunc;
+			if(recodeFuncAction === 'reformat-json-grammar'){
+				
+				var text = view.getJsonGrammarText();
+				var json = _inputTextToJSON(view, text);
+				if(json){
+					view.setJsonGrammarText( util.formatJson(json) );
+				}
+				
+			}
+			else if(recodeFunc = getGrammarRecodeFunction(recodeFuncAction)){
+				var selectedGrammar = view.getSelectedGrammarItem();
+				if(selectedGrammar){
+					_convertJsonTo(view, selectedGrammar.model, recodeFunc);
+				}
+				else {
+					console.error('Grammar Tool: no (valid) grammar selected, could not execute "'+recodeFunc+'"');//TODO show error to the app-console?
+				}
+			}
+			else if(infoAction = getGrammarRecodeInfo(recodeFuncAction)){
+				
+				var dlg = $('#'+infoAction);
+				var title = dlg.data('title');
+				
+				_showInfoDialog(title, dlg.html());
+			}
+			else {
+				//this should not happen...
+				console.error('Grammar Tool: invalid grammar action: "'+recodeFuncAction+'"');
+			}
+			
+		};
+		
+		//TODO menu-creation (with view-internal objects) should be done within view! 
+		var grammarToolEntries = [];
+		grammarToolEntries.push(view.__getToolbarButton('show non-ASCII masking',  'mask'));
+		grammarToolEntries.push(view.__getToolbarButton('hide non-ASCII masking', 'unmask'));
+		grammarToolEntries.push(view.__getToolbarButton('masking...', 'info-mask'));
+		grammarToolEntries.push(view.__getToolbarButton('downgrade to old non-ASCII coding', 'encode-umlauts'));
+		grammarToolEntries.push(view.__getToolbarButton('upgrade from old non-ASCII coding', 'decode-umlauts'));
+		grammarToolEntries.push(view.__getToolbarButton('upgrading...', 'info-upgrade'));
+		grammarToolEntries.push(view.__getToolbarButton('Reformat JSON', 'reformat-json-grammar'));
+		/**
+		 * Toolbar menu "Grammar Tools" (recode tools).
+		 * @private
+		 * @type ToolbarMenu
+		 * @memberOf TestGrammarApp.MainView
+		 */
+		var grammarToolMenu = {type: 'menu',   id: 'grammar-tool-recode', caption: 'Grammar Tools', icon: 'fa fa-wrench', items: grammarToolEntries};
+		view.__addToolbar(grammarToolMenu, {event: 'click', func: handleGrammarRecode});
+		
+		view.addToolbarSeparator();
+		
+		
 
 		view.addToolbarStateButton('Console', 'toggle-console', function(){ view.toggleConsole(); });
 		view.addToolbarStateButton('Test', 'toggle-interpreter', function(){ view.toggleInterpreter(); });
@@ -409,80 +592,103 @@ function(require, $, view, util
 		
 		view.addToolbarSeparator();
 		
-		
 		////////////////// Intialize Test Interpretation Panel: //////////////////////////
 		
+		/**
+		 * Handler for <code>interpretation</code> (i.e. test semantics extraction for a phrase)
+		 * @private
+		 * @type Function
+		 * @memberOf TestGrammarApp.MainView
+		 */
 		var handleProcessInterpretation = function(event){//expects: data.view <- view
 			event.preventDefault();
 			var view = event.data.view;
-			processInterpretation(view);
+			var viewModel = view.getSelectedGrammarItem().model;
+			processInterpretation(view, viewModel);
 		};
 		
-		$('#btn-test-semantic').on('click', {view: view}, handleProcessInterpretation);
-		$('#form-test-semantic').on('submit', {view: view}, handleProcessInterpretation);
+		//NOTE: need to register handlers on document.body, since the elements themsevels may 
+		//      get removed / re-added from the document (which would remove their handlers)
+		$(document.body).on('click', '#btn-test-semantic', {view: view}, handleProcessInterpretation);
+		$(document.body).on('submit', '#form-test-semantic', {view: view}, handleProcessInterpretation);
 		
-		
+		/**
+		 * Handler for <code>benchmark interpretation function</code>
+		 * @private
+		 * @type Function
+		 * @memberOf TestGrammarApp.MainView
+		 */
 		var handleBenchmarkInterpretation = function(event){//expects: data.view <- view
 			event.preventDefault();
 			var view = event.data.view;
-			benchmarkInterpretation(view);
+			var viewModel = view.getSelectedGrammarItem().model;
+			benchmarkInterpretation(view, viewModel);
 		};
 		
-		$('#btn-benchmark-semantic').on('click', {view: view}, handleBenchmarkInterpretation);
+		//NOTE: need to register handlers on document.body, since the elements themsevels may 
+		//      get removed / re-added from the document (which would remove their handlers)
+		$(document.body).on('click', '#btn-benchmark-semantic', {view: view}, handleBenchmarkInterpretation);
 		
 		
-		
-		
-		//overwrite default-impl. for getLanguage (-> use grammar-ID-field value instead of input-field's)
-		getLanguage = function(){
-			return $('#grammar-id').val();
+		//////////////////Intialize Test Stopword Panel: //////////////////////////
+		/**
+		 * Handler for <code>stopword removal</code> (i.e. test stopword removal for a phrase)
+		 * @private
+		 * @type Function
+		 * @memberOf TestGrammarApp.MainView
+		 */
+		var handleTestStopword = function(event){//expects: data.view <- view
+			event.preventDefault();
+			var view = event.data.view;
+			var viewModel = view.getSelectedGrammarItem().model;
+			processStopword(view, viewModel);
 		};
 
-		var createInfoPopUp = function(dialogElementId, buttonId){
-			
-//			$('#'+dialogElementId).dialog({
-//				modal: true,
-//				dialogClass: 'info',
-//				autoOpen: false
-//			});
-//			$('#'+buttonId).button({
-//				icons: { primary: 'ui-icon-info' },
-//				text: false
-//			}).on('click', function(event){
-//				event.preventDefault();
-//				$('#'+dialogElementId).dialog('open');
-//			});
-			
-			$('#'+buttonId).on('click', function(event){
-				$(this).w2overlay({ html: $('#'+dialogElementId).html()});
-			});
-		};
+		//NOTE: need to register handlers on document.body, since the elements themsevels may 
+		//      get removed / re-added from the document (which would remove their handlers)
+		$(document.body).on('click', '#btn-test-stopword', {view: view}, handleTestStopword);
+		$(document.body).on('submit', '#form-test-stopword', {view: view}, handleTestStopword);
 		
-		createInfoPopUp('popupGrammarIdInfo','openPopupGrammarIdInfo');
-		createInfoPopUp('popupMaskingInfo','openPopupMaskingInfo');
-		createInfoPopUp('popupFormatConversionInfo','openPopupFormatConversionInfo');
+
+//		var createInfoPopUp = function(dialogElementId, buttonId){
+//			
+////			$('#'+dialogElementId).dialog({
+////				modal: true,
+////				dialogClass: 'info',
+////				autoOpen: false
+////			});
+////			$('#'+buttonId).button({
+////				icons: { primary: 'ui-icon-info' },
+////				text: false
+////			}).on('click', function(event){
+////				event.preventDefault();
+////				$('#'+dialogElementId).dialog('open');
+////			});
+//			
+//			$('#'+buttonId).on('click', function(event){
+//				$(this).w2overlay({ html: $('#'+dialogElementId).html()});
+//			});
+//		};
+//		
+//		createInfoPopUp('popupGrammarIdInfo','openPopupGrammarIdInfo');
 		
 	};
-
-	//	jQuery(document).ready(function(){
-	//		mmir.CommonUtils.initialize(initPage);
-	//	});
-
-	function getLanguage() {
-		var id = $('#lang-selector-field').val();
-		$('#grammar-id').val(id);
-		return id;
-	}
-
+	
+	/**
+	 * Set a grammar (JSON-text, intermediate grammar-text, compiled JS-text) in
+	 * the main view.
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 */
 	function initPageWithJsonGrammar(view, viewModel, callback) {
 		
 		var doSetViewWithCompiledGrammar = function() {
 			
-			printGrammarDefinition(view, viewModel);
-			printInput(view, viewModel.getJsonText());
-			printCompiledParserDefinition(view, viewModel);
-
-			validationUtil.validateCompiledGrammar(viewModel);
+			view.setIntermediateGrammarText( viewModel.getIntermediateGrammar() );
+			view.setJsonGrammarText(viewModel.getJsonText());
+			view.setCompiledGrammarText( viewModel.getCompiledGrammar() );
 
 			var jsonGrammar = viewModel.getJson();
 			var examplePhrase = '';
@@ -490,7 +696,7 @@ function(require, $, view, util
 				examplePhrase = jsonGrammar.example_phrase;
 			}
 
-			view.setExamplePhrase(examplePhrase);
+			view.setTestInterpretationText(examplePhrase);
 			
 			processInterpretation(view, viewModel);
 
@@ -501,7 +707,7 @@ function(require, $, view, util
 			}
 		};
 		
-		//do not procced, if we already have the compiled JavaScript
+		//do not proceed, if we already have the compiled JavaScript
 		var gc = viewModel.getGrammarConverter();
 		if(gc && gc == semanticInterpreter.getGrammarConverter(viewModel.id)){
 			semanticInterpreter.addGrammar(viewModel.id, gc /*FIXME need to set file-format-version!!! */);
@@ -525,19 +731,33 @@ function(require, $, view, util
 		_showLoader('Compiling JSON Grammar...', 50, doCompile);
 	}
 
+	var _hideLoaderTimer;
+	var _showLoaderTimer;
+	/**
+	 * Shows a wait dialog.
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 */
 	function _showLoader(text, delay, func, argsArray) {
 
+		clearTimeout(_hideLoaderTimer);
+		
 		if (!delay) {
-			
-			w2popup.lock(text, true);
-			if(func){
-				func.apply(null, argsArray);
-			}
+			_showLoaderTimer = setTimeout(function() {
+//				w2utils.lock(w2ui.layout.box, text, true);
+				waitDialog.show(text, 'app');
+				if(func){
+					func.apply(null, argsArray);
+				}
+			}, 50);
 			
 		} else {
-			setTimeout(function() {
+			_showLoaderTimer = setTimeout(function() {
 				
-					w2popup.lock(text, true);
+//					w2utils.lock(w2ui.layout.box, text, true);
+					waitDialog.show(text, 'app');
 					
 					if(func){
 						setTimeout(function() {
@@ -550,11 +770,32 @@ function(require, $, view, util
 
 	}
 
+	/**
+	 * Hides the wait dialog
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 */
 	function _hideLoader() {
-		w2popup.unlock();
+//		w2utils.unlock(w2ui.layout.box);
+		
+		clearTimeout(_showLoaderTimer);
+		
+		_hideLoaderTimer = setTimeout(function(){
+			waitDialog.hide('app');
+		}, 50);
 	}
 	
-	function cleanJsonGrammar(jsonGrammar){
+	/**
+	 * Modifies / cleans the JSON object:
+	 * should be applied after loading and before further processing. 
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 */
+	function _cleanJsonGrammar(jsonGrammar){
 		
 //		//DISABLED: clean-up (do not modify the grammar, in order to preserve checksum-validation)
 //		if (jsonGrammar['comment_license']) {
@@ -563,8 +804,15 @@ function(require, $, view, util
 		
 		return jsonGrammar;
 	}
-
-	function loadJsonGrammar(viewModel, cb) {
+	
+	/**
+	 * Loads a JSON grammar via AJAX (uses viewModel.url as URL)
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 */
+	function _loadJsonGrammar(viewModel, cb) {
 		
 		//DISABLED russa: for now, always reload the JSON-file...
 //		if(viewModel.getJson() && viewModel.getJsonText()){
@@ -575,7 +823,7 @@ function(require, $, view, util
 			if (gcInstance.json_grammar_definition) {
 				
 				//clean-up
-				cleanJsonGrammar(gcInstance.json_grammar_definition);
+				_cleanJsonGrammar(gcInstance.json_grammar_definition);
 
 				cb(gcInstance.json_grammar_definition, xhr.responseText);
 				
@@ -587,6 +835,7 @@ function(require, $, view, util
 		};
 		
 		var errorFunc = function(gcInstance) {
+			//TODO replace with w2ui popup & handle error (i.e. remove or disable sidepanel entry for this grammar ...)
 			alert("Initialize:\n failed to load JSON grammar file from\n '" + viewModel.url + "'!");
 			cb(false);
 		};
@@ -603,42 +852,61 @@ function(require, $, view, util
 		_showLoader('Loading JSON Grammar...', 50, doLoadGrammar);
 
 	}
-
+	
+	/**
+	 * HELPER initializes the File API functionality, i.e. loading a file via HTML file-input.
+	 * 
+	 * Adds a toolbar button for loading files
+	 * 
+	 * OR if browser does not support File API, adds an text-input box that allows
+	 * loading files via AJAX.
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 */
 	function initFileApi(view) {
 		
 		
 		if (window.File && window.FileReader && window.FileList && window.Blob) {
 			IS_FILE_READING_API = true;
-			$('#file-selector').on('change', {view: view}, loadJsonGrammarFromFile);
+			$('#file-selector').on('change', {view: view}, _loadJsonGrammarFromFile);
 
 			view.addToolbarButton('Load JSON...', 'load-grammar', function(){
 				$('#file-selector').click();
 			});
-
-//			// show / use button instead of "raw file input" element:
-//			$('#file-selector')
-//					.parent()
-//					.append(
-//							'<input type="button" id="file-load-btn" value="Load File..."></input>');
-//
-//			$('#file-load-btn')
-//			//init button:
-//			.button()
-//			// "proxy" button-click to the file-selector element:
-//			.on('click', function() {
-//				$('#file-selector').click();
-//			});
-//
-//			//hide the file-selector element:
-//			$('#file-selector').hide();
+			
 		} else {
-			//browser cannot load files -> hide elements
-			$('#file-selector').hide();
-			$('#file-load-btn').hide();
+			
+			//browser cannot load files -> provide input-box (can only load files by URLs...)
+
+			var urlInput = view.__getToolbarButton(void(0), 'grammar-url-input-item');
+			urlInput.type = 'html';
+			urlInput.html = ' Grammar URL:'+
+				            '    <input id="grammar-url-input-box" type="text" size="10" style="padding: 3px; border-radius: 2px; border: 1px solid silver"/>'+
+				            '</div>';
+			view.__addToolbar(urlInput);
+			
+			view.addToolbarButton('Load', 'load-grammar-url', function(){
+				var urlInput = view.__getToolbarJqElement('grammar-url-input-box');
+				var url = urlInput.val();
+				var id = /\/([^\/]+)$/igm.exec(url);//try to use last path-segment as ID
+				id = id? id[1] : url; 
+				var viewModel = view.addProjectGrammar(id, url);
+				view.selectGrammar(viewModel.viewId);
+			});
 		}
 	}
-
-	function loadJsonGrammarFromFile(evt) {
+	
+	/**
+	 * Handler for processing file selections via the File API:
+	 * loads the file as JSON and adds an grammar-item to the main-view (sidebar)
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 */
+	function _loadJsonGrammarFromFile(evt) {
 
 		_showLoader('Loading JSON Grammar from file...');
 
@@ -655,6 +923,7 @@ function(require, $, view, util
 			// Closure to capture the file information.
 			reader.onload = function(theFileEvent) {
 
+				//TODO replace with w2ui popup-dlg
 				var theGrammarId = prompt(
 						'Please enter an ID for the grammar:', theFileName);
 				if (theGrammarId === null) {
@@ -665,22 +934,41 @@ function(require, $, view, util
 				}
 
 				var prevSel = view.getSelectedGrammarId();//$('#lang-selector option:selected').val();
-				$('#grammar-id').val(theGrammarId);				
+//				$('#grammar-id').val(theGrammarId);				
 
-				clearInput(view);
-				clearOut(view);
-				clearInterpret(view);
-				clearStopword(view);
 
 				var grammarText = theFileEvent.target.result;
-				var jsonGrammar = $.parseJSON(grammarText);
-
-				cleanJsonGrammar(jsonGrammar);
-				
-				var viewModel = view.addLoadedGrammar(theGrammarId, jsonGrammar, theFileName);
-				viewModel.setJsonText(grammarText);
-				
-				view.selectGrammar(viewModel.viewId);
+				try{
+					var jsonGrammar = $.parseJSON(grammarText);
+	
+					_cleanJsonGrammar(jsonGrammar);
+					
+					var viewModel = view.addLoadedGrammar(theGrammarId, jsonGrammar, theFileName);
+					viewModel.setJsonText(grammarText);
+					
+					view.clearView();
+					
+					view.selectGrammar(viewModel.viewId);
+					
+				} catch (err){
+					//TODO show error dialog
+					console.error('Error loading JSON grammar from file "'+theFileName+'": '+(err.stack?err.stack:err));
+					
+					
+					//this will show an error message dialog to the user (with details about the JSON error)
+					var json = _inputTextToJSON(view, grammarText);
+					if(json){
+						//this should not happen ... (-> text could be parsed as JSON!!!)
+//						_showErrorDialog(
+//							'Error Loading JSON File',
+//							'Could not load file '+theFileName+' as JSON.',
+//							'<pre>'+(err.stack?err.stack:err)+'</pre>'
+//						);
+						console.error('Non-native JSON successfully parsed file "'+theFileName+'", original error: '+(err.stack?err.stack:err));
+					}
+					
+					
+				}
 				
 				$('#file-selector').val(null);
 
@@ -711,8 +999,12 @@ function(require, $, view, util
 					break;
 				}
 				;
-
-				alert('Error: ' + msg);
+				
+				_showErrorDialog(
+					'Error Loading JSON File',
+					'Could not load file '+theFileName+' as JSON: '+msg,
+					'<pre>'+(e.stack?e.stack:e)+'</pre>'
+				);
 			};
 
 			// Read in the file as text (UTF-8)
@@ -720,24 +1012,34 @@ function(require, $, view, util
 		}
 	}
 
+	/**
+	 * Handler for the "compile" action:
+	 * re-compiles the current input of the editor in the main-view
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 */
 	function compileCurrentInput(view) {
-
-		var jsonGrammar = inputTextToJSON(view);
+		
+		var grammarText = view.getJsonGrammarText();
+		var jsonGrammar = _inputTextToJSON(view, grammarText);
 		if (!jsonGrammar) {
 			return;
 		}
-		
-		var grammarText = view.getEditorText();
 
-		clearOut(view);
+//		clearOut(view);
+		view.clearView();
 
 		validationUtil.validateGrammar();
 
 		semanticInterpreter = mmir.SemanticInterpreter.getInstance();
 
-		var langCode = getLanguage();
+		var langCode = view.getSelectedGrammarItem().model.id;//getLanguage();
 
 		if (semanticInterpreter.hasGrammar(langCode)) {
+
+			//TODO replace with w2ui popup-dlg 
 			langCode = prompt('About to replace grammar for:\n' + langCode
 					+ '\n\n\nIf you do not want to replace the grammar\n'
 					+ 'please enter a different ID:', langCode);
@@ -745,9 +1047,10 @@ function(require, $, view, util
 			if (langCode === null) {
 				//-> cancel selected
 				return;///////////////////////////// EARLY EXIT ////////////////////////
-			} else {
-				$('#grammar-id').val(langCode);
 			}
+//			else {
+//				$('#grammar-id').val(langCode);
+//			}
 		}
 		
 		var viewModel = view.addCompiledGrammar(langCode, jsonGrammar);
@@ -756,50 +1059,99 @@ function(require, $, view, util
 		view.selectGrammar(viewModel.viewId);
 
 	}
+	
+	/**
+	 * Handler for "test interpretation" action
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 */
+	function processInterpretation(view, viewModel) {
 
-	function processInterpretation(view) {
-
-		var asr_result = view.getExamplePhrase();
-		var res = semanticInterpreter.getASRSemantic(asr_result.toLowerCase(),
-				getLanguage());
-
-		var res2;
-		if (isEnableAlternateStopwordProcessing) {
-			res2 = semanticInterpreter.getASRSemantic_alt(asr_result
-					.toLowerCase(), getLanguage());
+		var asr_result = view.getTestInterpretationText();
+		
+		var res, res2;
+		try{
+			res = semanticInterpreter.getASRSemantic(asr_result.toLowerCase(), viewModel.id);
+		} catch (err){
+			view.printError('Could not evalute phrase "'+asr_result+'": '+err);
 		}
 
-		clearInterpret();
+		
+		if (isEnableAlternateStopwordProcessing) {
+			try{
+				res2 = semanticInterpreter.getASRSemantic_alt(asr_result.toLowerCase(), viewModel.id);
+			} catch (err2){
+				view.printError('Could not evalute (ALTERNATIVE METHOD) phrase "'+asr_result+'": '+err2);
+			}
+		}
+
+		view.clearInterpretationTestResult();
 
 		$('#benchmark-time').text('');
 		$('#benchmark-time-mod').text('');
 
-		printInterpretation(res);
+		view.setInterpretationTestResult(res);
 
 		if (isEnableAlternateStopwordProcessing) {
-			printInterpretationAlt(res2);
+			view.setInterpretationTestResult(res2, true);
 		}
 
-		stopword(asr_result);
+		processStopword(view, viewModel, asr_result);
 	}
 
-	function benchmarkInterpretation(view) {
+	/**
+	 * Handler for "benchmark interpretation function" action.
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 */
+	function benchmarkInterpretation(view, viewModel) {
 
-		var asr_result = view.getExamplePhrase();
-		var res = semanticInterpreter.getASRSemantic(asr_result.toLowerCase(),
-				getLanguage());
+		var asr_result = view.getTestInterpretationText();
 
-		var res2;
+		var res, res2;
+		var isAbortBenchmark = false;
+		try{
+			res = semanticInterpreter.getASRSemantic(asr_result.toLowerCase(), viewModel.id);
+		} catch (err){
+			isAbortBenchmark = 'Canceled benchmarking: Cannot evalute phrase "'+asr_result+'": '+err;
+			view.printError(isAbortBenchmark);
+		}
+		
 		if (isEnableAlternateStopwordProcessing) {
-			res2 = semanticInterpreter.getASRSemantic_alt(asr_result
-					.toLowerCase(), getLanguage());
+			try{
+				res2 = semanticInterpreter.getASRSemantic_alt(asr_result.toLowerCase(), viewModel.id);
+			} catch (err){
+				var errMsg = 'Canceled benchmarking: Cannot evalute (ALTERNATIVE METHOD) phrase "'+asr_result+'": '+err;
+				view.printError(errMsg);
+				if(isAbortBenchmark){
+					isAbortBenchmark += errMsg;
+				} else {
+					isAbortBenchmark = errMsg;
+				}
+			}
+			
+		}
+		
+		if(isAbortBenchmark){
+			_showErrorDialog(
+					'Canceled Benchmarking',
+					'Cancled benchmarking, because of an evalution error in the test phrase.',
+					isAbortBenchmark
+			);
+			return;///////////////////////////// EARLY EXIT ////////////////////////
 		}
 
-		clearInterpret();
+//		clearInterpret(view);
+		view.clearInterpretationTestResult();
 
-		var DEFAULT_ITERATIONS = 10000;
+		var DEFAULT_ITERATIONS = 10000;//TODO make this configurable
 		var iterations = DEFAULT_ITERATIONS;
 
+		//TODO replace with w2ui popup-dlg
 		iterations = prompt(
 				'Starting Benchmark for evaluting Stopword-Processing implementations.'
 						+ '\n\nWARNING: This may take several minutes.'
@@ -820,8 +1172,7 @@ function(require, $, view, util
 
 			var startTime = new Date();
 			for (var i = 0; i < iterations; ++i) {
-				semanticInterpreter.getASRSemantic(asr_result.toLowerCase(),
-						getLanguage());
+				semanticInterpreter.getASRSemantic(asr_result.toLowerCase(), viewModel.id);
 			}
 			var diffTime = new Date() - startTime;
 
@@ -830,8 +1181,7 @@ function(require, $, view, util
 			if (isEnableAlternateStopwordProcessing) {
 				var startTimeAlt = new Date();
 				for (var i = 0; i < iterations; ++i) {
-					semanticInterpreter.getASRSemantic_alt(asr_result
-							.toLowerCase(), getLanguage());
+					semanticInterpreter.getASRSemantic_alt(asr_result.toLowerCase(), viewModel.id);
 				}
 				var diffTimeAlt = new Date() - startTimeAlt;
 
@@ -840,13 +1190,13 @@ function(require, $, view, util
 								+ ' ms (alt. method)');
 			}
 
-			printInterpretation(res);
+			view.setInterpretationTestResult(res);
 
 			if (isEnableAlternateStopwordProcessing) {
-				printInterpretationAlt(res2);
+				view.setInterpretationTestResult(res2, true);
 			}
 
-			stopword(asr_result);
+			processStopword(view, viewModel, asr_result);
 
 			_hideLoader();
 		};
@@ -856,229 +1206,109 @@ function(require, $, view, util
 
 	}
 
-	function stopword(text) {
-		console.info('TODO impl. stopword(text)');
-//		var sw_result;
-//		if (typeof text === 'undefined' || text == null) {
-//			sw_result = document.getElementById("stopwordInputBox").value;
-//		} else {
-//			sw_result = text;
-//			document.getElementById("stopwordInputBox").value = sw_result;
-//		}
-//		var res = semanticInterpreter.removeStopwords(sw_result.toLowerCase(),
-//				getLanguage());
-//
-//		var res2;
-//		if (isEnableAlternateStopwordProcessing) {
-//			res2 = semanticInterpreter.removeStopwords_alt(sw_result
-//					.toLowerCase(), getLanguage());
-//		}
-//
-//		clearStopword();
-//		printStopword(res, res2);
-	}
-
-	
-	
-	function clearInput() {
-		//$('#inputBox').val('');
-		view.setEditorText('');
-	}
-
-	function clearOut(view) {
-		var outputBox = document.getElementById("outputBox");
-		outputBox.textContent = "";
-		view.clearIntermediateGrammarText();
-		view.clearCompiledGrammarText();
-		clearInterpret(view);
-		clearStopword(view);
-	}
-
-	function clearInterpret(view) {
-		var outputBox = document.getElementById("interpretationBox");
-		outputBox.textContent = "";
-		outputBox = document.getElementById("interpretationBoxAlt");
-		outputBox.textContent = "";
-	}
-
-	function clearStopword(view) {
-		var outputBox = document.getElementById("stopwordBox");
-		outputBox.textContent = "";
-		outputBox = document.getElementById("stopwordBox2");
-		outputBox.textContent = "";
-	}
-
-	
-
-	function printGrammarDefinition(view, viewModel){
+	/**
+	 * Handler for "test stopword removal" action.
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 */
+	function processStopword(view, viewModel, text) {
 		
-//		view.layoutConfig.$compiledGrammarEl.find('#compiledParserOutBox')[0].textContent = viewModel.getIntermediateGrammar();
-		view.setIntermediateGrammarText( viewModel.getIntermediateGrammar() );
-	};
-
-	function printCompiledParserDefinition(view, viewModel) {
-//		view.layoutConfig.$compiledGrammarEl.find('#compiledParserOutBox')[0].textContent = viewModel.getIntermediateGrammar();
-		view.setCompiledGrammarText( viewModel.getCompiledGrammar() );
-	};
-
-	var printInterpretation = function(text) {
-		doPrintInterpretation(text, true);
-	};
-
-	var printInterpretationAlt = function(text) {
-		doPrintInterpretation(text, false);
-	};
-
-	var doPrintInterpretation = (function() {
-		var outputBox1;
-		var outputBox2;
-		return function(text, inNormalNotAlt) {
-			if (typeof text == "object") {
-				if (typeof text.semantic === 'string') {
-					text.semantic = JSON.parse(text.semantic);
-				}
-				text = JSON.stringify(text, null, 2);
-			} else
-				text = text.replace(/([^\r])\n/g, "$1\r\n");
-
-			if (!outputBox1)
-				outputBox1 = document.getElementById("interpretationBox");
-			if (!outputBox2)
-				outputBox2 = document.getElementById("interpretationBoxAlt");
-
-			var outputBox = inNormalNotAlt ? outputBox1 : outputBox2;
-
-			if (typeof text == "string") {
-				outputBox.appendChild(document.createTextNode(text + "\r\n"));
-			} else {
-				for (var i = 0; i < text.length; i++) {
-					outputBox.appendChild(document.createTextNode(text[i]
-							+ "\r\n"));
-				}
-			}
-		};
-	})();
-
-	var printStopword = (function() {
-		var outputBox;
-		var outputBox2;
-		return function(text, text2) {
-			text = text.replace(/([^\r])\n/g, "$1\r\n");
-			if (!outputBox)
-				outputBox = document.getElementById("stopwordBox");
-			if (typeof text == "string") {
-				outputBox.appendChild(document.createTextNode(text + "\r\n"));
-			} else {
-				for (var i = 0; i < text.length; i++) {
-					outputBox.appendChild(document.createTextNode(text[i]
-							+ "\r\n"));
-				}
-			}
-
-			if (isEnableAlternateStopwordProcessing) {
-				text2 = text2.replace(/([^\r])\n/g, "$1\r\n");
-				if (!outputBox2)
-					outputBox2 = document.getElementById("stopwordBox2");
-				if (typeof text2 == "string") {
-					outputBox2.appendChild(document.createTextNode(text2
-							+ "\r\n"));
-				} else {
-					for (var i = 0; i < text2.length; i++) {
-						outputBox2.appendChild(document.createTextNode(text2[i]
-								+ "\r\n"));
-					}
-				}
-			}
-		};
-	})();
-
-	var printInput = function(view, text) {
-		validationUtil.resetGrammarValidation();//thePrevValidatedJSONgrammar = null;
-		view.setEditorText(text);
-
-	};
-
-	var selectJsonGrammar = function() {
-		var t = editor.getText();
-		editor.setSelection(0, t.length, true, function() {
-			editor.focus();
-		});//start, end, isScrollToSelection, callback
-	};
-
-	var selectJsjcGrammar = (function() {
-		var outputBox;
-		return function(text) {
-			if (!outputBox)
-				outputBox = document.getElementById('compileOutBox');
-
-			outputBox.select();
-		};
-	})();
-
-	var selectCompiledCode = (function() {
-		var outputBox;
-		return function(text) {
-			if (!outputBox)
-				outputBox = document.getElementById('compiledParserOutBox');
-
-			outputBox.select();
-		};
-	})();
-
-	function maskJsonValues(view, viewModel) {
-
-		if (!inputTextToJSON(view)) {
-			return;
+		if (typeof text === 'undefined' || text == null) {
+			//no text in arguments -> use the text from input-field
+			text = view.getTestStopwordText();
 		}
-
-		var converter = new GrammarConverter();
-		var jsonGrammar = converter.maskJSON(viewModel.getJson());//FIXME should we modify a copy of the JSON-grammar?
-
-		clearInput(view);
-		printInput(view, JSON.stringify(jsonGrammar, null, 2));
-	}
-
-	function unmaskJsonValues(view, viewModel) {
-		if (!inputTextToJSON(view)) {
-			return;
+		else {
+			//text in arguments: triggered by processInterpretation -> set the input-field to text
+			view.setTestStopwordText(text);
 		}
-
-		var converter = new GrammarConverter();
-		var jsonGrammar = converter.unmaskJSON(viewModel.getJson());//FIXME should we modify a copy of the JSON-grammar?
-
-		clearInput(view);
-		printInput(view, JSON.stringify(jsonGrammar, null, 2));
-	}
-
-	function convertFromOldJSONFormat(view, viewModel) {
-		if (!inputTextToJSON(view)) {
-			return;
-		}
-
-		var converter = new GrammarConverter();
-		var jsonGrammar = converter.recodeJSON(viewModel.getJson(),//FIXME should we modify a copy of the JSON-grammar?
-				converter.decodeUmlauts);
-
-		clearInput(view);
-		printInput(view, JSON.stringify(jsonGrammar, null, 2));
-	}
-
-	function convertToOldJSONFormat(view, viewModel) {
-		if (!inputTextToJSON(view)) {
-			return;
-		}
-
-		var converter = new GrammarConverter();
-		var jsonGrammar = converter.recodeJSON(viewModel.getJson(),//FIXME should we modify a copy of the JSON-grammar?
-				converter.encodeUmlauts);
-
-		clearInput(view);
-		printInput(view, JSON.stringify(jsonGrammar, null, 2));
-	}
-
-	function inputTextToJSON(view) {
 		
-		var text = view.getEditorText();
+		var res = semanticInterpreter.removeStopwords(text, 
+				viewModel.id);
+
+		var res2;
+		if (isEnableAlternateStopwordProcessing) {
+			res2 = semanticInterpreter.removeStopwords_alt(sw_result
+					.toLowerCase(), getLanguage());
+		}
+		
+		view.clearStopwordTestResult();
+		
+		view.setStopwordTestResult(res);
+		
+		if (isEnableAlternateStopwordProcessing) {
+			view.setStopwordTestResult(res2, true);
+		}
+	}
+	
+	/**
+	 * HELPER for executing a "recode grammar" action
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 * 
+	 * @param {MainView} view
+	 * 					the main view
+	 * @param {GrammarViewModel} viewModel
+	 * 					the view model with the grammar data
+	 * @param {String} convertFuncName
+	 * 					the name of the converter-function that should
+	 * 					be applied to the JSON grammar object.
+	 * 					Supported converter-functions:
+	 * 					<code>{@link GrammarConverter#maskJSON}</code>
+	 * 					<code>{@link GrammarConverter#unmaskJSON}</code>
+	 * 					<code>{@link GrammarConverter#encodeUmlauts}</code>
+	 * 					<code>{@link GrammarConverter#decodeUmlauts}</code>
+	 */
+	function _convertJsonTo(view, viewModel, convertFuncName){
+		
+		var jsonFromEditor = _inputTextToJSON(view);
+		if (!jsonFromEditor) {
+			//NOTE: if there was a parsing error for the JSON, 
+			//      _inputTextToJSON() already showed an error message.
+			return;
+		}
+
+		var converter = new GrammarConverter();
+		
+		var recodingFunc;
+		if(convertFuncName === 'encodeUmlauts' || convertFuncName === 'decodeUmlauts'){
+			//-> these need to mapped to the generic recoding-function of GrammarConverter
+			//set the specific recoding-function (used by the generic JSON-recoder):
+			recodingFunc = converter[convertFuncName];
+			//as convert-function, set the generict recoding-function:
+			convertFuncName = 'recodeJSON';
+		}
+		
+		var jsonGrammar = converter[convertFuncName].call(converter, jsonFromEditor, recodingFunc);//FIXME should we store this modified grammar to the viewModel?
+
+//		view.clearJsonGrammarText();
+		
+		//TODO instead of formatting: do "in-place" replacement of masked values (using jsonlint-loc)
+		view.setJsonGrammarText( util.formatJson(jsonGrammar) );
+		
+	}
+
+	/**
+	 * HELPER for converting the current editor input (or the text argument)
+	 * 		  into a JSON object.
+	 * 
+	 * If the text is an invalid JSON definition, an error dialog will be shown
+	 * to the user.
+	 * 
+	 *  NOTE this helper should only be used in reaction to an explicit user action.
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 */
+	function _inputTextToJSON(view, text) {
+		
+		if(typeof text === 'undefined'){
+			text = view.getJsonGrammarText();
+		}
 		
 		var jsonObj = validationUtil.validateJson(text, function(err){
 			
@@ -1091,13 +1321,13 @@ function(require, $, view, util
 			
 			var msg = err.message;
 			
-			//show error in Error/Warining box
-			clearOut(view);
-			util.printError(msg.replace(/\^\r?\n/igm, '^ \n'));//<- one "marker" at the line end gets removed -> add a space before linebreak
+			//show error in Error/Warning box
+//			view.clearConsoleOut();
+			view.printError(msg.replace(/\^\r?\n/igm, '^ \n'));//<- one "marker" at the line end gets removed -> add a space before linebreak
 
 //			setTimeout(function() {
 				
-				showError('Error',
+				_showErrorDialog('Error: Invalid JSON Fromat',
 						'Error on parsing grammar text into a JSON object.',
 						'<pre>' + msg + '</pre>'
 //						, doSelectLine, doSelectLine
@@ -1112,21 +1342,50 @@ function(require, $, view, util
 		return false;
 	}
 
-	
+	/**
+	 * HELPER for showing an INFO Dialog to the user.
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 */
+	function _showInfoDialog(title, text, onOpenFunc, onCloseFunc) {
 
-//	require(['jquery','w2ui'], function($){
-//		$(function(){
-//			$('#parseErrorPopup').dialog({
-//				modal: true,
-//				dialogClass: 'error',
-//				autoOpen: false
-//			});
-//		});
-//	});
-	
-	function showError(title, caption, text, onOpenFunc, onCloseFunc) {
+		var dlg = $("#infoPopup");
 
-		var dlg = $("#parseErrorPopup");
+		if (!title) {
+			title = '';
+		}
+		if (!text) {
+			text = '';
+		}
+
+		var $title = $('#infoPopupTitle', dlg);
+		$title.find('i').attr('class', 'fa fa-info-circle');//icon
+		$title.find('span').html(title);//title
+		
+		var $content = $('#infoPopupContent', dlg);
+		$content.find('#infoPopupText').html(text);//info details
+		
+		w2popup.open({
+			title  : $title.html(),
+		    body   : $content.html(),
+		    color  : '#CCE7FF',
+		    onOpen : onOpenFunc,
+		    onClose: onCloseFunc
+		});
+	}
+	
+	/**
+	 * HELPER for showing an ERROR Dialog to the user.
+	 * 
+	 * @private
+	 * @type Function
+	 * @memberOf TestGrammarApp
+	 */
+	function _showErrorDialog(title, caption, text, onOpenFunc, onCloseFunc) {
+
+		var dlg = $("#errorPopup");
 
 		if (!title) {
 			title = '';
@@ -1138,23 +1397,21 @@ function(require, $, view, util
 			text = '';
 		}
 
-		$('#parseErrorPopupTitle', dlg).html('');//title);
-		$('#parseErrorPopupCaption', dlg).html(caption);
-		$('#parseErrorPopupText', dlg).html(text);
+		var $title = $('#errorPopupTitle', dlg);
+		$title.find('i').attr('class', 'fa fa-exclamation-triangle');//icon
+		$title.find('span').html(title);//title text
+		
+		var $content = $('#errorPopupContent', dlg);
+		$content.find('#errorPopupCaption').html(caption);//caption
+		$content.find('#errorPopupText').html(text);//details description
 
-		if (onOpenFunc) {
-			dlg.one("open", onOpenFunc);
-		}
-		if (onCloseFunc) {
-			dlg.one("close", onCloseFunc);
-		}
 		
-		//TODO convert jQuery Mobile Dialog to w2popup correctly (ie. re-format / define HTML nicely for w2popup) 
-		
-//		dlg.dialog("open");
 		w2popup.open({
-			title  : title,
-		    body   : dlg.html()
+			title  : $title.html(),
+		    body   : $content.html(),
+		    color  : '#FFC6C6',
+		    onOpen : onOpenFunc,
+		    onClose: onCloseFunc
 		});
 	}
 

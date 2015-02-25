@@ -139,9 +139,24 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 		this.isDirty = !isSaved;
 	};
 	
+	/** 
+	 * @private
+	 * @type Dictionary
+	 * @memberOf ViewModel.private
+	 */
 	var _map = new Dictionary();
+	/** 
+	 * @private
+	 * @type Dictionary
+	 * @memberOf ViewModel.private
+	 */
 	var _grammarMap = new Dictionary();
 	
+	/** 
+	 * @private
+	 * @function
+	 * @memberOf ViewModel.private
+	 */
 	function _create(grammarId, type, url, jsonStr, json){
 		var gm = new GrammarModel(grammarId, type, url, jsonStr, json);
 		_map.put(gm.id, gm);
@@ -150,6 +165,11 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 		return gm;
 	}
 	
+	/** 
+	 * @private
+	 * @function
+	 * @memberOf ViewModel.private
+	 */
 	function _remove(id){
 		var gm = _get(id);
 		_map.remove(gm.viewId);
@@ -157,10 +177,20 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 		return gm;
 	}
 	
+	/** 
+	 * @private
+	 * @function
+	 * @memberOf ViewModel.private
+	 */
 	function _get(id){
 		return _map.get(id);
 	}
 	
+	/** 
+	 * @private
+	 * @function
+	 * @memberOf ViewModel.private
+	 */
 	function _getc(id){
 		var gm = _get(id);
 		if(!gm){
@@ -169,11 +199,17 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 		return gm;
 	}
 	
+	/** 
+	 * @private
+	 * @function
+	 * @memberOf ViewModel.private
+	 */
 	function _getGrammarId(grammarId){
 		return _grammarMap.get(grammarId);
 	}
 	
 	return {
+		/** @memberOf ViewModel */
 		create: _create,
 		get: _get,
 //		getc: _getc,

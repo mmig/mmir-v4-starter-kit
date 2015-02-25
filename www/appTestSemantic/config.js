@@ -9,7 +9,8 @@
     	
 		config: {
 			'initApp': {
-				grammarEditorClass: 'editor'
+				grammarEditorClass: 'editor',
+				waitDialogCssPath: 'appTestSemantic/css/'
 			}
 		},
 	
@@ -58,6 +59,8 @@
 			, 'lodash': 'appTestSemantic/libs/lodash'
 			
 			, 'w2ui': 'appTestSemantic/libs/w2ui-1.4.2'
+				
+			, 'waitDialog': 'appTestSemantic/libs/stdlne-wait-dlg'
 				
 			//app code
 			, 'app': 'appTestSemantic/app'

@@ -13,51 +13,7 @@
 define(['lodash', 'jquery'], function(lodash, $){
 
 
-	function _error(msg) {
-		print("ERROR: " + msg);
-	}
 
-	function _warning(msg) {
-		print("WARNING: " + msg);
-	}
-
-	function _print(msg) {
-		print("INFO: " + msg);
-	}
-
-	var print = (function() {
-		var outputBox;
-		var $outputBox;
-		return function(text) {
-			text = text.replace(/([^\r])\n/g, "$1\r\n");
-			if (!outputBox) {
-				outputBox = document.getElementById("outputBox");
-			}
-			if (!$outputBox) {
-				$outputBox = $(outputBox);
-			}
-
-			var isScroll = false;
-			//autoscroll, if scroll position is at the very bottom:
-			var scrollPos = outputBox.scrollHeight - $outputBox.innerHeight()
-					+ (outputBox.offsetWidth - outputBox.clientWidth);
-			var isScroll = outputBox.scrollTop + 4 >= scrollPos;
-
-			if (typeof text == "string") {
-				outputBox.appendChild(document.createTextNode(text + "\r\n"));
-			} else {
-				for (var i = 0; i < text.length; i++) {
-					outputBox.appendChild(document.createTextNode(text[i]
-							+ "\r\n"));
-				}
-			}
-
-			if (isScroll) {
-				$outputBox.scrollTop(outputBox.scrollHeight
-						- $outputBox.innerHeight() + 20);
-			}
-		};
-	})();
 	
 	//select the text of a line in a DOM textarea
 	var _selectLine = (function() {//(domTextArea, lineNo)
@@ -241,9 +197,6 @@ define(['lodash', 'jquery'], function(lodash, $){
 		isEqual: function(a,b){
 			return lodash.isEqual(a,b);
 		},
-		printError: _error,
-		printInfo: _print,
-		printWarn: _warning,
 		
 		/**
 		 * Select a line in a textarea.

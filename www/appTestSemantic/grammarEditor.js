@@ -5,7 +5,7 @@ define(['require', 'orioneditor', 'validationUtil'],function(require, _editor, v
 			editor: void(0)
 	};
 
-	function init(_editorClassName){
+	function init(view, _editorClassName){
 		
 		var editor = _editor({className: _editorClassName, lang: "js"})[0];
 		editor.val = function(str){
@@ -43,7 +43,7 @@ define(['require', 'orioneditor', 'validationUtil'],function(require, _editor, v
 		var BOOKMARK_MARKER = _annotations.AnnotationType.ANNOTATION_BOOKMARK;
 		
 		editor.getTextView().getModel().addEventListener("Changed", validationUtil.initGrammarValidator(
-				editor, ERROR_MARKER, WARNING_MARKER, BOOKMARK_MARKER
+				view, editor, ERROR_MARKER, WARNING_MARKER, BOOKMARK_MARKER
 		));
 
 

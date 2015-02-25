@@ -1,5 +1,6 @@
 
 define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, jsonparser, jsparser, GrammarValidator){
+	
 	/**
 	 * EITHER:
 	 * @param {Number} line
@@ -18,6 +19,10 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 				last_column: Number
 			}
 	 		NOTE: there must NOT be second argument in this case
+	 		
+	 * @private
+	 * @function
+	 * @memberOf ValidationUtil.private
 	 */
 	function getOffsetFor(editor, line, pos) {
 
@@ -83,10 +88,21 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 	}
 
 
-	//field for storing the last validated JSON grammar (-> check against this to determine, if re-validation is necessary)
+	/**
+	 * field for storing the last validated JSON grammar (-> check against this to determine, if re-validation is necessary)
+	 *  
+	 * @private
+	 * @type JSONObject
+	 * @memberOf ValidationUtil.private
+	 */
 	var _thePrevValidatedJSONgrammar;
 	
-	function _createValidator(editor, errorMarkerId, warningMarkerId, infoMarkerId){
+	/** 
+	 * @private
+	 * @function
+	 * @memberOf ValidationUtil.private
+	 */
+	function _createValidator(view, editor, errorMarkerId, warningMarkerId, infoMarkerId){
 			
 		var ERROR_MARKER = errorMarkerId;
 		var WARNING_MARKER = warningMarkerId;
@@ -194,12 +210,16 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 	
 			var list = problems.concat(problems2, problems3, problems4, problems5);
 			if (list.length) {
-				//debug:
-				if (false)
-					util.printError('Validation errors for JSON grammar:\n--------------\n'
-							+ list.map(function(v) {
-								return '  ' + v.toString();
-							}).join('\n') + '\n--------------\n');
+				//TEST debug:
+				if (false){
+//					view.printError('Validation errors for JSON grammar:\n--------------\n'
+//							+ list.map(function(v) {
+//								return '  ' + v.toString();
+//							}).join('\n') + '\n--------------\n');
+					for(var j = 0, len = list.length; j < len; ++j){
+						view.printConsole('[Grammar Validation] ' + list[j].toString(), list[j].level.toLowerCase());
+					}
+				}
 	
 				jsonparser.setLocEnabled(true);
 				var result = jsonparser.parse(editor.val());
@@ -233,9 +253,15 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 									+ otherStr);
 				}
 			}
-		}
+		};
 	}
 	
+
+	/** 
+	 * @private
+	 * @function
+	 * @memberOf ValidationUtil.private
+	 */
 	function _validateJson(text, errorHandler){
 		
 		//console.info('gammar-text: \n'+text);
@@ -294,6 +320,9 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 	 * if invalid JavaScript was generated, errors are printed via
 	 * <code>util._error()</code>
 	 * 
+	 * @private
+	 * @function
+	 * @memberOf ValidationUtil.private
 	 */
 	function _validateJsEvalErrors(viewModel) {
 
@@ -326,7 +355,12 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 			}
 		}
 	}
-	/** HELPER for _validateJsEvalErrors */
+	/** HELPER for _validateJsEvalErrors
+	 * 
+	 * @private
+	 * @function
+	 * @memberOf ValidationUtil.private
+	 */
 	function _getLocationAsString(e) {
 		return 'line ' + e.lineNumber + ':' + e.column + '(offset '
 				+ e.index + ')';
@@ -334,13 +368,17 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 	
 	
 	return {
+		/** @lends ValidationUtil.prototype */
+		/** @memberOf ValidationUtil */
+		
 		/**
 		 * 
+		 * @memberOf ValidationUtil 
 		 * @param {OrionEditor} grammarEditor
 		 * 			see grammarEditor.js
 		 */
-		initGrammarValidator: function(grammarEditor, errorMarkerTypeId, warningMarkerTypeId, infoMarkerTypeId){
-			this._grammarValidator = _createValidator(grammarEditor, errorMarkerTypeId, warningMarkerTypeId, infoMarkerTypeId);
+		initGrammarValidator: function(view, grammarEditor, errorMarkerTypeId, warningMarkerTypeId, infoMarkerTypeId){
+			this._grammarValidator = _createValidator(view, grammarEditor, errorMarkerTypeId, warningMarkerTypeId, infoMarkerTypeId);
 			return this._grammarValidator;
 		},
 		validateGrammar: function(){
