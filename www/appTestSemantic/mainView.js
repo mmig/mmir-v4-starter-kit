@@ -409,8 +409,8 @@ define(['jquery', 'viewModel', 'appUtil', 'validationUtil', 'w2ui'], function($,
 			return 'fa fa-share-square-o';
 		case 'toggle-console':
 			return 'fa fa-desktop';
-		case 'toggle-interpreter':
-			return 'fa fa-terminal';
+//		case 'toggle-interpreter':
+//			return 'fa fa-terminal';
 		case 'load-grammar':
 			return 'fa fa-file-code-o';
 		case 'load-grammar-url':
@@ -666,6 +666,9 @@ define(['jquery', 'viewModel', 'appUtil', 'validationUtil', 'w2ui'], function($,
 			if(handler){
 				w2ui.layout_main_toolbar.on(handler.event, handler.func);
 			}
+		},
+		__getToolbarSeparator: function(){
+			return {type: 'break',  id: 'break' + (++this._breakElCount), caption: ''/*FIX need empty caption for separators within toolbar-menus!*/};
 		},
 		__getToolbarButton: function(text, id, handler, isChecked){//temporary: will be removed!
 			

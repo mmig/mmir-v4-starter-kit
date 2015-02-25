@@ -378,7 +378,13 @@ function(require, $, view, util
 			
 		};
 		
-		var _createSaveBtnInfo = function(savePath, id){
+		/**
+		 * HELPER create an "info item" for menus
+		 * @private
+		 * @type Function
+		 * @memberOf TestGrammarApp.MainView
+		 */
+		var _createMenuBtnInfo = function(savePath, id){
 			var infoSaveBtn = view.__getToolbarButton(savePath, id);
 			infoSaveBtn.disabled = true;
 			return infoSaveBtn;
@@ -387,14 +393,12 @@ function(require, $, view, util
 		//TODO menu-creation (with view-internal objects) should be done within view! 
 		var saveEntries = [];
 		saveEntries.push(view.__getToolbarButton('Save JSON...', 				'save-json'));
-		saveEntries.push(_createSaveBtnInfo('/www/config/languages/&lt;ID&gt;/grammar.json', 'save-json-info'));
+		saveEntries.push(_createMenuBtnInfo('/www/config/languages/&lt;ID&gt;/grammar.json', 'save-json-info'));
 		saveEntries.push(view.__getToolbarButton('Save JS...', 					'save-js'));
-		saveEntries.push(_createSaveBtnInfo('/www/gen/grammar/&lt;ID&gt;_grammar.js', 'save-js-info'));
+		saveEntries.push(_createMenuBtnInfo('/www/gen/grammar/&lt;ID&gt;_grammar.js', 'save-js-info'));
 		saveEntries.push(view.__getToolbarButton('Save Checksum...',	 		'save-checksum'));
-		saveEntries.push(_createSaveBtnInfo('/www/gen/grammar/grammar.json_&lt;ID&gt;.checksum.txt', 'save-checksum-info'));
-		var separator = view.__getToolbarButton('', 'save-menu-separator1');
-		separator.type = 'break';
-		saveEntries.push(separator);
+		saveEntries.push(_createMenuBtnInfo('/www/gen/grammar/grammar.json_&lt;ID&gt;.checksum.txt', 'save-checksum-info'));
+		saveEntries.push(view.__getToolbarSeparator());
 		saveEntries.push(view.__getToolbarButton('Save Grammar Def...',			'save-grammar-def'));
 		saveEntries.push(view.__getToolbarButton('Save All...', 				'save-all', function(){ console.error('TODO impl. save-all!'); }));
 		
@@ -475,10 +479,11 @@ function(require, $, view, util
 		 * @type ToolbarMenu
 		 * @memberOf TestGrammarApp.MainView
 		 */
-		var engineSelectMenu = {type: 'menu',   id: 'select-grammar-engine', caption: 'Grammar Compiler', icon: 'fa fa-cogs', items: engineEntries};
+		var engineSelectMenu = {type: 'menu',  id: 'select-grammar-engine', caption: 'Grammar Compiler', icon: 'fa fa-cogs', items: engineEntries};
 		view.__addToolbar(engineSelectMenu, {event: 'click', func: handleSelectEngine});
 		
 		view.selectGrammarEngine(semanticInterperter.getGrammarEngine() + '-engine');
+		view.setGrammarEngineSelected(semanticInterperter.getGrammarEngine());
 		
 		view.addToolbarSeparator();
 		
@@ -578,12 +583,14 @@ function(require, $, view, util
 		
 		//TODO menu-creation (with view-internal objects) should be done within view! 
 		var grammarToolEntries = [];
+		grammarToolEntries.push(view.__getToolbarButton('masking...', 'info-mask'));
 		grammarToolEntries.push(view.__getToolbarButton('show non-ASCII masking',  'mask'));
 		grammarToolEntries.push(view.__getToolbarButton('hide non-ASCII masking', 'unmask'));
-		grammarToolEntries.push(view.__getToolbarButton('masking...', 'info-mask'));
+		grammarToolEntries.push(view.__getToolbarSeparator());
+		grammarToolEntries.push(view.__getToolbarButton('upgrading...', 'info-upgrade'));
 		grammarToolEntries.push(view.__getToolbarButton('downgrade to old non-ASCII coding', 'encode-umlauts'));
 		grammarToolEntries.push(view.__getToolbarButton('upgrade from old non-ASCII coding', 'decode-umlauts'));
-		grammarToolEntries.push(view.__getToolbarButton('upgrading...', 'info-upgrade'));
+		grammarToolEntries.push(view.__getToolbarSeparator());
 		grammarToolEntries.push(view.__getToolbarButton('Reformat JSON', 'reformat-json-grammar'));
 		/**
 		 * Toolbar menu "Grammar Tools" (recode tools).
@@ -597,9 +604,12 @@ function(require, $, view, util
 		view.addToolbarSeparator();
 		
 		
-
 		view.addToolbarStateButton('Console', 'toggle-console', function(){ view.toggleConsole(); });
-		view.addToolbarStateButton('Test', 'toggle-interpreter', function(){ view.toggleInterpreter(); });
+		
+		//TODO this is a HACK for including a "stacked" font-awesome icon (-> define it within the label) ... but e.g. this needs to explictly set the color in order to match the other icons...
+		var terminalIconlabel = '<span class="fa-stack" style="color: #8d99a7"><i class="fa fa-square-o fa-stack-2x"></i> <i class="fa fa-terminal fa-stack-1x"></i></span> <span>Test</span>';
+		view.addToolbarStateButton(terminalIconlabel, 'toggle-interpreter', function(){ view.toggleInterpreter(); });
+		
 		view.clickToolbarButton('toggle-interpreter');
 		
 		view.addToolbarSeparator();
@@ -1394,6 +1404,8 @@ function(require, $, view, util
 		w2popup.open({
 			title  : $title.html(),
 		    body   : $content.html(),
+		    width  : 700,
+		    height : 450,
 		    color  : '#CCE7FF',
 		    onOpen : onOpenFunc,
 		    onClose: onCloseFunc

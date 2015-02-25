@@ -37,8 +37,22 @@ code {
 	font-weight: lighter;
 }
 
+.text.sub-caption {
+	font-variant: small-caps;
+	font-weight: bold;
+	font-size: larger;
+}
+
+.text.warning {
+	color: red;
+}
+
 .text.small {
 	font-size:x-small;
+}
+
+.function-list li {
+	line-height: 2em;
 }
 	
 .outbox {
