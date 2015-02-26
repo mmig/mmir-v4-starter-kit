@@ -9,12 +9,12 @@
   */
 define(['require', 'jquery', 'mainView', 'appUtil'
         , 'constants', 'commonUtils', 'languageManager', 'semanticInterpreter', 'grammarConverter'
-        , 'mainView', 'validationUtil', 'waitDialog'
+        , 'mainView', 'validationUtil', 'checksumUtils', 'waitDialog'
         , 'initApp', 'w2ui'
     ], 
 function(require, $, view, util
 		, constants, commonUtils,languageManager,semanticInterpreter, GrammarConverter
-		, mainView, validationUtil, waitDialog
+		, mainView, validationUtil, checksumUtils, waitDialog
 //		, init, w2ui //w2uipopup
 ){
 	
