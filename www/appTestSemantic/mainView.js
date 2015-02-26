@@ -421,6 +421,10 @@ define(['jquery', 'viewModel', 'appUtil', 'validationUtil', 'w2ui'], function($,
 			return 'fa fa-info-circle';
 		case 'app-help':
 			return 'fa fa-question-circle';
+		case 'auto-validation':
+			return 'fa fa-play-circle-o';
+//		case 'validate-grammar':
+//			return 'fa fa-check-circle-o';
 		default:
 			return;
 		}
@@ -778,6 +782,7 @@ define(['jquery', 'viewModel', 'appUtil', 'validationUtil', 'w2ui'], function($,
 			validationUtil.resetGrammarValidation();
 //			this.setEditorText(text);
 			layoutConfig.editor.val(text);
+			layoutConfig.editor.createFolding();
 		},
 		setCompiledGrammarText: function(text){
 			layoutConfig.$compiledGrammarEl.find('#compiledParserOutBox')[0].textContent = text;
@@ -870,7 +875,21 @@ define(['jquery', 'viewModel', 'appUtil', 'validationUtil', 'w2ui'], function($,
 			this.clearStopwordTestResult();
 			this.setTestStopwordText('');//input for test-stopwords
 		},
-
+		
+		validateGrammar: function(){
+			layoutConfig.editor.validate();
+		},
+		setAutoValidationEnabled: function(isEnabled){
+			layoutConfig.editor.setAutoValidationEnabled(isEnabled);
+			if(isEnabled){
+				this.validateGrammar();
+			}
+		},
+		isAutoValidationEnabled: function(){
+			return layoutConfig.editor.isAutoValidationEnabled();
+		},
+		
+		
 		printError: _printError,
 		printInfo:  _printInfo,
 		printWarn:  _printWarn,

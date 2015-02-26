@@ -46,6 +46,38 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 		return offset + pos;
 	}
 	
+	/**
+	 * 
+	 * @param {JSON} posJson
+	 * 				the parsed JSON object with location meta-data
+	 * @param {Array<String>} path
+	 * 				the path segments as array for accessing the property,
+	 * 				e.g. <code>["tokens", "DEVICE"]</code> for property 
+	 * 				<code>json.tokens.DEVICE</code>.
+	 * 
+	 * 				SPECIAL path segment <code>.</code> (dot):
+	 * 				this signifies, that the location-information should be
+	 * 				created for the whole property (instead of its name-field),
+	 * 				i.e. location starting from its name-filed until the end
+	 * 				of its value-field (this is invalid for paths that target primitives).
+	 * 				
+	 * 				E.g. for 
+	 * 				<pre>
+	 * 			1	{	
+	 * 			2		"tokens": {
+	 * 			3			...
+	 * 			4		}
+	 * 			5	}</pre>
+	 * 
+	 * 				<code>["tokens"]</code> would return the location information
+	 * 				for the name-field of the tokens-property (line 2), while <code>["tokens", "."]</code>
+	 * 				would return the location starting with the name-field (line 2) and ending the
+	 * 				the closing bracket of its value-field (line 4).
+	 * 
+	 * @private
+	 * @function
+	 * @memberOf ValidationUtil.private
+	 */
 	function getPosInJson(posJson, path) {
 
 		var prev = posJson;
@@ -78,15 +110,80 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 				//target path points to NAME
 				pos = pos[0];
 			} else {
+				
 				//target path points to VALUE
-				pos = pos[1];
+				
+				if(path[i] === '.'){
+					//SPECIAL path segment '.': return the location for "whole" object-property
+					return {
+						'first_line': 	pos[0].first_line,
+						'first_column':	pos[0].first_column,
+						'last_line': 	pos[1].last_line,
+						'last_column': 	pos[1].last_column
+					};
+				}
+				else {
+					//... else: take the location of the VALUE
+					pos = pos[1];
+				}
+				
 			}
 		} else {
 			pos = prev._loc;
 		}
 		return pos;
 	}
-
+	
+	/** 
+	 * @private
+	 * @function
+	 * @memberOf ValidationUtil.private
+	 */
+	function _createFoldingProcessor(editor, foldingMarkerId, strucutreMarkerId){
+		
+		var FOLDING_MARKER   = foldingMarkerId;
+		var STRUCTURE_MARKER = strucutreMarkerId;
+		
+		var addFoldingFor = function(editor, json, grammarPath){
+			var path = grammarPath;
+			if(typeof grammarPath === 'string'){
+				grammarPath = grammarPath.split('.');
+			}
+			var pos = getPosInJson(json, path);
+			pos = getOffsetFor(editor, pos);
+			editor.addMarker(FOLDING_MARKER, pos.start, pos.end, 
+					 editor.getTextView().getModel()
+			);
+		};
+		
+		//grammar path should be array with ['<main structure element>', '.']
+		var addStructureMarkerFor = function(editor, json, path){
+			
+			if(!path || ! path.length === 2 || !path[1] === '.'){
+				console.warn('invalid path for grammar structure element: '+JSON.stringify(path));
+				return;//////////////////// EARLY EXIT ////////////////////////////
+			}
+			
+			var pos = getPosInJson(json, [path[0]]);//get position for property-label only
+			pos = getOffsetFor(editor, pos);
+			editor.addMarker(STRUCTURE_MARKER, pos.start, pos.end, '"' + path[0] + '" definition');
+		};
+		
+		return function applyFoldingImpl(grammarPathsList){
+			
+			jsonparser.setLocEnabled(true);
+			var json = jsonparser.parse(editor.val());
+			jsonparser.setLocEnabled(false);
+			
+			for(var i=0, size=grammarPathsList.length; i < size; ++i){
+				
+				addFoldingFor(editor, json, grammarPathsList[i]);
+				
+				addStructureMarkerFor(editor, json, grammarPathsList[i]);
+				
+			}
+		};
+	};
 
 	/**
 	 * field for storing the last validated JSON grammar (-> check against this to determine, if re-validation is necessary)
@@ -107,8 +204,15 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 		var ERROR_MARKER = errorMarkerId;
 		var WARNING_MARKER = warningMarkerId;
 		var BOOKMARK_MARKER = infoMarkerId;
-	
-		return function validateJsonGrammar() {
+		
+		/**
+		 * @param {Boolean} [isForceValidation] optional
+		 * 			if <code>true</code> validation is forced
+		 * 			if any other value, validation is only computed, if
+		 * 			the JSON representation of the current text-input
+		 * 			has changed
+		 */
+		return function validateJsonGrammarImpl(isForceValidation) {
 	
 			if (!editor.val()) {
 				_thePrevValidatedJSONgrammar = null;
@@ -180,7 +284,7 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 					//  set a warning-marker for that element 
 					if (err._locTo) {
 						loc = getOffsetFor(editor, err._locTo);
-						editor.addMarker(WARNING_MARKER, loc.start, loc.end, msg);
+						editor.addMarker(ERROR_MARKER, loc.start, loc.end, msg);
 					}
 				}
 	
@@ -225,34 +329,47 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 				var result = jsonparser.parse(editor.val());
 				jsonparser.setLocEnabled(false);
 	
-				var e, pos, otherMatch, otherPath, otherPos, otherStr;
+				var e, pos, line, otherMatch, otherPath, otherPos, otherStr;
 				for (var i = 0, size = list.length; i < size; ++i) {
 					e = list[i];
 					pos = getPosInJson(result, e.location);
+					line = pos.first_line;
 					pos = getOffsetFor(editor, pos);
 	
 					if (!pos) {
-						console.warn('could not create marker for '
-								+ JSON.stringify(e));
+						console.warn('could not create marker for ' + JSON.stringify(e));
 						continue;
 					}
 	
 					//heuristic "at {...}" may signify another location in JSON, to which this error/warning refers to
 					// -> try to extract this "target location"
 					if (otherMatch = /at \{(.*?)\}/igm.exec(e.message)) {
+						
 						otherPath = otherMatch[1].split('.');
 						otherPos = getPosInJson(result, otherPath);
 						otherStr = ' in line ' + otherPos.first_line;
+						
 					} else {
 						otherStr = '';
 					}
 	
 					var type = e.level === 'ERROR' ? ERROR_MARKER : WARNING_MARKER;
-					editor
-							.addMarker(type, pos.start, pos.end, e.message
-									+ otherStr);
+					editor.addMarker(
+						type, pos.start, pos.end, e.message + otherStr
+					);
+					
+					//mark "the other" location too (if possible)
+					if(otherStr && otherPos){
+						otherPos = getOffsetFor(editor, otherPos);
+						if(otherPos){
+							editor.addMarker(
+								type, otherPos.start, otherPos.end, e.message + ' in line ' + line
+							);
+						}
+					}
 				}
-			}
+			}//END if(list<problems>)
+			
 		};
 	}
 	
@@ -388,6 +505,15 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 			_thePrevValidatedJSONgrammar = null;
 		},
 		validateJson: _validateJson,
-		validateCompiledGrammar: _validateJsEvalErrors
+		validateCompiledGrammar: _validateJsEvalErrors,
+		
+		//TODO move this to ... util? (would also need some of the private HELPER functions to util then...)
+		initGrammarFolding: function(grammarEditor, foldingMarkerTypeId, strucutreMarkerTypeId){
+			this._foldingProcessor = _createFoldingProcessor(grammarEditor, foldingMarkerTypeId, strucutreMarkerTypeId);
+			return this._foldingProcessor;
+		},
+		createGrammarFolding: function(grammarElementsList){
+			this._foldingProcessor(grammarElementsList);
+		}
 	};
 });

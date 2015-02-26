@@ -487,6 +487,17 @@ function(require, $, view, util
 		
 		view.addToolbarSeparator();
 		
+//		var validateLabel = 'Validate';
+		var validateIconLabel = '<span class="fa-stack fix-w2ui-toolbar-icon"><i class="fa fa-file-o fa-stack-1x fa-lg"></i> <i class="fa fa fa-check fa-stack-1x"></i></span> <span>Validate</span>';
+		view.addToolbarButton(validateIconLabel, 'validate-grammar', function(){ view.validateGrammar(); });
+		
+		var isAutoValidationEnabled = view.isAutoValidationEnabled();
+		view.addToolbarStateButton('Auto Validation', 'auto-validation', function(evt){
+			view.setAutoValidationEnabled( ! evt.item.checked );
+		}, isAutoValidationEnabled);
+
+		view.addToolbarSeparator();
+		
 		
 		/**
 		 * Helper for getting the corresponding function name for an "recode action"
@@ -607,7 +618,7 @@ function(require, $, view, util
 		view.addToolbarStateButton('Console', 'toggle-console', function(){ view.toggleConsole(); });
 		
 		//TODO this is a HACK for including a "stacked" font-awesome icon (-> define it within the label) ... but e.g. this needs to explictly set the color in order to match the other icons...
-		var terminalIconlabel = '<span class="fa-stack" style="color: #8d99a7"><i class="fa fa-square-o fa-stack-2x"></i> <i class="fa fa-terminal fa-stack-1x"></i></span> <span>Test</span>';
+		var terminalIconlabel = '<span class="fa-stack fix-w2ui-toolbar-icon"><i class="fa fa-square-o fa-stack-2x"></i> <i class="fa fa-terminal fa-stack-1x"></i></span> <span>Test</span>';
 		view.addToolbarStateButton(terminalIconlabel, 'toggle-interpreter', function(){ view.toggleInterpreter(); });
 		
 		view.clickToolbarButton('toggle-interpreter');

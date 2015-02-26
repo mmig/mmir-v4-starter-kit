@@ -41,11 +41,71 @@ define(['require', 'orioneditor', 'validationUtil'],function(require, _editor, v
 		var ERROR_MARKER    = _annotations.AnnotationType.ANNOTATION_ERROR;
 		var WARNING_MARKER  = _annotations.AnnotationType.ANNOTATION_WARNING;
 		var BOOKMARK_MARKER = _annotations.AnnotationType.ANNOTATION_BOOKMARK;
+		var FOLDING_MARKER  = _annotations.AnnotationType.ANNOTATION_FOLDING;
 		
-		editor.getTextView().getModel().addEventListener("Changed", validationUtil.initGrammarValidator(
+		//create (and set) grammar-validation function
+		editor.validate = validationUtil.initGrammarValidator(
 				view, editor, ERROR_MARKER, WARNING_MARKER, BOOKMARK_MARKER
-		));
+		);
+		//allow switching "auto-validation" on and off:
+		var _isAutoValidationEnabled = false;
+		editor.setAutoValidationEnabled = function(isEnable){
+			var func = isEnable? 'add' : 'remove';
+			_isAutoValidationEnabled = isEnable;
+			editor.getTextView().getModel()[func + 'EventListener']("Changed", this.validate);
+		};
+		editor.isAutoValidationEnabled = function(){
+			return _isAutoValidationEnabled;
+		};
+		//by default: enable "auto-validation"
+		editor.setAutoValidationEnabled(true);
+		
 
+		
+		function createCustomMarker(type, message, isShowInAnnotationRuler, isShowInOverviewRuler){
+//			var suffix = "task";//"orion.annotation.currentLine"
+			var index = type.lastIndexOf('.'); //$NON-NLS-0$
+			var suffix = type.substring(index + 1);
+			var properties = {
+				title: message,//messages[suffix],
+				style: {styleClass: "annotation grammar " + suffix}, //$NON-NLS-0$
+				html: "<div class='annotationHTML grammar " + suffix + "'></div>", //$NON-NLS-1$ //$NON-NLS-0$
+				overviewStyle: {styleClass: "annotationOverview grammar " + suffix} //$NON-NLS-0$
+			};
+//			if (lineStyling) {
+				properties.lineStyle = {styleClass: "annotationLine grammar " + suffix}; //$NON-NLS-0$
+//			} else {
+//				properties.rangeStyle = {styleClass: "annotationRange grammar " + suffix}; //$NON-NLS-0$
+//			}
+			
+			var mAnnotations = require('orion/editor/annotations');
+			var newType = mAnnotations.AnnotationType.registerType(type, properties);
+			editor.getAnnotationStyler().addAnnotationType(newType);
+			if(isShowInAnnotationRuler){
+				editor.getAnnotationRuler().addAnnotationType(newType);
+			}
+			if(isShowInOverviewRuler){
+				editor.getOverviewRuler().addAnnotationType(newType);
+			}
+			
+			return newType;
+		}
+		
+		//marker in overview rule for "bookmarking" grammar-structure (i.e. start of utterances-element):
+		var STRUCTURE_MARKER = createCustomMarker('mmir.grammar.structure', 'Grammar Structure', false, true);
+		
+		
+		//init create-folding-factory:
+		editor.doCreateFolding = validationUtil.initGrammarFolding(editor, FOLDING_MARKER, STRUCTURE_MARKER);
+		editor.doClearFolding = function(){
+			this.getAnnotationModel().removeAnnotations(FOLDING_MARKER);
+			this.getAnnotationModel().removeAnnotations(STRUCTURE_MARKER);
+		};
+		var foldableGrammarElements = [ ['stop_word', '.'], ['tokens', '.'], ['utterances', '.']];
+		editor.createFolding = function(){
+			this.doClearFolding();
+			this.doCreateFolding(foldableGrammarElements);
+		};
 
 		//taken from esprima/customeditor.js:
 		editor.addErrorMarker = function (start, end, description) {
@@ -72,6 +132,9 @@ define(['require', 'orioneditor', 'validationUtil'],function(require, _editor, v
 			annotationModel.removeAnnotations(BOOKMARK_MARKER);
 		};
 		
+			
+
+		
 //		var jsonChangedListener = [];
 //		editor.addJsonChangedListener = function(handler){
 //			jsonChangedListener.push(handler);
@@ -90,9 +153,10 @@ define(['require', 'orioneditor', 'validationUtil'],function(require, _editor, v
 //		};
 
 		_export.editor = editor;
-		_export.ERROR_MARKER    = ERROR_MARKER;
-		_export.WARNING_MARKER  = WARNING_MARKER;
-		_export.BOOKMARK_MARKER = BOOKMARK_MARKER;
+		_export.ERROR_MARKER     = ERROR_MARKER;
+		_export.WARNING_MARKER   = WARNING_MARKER;
+		_export.BOOKMARK_MARKER  = BOOKMARK_MARKER;
+		_export.STRUCTURE_MARKER = STRUCTURE_MARKER;
 
 ////		_export.ERROR_MARKER                  = _annotations.AnnotationType.ANNOTATION_ERROR;
 ////		_export.WARNING_MARKER                = _annotations.AnnotationType.ANNOTATION_WARNING;
