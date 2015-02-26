@@ -129,7 +129,7 @@ define(['require', 'orioneditor', 'validationUtil'],function(require, _editor, v
 //			var mAnnotations = require('orion/editor/annotations');
 			annotationModel.removeAnnotations(ERROR_MARKER);
 			annotationModel.removeAnnotations(WARNING_MARKER);
-			annotationModel.removeAnnotations(BOOKMARK_MARKER);
+//			annotationModel.removeAnnotations(BOOKMARK_MARKER);
 		};
 		
 			
