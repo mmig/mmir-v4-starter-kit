@@ -20,6 +20,8 @@ a grammar could extract the "semantic meaning" by returning the JSON object
 }
 ```
 
+**Compatibility Notes:** compatible with `mmir-lib` version 3.4.x - 3.5.x
+
 
 Usage
 ----
