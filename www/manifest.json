@@ -1,0 +1,26 @@
+{
+  "manifest_version": 2,
+  "name": "MMIR Grammar Editor",
+  "version": "0.0.2.0"
+
+  , "permissions": [
+  ]
+
+  , "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+
+  ,"browser_action": {
+	  "default_icon": {
+	      "19": "appTestSemantic/chromeApp/icon19.png",
+	      "38": "appTestSemantic/chromeApp/icon38.png"
+	  }
+  }
+  ,"background": {
+    "scripts": ["appTestSemantic/chromeApp/initChromeExtension.js"],
+    "persistent": false
+  }
+  ,"icons": {
+	  "16": "appTestSemantic/chromeApp/icon16.png",
+      "48": "appTestSemantic/chromeApp/icon48.png",
+      "128": "appTestSemantic/chromeApp/icon128.png"
+  }
+}
