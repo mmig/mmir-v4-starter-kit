@@ -415,7 +415,7 @@ function(require, $, view, util
 		 * @memberOf TestGrammarApp.MainView
 		 */
 		var saveActionSelectMenu = {type: 'menu',   id: 'select-save-action', caption: 'Save...', icon: 'fa fa-floppy-o', items: saveEntries};
-		view.__addToolbar(saveActionSelectMenu, {event: 'click', func: handleDownload});
+		view.__addToolbar(saveActionSelectMenu, {event: 'click', func: handleDownload}, true);
 		
 		
 		
@@ -480,7 +480,7 @@ function(require, $, view, util
 		 * @memberOf TestGrammarApp.MainView
 		 */
 		var engineSelectMenu = {type: 'menu',  id: 'select-grammar-engine', caption: 'Grammar Compiler', icon: 'fa fa-cogs', items: engineEntries};
-		view.__addToolbar(engineSelectMenu, {event: 'click', func: handleSelectEngine});
+		view.__addToolbar(engineSelectMenu, {event: 'click', func: handleSelectEngine}, true);
 		
 		view.selectGrammarEngine(semanticInterperter.getGrammarEngine() + '-engine');
 		view.setGrammarEngineSelected(semanticInterperter.getGrammarEngine());
@@ -610,7 +610,7 @@ function(require, $, view, util
 		 * @memberOf TestGrammarApp.MainView
 		 */
 		var grammarToolMenu = {type: 'menu',   id: 'grammar-tool-recode', caption: 'Grammar Tools', icon: 'fa fa-wrench', items: grammarToolEntries};
-		view.__addToolbar(grammarToolMenu, {event: 'click', func: handleGrammarRecode});
+		view.__addToolbar(grammarToolMenu, {event: 'click', func: handleGrammarRecode}, true);
 		
 		view.addToolbarSeparator();
 		
@@ -716,6 +716,10 @@ function(require, $, view, util
 //		
 //		createInfoPopUp('popupGrammarIdInfo','openPopupGrammarIdInfo');
 		
+		
+//		util.cleanInlineHandler();
+//		
+//		tool = util;//FIXME TEST
 	};
 	
 	/**
@@ -1412,13 +1416,22 @@ function(require, $, view, util
 		var $content = $('#infoPopupContent', dlg);
 		$content.find('#infoPopupText').html(text);//info details
 		
+		var onOpenWrapper = function(event){
+			event.onComplete = function(){
+				util.cleanInlineHandler();
+			};
+			if(onOpenFunc){
+				onOpenFunc.apply(this,arguments);
+			}
+		};
+		
 		w2popup.open({
 			title  : $title.html(),
 		    body   : $content.html(),
 		    width  : 700,
 		    height : 450,
 		    color  : '#CCE7FF',
-		    onOpen : onOpenFunc,
+		    onOpen : onOpenWrapper,
 		    onClose: onCloseFunc
 		});
 	}
@@ -1452,12 +1465,20 @@ function(require, $, view, util
 		$content.find('#errorPopupCaption').html(caption);//caption
 		$content.find('#errorPopupText').html(text);//details description
 
+		var onOpenWrapper = function(event){
+			event.onComplete = function(){
+				util.cleanInlineHandler();
+			};
+			if(onOpenFunc){
+				onOpenFunc.apply(this,arguments);
+			}
+		};
 		
 		w2popup.open({
 			title  : $title.html(),
 		    body   : $content.html(),
 		    color  : '#FFC6C6',
-		    onOpen : onOpenFunc,
+		    onOpen : onOpenWrapper,
 		    onClose: onCloseFunc
 		});
 	}

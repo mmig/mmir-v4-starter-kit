@@ -12,10 +12,72 @@
  */
 define(['lodash', 'jquery'], function(lodash, $){
 
-
-
+	/** 
+	 * Replace inline-event-handlers with jQuery event handling
+	 * 
+	 * @private
+	 * @property
+	 * @type Array<String>
+	 * @memberOf AppUtil.private
+	 */
+	var _eventNameList = [
+	    'click', 'dblclick', 'contextmenu', 'mouseout', 'mouseover', 'mousedown', 'mouseup'
+	];//TODO make this configurable? through module.config() ?
 	
-	//select the text of a line in a DOM textarea
+	/** 
+	 * Replace inline-event-handlers with jQuery event handling
+	 * 
+	 * @private
+	 * @function
+	 * @memberOf AppUtil.private
+	 */
+	var _cleanInlineHandler = function(eventName, targetJqCollection){
+		
+		if(eventName){ 
+			if(eventName.jquery){
+				targetJqCollection = eventName;
+				eventName = void(0);
+			}
+			else if(eventName.nodeName){
+				targetJqCollection = $(eventName);
+				eventName = void(0);
+			}
+		}
+		
+		if(!eventName){
+			_cleanInlineHandler(_eventNameList, targetJqCollection);
+			return;//////////////// EARLY EXIT ///////////////
+		}
+		
+		if($.isArray(eventName)){
+			for(var i=0,size=eventName.length; i < size; ++i){
+				_cleanInlineHandler(eventName[i], targetJqCollection);
+			}
+			return;//////////////// EARLY EXIT ///////////////
+		}
+		
+		
+		$('[on'+eventName+']', targetJqCollection).each(function(i,el){
+			var tis = $(el);
+			
+			var codeStr = tis.attr('on'+eventName);
+			var func = eval('var dummy=function(event){' + codeStr + ';};dummy');
+			
+			el['on'+eventName] = null;
+			tis.removeAttr('on'+eventName);
+			tis.on(eventName,func);
+			
+		});
+		
+	};
+	
+	/** 
+	 * select the text of a line in a DOM textarea
+	 * 
+	 * @private
+	 * @function
+	 * @memberOf AppUtil.private
+	 */
 	var _selectLine = (function() {//(domTextArea, lineNo)
 
 		/**
@@ -28,6 +90,10 @@ define(['lodash', 'jquery'], function(lodash, $){
 		 * 
 		 * If no selection is made, the cursor position is returned
 		 * (i.e. start === end)
+		 * 
+		 * @private
+		 * @function
+		 * @memberOf AppUtil.private
 		 */
 		function getSelection(domTextComponent) {
 			var startPos;
@@ -56,6 +122,10 @@ define(['lodash', 'jquery'], function(lodash, $){
 		/**
 		 * selects a range in a text-component.
 		 * If start === end, an empty selection is made, i.e. the cursor position is set.
+		 * 
+		 * @private
+		 * @function
+		 * @memberOf AppUtil.private
 		 */
 		function setSelection(domTextComponent, start, end, doRequestFocus) {
 			// Mozilla version
@@ -80,7 +150,13 @@ define(['lodash', 'jquery'], function(lodash, $){
 			}
 		}
 
-		//get JSON for start / end position in str for line no. i
+		/**
+		 * get JSON for start / end position in str for line no. i
+		 * 
+		 * @private
+		 * @function
+		 * @memberOf AppUtil.private
+		 */
 		var getPositionForLine = (function() {//(str, i)
 
 			var detectLinebreak = /(\r?\n|\r)/igm;
@@ -99,7 +175,8 @@ define(['lodash', 'jquery'], function(lodash, $){
 			 * @function getIndexForLine
 			 * @param {String} str the string
 			 * @param {Number} lineNo the line number (first line is 1)
-			 * 
+			 * @private
+			 * @memberOf AppUtil.private
 			 */
 			var getStart = function(str, lineNo) {
 				if (lineNo <= 1) {
@@ -125,6 +202,13 @@ define(['lodash', 'jquery'], function(lodash, $){
 				return str.length;
 			};
 
+			/**
+			 * (this is the function that is returned to getPositionForLine)
+			 * 
+			 * @private
+			 * @function
+			 * @memberOf AppUtil.private
+			 */
 			return function(str, i) {
 				var start = getStart(str, i);
 
@@ -145,6 +229,13 @@ define(['lodash', 'jquery'], function(lodash, $){
 			};
 		})();//END: getPositionForLine
 
+		/**
+		 * (this is the function that is returned to _getSelectLine)
+		 * 
+		 * @private
+		 * @function
+		 * @memberOf AppUtil.private
+		 */
 		return function selectLineImpl(theTextArea, line) {
 
 			if (typeof line !== 'number') {
@@ -185,6 +276,8 @@ define(['lodash', 'jquery'], function(lodash, $){
 		 * 
 		 * @param {PlainObject} jsonObj
 		 * @returns {String} formatted (JSON) String representation
+		 * 
+		 * @memberOf AppUtil
 		 */
 		formatJson: function(jsonObj){
 			return JSON.stringify(jsonObj, null, 2);
@@ -193,6 +286,8 @@ define(['lodash', 'jquery'], function(lodash, $){
 		 * Object equality.
 		 * 
 		 * @returns {Boolean}
+		 * 
+		 * @memberOf AppUtil
 		 */
 		isEqual: function(a,b){
 			return lodash.isEqual(a,b);
@@ -211,8 +306,33 @@ define(['lodash', 'jquery'], function(lodash, $){
 		 * OR
 		 * @param {Number} lineNumber
 		 * @param {GrammarEditor} editor (see grammarEditor.js)
+		 * 
+		 * @function
+		 * @public
+		 * @type Function
+		 * @memberOf AppUtil
 		 */
-		selectLine: _selectLine
+		selectLine: _selectLine,
+		
+		/**
+		 * Replace inline event-handlers in HTML code with jQuery event handlers.
+		 * 
+		 * @param {String|Array<String>} [eventName] OPTIONAL
+		 * 			the name (or list of names) of events (without leading "on"; should be all lower-case) for
+		 * 			which to replace the event-handlers.
+		 * 			DEFAULT: If omitted, {@link AppUtil.private#_eventNameList} will be used
+		 * 
+		 * @param {jQueryCollection|DOMElement} [container] OPTIONAL
+		 * 			the container-element in the DOM document, in which the DOM elements with inline handlers
+		 * 			should be searched for.
+		 * 			DEFAULT: If omitted, the complete DOM document will be searched
+		 * 
+		 * @function
+		 * @public
+		 * @type Function
+		 * @memberOf AppUtil
+		 */
+		cleanInlineHandler: _cleanInlineHandler
 	};
 	
 });

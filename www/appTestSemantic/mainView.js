@@ -99,7 +99,19 @@ define(['jquery', 'viewModel', 'appUtil', 'validationUtil', 'w2ui'], function($,
 		                        this.owner.content('right', event);
 		                        
 	                    	}
-	                    }
+	                    },
+	            		onRefresh: function(event){
+	            			_cleanInlineHandlersOnComplete(event, this.box);
+	            		},
+	            		onRender: function(event){
+	            			_cleanInlineHandlersOnComplete(event, this.box);
+	            		},
+	            		onContextMenu: function(event){
+	            			_cleanInlineHandlersOnComplete(event, this.box);
+	            		},
+	            		onResize: function(event){
+	            			_cleanInlineHandlersOnComplete(event, this.box);
+	            		}
 	            	}
 	            },
 	            
@@ -136,32 +148,65 @@ define(['jquery', 'viewModel', 'appUtil', 'validationUtil', 'w2ui'], function($,
 		                        
 	                    	}
 	                    },
-//	            		onRefresh: function(event){
-////	            			console.log('main-tab refresh ', event);
-////	            			layoutConfig.editor.refresh();
-////	            			var parent = layoutConfig.$editorEl.parent();
-////	            			layoutConfig.$editorEl.height( layoutConfig.$editorEl.parent().height() - 31 );
-//	            		},
+	            		onRefresh: function(event){
+//	            			console.log('main-tab refresh ', event);
+//	            			layoutConfig.editor.refresh();
+//	            			var parent = layoutConfig.$editorEl.parent();
+//	            			layoutConfig.$editorEl.height( layoutConfig.$editorEl.parent().height() - 31 );
+	            			
+	            			_cleanInlineHandlersOnComplete(event, this.box);
+	            		},
+	            		onRender: function(event){
+	            			_cleanInlineHandlersOnComplete(event, this.box);
+	            		},
 	            		onResize: function(event){
 //	            			console.log('main-tab resize ', event);
 	            			
 	            			_updateEditorSize(true);
+	            			
+	            			_cleanInlineHandlersOnComplete(event, this.box);
+	            		},
+	            		onContextMenu: function(event){
+	            			_cleanInlineHandlersOnComplete(event, this.box);
 	            		}
 	                },
 	                toolbar: {
 		    			/** @lends layoutConfig.main.toolbar */
 		    			/** @memberOf layoutConfig.main.toolbar */
 	                	name: 'toolbar',
-	                    items: []
+	                    items: [],
+	            		onRefresh: function(event){
+	            			_cleanInlineHandlersOnComplete(event, this.box);
+	            		},
+	            		onRender: function(event){
+	            			_cleanInlineHandlersOnComplete(event, this.box);
+	            		},
+	            		onResize: function(event){
+	            			_cleanInlineHandlersOnComplete(event, this.box);
+	            		},
+	            		onContextMenu: function(event){
+	            			_cleanInlineHandlersOnComplete(event, this.box);
+	            		}//,
+//	            		onMenuClick: function(event){
+//                			console.log('main-toolbar ',event);
+//	            			_cleanInlineHandlersOnComplete(event, this.box);
+//	            		}
 //	                    , onClick: function (event) {
 //	                    	console.log('main-toolbar ',event);
+//	            			_cleanInlineHandlersOnComplete(event, this.box);
 //	                    }
-//	                	, onMenuClick: function (event) {
-//	                		console.log('main-toolbar ',event);
-//		                }
 	                }
 	            }
-	        ]
+	        ],
+			onRefresh: function(event){
+				_cleanInlineHandlersOnComplete(event, this.box);
+			},
+			onRender: function(event){
+				_cleanInlineHandlersOnComplete(event, this.box);
+			},
+    		onContextMenu: function(event){
+    			_cleanInlineHandlersOnComplete(event, this.box);
+    		}
 		},
         sidebar: {
 			/** @lends sidebarConfig */
@@ -183,7 +228,34 @@ define(['jquery', 'viewModel', 'appUtil', 'validationUtil', 'w2ui'], function($,
 //	                           { id: 'level-2-3', text: 'Level 2.3', icon: 'fa-star-empty' }
 //	                         ]
 //	                }
-            ]//,
+            ],
+    		onRefresh: function(event){
+    			_cleanInlineHandlersOnComplete(event, this.box);
+    		},
+    		onRender: function(event){
+    			_cleanInlineHandlersOnComplete(event, this.box);
+    		},
+    		onResize: function(event){
+    			_cleanInlineHandlersOnComplete(event, this.box);
+    		},
+    		onContextMenu: function(event){
+    			_cleanInlineHandlersOnComplete(event, this.box);
+    		},
+    		onClick: function(event){
+    			event.onComplete = function(){
+//    				util.cleanInlineHandler(this.box);
+//    				util.cleanInlineHandler(w2ui.layout_right_tabs.box);//FIX need to process main-tabs for inline-handlers here, too!
+    				util.cleanInlineHandler(w2ui.layout.box);//FIX only targeting the main-tabs does not work ... so use brute-force and process complete layout
+    			};
+    		}//,
+//    		onExpand: function(event){
+////    			setTimeout(function(){util.cleanInlineHandler(this.box);}, 500);//FIXME HACK find event/mechanism for triggering this after expand!
+//    			_cleanInlineHandlersOnComplete(event, this.box);
+//    		},
+//    		onCollapse: function(event){
+////    			setTimeout(function(){util.cleanInlineHandler(this.box);}, 500);//FIXME HACK find event/mechanism for triggering this after collapse!
+//    			_cleanInlineHandlersOnComplete(event, this.box);
+//    		}//,
 //            onClick: function(event){
 //            	console.log('sidebar clicked ',event.target, ', ', event);
 //            }
@@ -539,6 +611,17 @@ define(['jquery', 'viewModel', 'appUtil', 'validationUtil', 'w2ui'], function($,
 		w2ui.layout_main_toolbar.refresh();
 	}
 	
+	/**
+	 * @private
+	 * @function
+	 * @memberOf MainView.private
+	 */
+	function _cleanInlineHandlersOnComplete(event, target){
+		event.onComplete = function(){
+			util.cleanInlineHandler(target);
+		};
+	}
+	
 	//////////////////////////////////////////// Public Exports //////////////////////////////////
 	return {
 		/** @lends MainView.prototype */
@@ -665,7 +748,14 @@ define(['jquery', 'viewModel', 'appUtil', 'validationUtil', 'w2ui'], function($,
 			w2ui.sidebar.on('click', handler);
 		},
 		
-		__addToolbar: function(button, handler){//temporary: will be removed!
+		__addToolbar: function(button, handler, isMenu){//temporary: will be removed!
+			if(isMenu){
+				button.overlay = {
+					onShow: function(event){
+						util.cleanInlineHandler(this.box);
+					}
+				};
+			}
 			w2ui.layout_main_toolbar.add(button);
 			if(handler){
 				w2ui.layout_main_toolbar.on(handler.event, handler.func);
