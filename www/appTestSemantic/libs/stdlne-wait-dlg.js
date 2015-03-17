@@ -34,7 +34,7 @@ var styles = {
 		'b': 'stdlne-style-b'
 };
 
-var activatorClass = 'active';
+var activatorClass = 'stdlne-active';
 var defaultStyleUrl = 'stdlne-wait-dlg.css';
 
 
