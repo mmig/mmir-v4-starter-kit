@@ -85,7 +85,7 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 		for (var i = 0, size = path.length; i < size; ++i) {
 			if (typeof curr[path[i]] !== 'undefined') {
 				prev = curr;
-				curr = curr[path[i]]
+				curr = curr[path[i]];
 			} else {
 				//console.warn('getPosInJson(): could not traverse "'+path[i]+'" ('+i+') from path '+JSON.stringify(path));
 				break;
@@ -99,7 +99,7 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 
 		if ($.isArray(prev)) {
 			// array-entry, i.e.: [..., VALUE_i, ...]
-			pos = prev._loc['_i' + path[(i - 1)]]
+			pos = prev._loc['_i' + path[(i - 1)]];
 		} else if (typeof prev === 'object') {
 			//property, i.e.: "name": VALUE
 			pos = prev._loc['_' + path[(i - 1)]];
