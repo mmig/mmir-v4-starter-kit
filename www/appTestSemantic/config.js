@@ -40,6 +40,7 @@
 	    	, 'checksumUtils' : 'mmirf/tools/checksumUtils'
 
 		    , 'logger' : 'mmirf/tools/logger'
+		    , 'stacktrace' : 'mmirf/vendor/libs/stacktrace-v0.6.4'
 		    
 			//grammar related
 			, 'grammarConverter' : 'mmirf/semantic/grammarConverter'
