@@ -26,11 +26,10 @@
 
 
 
-define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'//, 'renderUtils'
+define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'//DISABLED: now loaded on-demand (see init()) -> 'renderUtils'
          , 'layout', 'view', 'partial', 'dictionary', 'checksumUtils', 'languageManager'
          , 'jquery', 'core'//, 'module'
-         , 'stringExtension', 'parserModule'//, 'jqm'
-        
+         , 'stringExtension', 'parserModule'
     ],
     
     /**
@@ -41,11 +40,11 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
      * Libraries:
      *  - jQuery (>= v1.6.2); ajax, each
      *  
-     *  @depends document (DOM object)
+     *  @requires document (DOM object)
      *  
-     *  @depends jQuery.Deferred
-     *  @depends jQuery.ajax
-     *  @depends jQuery.each
+     *  @requires jQuery.Deferred
+     *  @requires jQuery.ajax
+     *  @requires jQuery.each
      *  
      */
     function ( controllerManager, constants, commonUtils, configurationManager//, renderUtils
@@ -53,13 +52,8 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
             , $, core//, module
 ) {
 	
-	//next 2 comments are needed by JSDoc so that all functions etc. can
-	// be mapped to the correct class description
+	//the next comment enables JSDoc2 to map all functions etc. to the correct class description
 	/** @scope mmir.PresentationManager.prototype */
-	/**
-	 * #@+
-	 * @memberOf mmir.PresentationManager.prototype 
-	 */
 	
 	/**
      * Counter that keeps track of the number of times, that a view is rendered
@@ -69,9 +63,9 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
      * 		 such a unique ID, by increasing the number on each page-change
      * 		 (i.e. by rendering a view) and appending it to the page's ID/name.
      * 
-     * @property _pageIndex
      * @type Integer
      * @public
+	 * @memberOf mmir.PresentationManager#
      */
 	var _pageIndex = 0;
 
@@ -89,10 +83,10 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 	  *       name <code>Default</code>, the file name
 	  *       must be <code>default.ehtml</code>.
 	  * 
-	  * @property DEFAULT_LAYOUT_NAME
 	  * @type String
 	  * @private
 	  * @constant
+	  * @memberOf mmir.PresentationManager#
 	  */
 	 var DEFAULT_LAYOUT_NAME = 'Default';
 	 
@@ -109,10 +103,10 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 	  * NOTE2: There may be no value set at all in the configuration for this property.
 	  * 	   In this case you should assume that it was set to <code>false</code>. 
 	  * 
-	  * @property CONFIG_PRECOMPILED_VIEWS_MODE
 	  * @type String
 	  * @private
 	  * @constant
+	  * @memberOf mmir.PresentationManager#
 	  * 
 	  * @example var isUsePrecompiledViews = mmir.Constants.get(CONFIG_PRECOMPILED_VIEWS_MODE);
 	  * 
@@ -123,27 +117,27 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 	 /**
 	  * Array of layouts of the application
 	  * 
-	  * @property _layouts
 	  * @type Dictionary
 	  * @private
+	  * @memberOf mmir.PresentationManager#
 	  */
 	 var _layouts = new Dictionary();
 
 	 /**
 	  * Array of all the views of the application
 	  * 
-	  * @property _views
 	  * @type Dictionary
 	  * @private
+	  * @memberOf mmir.PresentationManager#
 	  */
 	 var _views = new Dictionary();
 
 	 /**
 	  * Array of all the partials of the application
 	  * 
-	  * @property _partials
 	  * @type Dictionary
 	  * @private
+	  * @memberOf mmir.PresentationManager#
 	  */
 	 var _partials = new Dictionary();
 
@@ -152,9 +146,9 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 	  * It contains: name of the corresponding controller, name of the view
 	  * and optionally data for the view
 	  * 
-	  * @property _currentView
-	  * @type Object
+	  * @type View
 	  * @private
+	  * @memberOf mmir.PresentationManager#
 	  */
 	 var _currentView = {};
 
@@ -164,9 +158,9 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 	  * It contains: name of the corresponding controller, name of the view
 	  * and optionally data for the view
 	  * 
-	  * @property _previousView
-	  * @type Object
+	  * @type View
 	  * @private
+	  * @memberOf mmir.PresentationManager#
 	  * 
 	  * @deprecated do not use
 	  */
@@ -176,17 +170,30 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 	  * The currently displayed dialog object, if a dialog is displayed. Used
 	  * mainly to close the dialog.
 	  * 
-	  * @property _currentDialog
 	  * @type Object
 	  * @private
+	  * @memberOf mmir.PresentationManager#
 	  * 
-	  * @see #_instance#showDialog
-	  * @see #_instance#hideCurrentDialog
+	  * @see mmir.PresentationManager#showDialog
+	  * @see mmir.PresentationManager#hideCurrentDialog
 	  */
 	 var _currentDialog = null;
 	 
+	 /**
+	  * @private
+	  * @memberOf mmir.PresentationManager#
+	  */
 	 var viewSeparator 		= '#';
+	 /**
+	  * @type String
+	  * @private
+	  * @memberOf mmir.PresentationManager#
+	  */
      var partialSeparator 	= commonUtils.getPartialsPrefix();
+     /**
+	  * @private
+	  * @memberOf mmir.PresentationManager#
+	  */
      function createLookupKey(ctrl, viewObj, separator){
      	if(typeof ctrl.getName !== 'undefined'){
      		ctrl = ctrl.getName();
@@ -197,14 +204,34 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
      	//TODO remove all >partialSeparator< from partial-string beginning
      	return ctrl+separator+viewObj;
      }
+     /**
+	  * @private
+	  * @memberOf mmir.PresentationManager#
+	  */
      function createViewKey(ctrl, view){
      	return createLookupKey(ctrl, view, viewSeparator);
      }
+     /**
+	  * @private
+	  * @memberOf mmir.PresentationManager#
+	  */
      function createPartialKey(ctrl, partial){
      	return createLookupKey(ctrl, partial, partialSeparator);
      }
-	 
-   //MOD modularize view-engine jqm
+     
+
+	 /**
+	  * Default implementation for the rendering-engine:
+	  * 
+	  * does nothing but writing an error message to the console,
+	  * if any of its functions is invoked.
+	  * 
+	  * The rendering engine can be set via {@link mmir.PresentationManager#setRenderEngine}.
+	  * 
+	  * @type RenderEngine
+	  * @private
+	  * @memberOf mmir.PresentationManager#
+	  */
      var _renderEngine = {
     		 /**
     		  * The function that actually renders the View.<br>
@@ -237,7 +264,8 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
     		  * 
     		  * At the end the <b>on_page_load</b> action of the <em>controller</em> is performed.
     		  * 
-    		  * @function render
+    		  * @function
+    		  * @memberOf mmir.PresentationManager._renderingEngine
     		  * 
     		  * @param {String}
     		  *            ctrlName Name of the controller
@@ -266,12 +294,25 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
     			 console.error('PresentationManager.hideWaitDialog: no rendering engine set!');
     		 }
      };
+	 /**
+	  * Reference to the rendering-engine implementation / instance.
+	  * 
+	  * This reference should not be accessed directly.
+	  * Custom functions of the rendering implementation can be
+	  * invoked via {@link mmir.PresentationManager#callRenderEngine}.
+	  * 
+	  * @type Object
+	  * @private
+	  */
+     _renderEngine._engine = _renderEngine;
 	 
 	 var _instance = {
 			/** @scope mmir.PresentationManager.prototype  */
 			 
 			/**
 			 * @deprecated instead: use mmir.PresentationManager directly
+			 * 
+			 * @memberOf mmir.PresentationManager.prototype
 			 */
 			getInstance: function () {
 				return this;
@@ -284,7 +325,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
             /**
              * This function returns a layout object by name.<br>
              * 
-             * @function getLayout
+             * @function
              * @param {String}
              *            layoutName Name of the layout which should be returned
              * @param {Boolean}
@@ -294,6 +335,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
              *            layout could be found
              * @returns {Object} The requested layout, "false" if not found
              * @public
+			 * @memberOf mmir.PresentationManager.prototype
              */
             getLayout : function(layoutName, doUseDefaultIfMissing) {
                 var layout = false;
@@ -310,13 +352,20 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
                 return layout;
             },
 
+            /**
+             * 
+             * @param {String|Controller} ctrlName
+             * @param {String|View} view
+             * @public
+			 * @memberOf mmir.PresentationManager.prototype
+             */
             addView : function(ctrlName, view) {
                 _views.put(createViewKey(ctrlName, view), view);
             },
             /**
              * This function returns a view object by name.<br>
              * 
-             * @function getView
+             * @function
              * @param {String}
              *            controllerName Name of the controller for the view
              * @param {String}
@@ -324,6 +373,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
              * @returns {Object} The requested view, <tt>false</tt> if not
              *          found
              * @public
+			 * @memberOf mmir.PresentationManager.prototype
              */
             getView : function(controllerName, viewName) {
                 viewName = createViewKey(controllerName, viewName);
@@ -336,7 +386,14 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
                 }
                 return view;
             },
-            
+            /**
+             * 
+             * @param {String|Controller} ctrlName
+             * @param {String|Partial} partial
+             * 
+             * @public
+			 * @memberOf mmir.PresentationManager.prototype
+             */
             addPartial: function(ctrlName, partial){
             	_partials.put(createPartialKey(ctrlName, partial), partial);
             },
@@ -344,13 +401,14 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
             /**
              * This function returns a partial object by name.<br>
              * 
-             * @function getPartial
+             * @function
              * @param {String}
              *            controllerName Name of the controller for the view
              * @param {String}
              *            viewName Name of the partial which should be returned
              * @returns {Object} The requested partial, "false" if not found
              * @public
+			 * @memberOf mmir.PresentationManager.prototype
              */
             getPartial : function(controllerName, partialName) {
                 var partial = false;
@@ -377,8 +435,9 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
              * Closes a modal window / dialog (if one is open).
              * <br>
              * 
-             * @function hideCurrentDialog
+             * @function
              * @public
+			 * @memberOf mmir.PresentationManager.prototype
              */
             hideCurrentDialog : function() {
 				_renderEngine.hideCurrentDialog.apply(this,arguments);
@@ -388,7 +447,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
              * Opens the dialog for ID <code>dialogId</code>.
              * <br>
              * 
-             * @function showDialog
+             * @function
              * @param {String} ctrlName
              *            the Name of the controller
              * @param {String} dialogId
@@ -399,6 +458,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
              * @returns {Object} the instance of the opened dialog (void or falsy dialog was not opened)
              * 
              * @public
+			 * @memberOf mmir.PresentationManager.prototype
              */
             showDialog : function(ctrlName, dialogId, data) {
             	_currentDialog = _renderEngine.showDialog.apply(this,arguments);
@@ -408,7 +468,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 			/**
 			 * Shows a "wait" dialog, i.e. "work in progress" notification.
 			 * 
-			 * @function showWaitDialog
+			 * @function
 			 * 
 			 * @param {String} [text] OPTIONAL
 			 * 				the text that should be displayed.
@@ -418,8 +478,9 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 			 * 				a data / options object
 			 * 
 			 * @public
+			 * @memberOf mmir.PresentationManager.prototype
 			 * 
-			 * @see #hideWaitDialog
+			 * @see mmir.PresentationManager#hideWaitDialog
 			 */
 			showWaitDialog : function(text, data) {
 				_renderEngine.showWaitDialog.apply(this,arguments);
@@ -428,10 +489,11 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 			/**
 			 * Hides / closes the "wait" dialog.
 			 * 
-			 * @function hideWaitDialog
+			 * @function
 			 * @public
+			 * @memberOf mmir.PresentationManager.prototype
 			 * 
-			 * @see #showWaitDialog
+			 * @see mmir.PresentationManager#showWaitDialog
 			 */
 			hideWaitDialog : function() {
 				_renderEngine.hideWaitDialog.apply(this,arguments);
@@ -443,7 +505,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 			 * {@link #doRenderView} method. Also
 			 * stores the previous and current view with parameters.<br>
 			 * 
-			 * @function renderView
+			 * @function
 			 * @param {String}
 			 *            ctrlName Name of the controller
 			 * @param {String}
@@ -461,6 +523,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 			 *            <code>reverse</code>: whether the animation should in "forward" (FALSE) direction, or "backwards" (TRUE)
 			 *            						DEFAULT: FALSE
 			 * @public
+			 * @memberOf mmir.PresentationManager.prototype
 			 */
             renderView : function(ctrlName, viewName, data) {
             	
@@ -490,14 +553,15 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 
             /**
              * Renders the current view again, using the
-             * {@link #render} method.
+             * {@link #renderView} method.
              * 
-             * @deprecated you should use {@link #render} with appropriate parameters instead.
+             * @deprecated you should use {@link #renderView} with appropriate parameters instead.
              * 
-             * @depends mmir.DialogManager
+             * @requires mmir.DialogManager
              * 
-             * @function reRenderView
+             * @function
              * @public
+			 * @memberOf mmir.PresentationManager.prototype
              */
             reRenderView : function() {
                 if (_currentView) {
@@ -512,12 +576,13 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
              * {@link mmir.DialogManager#render} method.
              * 
              * 
-             * @deprecated you should use {@link #render} with appropriate parameters instead.
+             * @deprecated you should use {@link #renderView} with appropriate parameters instead.
              * 
-             * @depends mmir.DialogManager
+             * @requires mmir.DialogManager
              * 
-             * @function renderPreviousView
+             * @function
              * @public
+			 * @memberOf mmir.PresentationManager.prototype
              */
             renderPreviousView : function() {
                 if (_previousView) {
@@ -527,6 +592,10 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
                 }
             },        
 	
+            /**
+             * @function
+			 * @memberOf mmir.PresentationManager.prototype
+             */
             init: init,
             
             /**
@@ -547,6 +616,10 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
              * The functions of <code>theRenderEngine</code> will be called in
              * context of the PresentationManager.
              * 
+             * Custom functions of the specific rendering engine implementation 
+             * (i.e. non-standard functions) can be call via {@link #callRenderEngine}.
+             * 
+             * 
              * <br>
              * By default, the rendering-engine as defined by the module ID/path in
              * <code>core.viewEngine</code> will be loaded and set during initialization
@@ -556,8 +629,21 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
              * The implementation of the default view-engine is at
              * <code>mmirf/env/view/presentation/jqmViewEngine.js</code>.
              * 
-             * @function setRenderEngine
+             * @param {Object} theRenderEngine
+             * 			the render-engine for views
+             * 
+             * @function
              * @public
+			 * @memberOf mmir.PresentationManager.prototype
+             * 
+             * @see mmir.PresentationManager#renderView
+             * @see mmir.PresentationManager#showDialog
+             * @see mmir.PresentationManager#hideCurrentDialog
+             * @see mmir.PresentationManager#showWaitDialog
+             * @see mmir.PresentationManager#hideWaitDialog
+             * 
+             * @see mmir.PresentationManager#callRenderEngine
+             * 
              */
             setRenderEngine: function(theRenderEngine){
             	_renderEngine.render 			= theRenderEngine.render;
@@ -565,9 +651,53 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
             	_renderEngine.hideCurrentDialog	= theRenderEngine.hideCurrentDialog;
             	_renderEngine.showWaitDialog	= theRenderEngine.showWaitDialog;
             	_renderEngine.hideWaitDialog	= theRenderEngine.hideWaitDialog;
+            	_renderEngine._engine			= theRenderEngine;
+            },
+            /**
+             * This function allows to call custom functions of the rendering-engine
+             * that was set via {@link #setRenderEngine}.
+             * 
+             * IMPORTANT:
+             * note that the function will be invoked in context of rendering-engine
+             * (i.e. <code>this</code> references will refer to rendering-engine
+             * and not to the PresentationManager instance.
+             * For example, when <code>mmir.PresentationManager.callRenderEngine('hideWaitDialog')</code>
+             * is called, any <code>this</code> references within the <code>hideWaitDialog</code>
+             * implementation would refer to object, that was set in <code>setRenderEngine(object)</code>.
+             * In comparison, when called as <code>mmir.PresentationManager.hideWaitDialog()</code> the
+             * <code>this</code> references refer to the mmir.PresentationManager instance.
+             * 
+             * <br>
+             * NOTE that calling non-existing functions on the rendering-engine 
+             *      will cause an error.
+             * 
+             * @param {String} funcName
+             * 			the name of the function, that should be invoked on the rendering
+             * 			engine.
+             * @param {Array<any>} [args] OPTIONAL
+             * 			the arguments for <code>funcName</code> invoked
+             *          via <code>Function.apply(renderingEngine, args)</code>, e.g.
+             * 			for <code>args = [param1, param2, param3]</code> the
+             * 			function will be called with
+             * 			<code>funcName(param1, param2, param3)</code>
+             * 			(note that the function receives 3 arguments, and
+             *           not 1 Array-argument).
+             * 
+             * @function
+             * @public
+			 * @memberOf mmir.PresentationManager.prototype
+             */
+            callRenderEngine: function(funcName, args){
+            	return _renderEngine._engine[funcName].apply(_renderEngine._engine, args);
             },
             
             //exported properties / constants:
+            /**
+             * @public
+             * @type Integer
+             * @constant
+			 * @memberOf mmir.PresentationManager.prototype
+             */
             pageIndex:		_pageIndex
 		};//END:  return{...
 //	})();//END: (function(){...
@@ -578,8 +708,6 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 	function init () {
 
 		/** @scope mmir.MediaManager.prototype */
-
-		checksumUtils = require('checksumUtils');//FIXME why is this undefined on loading? dependency cycle? really, this should already be available, since it is mentioned in the deps of define()....
 
 		delete _instance.init;//FIXME should init be deleted?
 
@@ -593,6 +721,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		 * 
 		 * @async
 		 * @private
+		 * @memberOf mmir.MediaManager.init
 		 * 
 		 * @param {String} rawViewData
 		 * 					the text content of the view template (i.e. content of a eHTML file "as is")
@@ -607,24 +736,38 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		 */
 		function loadPrecompiledView(rawViewData, targetpath, success, fail){
 
-			if(! isUpToDate(rawViewData, targetpath)){
-				if(fail) fail('Precompiled view file is outdated!');
-				else console.warn('Outdated pre-compiled view at: '+targetpath);
-			}
-
-			commonUtils.getLocalScript( //scriptUrl, success, fail)
-					targetpath, success, fail
-			);
+			//NOTE: stored template require the renderUtils:
+			require(['renderUtils'], function(){
+				
+				if(! isUpToDate(rawViewData, targetpath)){
+					if(fail) fail('Precompiled view file is outdated!');
+					else console.warn('Outdated pre-compiled view at: '+targetpath);
+					
+					//-> do not load the pre-compiled view, instead let fail-callback handle re-parsing for the view
+					return;/////////////////////// EARLY EXIT /////////////////////
+				}
+	
+				commonUtils.getLocalScript( //scriptUrl, success, fail)
+						targetpath, success, fail
+				);
+				
+			});
+			
 		}
 
-		//determine if pre-compiled views (*.js) should be used
-		//DEFAULT: use templates files (*.ehtml) and compile them (freshly) on-the-fly
+		/**
+		 * Flag for determining if pre-compiled views (*.js) should be used
+		 * 
+		 * Reads property {@link #CONFIG_PRECOMPILED_VIEWS_MODE}. If the property is not set,
+		 * <code>false</code> is used by default, i.e. no pre-compiled views are used.
+		 *
+		 * @protected
+		 * @default
+		 * @type Boolean
+		 * @default false: use templates files (*.ehtml) and compile them (freshly) on-the-fly
+		 * @memberOf mmir.MediaManager.init
+		 */
 		var isUsePreCompiledViews = configurationManager.getBoolean(CONFIG_PRECOMPILED_VIEWS_MODE, true, false);
-
-		//util for checking if pre-compiled views are up-to-date
-		// (i.e.: can we use the pre-compiled view, or do we need to use the template file and compile it on-the-fly)
-		//TODO should this also be configurable -> up-to-date check (e.g. use pre-compiled views without checking for changes)
-		var checksumUtils = checksumUtils.init();
 
 		/**
 		 * Read the checksum file that was created when the pre-compiled view was created:
@@ -636,6 +779,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		 *    
 		 * @sync the checksum file is loaded in synchronous mode
 		 * @private
+		 * @memberOf mmir.MediaManager.init
 		 * 
 		 * @param {String} viewContent
 		 * 						the content of the view template (i.e. loaded eHTML file)
@@ -673,19 +817,35 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		 * This function loads the layouts for every controller and puts the
 		 * name of the layouts into the <b>_layouts</b> array.
 		 * 
-		 * @function loadLayouts
+		 * @function
 		 * @private
+		 * @memberOf mmir.MediaManager.init
 		 * 
 		 * @returns {Promise} a Deferred.promise that gets resolved upon loading all layouts; fails/is rejected, if not at least 1 layout was loaded
 		 */
-		function loadLayouts() {
+		function loadLayouts(){
 			// Load application's layouts. 
 
-
+			/**
+			 * @type jQuery.Deffered
+			 * @private
+			 * @memberOf mmir.MediaManager.init.loadLayouts
+			 */
 			var defer = $.Deferred();
-
+			
+			/**
+			 * @type String
+			 * @private
+			 * @memberOf mmir.MediaManager.init.loadLayouts
+			 */
 			var ctrlNameList = controllerManager.getControllerNames();
-
+			
+			/**
+			 * HELPER object for tracking the loading-status of the layouts
+			 * 
+			 * @private
+			 * @memberOf mmir.MediaManager.init.loadLayouts
+			 */
 			var loadStatus = {
 					loader: defer,
 					remainingCtrlCount: ctrlNameList.length + 1,//+1: for the default layout
@@ -727,13 +887,23 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 					}
 			};
 
+			/**
+			 * HELPER object for loading/creating the layouts
+			 * @private
+			 * @memberOf mmir.MediaManager.init.loadLayouts
+			 */
 			var createLayoutConfig = {
 					constructor: Layout,
 					typeName: 'Layout',
 					collection: _layouts
 			};
 
-			//helper for loading a single layout-file
+			/**
+			 * helper for loading a single layout-file
+			 * 
+			 * @private
+			 * @memberOf mmir.MediaManager.init.loadLayouts
+			 */
 			var doLoadLayout = function(index, ctrlName, theDefaultLayoutName){
 
 				var ctrlName;
@@ -787,9 +957,10 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		 * an instance of a view class and puts the view instance in the
 		 * <b>_views</b> array.<br>
 		 * 
-		 * @function loadViews
+		 * @function
 		 * @private
 		 * @async
+		 * @memberOf mmir.MediaManager.init
 		 * 
 		 * @returns {Promise} a Deferred.promise that gets resolved upon loading all views
 		 * 
@@ -822,9 +993,10 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		 * reference of a function which loads the files one after another - not
 		 * asynchronously.</b>
 		 * 
-		 * @function loadPartials
+		 * @function
 		 * @private
 		 * @async
+		 * @memberOf mmir.MediaManager.init
 		 * 
 		 * @returns {Promise} a Deferred.promise, that resolves after all partials have been loaded
 		 * 					NOTE: loading failures will generate a warning message (on the console)
@@ -863,6 +1035,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		 * 
 		 * @private
 		 * @function
+		 * @memberOf mmir.MediaManager.init
 		 * 
 		 * @param {PlainObject} status
 		 * 		the object for managing the laoding status.
@@ -888,6 +1061,7 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		 * 
 		 * @private
 		 * @function
+		 * @memberOf mmir.MediaManager.init
 		 * 
 		 * @param {PlainObject} status
 		 * 		the object for managing the laoding status:
@@ -921,7 +1095,8 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		 *         which are necessary to process the raw template content.
 		 * 
 		 * @private
-		 * @function doParseTemplate
+		 * @function
+		 * @memberOf mmir.MediaManager.init
 		 * 
 		 * @param {Controller} controller
 		 * 		the controller to which the template files belong.
@@ -958,7 +1133,8 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		 */
 		var doParseTemplate = function(controller, templateName, config, templateContent, status){
 
-			require(['parseUtils'], function(){
+			//NOTE need to request renderUtils here too, since it is needed during parsing!
+			require(['parseUtils', 'renderUtils'], function(){
 
 				var templateObj;
 				if(controller){
@@ -1001,11 +1177,12 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		 * <p>
 		 * Uses {@link doloadTemplateFile} for loading single template files.
 		 * 
-		 * @function doProcessTemplateList
+		 * @function
 		 * @private
 		 * @async
+		 * @memberOf mmir.MediaManager.init
 		 * 
-		 * @see doLoadTemplateFile
+		 * @see #doLoadTemplateFile
 		 * 
 		 * @param {PlainObject} createConfig
 		 * 			configuration object that determines which templates are loaded, and how
@@ -1018,10 +1195,26 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		 */
 		var doProcessTemplateList = function(createConfig){
 
+			/**
+			 * @type jQuery.Deferred
+			 * @private
+			 * @memberOf mmir.MediaManager.init.doProcessTemplateList
+			 */
 			var defer = $.Deferred();
-
+			
+			/**
+			 * @type String
+			 * @private
+			 * @memberOf mmir.MediaManager.init.doProcessTemplateList
+			 */
 			var ctrlNameList = controllerManager.getControllerNames();
-
+			
+			/**
+			 * HELPER object for tracking the loading-status of the views
+			 * 
+			 * @private
+			 * @memberOf mmir.MediaManager.init.doProcessTemplateList
+			 */
 			var loadStatus = {
 					loader: defer,
 					remainingCtrlCount: ctrlNameList.length,
@@ -1102,9 +1295,10 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		 * 		determine, if all templates (e.g. from a list) have been (asynchronously)
 		 * 		loaded.
 		 * 
-		 * @function doProcessTemplateList
+		 * @function
 		 * @private
 		 * @async
+		 * @memberOf mmir.MediaManager.init
 		 */
 		var doLoadTemplateFile = function(controller, templateInfo, createConfig, loadStatus){
 			++loadStatus.currentLoadCount;
@@ -1157,21 +1351,48 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		
 		///////////// start intialization: ////////////////
 
+		/**
+		 * Deferred / promise for loading views.
+		 * 
+		 * @type jQuery.Deferred
+		 * @private
+		 * @memberOf mmir.MediaManager.init
+		 */
 		var defer = $.Deferred();
 
 		var isLayoutsLoaded = false;
 		var isViewsLoaded = false;
 		var isPartialsLoaded = false;
 		var isViewEngineLoaded = false;//MOD modularize view-engine jqm
+		
+		/**
+		 * Helper: called each time a loading-function finishes.
+		 * Checks if all other loading-functions have finished, and if so, resolves the init-promise.
+		 * 
+		 * @private
+		 * @memberOf mmir.MediaManager.init
+		 */
 		var checkResolved = function(){
 			if(isLayoutsLoaded && isViewsLoaded && isPartialsLoaded && isViewEngineLoaded){
 				defer.resolve();
 			}
 		};
+		/**
+		 * Helper: called if an error occured in one of the loading-functions:
+		 * rejects/fails the init-promise.
+		 * 
+		 * @private
+		 * @memberOf mmir.MediaManager.init
+		 */
 		var failPromise = function(msg){
 			defer.reject(msg);
 		};
 
+		//util for checking if pre-compiled views are up-to-date
+		// (i.e.: can we use the pre-compiled view, or do we need to use the template file and compile it on-the-fly)
+		//TODO should this also be configurable -> up-to-date check (e.g. use pre-compiled views without checking for changes)
+		checksumUtils = checksumUtils.init();
+		
 		loadLayouts().then(
 				function(){ isLayoutsLoaded = true; checkResolved(); },
 				failPromise
@@ -1199,6 +1420,5 @@ define([ 'controllerManager', 'constants', 'commonUtils', 'configurationManager'
 		return defer.promise(_instance);
 
 	};//END: init()
-
-	/** #@- */
+	
 });

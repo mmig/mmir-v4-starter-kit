@@ -25,30 +25,26 @@
  */
 
 
-
 /**
-* @module mmir.semantic
+* The GrammarConverter object initializes the grammar for processing
+* <em>natural language text</em>, e.g. from the voice recognition.
 * 
-*/
-
-/**
-* The GrammarConverter object initializes the grammar for the voice recognition.
-* 
-* @class GrammarConverter
-* @constructor
-* @category core
+* @class
+* @name GrammarConverter
 * 
 * @requires mmir.CommonUtils.isArray
 * @requires jQuery.ajax
 */
 define(['commonUtils', 'jquery'], function(commonUtils, $){
 
-IS_DEBUG_ENABLED = true;//FIXME need to remove this!
+
 
 /**
- * @class GrammarConverter
+ * @ignore
+ * 
+ * @constructs GrammarConverter
  */
-var GrammarConverter = function(){
+function GrammarConverter(){
 	
 //	this.THE_INTERNAL_GRAMMAR_CONVERTER_INSTANCE_NAME = "theGrammarConverterInstance";
 //	this.grammar_tokens = "/~ --- Token definitions --- ~/\n\n/~ Characters to be ignored ~/\n!   ' |\\t' ;\n\n/~ Non-associative tokens ~/\n";
@@ -60,6 +56,9 @@ var GrammarConverter = function(){
 	
 	this.variable_prefix = "_$";
 	this.variable_regexp = /"(_\$[^\"]*)"/igm;// /"_$([^\"]*)/igm;
+	
+	this.entry_token_field = "tok";//must consist of ASCI "word chars", i.e. not whitepaces, numbers etc.
+	this.entry_index_field = "i";//must consist of ASCI "word chars", i.e. not whitepaces, numbers etc.
 	
 	//regular expression for detecting encoded chars (see mask/unmask functions)
 	this.enc_regexp_str = "~~([0-9|A-F|a-f]{4})~~";
@@ -450,7 +449,7 @@ GrammarConverter.prototype.setJSGrammar = function(src_code){
 //	var semantic = utterance_def.semantic,
 //	variable_index, variable_name;
 //	
-//	if(IS_DEBUG_ENABLED) console.debug('doCreateSemanticInterpretationForUtterance: '+semantic);//debug
+//	if(logger.isDebug()) logger.debug('doCreateSemanticInterpretationForUtterance: '+semantic);//debug
 //	
 //	var semantic_as_string = JSON.stringify(semantic);
 //	if( semantic_as_string != null){
@@ -460,7 +459,7 @@ GrammarConverter.prototype.setJSGrammar = function(src_code){
 //		var variable = variables[1],
 //		remapped_variable_name = "";
 //		
-//		if(IS_DEBUG_ENABLED) console.debug("variables " + variable, semantic_as_string);//debug
+//		if(logger.isDebug()) logger.debug("variables " + variable, semantic_as_string);//debug
 //		
 //		variable_index = /\[(\d+)\]/.exec(variable);
 //		variable_name = new RegExp('_\\$([a-zA-Z_][a-zA-Z0-9_\\-]*)').exec(variable)[1];
@@ -784,6 +783,7 @@ GrammarConverter.prototype.unmaskJSON = function (json, isMaskValues, isMaskName
 /**
  * Recodes Strings of a JSON-like object.
  * 
+ * @function
  * @param {Object} json 
  * 					the JSON-like object (i.e. PlainObject)
  * 
@@ -837,6 +837,9 @@ GrammarConverter.prototype.recodeJSON = (function () {//<- NOTE this is only the
 			
 			return obj;
 		}
+		else if(obj === null) {//NOTE null is typeof object!
+			return null;
+		}	
 		else if(typeof obj === 'object') {
 			//OBJECT: process all the object's properties (but only, if they are not inherited)
 			for(var p in obj){

@@ -1,48 +1,103 @@
 ﻿
 /**
- *  @depends jQuery.Deferred
+ *  @requires jQuery.Deferred
  */
 
 //TODO doc
 
 define(['scion', 'scionUtil', 'jquery'], function( scion, scionUtil, $ ) {
 
-//    var _instance = null;
-
     /**
      * An array containing all states active.
      * 
-     * @property statesActive
      * @type Array
      * @private
+     * @memberOf mmir.env.statemachine#
      */
     var statesActive = new Array();
-
+    
+    /**
+     * Factory function for creating a new (extended) SCION interpreter instance.
+     * 
+     * @param {SCION} scion
+     * 			the SCION module
+     * @param {SCIONUtil} scionUtil
+     * 			the util/helper for exending the SCION engine
+     * @param {Objcect} instanceContext
+     * 
+     * @private
+     * @memberOf mmir.env.statemachine#
+     */
     var newInstance = function( scion, scionUtil, instanceContext ) {
     	
+    	/**
+    	 * @type SCIONInterpreter
+    	 * @memberOf mmir.env.statemachine.create#
+    	 */
         var _interpreter = null;
 
+        /**
+         * The load function for <code>instanceContext</code>
+         * 
+         * @function
+         * @returns {Deferred} a promise that is resolved when the SCION model is loaded
+    	 * @memberOf mmir.env.statemachine.create#
+    	 */
         var load = function(){
-
-            var _url = this.arguments || this.doc
-            	, _defer = $.Deferred();
+        	/**
+             * @type String
+        	 * @memberOf mmir.env.statemachine.engine#
+        	 */
+            var _url = this.arguments || this.doc;
+            /**
+             * @type Deferred
+        	 * @memberOf mmir.env.statemachine.engine#
+        	 */
+            var _defer = $.Deferred();
             
             if (typeof _url === 'undefined') {
-                console.error('URL is missing!');
+            	instanceContext._log.error('URL is missing!');
                 return;
             }
-
-
-            scion.urlToModel(_url, function(err, model) {
+            /**
+             * @type SCION 
+        	 * @memberOf mmir.env.statemachine.engine#
+        	 */
+            var self = this;
+            
+            /**
+             * Loads the SCXML file and creates the SCION model.
+             * 
+             * Resolves the {@link #_defer} promise (or fails it, if an error occurred).
+             * 
+             * @param {XMLHTTPRequest} err
+             * 			if <code>falsey</code>, loading was successful.
+             * 			Otherwise contains the failed request for loading the SCXML file.
+             * @param {SCIONModel} model
+             * 			if err is <code>falsey</code>, holds the SCIONModel.
+             * 			Otherwise empty.
+             * 
+             * @function
+        	 * @memberOf mmir.env.statemachine.engine#
+        	 */
+            scion.urlToModel(_url, function urlToModel(err, model) {
 
                 if (err) {
                 	
                 	var url = '';
-                	var printError = function(){console.error('error for model ',_url, ': ', (url? 'could not load "' + url + '", ' : ''), err, model);};
+                	var printError = function(){
+                		console.error('error for SCXML model at ',_url, ': ',
+                				(url? 'could not load "' + url + '" ' : ''),
+                				(err.statusText? ': ' + err.statusText : ''),
+                				err,
+                				model
+                		);
+                	};
                 	if(err.always) err.always(function(){url = this.url; printError();});
                 	else printError();
                 	
-                    alert('SCXML is not valid!');
+//                    alert('SCXML is not valid!');
+                	_defer.fail(err);
                     return;
                 }
 
@@ -51,72 +106,72 @@ define(['scion', 'scionUtil', 'jquery'], function( scion, scionUtil, $ ) {
 
                 // listener for transitions / state-changes:
                 var listener = {
+            		/**
+                     * Listener for state changes (ENTRY) in the SCXML model.
+                     * 
+                     * @param {String} stateName
+                     * 			the name of the state that was entered 
+                     * 
+                     * @function
+                	 * @memberOf mmir.env.statemachine.engine.listener#
+                	 * 
+                	 * @requires instanceContext._log {@link Logger} (i.e. the Logger of the DialogEngine/InputEngine)
+                	 */
                     onEntry : function(stateName) {
                         statesActive.push(stateName);
-                        if (IS_DEBUG_ENABLED) console.debug('SCXML State Entry: "' + stateName + '"');// debug
+                        if (instanceContext._log.isDebug()) instanceContext._log.debug('SCXML State Entry: "' + stateName + '"');// debug
                     },
+                    /**
+                     * Listener for state changes (EXIT) in the SCXML model.
+                     * 
+                     * @param {String} stateName
+                     * 			the name of the state that was exited 
+                     * 
+                     * @function
+                	 * @memberOf mmir.env.statemachine.engine.listener#
+                	 * 
+                	 * @requires instanceContext._log {@link Logger} (i.e. the Logger of the DialogEngine/InputEngine)
+                	 */
                     onExit : function(stateName) {
                         statesActive.pop();
 
-                        if (IS_DEBUG_ENABLED) console.debug('SCXML State Exit: "' + stateName + '"');// debug
+                        if (instanceContext._log.isDebug()) instanceContext._log.debug('SCXML State Exit: "' + stateName + '"');// debug
                     },
+                    /**
+                     * Listener for state changes (TRANSITIONS) in the SCXML model.
+                     * 
+                     * @param {String} sourceState
+                     * 			the name of the origin state for the state transition
+                     * @param {Array<String>} targetStatesArray
+                     * 			the names of the target states for the state transition
+                     * 
+                     * @function
+                	 * @memberOf mmir.env.statemachine.engine.listener#
+                	 * 
+                	 * @requires instanceContext._log {@link Logger} (i.e. the Logger of the DialogEngine/InputEngine)
+                	 */
                     onTransition : function(sourceState, targetStatesArray) {
                         
-                    	if (IS_DEBUG_ENABLED) console.debug('SCXML State Transition: "' + sourceState + '"->"' + targetStatesArray + '"');// debug
+                    	if (instanceContext._log.isDebug()) instanceContext._log.debug('SCXML State Transition: "' + sourceState + '"->"' + targetStatesArray + '"');// debug
 
                         if (targetStatesArray && targetStatesArray.length > 1) {
-                            console.warn('SCXML State Transition: multiple target states!');
+                        	instanceContext._log.warn('SCXML State Transition: multiple target states!');
                         }
                     }
                 };
 
                 _interpreter.registerListener(listener);
-                // _interpreter.start();
+
+                if (self.onload) {
+                	var _scion = scionUtil( _interpreter );
+                	if(!self.evalScript) self.scion.ignoreScript();
+                	self.onload( _scion, _defer );
+                } else {
+                	deferred.resolve(instanceContext);
+                }
                 
             });//END: scion.urlToModel(...
 
-            // needed when interpreter.start is executed outside the
-            // scion.urlToModel callback!
-            // not clear if there is evident need to start the interpreter
-            // inside the mmir code
-            var isTimeout = false;
-            var startTime = new Date();
-            var timeout = 10000;
-            
-            function isReady() {
-                isTimeout = new Date() - startTime > timeout;
-                if (!_interpreter && !isTimeout) {
-                    setTimeout(function(context) {
-                        isReady.call(context);
-                    }, 50, this);
-                }
-                else if (_interpreter) {
-                    if (this.onload) {
-                    	var scion = scionUtil( _interpreter );
-                    	if(!this.evalScript) this.scion.ignoreScript();
-                    	this.onload( scion, _defer );
-                    }
-                }
-                else {
-                    if (confirm) {
-                        var result = confirm('Could not initialize ScxmlEngine (time out).\nContinue to wait another\n ' + (timeout / 1000).toFixed(3) + ' seconds?');
-                        if (result) {
-                            startTime = new Date();
-                            setTimeout(function(context) {
-                                isReady.call(context);
-                            }, 50, this);
-                        }
-                        else {
-                            console.error('Could not initialize ScxmlEngine (time out).');
-                        }
-                    }
-                    else {
-                        console.error('Could not initialize ScxmlEngine (time out).');
-                    }
-                }
-            };//END: isReady(){...
-
-            isReady.call(this);
             
             return _defer.promise();
             
@@ -148,11 +203,21 @@ define(['scion', 'scionUtil', 'jquery'], function( scion, scionUtil, $ ) {
      * 				all properties and functions from this object will be attached
      * 				to the returned SCION engine (i.e. the <code>context</code> object).
      * @param {Object} context
-     * 				The context object: the SCION engine will be attached to 
-     * 				this object.
+     * 				The context object: the SCION engine will be attached to this object.
+     * 				The context object must have a property <code>_log</code> with the
+     * 				following attributes (may be empty non-function):
+     * 				<code>_log.isDebug() : Boolean</code>  (this SHOULD NOT print / show any message)
+     * 				<code>_log.debug(String) : void</code> (this SHOULD NOT print / show any message)
+     * 				<code>_log.warn(String) : void</code>  (this MAY print / show a warning message)
+     * 				<code>_log.error(String) : void</code> (this SHOULD print / show an error message)
+     * 				or use a Logger instance (see /tools/logger.js) that is setup for the module
+     * 				that calls this function (see e.g. /manager/dialog/dialogManager::init).
      * @returns {Object} the created SCION engine object
+     * 
+     * @public
+     * @memberOf mmir.env.statemachine#
      */
-	return function (configuration , context){
+	function createEngine(configuration , context){
 		
         var _instance = newInstance( scion, scionUtil , context);
         
@@ -163,5 +228,6 @@ define(['scion', 'scionUtil', 'jquery'], function( scion, scionUtil, $ ) {
         return _instance;
                     
 	};
+	return createEngine;
 
 });

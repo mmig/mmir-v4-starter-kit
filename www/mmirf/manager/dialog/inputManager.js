@@ -24,7 +24,7 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-define(['core', 'jquery', 'commonUtils', 'module', 'engineConfig' ],
+define(['core', 'jquery', 'commonUtils', 'module', 'engineConfig', 'logger' ],
 	/**
 	 * The InputManager handles input events.
 	 * 
@@ -48,28 +48,28 @@ define(['core', 'jquery', 'commonUtils', 'module', 'engineConfig' ],
 	 * @class
 	 * 
 	 * 
-     *  @depends jQuery.Deferred
-     *  @depends jQuery.extend
+     *  @requires jQuery.Deferred
+     *  @requires jQuery.extend
 	 * 
 	 */
 	function(
-		mmir, $, commonUtils,module, engineConfig
+		mmir, $, commonUtils,module, engineConfig, Logger
 ){
 
-	//next 2 comments are needed by JSDoc so that all functions etc. can
-	// be mapped to the correct class description
+	//the next comment enables JSDoc2 to map all functions etc. to the correct class description
 	/** @scope mmir.InputManager.prototype */
-	/**
-	 * #@+
-	 * @memberOf mmir.InputManager.prototype 
-	 */
 	
+	/**
+	 * @memberOf mmir.InputManager#
+	 */
 	var _instance = {
 
 		/** @scope mmir.InputManager.prototype */
 		
 		/** 
 		 * @deprecated instead: use mmir.InputManager object directly.
+		 * 
+		 * @memberOf mmir.InputManager.prototype
 		 */
 		getInstance : function() {
 			return this;
@@ -78,7 +78,7 @@ define(['core', 'jquery', 'commonUtils', 'module', 'engineConfig' ],
 		/**
 		 * This function raises an event. 
 		 * 
-		 * @function raise
+		 * @function
 		 * @param {String} eventName
 		 * 				The name of the event which is to be raised
 		 * @param {Object} [eventData] OPTIONAL
@@ -99,6 +99,13 @@ define(['core', 'jquery', 'commonUtils', 'module', 'engineConfig' ],
 
 	return $.extend(true, _instance, {
 
+		/**
+		 * @function
+		 * @name init
+		 * @returns {Deferred}
+		 * 
+		 * @memberOf mmir.InputManager.prototype
+		 */
 		init : function() {
 			delete this.init;
 			
@@ -108,6 +115,9 @@ define(['core', 'jquery', 'commonUtils', 'module', 'engineConfig' ],
 			
 			//create a SCION engine:
 			var engine = engineConfig(url, mode);
+			
+			this._log = Logger.create(module);
+			engine._log = Logger.create(module.id+'Engine', module.config().logLevel);
 
 //			var _self = this;
 
@@ -137,7 +147,5 @@ define(['core', 'jquery', 'commonUtils', 'module', 'engineConfig' ],
 			}).promise();
 		}
 	});
-	
-	/** #@- */
 
 });

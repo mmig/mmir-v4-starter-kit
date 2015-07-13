@@ -24,19 +24,43 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
+/**
+ * part of Cordova plugin: de.dfki.iui.mmir.NuancePlugin
+ * @version 0.7.0
+ * @ignore
+ */
 newMediaPlugin = {
-		initialize: function(callBack){
+		/**  @memberOf NuanceAndroidTextToSpeech# */
+		initialize: function(callBack){//, mediaManager){//DISABLED this argument is currently un-used -> disabled
 			
+			/**  @memberOf NuanceAndroidTextToSpeech# */
 			var _pluginName = 'nuanceTextToSpeech';
 			
-			//separator char for language- / country-code
+			/**
+			 * separator char for language- / country-code (specific to Nuance language config / codes)
+			 *   
+			 * @memberOf NuanceAndroidTextToSpeech#
+			 */
 			var _langSeparator = '_';
 			
+			/** 
+			 * @type mmir.LanguageManager
+			 * @memberOf NuanceAndroidTextToSpeech#
+			 */
 			var languageManager = require('languageManager');
-			var commonUtils = require('commonUtils');  
+			/** 
+			 * @type mmir.CommonUtils
+			 * @memberOf NuanceAndroidTextToSpeech#
+			 */
+			var commonUtils = require('commonUtils');
 			
+			//invoke the passed-in initializer-callback and export the public functions:
 			callBack({
+					/**
+					 * @public
+					 * @memberOf NuanceAndroidTextToSpeech.prototype
+					 * @see mmir.MediaManager#textToSpeech
+					 */
 				    textToSpeech: function (parameter, successCallBack, failureCallBack, startCallBack){
 				    	try{
 				    		
@@ -44,7 +68,7 @@ newMediaPlugin = {
 				    		if((typeof parameter !== 'undefined')&& commonUtils.isArray(parameter) ){
 				    			//TODO implement pausing similar to maryTextToSpeech.js (i.e. in JS code); use XML?
 				    			
-				    			text = parameter.join('\n');//FIXME may need 2 newlines here: in some cases the Nuance TTS does not make pause, when there is only 1 newline (why?!?...)
+				    			text = parameter.join('\n\n');//FIXME may need 2 newlines here: in some cases the Nuance TTS does not make pause, when there is only 1 newline (why?!?...)
 				    			
 				    		}
 				    		else {
@@ -72,10 +96,15 @@ newMediaPlugin = {
 				    	}
 				    	
 				    },
+				    /**
+					 * @public
+					 * @memberOf NuanceAndroidTextToSpeech.prototype
+					 * @see mmir.MediaManager#cancelSpeech
+					 */
 	    			cancelSpeech: function(successCallBack,failureCallBack){
-	    				//FIXME currently, NuancePlugin returns failure on successful cancel-performance, so we call the function with switched failure, success arguments...
-	    				//			-> switch back, when NuancePlugin returns PluginResults correctly... 
-	    				window.plugins.nuancePlugin.cancel(failureCallBack, successCallBack);
+	    				
+	    				window.plugins.nuancePlugin.cancelSpeech(successCallBack, failureCallBack);
+	    				
 	    			},
 					setTextToSpeechVolume: function(newValue){
 	    				//FIXME implement this? how? Nuance library gives no access to audio volume (we could set the Android volume level ...)

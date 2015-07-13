@@ -25,7 +25,7 @@
  */
 
 
-define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter'],
+define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter', 'logger', 'module'],
 		
 	/**
 	 * A class for managing the language of the application. <br>
@@ -35,76 +35,81 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 	 * This "class" is structured as a singleton - so that only one instance is in use.<br>
 	 * 
 	 * @name LanguageManager
-	 * @exports LanguageManager as mmir.LanguageManager
+	 * @memberOf mmir
 	 * @class
 	 * 
-	 * @category core
+	 * 
+	 * @requires mmir.Constants
+	 * @requires mmir.CommonUtils
+	 * @requires mmir.SemanticInterpreter
 	 * 
 	 * 
-	 * @depends mmir.Constants
-	 * @depends mmir.CommonUtils
-	 * @depends mmir.SemanticInterpreter
-	 * 
-	 * 
-     * @depends jQuery.Deferred
-     * @depends jQuery.ajax
+     * @requires jQuery.Deferred
+     * @requires jQuery.ajax
      * 
 	 */
 	function( 
-			constants, configurationManager, commonUtils, semanticInterpreter
+			constants, configurationManager, commonUtils, semanticInterpreter, Logger, module
 ){
-			//next 2 comments are needed by JSDoc so that all functions etc. can
-			// be mapped to the correct class description
+			//the next comment enables JSDoc2 to map all functions etc. to the correct class description
 			/** @scope mmir.LanguageManager.prototype */
-			/**
-			 * #@+
-			 * @memberOf mmir.LanguageManager.prototype 
-			 */
 			
 		    /**
 		     * Object containing the instance of the class
 		     * {@link LanguageManager}
 		     * 
-		     * @property instance
 		     * @type Object
 		     * @private
+		     * 
+		     * @memberOf LanguageManager#
 		     */
 		    var instance = null;
+		    
+		    /**
+		     * @private
+		     * @type Logger
+		     * @memberOf LanguageManager#
+		     */
+		    var logger = Logger.create(module);
 
 		    /**
 		     * JSON object containing the contents of a dictionary file - which are
 		     * found in 'config/languages/&lt;language&gt;/dictionary.json'.
 		     * 
-		     * @property dictionary
 		     * @type JSON
 		     * @private
+		     * 
+		     * @memberOf LanguageManager#
 		     */
 		    var dictionary = null;
 
 		    /**
 		     * A String holding the currently loaded language, e.g. "en".
 		     * 
-		     * @property currentLanguage
 		     * @type String
 		     * @private
+		     * 
+		     * @memberOf LanguageManager#
 		     */
 		    var currentLanguage = null;
 
 		    /**
 		     * A JSON-Object holding the speech-configuration for the currently loaded language.
 		     * 
-		     * @property currentSpeechConfig
 		     * @type JSON-Object
 		     * @private
+		     * 
+		     * @memberOf LanguageManager#
 		     */
 		    var currentSpeechConfig = null;
 
 		    /**
 		     * An array of all available languages.
 		     * 
-		     * @property languages
 		     * @type Array
 		     * @private
+		     * 
+		     * @memberOf LanguageManager#
 		     */
 		    var languages = null;
 
@@ -114,11 +119,11 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		     * If this keyword is used inside a view or partial, it is replaced by the
 		     * current language string.
 		     * 
-		     * @property keyword_current_language
 		     * @type String
 		     * @private
 		     * @example @localize('current_language')
 		     * 
+		     * @memberOf LanguageManager#
 		     */
 		    var keyword_current_language = 'current_language';
 
@@ -126,11 +131,13 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		     * Function to set a new language, but only, if the new language is
 		     * different from the current language.
 		     * 
-		     * @function setLanguage
+		     * @function
 		     * @param {String}
 		     *            lang The language of the dictionary which should be loaded.
 		     * @returns {String} The (new) current language
 		     * @private
+		     * 
+		     * @memberOf LanguageManager#
 		     */
 		    function setLanguage(lang) {
 		        if ((lang) && (currentLanguage != lang)) {
@@ -141,6 +148,10 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		        return currentLanguage;
 		    }
 
+		    /**
+		     * @function
+		     * @memberOf LanguageManager#
+		     */
 		    function doCheckExistsGrammar(lang) {
 		        var langFiles = null;
 		        var retValue = false;
@@ -173,12 +184,14 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		     * 
 		     * TODO document location for JSON and JavaScript grammar files
 		     * 
-		     * @function requestGrammar
+		     * @function
 		     * @param {String}
 		     *            lang The language of the grammar which should be loaded.
 		     * @returns {String} The current grammar language
 		     * @async
 		     * @private
+		     * 
+		     * @memberOf LanguageManager#
 		     */
 		    function requestGrammar(lang, doSetNextBestAlternative) {
 
@@ -216,11 +229,11 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		            }
 
 		            if (grammarLang) {
-		                console.warn('Could not find grammar for selected language ' + lang + ', using grammar for language ' + grammarLang + ' instead.');
+		                logger.warn('Could not find grammar for selected language ' + lang + ', using grammar for language ' + grammarLang + ' instead.');
 		                semanticInterpreter.setCurrentGrammar(grammarLang);
 		            }
 					else {
-		                console.warn('Could not find any grammar for one of [' + languages.join(', ') + '], disabling SemanticInterpret.');
+		                logger.warn('Could not find any grammar for one of [' + languages.join(', ') + '], disabling SemanticInterpret.');
 		                semanticInterpreter.setEnabled(false);
 		            }
 		        }
@@ -231,12 +244,14 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		     * Loads the speech-configuration for the provided language and updates the current
 		     * language.
 		     * 
-		     * @function loadSpeechConfig
+		     * @function
 		     * @param {String} lang
 		     *            The language of the speech-configuration which should be loaded.
 		     * @returns {String} The (new) current language
 		     * @async
 		     * @private
+		     * 
+		     * @memberOf LanguageManager#
 		     */
 		    function loadSpeechConfig(lang) {
 
@@ -249,12 +264,15 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		            dataType : "json",
 		            url : path,
 		            success : function(data) {
-		                // console.log("[LanguageManager] Success. " + data);
-		                currentSpeechConfig = data;// jQuery.parseJSON(data);
-		                // console.log("[LanguageManager] " + JSON.stringify(dictionary));
+		                
+		            	if(logger.isVerbose()) logger.v("[LanguageManager] Success. " + data);
+		                
+		            	currentSpeechConfig = data;// jQuery.parseJSON(data);
+		                
+		                if(logger.isVerbose()) logger.v("[LanguageManager] " + JSON.stringify(dictionary));
 		            },
 		            error : function(xhr, statusStr, error) {
-		                console.error("[LanguageManager] Error loading speech configuration from \""+path+"\": " + error? error.stack? error.stack : error : ''); // error
+		                logger.error("[LanguageManager] Error loading speech configuration from \""+path+"\": " + error? error.stack? error.stack : error : ''); // error
 		            }
 		        });
 		        return currentLanguage;
@@ -264,12 +282,14 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		     * Loads the dictionary for the provided language and updates the current
 		     * language.
 		     * 
-		     * @function loadDictionary
+		     * @function
 		     * @param {String}
 		     *            lang The language of the dictionary which should be loaded.
 		     * @returns {String} The (new) current language
 		     * @async
 		     * @private
+		     * 
+		     * @memberOf LanguageManager#
 		     */
 		    function loadDictionary(lang) {
 
@@ -285,7 +305,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		                dictionary = data;
 		            },
 		            error : function(xhr, statusStr, error) {
-		                console.error("[LanguageManager] Error loading language dictionary from \""+path+"\": " + error? error.stack? error.stack : error : ''); // error
+		                logger.error("[LanguageManager] Error loading language dictionary from \""+path+"\": " + error? error.stack? error.stack : error : ''); // error
 		            }
 		        });
 		        return currentLanguage;
@@ -294,11 +314,13 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		     * Translates a keyword using the current dictionary and returns the
 		     * translation.
 		     * 
-		     * @function internalGetText
+		     * @function
 		     * @param {String}
 		     *            textVarName The keyword which should be looked up
 		     * @returns {String} the translation of the keyword
 		     * @private
+		     * 
+		     * @memberOf LanguageManager#
 		     */
 		    function internalGetText(textVarName) {
 		        var translated = "";
@@ -310,7 +332,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		        }
 				else {
 		            translated = "undefined";
-		            console.warn("[Dictionary] '" + textVarName + "' not found in " + JSON.stringify(dictionary));
+		            logger.warn("[Dictionary] '" + textVarName + "' not found in " + JSON.stringify(dictionary));
 		        }
 		        return translated;
 		    }
@@ -319,8 +341,9 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		     * Constructor-Method of Singleton mmir.LanguageManager.<br>
 		     * 
 		     * @constructs LanguageManager
-		     * @memberOf LanguageManager.prototype
+		     * @memberOf LanguageManager#
 		     * @private
+		     * @ignore
 		     * 
 		     */
 		    function constructor() {
@@ -334,6 +357,8 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		        	 * @param {String} [lang] OPTIONAL
 		        	 * 				a language code for setting the current language and
 		        	 * 				selecting the corresponding language resources
+		        	 * 
+		        	 * @memberOf LanguageManager.prototype
 		        	 */
 		        	init: function(lang){
 		        		
@@ -344,7 +369,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 				            if (appLang) {
 				            	
 				                lang = appLang;
-				                console.info("[LanguageManager] No language argument specified: using language from configuration '" + appLang + "'.");
+				                logger.info("[LanguageManager] No language argument specified: using language from configuration '" + appLang + "'.");
 				                
 				            }
 				            else {
@@ -354,7 +379,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 				            	if (appLang) {
 				            
 					                lang = appLang;
-					                console.info("[LanguageManager] No language argument specified: using language from mmir.constants '" + appLang + "'.");
+					                logger.info("[LanguageManager] No language argument specified: using language from mmir.constants '" + appLang + "'.");
 					            }
 				            	else {
 					            	
@@ -365,7 +390,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 					                		
 					                		lang = appLang;
 					                		
-					                		console.info("[LanguageManager] No language argument specified: used determinLanguage() for selecting language '" + appLang + "'.");
+					                		logger.info("[LanguageManager] No language argument specified: used determinLanguage() for selecting language '" + appLang + "'.");
 					                	}
 					                }
 					                
@@ -374,7 +399,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 				            }//END: else(config::lang)
 				        
 			        		if(!lang){
-			        			console.warn("[LanguageManager.init] No language specified. And no language could be read from directory '" + constants.getLanguagePath() + "'.");
+			        			logger.warn("[LanguageManager.init] No language specified. And no language could be read from directory '" + constants.getLanguagePath() + "'.");
 			        		}
 			        		
 				        }//END: if(!lang && !currentLanguage)
@@ -383,7 +408,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 				        // get all the languages/dictionaries by name
 				        languages = commonUtils.getDirectoryContents(constants.getLanguagePath());
 
-				        if (IS_DEBUG_ENABLED) console.debug("[LanguageManager] Found dictionaries for: " + JSON.stringify(languages));// debug
+				        if (logger.isDebug()) logger.debug("[LanguageManager] Found dictionaries for: " + JSON.stringify(languages));// debug
 
 				        loadDictionary(lang);   
 				        loadSpeechConfig(lang);
@@ -422,7 +447,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		            /**
 		             * Returns the dictionary of the currently used language.
 		             * 
-		             * @function getDictionary
+		             * @function
 		             * @returns {Object} The JSON object for the dictionary of the
 		             *          currently used language
 		             * @public
@@ -435,7 +460,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		             * If a dictionary exists for the given language, 'true' is
 		             * returned. Else the method returns 'false'.
 		             * 
-		             * @function existsDictionary
+		             * @function
 		             * @returns {Boolean} True if a dictionary exists for given
 		             *          language.
 		             * @param {String}
@@ -460,7 +485,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		            /**
 		             * If a speech-configuration (file) exists for the given language.
 		             * 
-		             * @function existsDictionary
+		             * @function
 		             * @returns {Boolean}
 		             * 				<code>true</code>if a speech-configuration exists for given language.
 		             * 				Otherwise <code>false</code>.
@@ -489,7 +514,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		             * If a JSON grammar file exists for the given language, 'true' is
 		             * returned. Else the method returns 'false'.
 		             * 
-		             * @function existsGrammar
+		             * @function
 		             * @returns {Boolean} True if a grammar exists for given language.
 		             * @param {String}
 		             *            Language String, i.e.: en, de
@@ -523,7 +548,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		             * <li>Take the default language - no matter what </li>
 		             * </ol>
 		             * 
-		             * @function determineLanguage
+		             * @function
 		             * @returns {String} The determined language
 		             * @public
 		             */
@@ -596,7 +621,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		             * Sets a new language, but only, if the new language is different
 		             * from the current language.
 		             * 
-		             * @function setLanguage
+		             * @function
 		             * @returns {String} The (new) current language
 		             * @public
 		             */
@@ -607,7 +632,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		            /**
 		             * Gets the language currently used for the translation.
 		             * 
-		             * @function getLanguage
+		             * @function
 		             * @returns {String} The current language
 		             * @public
 		             */
@@ -618,7 +643,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		            /**
 		             * Gets the default language.
 		             * 
-		             * @function getDefaultLanguage
+		             * @function
 		             * @returns {String} The default language
 		             * @public
 		             */
@@ -629,7 +654,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		            /**
 		             * Gets an array of all for the translation available languages.<br>
 		             * 
-		             * @function getLanguages
+		             * @function
 		             * @returns {String} An array of all for the translation available
 		             *          languages
 		             * @public
@@ -641,7 +666,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		            /**
 		             * Cycles through the available languages.
 		             * 
-		             * @function setNextLanguage
+		             * @function
 		             * @returns {String} The (new) current language
 		             * @public
 		             * @deprecated unused
@@ -649,8 +674,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		            setNextLanguage : function() {
 		                var indexCurrentLanguage = languages.indexOf(currentLanguage);
 
-		                if (IS_DEBUG_ENABLED)
-		                    console.debug("[LanguageManager] Current language is " + currentLanguage);// debug
+		                if (logger.isVerbose()) logger.v("[LanguageManager] Current language is " + currentLanguage);
 
 		                if (indexCurrentLanguage > -1) {
 		                    indexCurrentLanguage = indexCurrentLanguage + 1;
@@ -659,8 +683,8 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		                    }
 		                    currentLanguage = languages[indexCurrentLanguage];
 
-		                    if (IS_DEBUG_ENABLED)
-		                        console.debug("[LanguageManager] Next language is " + currentLanguage);// debug
+		                    if (logger.isVerbose()) logger.v("[LanguageManager] Next language is " + currentLanguage);
+		                    
 		                    loadSpeechConfig(currentLanguage);
 		                    return loadDictionary(currentLanguage);
 		                }
@@ -671,7 +695,7 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		             * Looks up a keyword in the current dictionary and returns the
 		             * translation.
 		             * 
-		             * @function getText
+		             * @function
 		             * @param {String}
 		             *            textVarName The keyword which is to be translated
 		             * @returns {String} The translation of the keyword
@@ -681,6 +705,20 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		                return internalGetText(textVarName);
 		            },
 		            
+		            /**
+		             * Get the language code setting for a specific plugin.
+		             * 
+		             * Returns the default setting, if no specific setting for the specified plugin was defined.
+		             * 
+		             * @public
+		             * @param {String} pluginId
+		             * @param {String|Array<String>} feature
+		             * 				dot-separate path String or "path Array"
+		             * @param {String} [separator] OPTIONAL
+		             * 				the speparator-string that should be used for separating
+		             * 				the country-part and the language-part of the code
+		             * @returns {Promise}
+		             */
 		            getLanguageConfig : function(pluginId, feature, separator) {
 		                
 		                //if nothing is specfied:
@@ -723,9 +761,12 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		             * NOTE that once set to compatibility mode, it cannot be reset to
 		             * non-compatibility mode.
 		             * 
+		             * @deprecated use only for backward compatability
+		             * 
+		             * @public
 		             * @async
-				     * @depends jQuery.Deferred
-				     * @depends mmir.LanguageManager.setToCompatibilityModeExtension
+				     * @requires jQuery.Deferred
+				     * @requires mmir.LanguageManager.setToCompatibilityModeExtension
 				     * 
 				     * @param {Function} [success]
 				     * 				a callback function that is invoked, after compatibility mode
@@ -766,7 +807,5 @@ define(['constants', 'configurationManager', 'commonUtils', 'semanticInterpreter
 		    instance = new constructor();
 		    		    
 		    return instance;
-		    
-		    /** #@- */
 			
 });

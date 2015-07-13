@@ -24,47 +24,51 @@
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/**
- * @module mmir.tools
- * 
- */
 
-
-define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
+define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc', 'logger', 'module'],
 	/**
 	 * A Utility class to support various functions.<br>
 	 * 
-	 * @example <code>mmir.CommonUtils.isArray(list)</code>
-	 * @category core
 	 * 
-	 * 
-	 * @class
+	 * @class mmir.CommonUtils
 	 * @name mmir.CommonUtils
 	 * @static
 	 * 
 	 * @public
 	 * 
-	 * @depends StringExtensions
-	 * @depends Constants (optionally: jQuery)
-	 * @depends mmir.SemanticInterpreter (in {@link mmir.CommonUtils#loadCompiledGrammars})
+	 * @requires StringExtensions
+	 * @requires Constants (optionally: jQuery)
+	 * @requires mmir.SemanticInterpreter (in {@link mmir.CommonUtils#loadCompiledGrammars})
 	 * 
-     * @depends jQuery.isArray	 in #isArrayHelper
-     * @depends jQuery.Deferred	 in #loadImpl, #loadDirectoryStructure, #setToCompatibilityMode
-     * @depends jQuery.ajax		 in #loadDirectoryStructure
+     * @requires jQuery.isArray	 in #isArrayHelper
+     * @requires jQuery.Deferred	 in #loadImpl, #loadDirectoryStructure, #setToCompatibilityMode
+     * @requires jQuery.ajax		 in #loadDirectoryStructure
      * 
      * 
-     * @depends jQuery	 in #resizeFitToSourroundingBox
+     * @requires jQuery	 in #resizeFitToSourroundingBox
+     * 
+     * 
+     * @example var isList = mmir.CommonUtils.isArray(list);
+	 * 
 	 */
 	function(
-		constants, stringExt, $, paramsParseFunc
+		constants, stringExt, $, paramsParseFunc, Logger, module
 ) {
-	/** @scope mmir.CommonUtils.prototype */
-	/**
-	 * #@+
-	 * @memberOf mmir.CommonUtils.prototype
-	 */
+	/** @scope mmir.CommonUtils.prototype *///for jsdoc2
 	
+	/**
+	 * @private
+	 * @type CommonUtils
+     * @memberOf mmir.CommonUtils#
+	 */
 	var instance = null;
+	
+	/**
+	 * @private
+	 * @type Logger
+     * @memberOf mmir.CommonUtils#
+	 */
+	var logger = Logger.create(module);
 
     /**
      * JSON-Object containing the directory Structure of the application. Only
@@ -72,9 +76,9 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
      * {@link CommonUtils-constructor-directoriesToParse} are contained
      * within the JSON-Object.
      * 
-     * @property directoryStructure
      * @type JSON
      * @private
+     * @memberOf mmir.CommonUtils#
      */
     this.directoryStructure;
 
@@ -89,10 +93,12 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
      * 
      * NOTE: The current implementation checks jQuery.isArray for presences
      * 
-     * @function isArrayHelper
+     * @function
      * @private
      * @returns {Function} a function that takes one parameter (Object) and
      *          returns true if this parameter is an Array (false otherwise)
+     *          
+     * @memberOf mmir.CommonUtils#
      */
     var isArrayHelper = function(obj) {
 
@@ -126,7 +132,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
      *            need jQuery to work correctly (see requires annotations)
      * 
      * @constructs mmir.CommonUtils
-     * @memberOf mmir.CommonUtils.prototype
+     * @memberOf mmir.CommonUtils#
      * @function
      * @private
      */
@@ -138,7 +144,6 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		 * Files named &lt;PARTIAL-PREFIX&gt;filename.ehtml inside a
 		 * views-directory are recognized as partials.
 		 * 
-		 * @property partialsPrefix
 		 * @type String
 		 * @private
 		 */
@@ -153,7 +158,6 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		 * TODO read from properties (implement mechanism such that
 		 * \build.settings and this refer to the same resource)
 		 * 
-		 * @property directoriesToParse
 		 * @type Array
 		 * @private
 		 */
@@ -168,11 +172,6 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 	
 		/** @lends mmir.CommonUtils.prototype */
 		return {
-		    
-			/**
-	    	 * #@+
-	    	 * @memberOf mmir.CommonUtils.prototype
-	    	 */
 			
 		    /**
 		     * This function is used by
@@ -180,13 +179,15 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * {@link mmir.CommonUtils#getDirectoryContentsWithFilter} to strip the
 		     * pathname parameter
 		     * 
-		     * @function stripPathName
+		     * @function
 		     * @private
 		     * @param {string}
 		     *            pathname The path that should be stripped of "file://" and a
 		     *            beginning or trailing "/"
 		     * @returns {String} The stripped pathname - devoid of beginning "file://"
 		     *          or "/" and trailing "/"
+		     * 
+	    	 * @memberOf mmir.CommonUtils.prototype
 		     */
 		    stripPathName: function(pathname) {
 	
@@ -212,18 +213,20 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		    
 		    // public members.
 		    /**
-		     * @function getPartialsPrefix
+		     * @function
 		     * @public
 		     * @returns {String} The Prefix for the file names of partial-files
+	    	 * @memberOf mmir.CommonUtils.prototype
 		     */
 		    getPartialsPrefix : function() {
 		    	return partialsPrefix;
 		    },
 	
 		    /**
-		     * @function getDirectoryStructure
+		     * @function
 		     * @public
 		     * @returns {Object} Directory structure as json object
+	    	 * @memberOf mmir.CommonUtils.prototype
 		     */
 		    getDirectoryStructure : function() {
 		    	return this.directoryStructure;
@@ -231,9 +234,10 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		    /**
 		     * extracts all the strings from a String-Array into a single string
 		     * 
-		     * @function concatArray
+		     * @function
 		     * @public
 		     * @returns {string} text
+	    	 * @memberOf mmir.CommonUtils#
 		     */
 		    concatArray : function(array) {
 				return array.join(', ');
@@ -247,10 +251,11 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * comment is specified within a String or data-definition (i.e. the
 		     * comment is matched regardless were its defined).
 		     * 
-		     * @example <code> <!-- some comment --></code>
-		     * @property regexHTMLComment
 		     * @type String|RegExp
 		     * @public
+	    	 * @memberOf mmir.CommonUtils.prototype
+	    	 * 
+		     * @example <!-- some comment -->
 		     */
 		    regexHTMLComment : /<!--([\r\n]|.)*?-->/igm,
 	
@@ -259,7 +264,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * javascript-source to the header of the main document.<br>
 		     * This function also calls a callback if the script was loaded.
 		     * 
-		     * @function loadScript
+		     * @function
 		     * @param {String}
 		     *            url source of javascript-file
 		     * @param {Function}
@@ -267,6 +272,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * @public
 		     * @async
 		     * @deprecated instead use  #getLocalScript()
+	    	 * @memberOf mmir.CommonUtils.prototype
 		     */
 		    loadScript : function(url, callback) {
 				var script = document.createElement("script");
@@ -286,14 +292,14 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * Load all plugins (i.e. JavaScript interfaces for
 		     * Cordova/Java-Impl. plugins).
 		     * 
-		     * @function loadAllCordovaPlugins
+		     * @function
 		     * @param {String} [pluginsPath] OPTIONAL 
 		     *            Path of the plugins which should be
 		     *            loaded, e.g.
 		     *            <b>mmirf/plugins/</b>
 		     *            
 		     *            If omitted: the default plugin-path is used
-		     *            (see {@link mmir.Constant#getPluginsPath}
+		     *            (see {@link mmir.Constants#getPluginsPath})
 		     *            
 		     * @param {Function} [cbFunction] OPTIONAL 
 		     *            The function that should be executed after
@@ -305,6 +311,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * 
 		     * @async
 		     * @public
+	    	 * @memberOf mmir.CommonUtils.prototype
 		     */
 		    loadAllCordovaPlugins : function(pluginsPath, cbFunction) {
 
@@ -344,16 +351,16 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 					  },
 					  function(status, fileName, msg){
 					      if (status === 'info') {
-					    	  console.info('[loadAllCordovaPlugins] "'+ fileName + '": ' + msg);
+					    	  if(logger.isInfo()) logger.info('CommonUtils', 'loadAllCordovaPlugins', 'loaded "'+ fileName + '": ' + msg);
 					      }
 						  else if (status === 'warning') {
-							  console.warn('[loadAllCordovaPlugins] "'+ fileName + '": ' + msg);
+							  if(logger.isWarn()) logger.warn('CommonUtils', 'loadAllCordovaPlugins', 'loading "'+ fileName + '": ' + msg);
 					      }
 						  else if (status === 'error') {
-							  console.error('[loadAllCordovaPlugins] "'+ fileName + '": ' + msg);
+							  logger.error('CommonUtils', 'loadAllCordovaPlugins', 'loading "'+ fileName + '": ' + msg);
 					      }
 						  else {
-							  console.error('[loadAllCordovaPlugins] '+ status + ' (UNKNOWN STATUS) -> "'+ fileName + '": ' + msg);
+							  logger.error('CommonUtils', 'loadAllCordovaPlugins', status + ' (UNKNOWN STATUS) -> "'+ fileName + '": ' + msg);
 					      }
 					  }
 				);
@@ -362,7 +369,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		    /**
 			 * Load all compiled grammars (executable JavaScript grammars).
 			 * 
-			 * @function loadCompiledGrammars
+			 * @function
 			 * @param {String} generatedGrammarsPath Path of the grammars which should be loaded, e.g. <b>gen/grammar/</b> 
 			 * @param {Function} cbFunction The function that should be executed after the plugins are loaded. 
 			 * 					 If the execution of following functions is dependent on the presence of the grammars, 
@@ -374,6 +381,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * 
 			 * @async
 			 * @public
+	    	 * @memberOf mmir.CommonUtils.prototype
 			 */
 		    loadCompiledGrammars : function(generatedGrammarsPath, cbFunction) {
 	
@@ -393,16 +401,16 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 					},
 					function loadCompiledGrammarsStatus(status, fileName, msg) {
 						if (status === 'info') {
-							console.info('[loadCompiledGrammars] "'+ fileName + '": ' + msg);
+							if(logger.isInfo()) logger.info('CommonUtils', 'loadCompiledGrammars', 'loaded "'+ fileName + '": ' + msg);
 						}
 						else if (status === 'warning') {
-							console.warn('[loadCompiledGrammars] "'+ fileName + '": ' + msg);
+							if(logger.isWarn()) logger.warn('CommonUtils', 'loadCompiledGrammars', 'loading "'+ fileName + '": ' + msg);
 						}
 						else if (status === 'error') {
-							console.error('[loadCompiledGrammars] "' + fileName + '": ' + msg);
+							logger.error('CommonUtils', 'loadCompiledGrammars', 'loading "' + fileName + '": ' + msg);
 						}
 						else {
-							console.error('[loadCompiledGrammars] ' + status + ' (UNKNOWN STATUS) -> "' + fileName + '": ' + msg);
+							logger.error('CommonUtils', 'loadCompiledGrammars', status + ' (UNKNOWN STATUS) -> "' + fileName + '": ' + msg);
 						}
 					}
 				);
@@ -415,7 +423,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 			 * 
 			 * 
 			 * 
-			 * @function loadImpl
+			 * @function
 			 * @param {String|Array<String>} librariesPath 
 			 * 				Path (or list of  of the plugins which should be loaded, e.g. <b>mmirf/plugins/</b>
 			 * 				NOTE: The (String) path must be an entry in directories.json! 
@@ -458,6 +466,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 			 * 
 			 * @async
 			 * @public
+	    	 * @memberOf mmir.CommonUtils.prototype
 			 */
 		    loadImpl: function (librariesPath, isSerial, completedCallback, checkIsAlreadyLoadedFunc, statusCallback){
 	
@@ -528,7 +537,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 	//								statusCallback('warning', fileName, 'provided callback for COMPLETION is not a function: '+completedCallback);
 	//							}
 	//							else {
-	//								console.warn('[loadImpl] callback for COMPLETION is not a function: '+completedCallback);
+	//								logger.warn('[loadImpl] callback for COMPLETION is not a function: '+completedCallback);
 	//							}
 	//						}
 							_defer.resolve();
@@ -551,7 +560,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 								}
 								else {
 									// print out an error message
-									console.error('[loadImpl] Could not load "' + librariesPath+fileName + '": ' + exception);
+									logger.error('[loadImpl] Could not load "' + librariesPath+fileName + '": ', exception);
 								}
 								
 								//NOTE: in case of an error, will still try to load the other files from the list:
@@ -562,8 +571,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 					}
 				};//END: doLoadImplFile(name,index)
 				
-				//console.log('about to load all libraries from path "'+librariesPath+'"...');//FIXM debug
-				
+				if(logger.isVerbose()) logger.verbose('about to load all libraries from path "'+librariesPath+'"...');
 				
 				if(size < 1){
 					//if there are no files to resolve: 
@@ -588,10 +596,12 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * Detects via the user-agent-string if the application is running
 		     * on Android.
 		     * 
-		     * @function isRunningOnAndroid
+		     * @function
 		     * @public
 		     * @returns {Boolean} <b>True</b> if application is running on
 		     *          Android, <b>False</b> otherwise
+		     *          
+	    	 * @memberOf mmir.CommonUtils.prototype
 		     */
 		    isRunningOnAndroid : function() {
 				// Testing if user-Agent-/ or appVersion-String contains 'android'
@@ -610,10 +620,12 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * running on Android, Symbian or iOS; in other words: on a
 		     * smartphone.
 		     * 
-		     * @function isRunningOnSmartphone
+		     * @function
 		     * @public
 		     * @returns {Boolean} <b>True</b> if application is running on
 		     *          smartphone, <b>False</b> otherwise
+		     *          
+	    	 * @memberOf mmir.CommonUtils.prototype
 		     */
 		    isRunningOnSmartphone : function() {
 				// Testing if user-Agent-/ or appVersion-String contains
@@ -644,7 +656,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * successfully loaded or a fail-callback.<br>
 		     * 
 		     * 
-		     * @function getLocalScript
+		     * @function
 		     * @param {String}
 		     *            scriptUrl source of javascript-file
 		     * @param {Function}
@@ -653,10 +665,11 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     *            fail fail callback function
 		     * @async
 		     * @public
+	    	 * @memberOf mmir.CommonUtils.prototype
 		     */
 		    getLocalScript : function(scriptUrl, success, fail) {
-				var head = document.getElementsByTagName("head")[0];
-				script = document.createElement('script');
+				var head = document.getElementsByTagName('head')[0];
+				var script = document.createElement('script');
 				script.type = 'text/javascript';
 				script.src = scriptUrl;
 				script.onload = function() {
@@ -669,8 +682,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 						fail.apply(this, arguments);
 					}
 					else {
-	
-						console.error("Insert Script Failed - " + scriptUrl + ": " + e);
+						logger.error('CommonUtils', 'getLocalScript', 'Loading Script Failed from "' + scriptUrl + '"', e);
 					}
 				};
 				head.appendChild(script);
@@ -680,13 +692,15 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * This function returns an array of strings with the contents of a
 		     * directory.
 		     * 
-		     * @function getDirectoryContents
+		     * @function
 		     * @param {String}
 		     *            pathname Path of the directory which contents should
 		     *            be returned
 		     * @public
 		     * @returns {Array} Array of Strings which contains the contents of
 		     *          the directory
+		     *          
+	    	 * @memberOf mmir.CommonUtils.prototype
 		     */
 		    getDirectoryContents : function(pathname) {
 				var retValue;
@@ -696,7 +710,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 				try {
 					retValue = this.directoryStructure[pathname];
 				} catch (e) {
-					console.warn(e);
+					logger.error(e);
 					retValue = null;
 				}
 				return retValue;
@@ -706,7 +720,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * This function returns an array of strings with the contents of a
 		     * directory, giving only those files which match the filter.
 		     * 
-		     * @function getDirectoryContentsWithFilter
+		     * @function
 		     * @param {String}
 		     *            pathname Path of the directory which contents should
 		     *            be returned
@@ -716,11 +730,13 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * @public
 		     * @returns {Array} Array of Strings which contains the contents of
 		     *          the directory
+		     *          
+	    	 * @memberOf mmir.CommonUtils.prototype
 		     */
 		    getDirectoryContentsWithFilter : function(pathname, filter) {
 				var retValue = new Array();
 	
-				var tmpfilter = "^" + filter.replace(".", "\\.").replace("*", ".*").replace("\$", "\\$") + "$"; // e.g.,// "^.*\.js$"
+				var tmpfilter = '^' + filter.replace('.', '\\.').replace('*', '.*').replace('\$', '\\$') + '$'; // e.g.,// '^.*\.js$'
 	
 				var filterRegExp = new RegExp(tmpfilter, 'gi');
 	
@@ -729,7 +745,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 				try {
 					var tmp = this.directoryStructure[pathname];
 					if (tmp == undefined) {
-						console.warn("[" + pathname + " / " + filter+ "] not found.");
+						if(logger.isWarn()) logger.warn('CommonUtils', 'getDirectoryContentsWithFilter', '[' + pathname + ' / ' + filter + ']  not found.');
 						retValue = null;
 					} 
 					else {
@@ -740,7 +756,7 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 						}
 					}
 				} catch (e) {
-					console.error("[" + pathname + " / " + filter + "] " + e);
+					logger.error('CommonUtils', 'getDirectoryContentsWithFilter', '[' + pathname + ' / ' + filter + '] ', e);
 					retValue = null;
 				}
 				return retValue;
@@ -758,13 +774,15 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     *   ...
 		     * </pre>
 		     * 
-		     * @function isArray
+		     * @function
 		     * @param {Object}
 		     *            object the Object for checking if it is an Array
 		     * @public
 		     * @returns {Boolean} <code>true</code> if <code>object</code>
 		     *          is an <code>Array</code>, otherwise
 		     *          <code>false</code>.
+		     *          
+	    	 * @memberOf mmir.CommonUtils.prototype
 		     */
 		    isArray : function(object) {
 				return isArrayHelper(object);
@@ -776,13 +794,14 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * possible size - while still being small enough to fit in the
 		     * element.
 		     * 
-		     * @function resizeFitToSourroundingBox
+		     * @function
 		     * @param {String}
 		     *            class_name Name of the class which inner text should
 		     *            be fitted to the size of the element
 		     * 
 		     * @requires jQuery
 		     * @public
+	    	 * @memberOf mmir.CommonUtils.prototype
 		     */
 		    resizeFitToSourroundingBox : function(class_name) {
 				// resize the font in box_fit-class, so that it won't overlap its div-box
@@ -823,15 +842,18 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * double-quotes, so that the returned value can be used as a JSON
 		     * value, e.g. </br>
 		     * 
-		     * @example <code>var jsonValue = toJSONStringValue(someValue);
-		     *  var data = JSON.parse('"theValue":"' + jsonValue + '"');</code>
-		     * @function toJSONStringValue
+		     * @function
 		     * @param {Object}
 		     *            theObjectValue the object to convert to a JSON String
 		     *            value. If NULL or UNDEFINED, an EMPTY String will be
 		     *            returned
 		     * @returns {String} the String value
 		     * @public
+	    	 * @memberOf mmir.CommonUtils.prototype
+	    	 * 
+		     * @example
+		     *  var jsonValue = mmir.CommonUtils.toJSONStringValue(someValue);
+		     *  var data = JSON.parse('"theValue":"' + jsonValue + '"');
 		     */
 		    toJSONStringValue : function(theObjectValue) {
 				if (typeof theObjectValue !== 'undefined' && theObjectValue !== null) {
@@ -854,16 +876,19 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * value, also does replace all newlines with the HTML-equivalent
 		     * '&lt;br/&gt;', e.g.
 		     * 
-		     * @example <code> var jsonValue = toJSONStringValue(someValue);
-		     *  var data = JSON.parse('"theValue":"' + jsonValue + '"');
-		     *  ...</code>
-		     * @function convertJSONStringValueToHTML
+		     * @function
 		     * @param {Object}
 		     *            theObjectValue the object to convert to a JSON String
 		     *            value. If NULL or UNDEFINED, an EMPTY String will be
 		     *            returned
 		     * @returns {String} the String value
 		     * @public
+	    	 * @memberOf mmir.CommonUtils.prototype
+	    	 * 
+		     * @example 
+		     *  var jsonValue = mmir.CommonUtils.convertJSONStringValueToHTML(someValue);
+		     *  var data = JSON.parse('"theValue":"' + jsonValue + '"');
+		     *  ...
 		     */
 		    convertJSONStringValueToHTML : function(str) {
 				if (typeof str !== 'undefined' && str !== null) {
@@ -887,11 +912,12 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * Converts the object's direct properties to a valid JSON String
 		     * (i.e. no recursion for Object properties).
 		     * 
-		     * @function convertJSONStringToHTML
+		     * @function
 		     * @param {Object}
 		     *            _o the object to convert to a JSON String.
 		     * @returns {String} the String value
 		     * @public
+	    	 * @memberOf mmir.CommonUtils.prototype
 		     */
 		    convertJSONStringToHTML : function(_o) {
 				// var parse = function(_o){
@@ -923,14 +949,26 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 	
 		    /**
 		     * 
-		     * IMPORTED FROM paramsParseFunc
-		     * 
+		     * IMPORTED FROM paramsParseFunc.js
+		     * <p>
 		     * 
 		     * Convert parameter-part of an URL to a "dictionary", containing
 		     * the parameter keys and values
+		     * <p>
 		     * 
-		     * @example <code>?id=5&name=heinz&name=kunz</code> &rarr;
-		     *          <code>dict['id']=5, dict['name'] = ['heinz', 'kunz']</code>
+		     * 	<code>?id=5&name=heinz&name=kunz</code> &rarr;
+		     * 	<pre>
+		     * 	{
+		     * 	  id: "5",
+		     * 	  name: ["heinz", "kunz"],
+		     *    
+		     * 	  //utility functions
+		     * 	  has: function(key) : Boolean,
+		     * 	  isMultiple: function(key) : Boolean,// is entry an Array of values
+		     * 	  getKeys: function() : String[],     // get list of all keys
+		     * 	}
+		     * 	</pre>
+		     * <p>
 		     * 
 		     * The returnd "dictionary" has the following functions:
 		     * <ul>
@@ -943,11 +981,12 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * entries</li>
 		     * </ul>
 		     * 
-		     * @function parseParamsToDictionary
-		     * @param {String}
+		     * @function
+		     * @param {String} urlParamsPartStrings
 		     *            the parameter-part of the URL, i.e. <code>&...</code>
-		     * @return {Object} an "dictionary" for the parameters
+		     * @return {Object} a "dictionary" for the parameters
 		     * @public
+			 * @memberOf mmir.CommonUtils.prototype
 		     */
 		    parseParamsToDictionary : paramsParseFunc,
 		    
@@ -959,24 +998,27 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * TODO implement with HTML5 functions (in addition to / instead of
 		     * cordova)?
 		     * 
-		     * @depends Cordova: org.apache.cordova.network-information
+		     * @requires Cordova: org.apache.cordova.network-information
 		     * 
-		     * @function checkNetworkConnection
+		     * @function
 		     * @public
 		     * @returns {Boolean} <code>true</code> if a network connection is enabled
+		     * 
+	    	 * @memberOf mmir.CommonUtils.prototype
 		     */
 		    checkNetworkConnection : function() {
-	//        	console.log("Check network status.");
+		    	
+	        	if(logger.isVerbose()) logger.verbose("Checking network status...");
 				
 				if(typeof navigator === 'undefined'){
-					console.error('Cannot check network status: navigator object is not available!');
+					logger.error('Cannot check network status: navigator object is not available!');
 					return 'UNKNOWN';
 				}
 				
 				//ASSERT: navigator exists
 				
 				if(!navigator.connection){
-					console.warn('Cannot check network status: object navigator.connection is not available');
+					if(logger.isInfo()) logger.warn('Cannot check network status: object navigator.connection is not available');
 					if(typeof navigator.onLine !== 'undefined'){
 						return navigator.onLine;
 					}
@@ -1007,11 +1049,12 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 			/**
 			 * Parses the directory structure - paths given by property {@link mmir.CommonUtils-constructor-directoriesToParse} - and storing the result in the class-property {@link mmir.CommonUtils-directoryStructure}
 			 * 
-			 * @function loadDirectoryStructure
+			 * @function
 			 * @param {Function} [success] The function that should be executed after the diretories are parsed - it's best to include all following functions inside the callback-function.
 			 * @param {Function} [errorFunc] callback function that is invoked if an error occured during initialization. 
 			 * @async
 			 * @public
+	    	 * @memberOf mmir.CommonUtils.prototype
 			 */
 		    loadDirectoryStructure: function (success, errorFunc) {
 				var _defer = $.Deferred();
@@ -1032,24 +1075,24 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 					dataType: "json",
 					url: directoryFileUrl,
 					success: function(data){
-						if(IS_DEBUG_ENABLED) console.log("DirectoryListing.getDirectoryStructure: loaded file from "+directoryFileUrl);
+						if(logger.isVerbose()) logger.verbose("DirectoryListing.getDirectoryStructure: loaded file from "+directoryFileUrl);
 						
 						if(data){
-							if(IS_DEBUG_ENABLED) console.log("DirectoryListing.getDirectoryStructure: Succeeded to load directory structure from '"+directoryFileUrl+"'! Data: "+ JSON.stringify(data));
+							if(logger.isVerbose()) logger.verbose("DirectoryListing.getDirectoryStructure: Succeeded to load directory structure from '"+directoryFileUrl+"'! Data: "+ JSON.stringify(data));
 							
 							self.directoryStructure = data;
 							
-							if(IS_DEBUG_ENABLED) console.debug("[getDirectoryStructure] finished.");//debug
+							if(logger.isVerbose()) logger.verbose("[getDirectoryStructure] finished.");//debug
 							
 							_defer.resolve(self);
 						}
 					},
 					error: function(jqXHR, textStatus, errorThrown){
-						if(IS_DEBUG_ENABLED) console.log("DirectoryListing.getDirectoryStructure: failed to load file from '"+directoryFileUrl+"'! Status "+textStatus+": "+ errorThrown+ ", "+JSON.stringify(jqXHR));
+						if(logger.isVerbose()) logger.verbose("DirectoryListing.getDirectoryStructure: failed to load file from '"+directoryFileUrl+"'! Status "+textStatus+": "+ errorThrown+ ", "+JSON.stringify(jqXHR));
 						
 						var msg = "[ERROR] " + textStatus+": failed to load file from '"+directoryFileUrl+"' - "+ errorThrown;
 						if( ! errorFunc){
-							console.error(msg);
+							logger.error('CommonUtils', 'loadDirectoryStructure', msg);
 						}
 						
 						_defer.fail(msg);
@@ -1080,13 +1123,13 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 //						self.directoryStructure = dirStruct;
 //						
 //						if (!success){
-//							console.info("[getDirectoryStructure] finished: " + JSON.stringify(dirStruct));//debug
+//							logger.info("[getDirectoryStructure] finished: " + JSON.stringify(dirStruct));//debug
 //						}
 //						_defer.resolve(instance);
 //					}, 
 //					function(e){
 //						if (!errorFunc){
-//							console.error("ERROR [getDirectoryStructure]: " + e);
+//							logger.error("ERROR [getDirectoryStructure]: " + e);
 //						}
 //						_defer.fail(e);
 //					}
@@ -1094,8 +1137,6 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 //				
 //				return _defer.promise();
 			}
-		    
-		    /** #@- */
 		    
 		    /**
 		     * Set to "backwards compatibility mode" (for pre version 2.0).
@@ -1106,9 +1147,11 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * NOTE that once set to compatibility mode, it cannot be reset to
 		     * non-compatibility mode.
 		     * 
+		     * @deprecated use only for backward compatibility
+		     * 
 		     * @async
-		     * @depends jQuery.Deferred
-		     * @depends mmir.CommonUtils.setToCompatibilityModeExtension
+		     * @requires jQuery.Deferred
+		     * @requires mmir.CommonUtils.setToCompatibilityModeExtension
 		     * 
 		     * @param {Function} [success]
 		     * 				a callback function that is invoked, after compatibility mode
@@ -1117,6 +1160,8 @@ define(['constants', 'stringExtension', 'jquery', 'paramsParseFunc'],
 		     * 				a Deffered.promise that is resolved, after compatibility mode
 		     * 				was set
 		     * 
+	    	 * @memberOf mmir.CommonUtils.prototype
+	    	 * 
 		     * @see mmir.CommonUtils.setToCompatibilityModeExtension
 		     * 
 		     */
