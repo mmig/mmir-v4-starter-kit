@@ -26,7 +26,7 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 	 */
 	function getOffsetFor(editor, line, pos) {
 
-		if (!pos) {
+		if (!pos && pos !== 0) {
 			pos = line;
 			if (!pos) {
 				return void (0);
@@ -94,7 +94,11 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 
 		var pos;
 		if (curr === prev) {
-			pos = curr._loc._this;
+			if(curr._loc._this){
+				pos = curr._loc._this;
+			} else {
+				pos = curr._loc;
+			}
 		}
 
 		if ($.isArray(prev)) {
@@ -105,7 +109,11 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 			pos = prev._loc['_' + path[(i - 1)]];
 
 			if (!pos) {
-				pos = prev._loc._this;
+				if(curr._loc._this){
+					pos = curr._loc._this;
+				} else {
+					pos = curr._loc;
+				}
 			} else if (i === size) {
 				//target path points to NAME
 				pos = pos[0];
@@ -171,16 +179,21 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 		
 		return function applyFoldingImpl(grammarPathsList){
 			
-			jsonparser.setLocEnabled(true);
-			var json = jsonparser.parse(editor.val());
-			jsonparser.setLocEnabled(false);
-			
-			for(var i=0, size=grammarPathsList.length; i < size; ++i){
+			try{
+				jsonparser.setLocEnabled(true);
+				var json = jsonparser.parse(editor.val());
+				jsonparser.setLocEnabled(false);
 				
-				addFoldingFor(editor, json, grammarPathsList[i]);
-				
-				addStructureMarkerFor(editor, json, grammarPathsList[i]);
-				
+				for(var i=0, size=grammarPathsList.length; i < size; ++i){
+					
+					addFoldingFor(editor, json, grammarPathsList[i]);
+					
+					addStructureMarkerFor(editor, json, grammarPathsList[i]);
+					
+				}
+			} catch(jsonerror){
+				console.warn('Cannot create folding for errornous JSON: '+jsonerror);
+				console.error(jsonerror);
 			}
 		};
 	};
@@ -290,6 +303,8 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 	
 				return;////////////////////////// EARLY EXIT //////////////////////////
 			}
+			
+			//ASSERT: the JSON is valid / error-free
 	
 			//only re-validate, if the resulting JSON grammar differs from the last validated one
 			if (util.isEqual(_thePrevValidatedJSONgrammar, jsonGrammar)) {
