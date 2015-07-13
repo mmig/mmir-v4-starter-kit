@@ -86,7 +86,7 @@ define(['commonUtils'], function(utils){
 			
 			var msg = this.grammar[STOPWORDS]? 
 					 'Unknown specification for STOPWORDS: using type "'+ toTypeString(this.grammar[STOPWORDS])+'" (expected Array)'
-					:'No STOPWORDS specified';
+					:'No STOPWORDS specified: must have property "'+STOPWORDS+'" (with type array)';
 					
 			problems.push(new Problem([STOPWORDS], msg, 'ERROR'));
 		}
@@ -95,7 +95,7 @@ define(['commonUtils'], function(utils){
 			
 			var msg = this.grammar[TOKEN]? 
 					 'Unknown specification for TOKENS: using type "'+ toTypeString(this.grammar[TOKEN])+'" (expected JSON object)'
-					:'No TOKENS specified';
+					:'No TOKENS specified: must have property "'+TOKEN+'" (with type object)';
 					
 			problems.push(new Problem([TOKEN], msg, 'ERROR'));
 		}
@@ -104,7 +104,7 @@ define(['commonUtils'], function(utils){
 			
 			var msg = this.grammar[UTTERANCE]? 
 					 'Unknown specification for UTTERANCES: using type "'+toTypeString(this.grammar[UTTERANCE])+'" (expected JSON object)'
-					:'No UTTERANCES specified';
+					:'No UTTERANCES specified: must have property "'+UTTERANCE+'" (with type object)';
 					
 			problems.push(new Problem([UTTERANCE], msg, 'ERROR'));
 		}
