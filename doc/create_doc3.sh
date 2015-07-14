@@ -5,7 +5,7 @@ _BASEPATH=$PWD
 TARGETDIR=$_BASEPATH/../www/mmirf
 
 OUTPUTDIR=$_BASEPATH/api_jsdoc3
-JSDOCDIR=tools/jsdoc-master-dev
+JSDOCDIR=node_modules/jsdoc
 TEMPLATEDIR=$JSDOCDIR/templates
 # TEMPLATEDIR=templates
 # TEMPLATE=JSDoc-DataTables-master

@@ -160,7 +160,7 @@
 		<exec executable="${docExec}" dir="${docDir}" failonerror="true" resolveexecutable="true">
 			<arg value="${jsDocVersion}"/>
 		</exec>
-		<echo>Created HTML documentation files in ${docDir}api_jsdoc2.</echo>
+		<echo>Created HTML documentation files in ${docDir}api_jsdocX.</echo>
     </target>
 	
 	<!-- ############# Test Targets ############# -->
