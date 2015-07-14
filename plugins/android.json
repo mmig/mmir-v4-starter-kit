@@ -27,6 +27,10 @@
                         {
                             "xml": "<feature name=\"Vibration\"><param name=\"android-package\" value=\"org.apache.cordova.vibration.Vibration\" /></feature>",
                             "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Notification\"><param name=\"android-package\" value=\"org.apache.cordova.dialogs.Notification\" /></feature>",
+                            "count": 1
                         }
                     ]
                 }
@@ -79,6 +83,9 @@
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         },
         "org.apache.cordova.vibration": {
+            "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
+        },
+        "org.apache.cordova.dialogs": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         }
     },
