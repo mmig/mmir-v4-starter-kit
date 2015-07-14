@@ -30,11 +30,11 @@ goto jsdoc2
 REM settings:
 SET OUTPUTDIR=%_BASEPATH%api_jsdoc2
 
-SET JSDOCDIR=tools\jsdoc-toolkit
+SET JSDOCDIR=node_modules\jsdoc-toolkit
 REM SET JSDOCDIRSLASH=%JSDOCDIR:\=/%
 SET TEMPLATEDIR=%JSDOCDIR%\templates
 REM SET TEMPLATE=OrgaChem-JsDoc2-Template-Bootstrap
-SET TEMPLATE=default
+SET TEMPLATE=%TEMPLATEDIR%\jsdoc
 REM SET TEMPLATE=JSDoc-Bootstrap
 REM SET TEMPLATE=jsdoc
 
@@ -46,7 +46,7 @@ echo          doc source directory: %TARGETDIR%
 echo          doc target directory: %OUTPUTDIR%
 echo          excluding:            %EXCLUDEDIRS%
 echo          JSDoc execution path: %JSDOCDIR%
-echo          template:             %TEMPLATEDIR%\%TEMPLATE%
+echo          template:             %TEMPLATE%
 echo.
 
 echo clearing doc target directory ...
@@ -56,20 +56,21 @@ rmdir %OUTPUTDIR% /s /q
 echo executing ...
 echo.
 
-java -jar %JSDOCDIR%\jsrun.jar %JSDOCDIR%\app\run.js -A -t=%TEMPLATEDIR%\%TEMPLATE% -p -v -r %EXCLUDEDIRS% -d=%OUTPUTDIR% -v %TARGETDIR%
+node %JSDOCDIR%\app\noderun.js -A -t=%TEMPLATE% -p -v -r %EXCLUDEDIRS% -d=%OUTPUTDIR% -v %TARGETDIR%
+REM java -jar %JSDOCDIR%\jsrun.jar %JSDOCDIR%\app\run.js -A -t=%TEMPLATE% -p -v -r %EXCLUDEDIRS% -d=%OUTPUTDIR% -v %TARGETDIR%
 goto exit
 
 :jsdoc3
 
 REM settings:
 SET OUTPUTDIR=%_BASEPATH%api_jsdoc3
-SET JSDOCDIR=tools\jsdoc-master-dev
-SET JSDOCDIRSLASH=%JSDOCDIR:\=/%
+SET JSDOCDIR=node_modules\jsdoc
+REM SET JSDOCDIRSLASH=%JSDOCDIR:\=/%
 SET TEMPLATEDIR=%JSDOCDIR%\templates
 REM SET TEMPLATEDIR=templates
-REM SET TEMPLATE=JSDoc-DataTables-master
-SET TEMPLATE=docstrap\template
-REM SET TEMPLATE=default
+REM SET TEMPLATE=%TEMPLATEDIR%\JSDoc-DataTables-master
+SET TEMPLATE=node_modules\ink-docstrap\template
+REM SET TEMPLATE=%TEMPLATEDIR%\default
 
 echo Running JSDOC3
 echo.
@@ -78,7 +79,7 @@ echo          doc source directory: %TARGETDIR%
 echo          doc target directory: %OUTPUTDIR%
 echo          excluding:            - IGNORED -
 echo          JSDoc execution path: %JSDOCDIR%
-echo          template:             %TEMPLATEDIR%\%TEMPLATE%
+echo          template:             %TEMPLATE%
 echo.
 
 echo clearing doc target directory ...
@@ -88,7 +89,7 @@ rmdir %OUTPUTDIR% /s /q
 echo executing ...
 echo.
 
-%JSDOCDIR%\jsdoc.cmd -t %TEMPLATEDIR%\%TEMPLATE% -d %OUTPUTDIR% -r -p -c %_BASEPATH%\conf-jsdoc3.json --verbose %TARGETDIR%
+%JSDOCDIR%\jsdoc.cmd -t %TEMPLATE% -d %OUTPUTDIR% -r -p -c %_BASEPATH%\conf-jsdoc3.json --verbose %TARGETDIR%
 REM %JSDOCDIR%\jsdoc.cmd --debug -t %TEMPLATEDIR%\%TEMPLATE% -d %OUTPUTDIR% -r -p -c %_BASEPATH%\conf-jsdoc3.json --verbose %TARGETDIR%
 goto exit
 
