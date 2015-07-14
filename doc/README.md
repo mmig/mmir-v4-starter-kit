@@ -16,25 +16,24 @@ in `mmir-build.settings`. E.g. you can invoke the doc target via ant with
 
 ## Requirements
 
-The doc scripts / ANT-targets expect jsdoc2 in directory
+The ANT script in `PROJECT_PATH\doc\node_modules` should install all necessary
+resources by default. But if directory
 
-`PROJECT_PATH\doc\tools\jsdoc-toolkit`
+`PROJECT_PATH\doc\node_modules`
+
+is missing, you should run `npm install` in `PROJECT_PATH\doc` in order to install
+
+ * jsdoc3
+ * jsdoc2 (node-jsdoc-toolkit)
+ * template docstrap for jsdoc3
 
 
-and jsdoc3 in
+(you should use the latest jsdoc3 version >= v3.4.0-dev)
 
-`PROJECT_PATH\doc\tools\jsdoc-master-dev`
 
-(tested with jsdoc3 version >= v3.4.0-dev)
+jsdoc3 is set to use the [docstrap][1] template by default, which is
+automatically installed when `npm install` is run in the doc-dir.
 
-In addition, jsdoc3 is set to use the [docstrap][1] template by default, which should
-be placed into  
-
-`PROJECT_PATH\doc\tools\templates`
-
- 
-If you want to used different locations, edit `create_doc.bat` and change variable
-`JSDOCDIR` for jump-marks `:jsdoc2` and `:jsdoc3` accordingly.
 
 If you want to change templates, edit `create_doc.bat` and change variable
 `TEMPLATE` for jump-marks `:jsdoc2` and `:jsdoc3` (and TEMPLATEDIR if necessary).
