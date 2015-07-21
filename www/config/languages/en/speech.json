@@ -7,6 +7,12 @@
 		},
 		"nuanceAudioInput": {
 			"language": "eng-GBR"
+		},
+		"nuanceTextToSpeech": {
+			"language": "en-UK"
+		},
+		"nuanceHttpTextToSpeech": {
+			"language": "en-UK"
 		}
 	}
 	
