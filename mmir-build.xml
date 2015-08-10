@@ -160,7 +160,7 @@
 		<exec executable="${docExec}" dir="${docDir}" failonerror="true" resolveexecutable="true">
 			<arg value="${jsDocVersion}"/>
 		</exec>
-		<echo>Created HTML documentation files in ${docDir}api_jsdoc2.</echo>
+		<echo>Created HTML documentation files in ${docDir}api_jsdocX.</echo>
     </target>
 	
 	<!-- ############# Test Targets ############# -->
@@ -223,18 +223,38 @@
 	
 	<target name="checkDialogEngineUpToDate">
 		<condition property="is.up.to.date.DialogEngine" else="false">
-	        <and>
-	            <!-- does (compiled) JavaScript file exist? -->
-				<available file="${file.out.DialogEngine}"	     property="is.up.to.date.DialogEngine" />
+	        
+			<or>
+				
+				<!-- if ignoreDialogEngineGeneration is set to true,
+				     then the DialogEngine should NEVER get compiled!
+				-->
+				<istrue value="${ignoreDialogEngineCompilation}"/>
+				
+				<and>
+		            <!-- does (compiled) JavaScript file exist? -->
+					<available file="${file.out.DialogEngine}"	     property="is.up.to.date.DialogEngine" />
+				    
+				    <!-- check, if the SCXML file has changed by its checksum -->
+					<checksum
+					    file="${file.in.DialogEngine}"
+					    toDir="${JSOutDialogEngineDir}"
+				    	fileExt=".checksum.txt"
+				    	pattern="{0}&#09;"
+					    verifyProperty="is.up.to.date.DialogEngine"/>
+		        	
+					<!-- if forceDialogEngineGeneration is set to true,
+					     then the DialogEngine should ALWAYS get compiled,
+					     even if it seems up-to-date!
+					-->
+		        	<not>
+						<istrue value="${forceDialogEngineCompilation}"/>
+					</not>
+		        	
+			    </and>
 			    
-			    <!-- check, if the SCXML file has changed by its checksum -->
-				<checksum
-				    file="${file.in.DialogEngine}"
-				    toDir="${JSOutDialogEngineDir}"
-			    	fileExt=".checksum.txt"
-			    	pattern="{0}&#09;"
-				    verifyProperty="is.up.to.date.DialogEngine"/>
-		    </and>
+			</or>
+			
 	    </condition>
 		<echo>Is file ${file.out.DialogEngine} up-to-date? -> ${is.up.to.date.DialogEngine}</echo>
 	</target>
@@ -306,17 +326,39 @@
 
 	<target name="checkInputEngineUpToDate">
 		<condition property="is.up.to.date.InputEngine" else="false">
-	        <and>
-	            <!-- does (compiled) JavaScript file exist? -->
-				<available file="${file.out.InputEngine}"       property="is.up.to.date.InputEngine" />
-			    <!-- has SCXML file changed? -->
-				<checksum
-				    file="${file.in.InputEngine}"
-				    toDir="${JSOutInputEngineDir}"
-					fileExt=".checksum.txt"
-			    	pattern="{0}&#09;"
-				    verifyProperty="is.up.to.date.InputEngine"/>
-		    </and>
+	        
+			<or>
+							
+				<!-- if ignoreInputEngineGeneration is set to true,
+				     then the InputEngine should NEVER get compiled!
+				-->
+				<istrue value="${ignoreInputEngineCompilation}"/>
+							
+				<and>
+		            
+					<!-- does (compiled) JavaScript file exist? -->
+					<available file="${file.out.InputEngine}"       property="is.up.to.date.InputEngine" />
+				    
+					<!-- has SCXML file changed? -->
+					<checksum
+					    file="${file.in.InputEngine}"
+					    toDir="${JSOutInputEngineDir}"
+						fileExt=".checksum.txt"
+				    	pattern="{0}&#09;"
+					    verifyProperty="is.up.to.date.InputEngine"/>
+					
+					<!-- if forceInputEngineGeneration is set to true,
+					     then the InputEngine should ALWAYS get compiled,
+					     even if it seems up-to-date!
+					-->
+		        	<not>
+						<istrue value="${forceInputEngineCompilation}"/>
+					</not>
+		        	
+			    </and>
+				
+			</or>
+			
 	    </condition>
 		<echo>Is file ${file.out.InputEngine} up-to-date? -> ${is.up.to.date.InputEngine}</echo>
 	</target>
