@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="de.dfki.iui.mmir.starterkit" version="3.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="de.dfki.iui.mmir.starterkit" version="3.1.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <preference name="loglevel" value="DEBUG" />
     <preference name="AndroidLaunchMode" value="singleTop" />
     <feature name="App">
@@ -33,11 +33,11 @@
     <feature name="NuanceSpeechPlugin">
         <param name="android-package" value="de.dfki.iui.mmir.plugins.speech.nuance.NuanceSpeechPlugin" />
     </feature>
-    <name>MMIRStarterKit</name>
+    <name>MMIR StarterKit</name>
     <description>
         A sample Apache Cordova application for the MMIR StarterKit.
     </description>
-    <author email="" href="http://github.com/mmig/mmir-starter-kit">
+    <author email="" href="https://github.com/mmig/mmir-starter-kit">
         DFKI MMIG Team
     </author>
     <content src="index.html?env=cordova" />
