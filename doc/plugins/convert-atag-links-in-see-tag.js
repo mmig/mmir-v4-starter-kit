@@ -1,7 +1,10 @@
 /**
 * Transform '@see <a href="the/url">some text</a>' to '@see {@link the/url|some text}'.
+* 
+* Allow using HTML anchor tags within @see tags.
+* 
 *
-* This considers @see tags only.
+* This only looks into @see tags.
 */
 
 var path = require('path');
