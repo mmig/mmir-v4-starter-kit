@@ -140,16 +140,40 @@ mmir.ready(function () {
     	
     	var isUseEndOfSpeechDetection = IS_WITH_END_OF_SPEECH_DETECTION;
     	
-    	var successFunc = function recognizeSuccess (asr_result){
+    	var successFunc = function recognizeSuccess(asr_result, asr_score, asr_type, asr_alternatives, asr_unstable){
     		
-    		console.log("[AudioInput] finished recoginition: "  + JSON.stringify(asr_result));
+    		console.log('[AudioInput] recoginition ('+asr_type+'): '  + JSON.stringify(asr_result));
 
+    		if(asr_type === 'RECORDING_BEGIN'){
+    			
+    			//... do something(?): speech recognition is now fully prepared and active
+    		} else if(asr_type === 'FINAL'){
+    			
+    			//mark microphone button as in-active when recording is finished
+    			$('#mic_button').removeClass('footer_button_clicked');
+    		}
+    		
     		if(asr_result){
     			
-	    		mmir.MediaManager.textToSpeech(asr_result,
-	    				function(){ console.debug('Synthesized "'+asr_result+'".');}, 
-	    				function(err){ console.error('Could not synthesize "'+asr_result+'": '+err);}
-	    		);
+    			
+    			if(
+    				// a final ASR result
+        				asr_type === 'FINAL'
+        				
+        			// an intermediate ASR result; may not be supported by all speech-recognition modules (in recording-mode ~ "sentences" during dictation)
+        			||	!isUseEndOfSpeechDetection && asr_type === 'INTERMEDIATE'
+        				
+       				// an interim ASR results; may not be supported by all speech-recognition modules (these are possibly unstable interim results)
+        			//DISABLED do not read interim results, since these will come in while recognition is still active 
+//        			||	asr_type === 'INTERIM'
+        		){
+    			
+		    		mmir.MediaManager.textToSpeech(asr_result,
+		    				function onFinished(){ console.debug('Synthesized "'+asr_result+'".');}, 
+		    				function onError(err){ console.error('Could not synthesize "'+asr_result+'": '+err);},
+		    				function onPrepared(){ console.debug('prepared TTS audio for "'+asr_result+'", starting to read now... ');}
+		    		);
+    			}
 	
 	    		mmir.SemanticInterpreter.getASRSemantic(asr_result, function(result){
 		    		if (result.semantic != null) {
@@ -165,7 +189,6 @@ mmir.ready(function () {
     		
     		}
     		
-    		$('#mic_button').removeClass('footer_button_clicked');
     	};
     	
     	var errorFunc = function recognizeError (err){
