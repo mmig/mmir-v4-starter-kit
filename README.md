@@ -4,9 +4,15 @@
 ![MMIR](https://github.com/mmig/mmir-starter-kit/blob/master/platforms/android/res/drawable-xhdpi/icon.png "MMIR logo")
 
 The MMIR StarterKit is a small example application for the MMIR framework that can run locally in an (HTML5 capable)
-internet browser, and using the [Cordova framework][1], it can also be run as an Android app.
+internet browser, and using the [Cordova framework][1], it can also be run as an Android app. 
 
-For more detailed information on the MMIR framework see documentation at the [MMIR repository][8]
+There is also a special branch that includes a graphical Grammar Editor (see branch `new-grammar-editor`'s [www/appTestSemantic][11] directory). 
+
+
+For a quick look, try the [online demos](#demo) (links below).
+
+
+For more detailed information on the MMIR framework see documentation at the [MMIR repository][8] 
 
 WARINING: _this project includes resources from [MMIR-lib][4] at `www/mmirf/` and
           resources from [MMIR-tooling][5] at `build/`. Beware, that the files used in this
@@ -30,20 +36,23 @@ Activated platforms _(for Cordova 3.x)_:
 
 ----
 
-###### Demo
+##### Demo
 
-Try the online demo for the "browser environment" at the [demo page][9].
-
-There is also a demo page for the [grammar editor / tester][10] (for testing the grammar that is used for evaluating speech input).
+###### StarterKit Online Demo
+Try the online demo for the "browser environment" at the [demo page][9]. 
 
 NOTE: At the moment, speech input in the "browser environment" only works for current versions of Chrome (> v25).
+
+###### Grammer Editor Online Demo
+There is also a demo page for the [grammar editor / tester][10] (for testing the grammar that is used for evaluating speech input).
+
 
 
 ----
 
 ##### Prerequisites
 
-Installed Cordova 3.x environment (see Cordova documentation on CLI based development for more details).
+Installed Cordova 3.x - 4.x environment (see Cordova documentation on CLI based development for more details).
 
 ##### Additional Prerequisites: Android
 
@@ -91,3 +100,4 @@ If not stated otherwise, the code, resource files etc. is provided under the MIT
  [8]: https://github.com/mmig/mmir
  [9]: http://mmig.github.io/mmir-starter-kit/www
 [10]: http://mmig.github.io/mmir-starter-kit/www/testSemanticInterpreter.html
+[11]: https://github.com/mmig/mmir-starter-kit/tree/new-grammar-editor/www/appTestSemantic
