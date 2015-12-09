@@ -3,8 +3,8 @@
 # Linux version (should work, not tested):
 _BASEPATH=$PWD
 TARGETDIR=$_BASEPATH/../www/mmirf
-EXCLUDEDIRS="-E=3rdParty|input_manager_state_chart|DialogDescription.js|grammar.js|gen|.json"
-OUTPUTDIR=$_BASEPATH/api_doc
+EXCLUDEDIRS="-E=gen|libs|node_modules|_node_modules"
+OUTPUTDIR=$_BASEPATH/api_doc2
 JSDOCDIR=./node_modules/jsdoc-toolkit
 TEMPLATEDIR=$JSDOCDIR/templates
 TEMPLATE=$TEMPLATEDIR/jsdoc
