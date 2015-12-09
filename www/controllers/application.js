@@ -29,8 +29,6 @@
   var mmir = window.mmir ||
   {};
 
-  var current_asr_result;
-
   var Application = function(){
       this.name = "Application";
       
