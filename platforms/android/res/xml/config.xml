@@ -24,6 +24,15 @@
     <feature name="Notification">
         <param name="android-package" value="org.apache.cordova.dialogs.Notification" />
     </feature>
+    <feature name="AndroidSpeechPlugin">
+        <param name="android-package" value="de.dfki.iui.mmir.plugins.speech.android.AndroidSpeechRecognizer" />
+    </feature>
+    <feature name="AndroidSpeechSynthesisPlugin">
+        <param name="android-package" value="de.dfki.iui.mmir.plugins.speech.android.AndroidSpeechSynthesizer" />
+    </feature>
+    <feature name="NuanceSpeechPlugin">
+        <param name="android-package" value="de.dfki.iui.mmir.plugins.speech.nuance.NuanceSpeechPlugin" />
+    </feature>
     <name>MMIRStarterKit</name>
     <description>
         A sample Apache Cordova application for the MMIR StarterKit.
