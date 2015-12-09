@@ -1,4 +1,3 @@
-var IS_DEBUG_ENABLED = false;	
 
 mmir.ready(function () {
 	
@@ -347,7 +346,7 @@ mmir.ready(function () {
     	if (mmir.CommonUtils.checkNetworkConnection() == false){
     		alert("No network connection enabled.\nPlease enable network access.");
     	} else {
-    		if(IS_DEBUG_ENABLED) console.log("Network access is available.");
+    		console.log("Network access is available.");
     	}
     	
     };
