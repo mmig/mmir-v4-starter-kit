@@ -93,11 +93,14 @@ function _getCanvas(canvasEl){
  * @param {Canvas} [canvasEl] OPTIONAL
  * 			if not provided, the preset canvas element will be used
  * 
+ * @param {Boolean} [isForce] OPTIONAL
+ * 			force drawing, even if ampl is same value as in the last invocation
+ * 
  * @memberOf mmir.starterkit.render.impl
  */
-function _draw(ampl, canvasEl) {
+function _draw(ampl, canvasEl, isForce) {
 
-	if(ampl === lastAmpl){
+	if(ampl === lastAmpl && isForce !== true){
 		return;
 	}
 	
