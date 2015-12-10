@@ -41,6 +41,9 @@
  //This method will be called before rendering the views of this controller.
  Calendar.prototype.on_page_load = function(){
 	 
+	//set-up render for microphone-levels
+	mmir.app.renderer.initPage();
+	 
 //	 //prevent "click trough" of vclicks/taps from previous view
 //	 this.setToPseudoModalState();
 	 

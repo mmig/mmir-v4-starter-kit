@@ -18,19 +18,31 @@ mmir.ready(function () {
     // load/initialize the app asynchronously, an then "signal" the framework
     // that it should start with the first page by firing the "init" event
     require(['apprenderer', 'env'], function(renderFactory, env){
-    	
+
     	//NOTE: need to set the canvas element in controller's on_page_load()
     	mmir.app.renderer = renderFactory.createMicRenderer();
-    	mmir.app.rendererId = 'mic-renderer';
-    	mmir.app.renderer.id = mmir.app.rendererId;
-    	mmir.app.renderer.repaint = function(val){
-    		
+    	mmir.app.renderer.id = 'mic-renderer';
+    	mmir.app.renderer.repaint = function(val, isForce){
+
     		if(typeof val !== 'number'){
     			val = 0;
     		}
-    		
+
     		var $canvas = $('#'+this.id);
-    		mmir.app.renderer.draw(val, $canvas);
+    		mmir.app.renderer.draw(val, $canvas, isForce);
+    	};
+
+    	mmir.app.renderer.initPage = function(){
+    		
+    		//set-up render for microphone-levels
+    		var canvas = $('#'+mmir.app.rendererId);
+    		if(canvas.length < 1){
+    			var micBtn = $('#mic_button');
+    			micBtn.html('<canvas id="'+this.id+'" height="'+micBtn.height()+'" width="'+micBtn.width()+'"></canvas>');
+    			canvas = $('#'+this.id);
+    		}
+    		this.set(canvas);
+    		this.repaint(0, true);
     	};
     	
     	var isCordova = env.isCordovaEnv;
@@ -247,7 +259,8 @@ mmir.ready(function () {
     		if(asr_type === 'RECORDING_BEGIN'){
     			
     			//... do something(?): speech recognition is now fully prepared and active
-    		} else if(asr_type === 'FINAL'){
+    			
+    		} else if(asr_type === 'RECORDING_DONE' || asr_type === 'FINAL'){
     			
     			//mark microphone button as in-active when recording is finished
     			setActive(false);
@@ -331,8 +344,8 @@ mmir.ready(function () {
     			mmir.MediaManager.startRecord(
     				successFunc, //FIXME should have different call for start/start-and-receive-intermediate-results ...
     				function onError(err){
-    					setActive(false);
-    					setTimeout(function(){errorFunc(err);}, 0);
+    					var args = arguments;
+    					setTimeout(function(){errorFunc.apply(null, args);}, 5);
     					alert('tts failed: '+err);
     				}
     			);
@@ -351,10 +364,11 @@ mmir.ready(function () {
     			mmir.MediaManager.stopRecord(
     				function onResult(res){
     					console.log("[AudioInput] MANUALLY stopped recoginition: "  + JSON.stringify(res));
-    					successFunc(res);
+    					successFunc.apply(null, arguments);
     				}, function onError(err){
     					console.log("[AudioInput] failed to MANUALLY stop recoginition: "  + err);
-    					setTimeout(function(){errorFunc(err);}, 0);
+    					var args = arguments;
+    					setTimeout(function(){errorFunc.apply(null, args);}, 5);
     					alert('tts failed: '+err);
     				}
     			);
