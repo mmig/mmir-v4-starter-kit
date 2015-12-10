@@ -1,12 +1,72 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="de.dfki.iui.mmir.starterkit" version="3.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>MMIRStarterKit</name>
+
+<widget id="de.dfki.iui.mmir.starterkit"
+    	version="3.1.0"
+    	xmlns="http://www.w3.org/ns/widgets"
+    	xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    
+    <name>MMIR StarterKit</name>
     <description>
         A sample Apache Cordova application for the MMIR StarterKit.
     </description>
-    <author email="" href="http://github.com/mmig/mmir-starter-kit">
+    <author email="" href="https://github.com/mmig/mmir-starter-kit">
         DFKI MMIG Team
     </author>
+    
+    <!-- 
+    		start the app's page with search-query/param "env=cordova",
+    		so that the MMIR framework can "detect" the Cordova enviornment
+      -->
     <content src="index.html?env=cordova" />
+    
+    
+    <!-- 
+    	 allows access to all remote locations
+    	 
+    	 USE THIS SETTING ONLY DURING DEVELOPMENT!
+    	 
+    	 see the Cordova documentation for more details
+    	 https://cordova.apache.org/docs/en/latest/guide/appdev/whitelist/index.html
+    	 
+     -->
     <access origin="*" />
+    
+    
+    <!-- 
+    	Set your Nunace credentials here, for using the Nuance Speech plugin (Nuance SpeechKit / Dragon Mobile SDK)
+    	
+    	NOTE: you also need to change /www/config/configuration.json, if you want to use the Nuance Speech plugin.
+    		  Set the correspondin values to "nuanceXXX.js":
+    	
+		    	...
+		    	"mediaManager": {
+			    	"plugins": {
+			    		...
+			    		"cordova": ["cordovaAudioOutput.js",
+			    		            "nuanceAudioInput.js",
+			    		            "nuanceTextToSpeech.js"
+			    		]
+			    	}
+			    }
+			    ...
+	    
+     -->
+    <preference name="nuanceAppKey" value="{ 
+        (byte)0x... <copy'n'paste your app key here, in Android format>
+    }"/>
+    <preference name="nuanceAppId" value="NMDPTRIAL_...<copy'n'paste your app ID here>"/>
+    <preference name="nuanceServerUrl" value="<copy'n'paste the server URL for the SpeechKit service>"/>
+    <preference name="nuanceServerPort" value="<copy'n'paste the port number>"/>
+    <preference name="nuanceServerSsl" value="<use true, if you are using SSL>"/>
+
+    <!-- OPTIONAL (can be omitted)
+            if SSL is used, this settings can be used for strengthening the encryption
+     -->
+    <preference name="nuanceCertSummary" value="<copy'n'paste the cert summary>"/>
+     <!-- OPTIONAL (can be omitted)
+            if SSL is used, this settings can be used for strengthening the encryption
+     -->
+    <!-- preference name="nuanceCertData" value="<copy'n'paste the cert data>"/-->
+
+    
 </widget>

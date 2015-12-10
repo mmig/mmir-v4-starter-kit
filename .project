@@ -9,4 +9,26 @@
 	<natures>
 		<nature>org.eclipse.wst.jsdt.core.jsNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>www/mmirf/env/media/androidAudioInput.js</name>
+			<type>1</type>
+			<locationURI>$%7BPROJECT_LOC%7D/plugins/de.dfki.iui.mmir.speech.AndroidSpeech/www/androidAudioInput.js</locationURI>
+		</link>
+		<link>
+			<name>www/mmirf/env/media/androidTextToSpeech.js</name>
+			<type>1</type>
+			<locationURI>$%7BPROJECT_LOC%7D/plugins/de.dfki.iui.mmir.speech.AndroidSpeech/www/androidTextToSpeech.js</locationURI>
+		</link>
+		<link>
+			<name>www/mmirf/env/media/nuanceAudioInput.js</name>
+			<type>1</type>
+			<locationURI>$%7BPROJECT_LOC%7D/plugins/de.dfki.iui.mmir.speech.NuancePlugin/www/nuanceAudioInput.js</locationURI>
+		</link>
+		<link>
+			<name>www/mmirf/env/media/nuanceTextToSpeech.js</name>
+			<type>1</type>
+			<locationURI>$%7BPROJECT_LOC%7D/plugins/de.dfki.iui.mmir.speech.NuancePlugin/www/nuanceTextToSpeech.js</locationURI>
+		</link> 
+	</linkedResources>
 </projectDescription>

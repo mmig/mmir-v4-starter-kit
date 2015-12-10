@@ -27,6 +27,22 @@
                         {
                             "xml": "<feature name=\"Vibration\"><param name=\"android-package\" value=\"org.apache.cordova.vibration.Vibration\" /></feature>",
                             "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Notification\"><param name=\"android-package\" value=\"org.apache.cordova.dialogs.Notification\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"AndroidSpeechPlugin\"><param name=\"android-package\" value=\"de.dfki.iui.mmir.plugins.speech.android.AndroidSpeechRecognizer\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"AndroidSpeechSynthesisPlugin\"><param name=\"android-package\" value=\"de.dfki.iui.mmir.plugins.speech.android.AndroidSpeechSynthesizer\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"NuanceSpeechPlugin\"><param name=\"android-package\" value=\"de.dfki.iui.mmir.plugins.speech.nuance.NuanceSpeechPlugin\" /></feature>",
+                            "count": 1
                         }
                     ]
                 }
@@ -39,19 +55,23 @@
                             "count": 2
                         },
                         {
-                            "xml": "<uses-permission android:name=\"android.permission.RECORD_AUDIO\" />",
-                            "count": 1
-                        },
-                        {
                             "xml": "<uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\" />",
                             "count": 1
                         },
                         {
-                            "xml": "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\" />",
+                            "xml": "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />",
                             "count": 1
                         },
                         {
-                            "xml": "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />",
+                            "xml": "<uses-permission android:name=\"android.permission.INTERNET\" />",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<uses-permission android:name=\"android.permission.RECORD_AUDIO\" />",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\" />",
                             "count": 1
                         }
                     ],
@@ -79,6 +99,15 @@
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         },
         "org.apache.cordova.vibration": {
+            "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
+        },
+        "org.apache.cordova.dialogs": {
+            "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
+        },
+        "de.dfki.iui.mmir.speech.AndroidSpeech": {
+            "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
+        },
+        "de.dfki.iui.mmir.speech.NuancePlugin": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         }
     },

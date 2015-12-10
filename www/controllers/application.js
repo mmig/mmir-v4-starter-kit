@@ -29,8 +29,6 @@
   var mmir = window.mmir ||
   {};
 
-  var current_asr_result;
-
   var Application = function(){
       this.name = "Application";
       
@@ -44,6 +42,16 @@
 
 
   Application.prototype.on_page_load = function (){
+	  
+	  //set-up render for microphone-levels
+	  var canvas = $('#'+mmir.app.rendererId);
+	  if(canvas.length < 1){
+		  var micBtn = $('#mic_button');
+		  micBtn.html('<canvas id="'+mmir.app.rendererId+'" height="'+micBtn.height()+'" width="'+micBtn.width()+'"></canvas>');
+		  canvas = $('#'+mmir.app.rendererId);
+	  }
+	  mmir.app.renderer.set(canvas);
+	  mmir.app.renderer.draw(0);
 	  
   };
   

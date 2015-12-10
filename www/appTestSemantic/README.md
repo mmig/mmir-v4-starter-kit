@@ -24,13 +24,29 @@ Some more details about grammars in MMIR can be found in the [Wiki][g1], e.g. so
 [general information][g2] and [how to add a new grammar][g3] (still under constructions!).
 
 
-**Compatibility Notes:** compatible with [mmir-lib][1] version 3.4.x - 3.5.x
+**Compatibility Notes:** compatible with [mmir-lib][1] version 3.4.x - 3.6.x
 
 
 Usage
 ----
-Open `testSemanticInterpreter.html` in a browser (e.g. Chrome or FireFox).
 
+
+##### As Webpage
+
+Open `testSemanticInterpreter.html` in a browser (e.g. Chrome or FireFox; for Chrome see also the notes below).
+
+
+##### As Chrome Extension
+
+The Grammar Editor can be loaded as a __Chrome Extension__:
+
+ * open the menu in Chrome (upper right) and select `More Tools >`, and then select the entry `Extensions`
+ * active the check box for `Developer Mode` (if not already enabled);
+   on the upper middle / right region on the Extensions page
+ * Then press the button `Load unpacked extension...` and select the project's `/www` directory
+   (i.e. the directory where the Extension's `manifest.json` file is contained in)
+ * after adding the Extension, the Grammar Editor can be opened by pressing the Extension button in Chrome
+ 
 
 Usage Notes
 ----

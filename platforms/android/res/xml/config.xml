@@ -1,10 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="de.dfki.iui.mmir.starterkit" version="3.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="de.dfki.iui.mmir.starterkit" version="3.1.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <preference name="loglevel" value="DEBUG" />
-    <preference name="AndroidLaunchMode" value="singleTop" />
-    <feature name="App">
-        <param name="android-package" value="org.apache.cordova.App" />
-    </feature>
     <feature name="QueuePlugin">
         <param name="android-package" value="de.dfki.iui.mmir.plugins.QueuePlugin" />
     </feature>
@@ -21,13 +17,31 @@
     <feature name="Vibration">
         <param name="android-package" value="org.apache.cordova.vibration.Vibration" />
     </feature>
-    <name>MMIRStarterKit</name>
+    <feature name="Notification">
+        <param name="android-package" value="org.apache.cordova.dialogs.Notification" />
+    </feature>
+    <feature name="AndroidSpeechPlugin">
+        <param name="android-package" value="de.dfki.iui.mmir.plugins.speech.android.AndroidSpeechRecognizer" />
+    </feature>
+    <feature name="AndroidSpeechSynthesisPlugin">
+        <param name="android-package" value="de.dfki.iui.mmir.plugins.speech.android.AndroidSpeechSynthesizer" />
+    </feature>
+    <feature name="NuanceSpeechPlugin">
+        <param name="android-package" value="de.dfki.iui.mmir.plugins.speech.nuance.NuanceSpeechPlugin" />
+    </feature>
+    <name>MMIR StarterKit</name>
     <description>
         A sample Apache Cordova application for the MMIR StarterKit.
     </description>
-    <author email="" href="http://github.com/mmig/mmir-starter-kit">
+    <author email="" href="https://github.com/mmig/mmir-starter-kit">
         DFKI MMIG Team
     </author>
     <content src="index.html?env=cordova" />
     <access origin="*" />
+    <preference name="nuanceAppKey" value="{ &#xA;        (byte)0x... &lt;copy'n'paste your app key here, in Android format&gt;&#xA;    }" />
+    <preference name="nuanceAppId" value="NMDPTRIAL_...&lt;copy'n'paste your app ID here&gt;" />
+    <preference name="nuanceServerUrl" value="&lt;copy'n'paste the server URL for the SpeechKit service&gt;" />
+    <preference name="nuanceServerPort" value="&lt;copy'n'paste the port number&gt;" />
+    <preference name="nuanceServerSsl" value="&lt;use true, if you are using SSL&gt;" />
+    <preference name="nuanceCertSummary" value="&lt;copy'n'paste the cert summary&gt;" />
 </widget>

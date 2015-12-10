@@ -1,0 +1,21 @@
+{
+    "org.apache.cordova.dialogs": {
+        "source": {
+            "type": "registry",
+            "id": "org.apache.cordova.dialogs"
+        }
+    },
+    "de.dfki.iui.mmir.speech.AndroidSpeech": {
+        "source": {
+            "type": "git",
+            "url": "https://github.com/mmig/mmir-plugin-speech-android.git",
+            "subdir": "."
+        }
+    },
+    "de.dfki.iui.mmir.speech.NuancePlugin": {
+        "source": {
+            "type": "local",
+            "path": "d:\\git_repo\\mmir-plugin-speech-nuance"
+        }
+    }
+}

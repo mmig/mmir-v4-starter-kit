@@ -434,7 +434,8 @@ switch( act )
 	break;
 	case 2:
 	{
-		 rval = vstack[ vstack.length - 1 ]; var play_temp = {}; play_temp['phrases'] = {};play_temp['phrases']['v_play_inf'] = [];play_temp['phrases']['v_play_inf'][0] = vstack[ vstack.length - 1 ]; var _$phrase = rval; play_temp['phrase']=_$phrase; play_temp['semantic'] = {"Play":{}}; _$play[_$phrase] = play_temp; _$result = play_temp; 
+		 rval = vstack[ vstack.length - 1 ]; var play_temp = {}; play_temp['phrases'] = {};play_temp['phrases']['v_play_inf'] = [];play_temp['phrases']['v_play_inf'][0] = {tok: vstack[ vstack.length - 1 ],i: 0};
+		var _$phrase = rval; play_temp['phrase']=_$phrase; play_temp['utterance']='play'; play_temp['engine']='jscc'; play_temp['semantic'] = {"Play":{}}; _$play[_$phrase] = play_temp; _$result = play_temp; 
 	}
 	break;
 	case 3:

@@ -29,8 +29,8 @@
     		            "maryTextToSpeech.js"
     		],
     		"cordova": ["cordovaAudioOutput.js",
-    		            "nuanceAudioInput.js",
-    		            "nuanceTextToSpeech.js"
+    		            "androidAudioInput.js",
+    		            "androidTextToSpeech.js"
     		]
     	}
     }
