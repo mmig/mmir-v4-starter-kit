@@ -52,21 +52,21 @@
 	    
      -->
     <preference name="nuanceAppKey" value="{ 
-        (byte)0x... <copy & paste your app key here, in Android format>
+        (byte)0x... <copy'n'paste your app key here, in Android format>
     }"/>
-    <preference name="nuanceAppId" value="NMDPTRIAL_...<copy & paste your app ID here>"/>
-    <preference name="nuanceServerUrl" value="<copy & paste the server URL for the SpeechKit service>"/>
-    <preference name="nuanceServerPort" value="<copy & paste the port number>"/>
+    <preference name="nuanceAppId" value="NMDPTRIAL_...<copy'n'paste your app ID here>"/>
+    <preference name="nuanceServerUrl" value="<copy'n'paste the server URL for the SpeechKit service>"/>
+    <preference name="nuanceServerPort" value="<copy'n'paste the port number>"/>
     <preference name="nuanceServerSsl" value="<use true, if you are using SSL>"/>
 
     <!-- OPTIONAL (can be omitted)
             if SSL is used, this settings can be used for strengthening the encryption
      -->
-    <preference name="nuanceCertSummary" value="<copy & paste the cert summary>"/>
+    <preference name="nuanceCertSummary" value="<copy'n'paste the cert summary>"/>
      <!-- OPTIONAL (can be omitted)
             if SSL is used, this settings can be used for strengthening the encryption
      -->
-    <!-- preference name="nuanceCertData" value="<copy & paste the cert data>"/-->
+    <!-- preference name="nuanceCertData" value="<copy'n'paste the cert data>"/-->
 
     
 </widget>

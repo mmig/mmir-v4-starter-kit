@@ -38,10 +38,10 @@
     </author>
     <content src="index.html?env=cordova" />
     <access origin="*" />
-    <preference name="nuanceAppKey" value="{ &#xA;        (byte)0x... &lt;copy &amp; paste your app key here, in Android format&gt;&#xA;    }" />
-    <preference name="nuanceAppId" value="NMDPTRIAL_...&lt;copy &amp; paste your app ID here&gt;" />
-    <preference name="nuanceServerUrl" value="&lt;copy &amp; paste the server URL for the SpeechKit service&gt;" />
-    <preference name="nuanceServerPort" value="&lt;copy &amp; paste the port number&gt;" />
+    <preference name="nuanceAppKey" value="{ &#xA;        (byte)0x... &lt;copy'n'paste your app key here, in Android format&gt;&#xA;    }" />
+    <preference name="nuanceAppId" value="NMDPTRIAL_...&lt;copy'n'paste your app ID here&gt;" />
+    <preference name="nuanceServerUrl" value="&lt;copy'n'paste the server URL for the SpeechKit service&gt;" />
+    <preference name="nuanceServerPort" value="&lt;copy'n'paste the port number&gt;" />
     <preference name="nuanceServerSsl" value="&lt;use true, if you are using SSL&gt;" />
-    <preference name="nuanceCertSummary" value="&lt;copy &amp; paste the cert summary&gt;" />
+    <preference name="nuanceCertSummary" value="&lt;copy'n'paste the cert summary&gt;" />
 </widget>
