@@ -1,5 +1,5 @@
 ﻿/*
- * 	Copyright (C) 2012-2013 DFKI GmbH
+ * 	Copyright (C) 2012-2015 DFKI GmbH
  * 	Deutsches Forschungszentrum fuer Kuenstliche Intelligenz
  * 	German Research Center for Artificial Intelligence
  * 	http://www.dfki.de
@@ -26,7 +26,7 @@
 
 /**
  * part of Cordova plugin: de.dfki.iui.mmir.speech.AndroidSpeech
- * @version 0.5.0
+ * @version 0.7.4
  * @ignore
  */
 newMediaPlugin = {
@@ -40,6 +40,11 @@ newMediaPlugin = {
 			 * @memberOf AndroidAudioInput#
 			 */
 			var languageManager = require('languageManager');
+			/** 
+			 * @type AndroidSpeechPlugin
+			 * @memberOf AndroidAudioInput#
+			 */
+			var androidSpeechPlugin = window.plugins.androidSpeechPlugin;
 
 			/**  @memberOf AndroidAudioInput# */
 			var id = 0;
@@ -91,7 +96,49 @@ newMediaPlugin = {
 			 * @default false: improved feedback mode is enabled by default
 			 */
 			var disable_improved_feedback_mode = false;
+			
+			/**
+			 * Counter for error-in-a-row: 
+			 * each time an error is encountered, this counter is increased.
+			 * On starting/canceling, or on an internal success/result callback,
+			 * the counter is reset.
+			 * 
+			 * Thus, this counter keeps track how many times in a row
+			 * the (internal) error-callback was triggered.
+			 * 
+			 * NOTE: this is currently used, to try restarting <code>max_error_retry</code>
+			 * 		 times the ASR, even on "critical" errors (during repeat-mode). 
+			 * 
+			 * @see #max_error_retry
+			 * 
+			 * @memberOf AndroidAudioInput#
+			 */
+			var error_counter = 0;
+			
+			/**
+			 * Maximal number of errors-in-a-row for trying to restart
+			 * recognition in repeat-mode.
+			 * 
+			 * @see #error_counter
+			 * 
+			 * @memberOf AndroidAudioInput#
+			 * @default 5
+			 */
+			var max_error_retry = 5;
 
+//			/**
+//			 * Time to wait, before restarting recognition in repeat-mode.
+//			 * 
+//			 * The actual duration is calculated by multiplying this value with the #error_counter.
+//			 * 
+//			 * @see #error_counter
+//			 * 
+//			 * @memberOf AndroidAudioInput#
+//			 * @default 10
+//			 */
+//			var retry_delay = 50;
+			
+			
 			//Nuance Error Codes:
 //			var error_codes_enum = {
 //					"UNKNOWN": 				0,
@@ -184,18 +231,18 @@ newMediaPlugin = {
 			function _updateMicLevelListeners(actionType, handler){
 				//add to plugin-listener-list
 				if(actionType=== 'added'){
-					window.plugins.androidSpeechPlugin.onMicLevelChanged(handler);
+					androidSpeechPlugin.onMicLevelChanged(handler);
 				}
 				//remove from plugin-listener-list
 				else if(actionType === 'removed'){
-					window.plugins.androidSpeechPlugin.offMicLevelChanged(handler);
+					androidSpeechPlugin.offMicLevelChanged(handler);
 				}
 			}
 			//observe changes on listener-list for mic-levels-changed-event
 			mediaManager._addListenerObserver(MIC_CHANGED_EVT_NAME, _updateMicLevelListeners);
 			var list = mediaManager.getListeners(MIC_CHANGED_EVT_NAME);
 			for(var i=0, size= list.length; i < size; ++i){
-				window.plugins.androidSpeechPlugin.onMicLevelChanged(list[i]);
+				androidSpeechPlugin.onMicLevelChanged(list[i]);
 			}
 			
 			/**
@@ -236,6 +283,8 @@ newMediaPlugin = {
 					var asr_type = -1;
 					var asr_alternatives = [];
 					var asr_unstable = null;
+					
+					error_counter = 0;
 
 					if(res) {
 
@@ -291,7 +340,7 @@ newMediaPlugin = {
 								call_callback_with_last_result();
 							}
 							
-							window.plugins.androidSpeechPlugin.recognizeNoEOS(
+							androidSpeechPlugin.startRecord(
 									languageManager.getLanguageConfig(_pluginName),
 									successCallbackWrapper(currentSuccessCallback),
 									failureCallbackWrapper(currentFailureCallback),
@@ -302,11 +351,11 @@ newMediaPlugin = {
 							// save the last result and start recognition again
 //							last_result = [asr_result, asr_score, asr_type, asr_alternatives];
 
-//							window.plugins.androidSpeechPlugin.recognizeNoEOS(
-//							languageManager.getLanguageConfig(_pluginName),
-//							successCallbackWrapper(currentSuccessCallback),
-//							failureCallbackWrapper(currentFailureCallback),
-//							intermediate_results
+//							androidSpeechPlugin.startRecord(
+//								languageManager.getLanguageConfig(_pluginName),
+//								successCallbackWrapper(currentSuccessCallback),
+//								failureCallbackWrapper(currentFailureCallback),
+//								intermediate_results
 //							);
 //							console.warn("[androidAudioInput] Success - Repeat - Else\nType: " + asr_type+"\n"+JSON.stringify(res));
 						}
@@ -316,20 +365,31 @@ newMediaPlugin = {
 
 						mediaManager._ready(_pluginName);
 
-						if (asr_type === result_types.RECORDING_DONE){
-						} else if (asr_type === result_types.FINAL){
+						if (asr_type === result_types.INTERMEDIATE){
+							
+							//if we are in non-repeat mode, then INTERMEDIATE 
+							//results are actually FINAL ones 
+							// (since we normally have no stopRecording-callback)
+							asr_type = result_types.FINAL;
+							
 						}
+//						else if (asr_type === result_types.RECORDING_DONE){
+//							//nothing to do (yet)
+//						}
+//						else if (asr_type === result_types.FINAL){
+//							//nothing to do (yet)
+//						}
+						
+						//send any previous results, if there are any (NOTE: there actually should be none!)
 						call_callback_with_last_result();
 
-						if(typeof res !== "undefined") {
-							if (cb){
-								cb(asr_result, asr_score, asr_type, asr_alternatives, asr_unstable);
-							} else {
-								console.error("androidAudioInput Error: No callback function defined for success.");
-							}
+						//invoke callback
+						if (cb){
+							cb(asr_result, asr_score, asr_type, asr_alternatives, asr_unstable);
 						} else {
-							console.warn("androidAudioInput Warning: result parameter is undefined.");
+							console.error("androidAudioInput Error: No callback function defined for success.");
 						}
+						
 					}
 				});
 			};
@@ -365,14 +425,32 @@ newMediaPlugin = {
 							error_type = res["type"];
 						}
 					}
+					
+					++error_counter;
 
-					console.info("androidAudioInput ERROR \""+error_msg+"\" (code "+error_code+", type "+error_type+")...");
+					console.info("androidAudioInput ERROR \""+error_msg+"\" (code "+error_code+", type "+error_type+"), repeat="+repeat+", error-counter: "+error_counter+"...");
 					
 					mediaManager._ready(_pluginName);
 
 					// TEST: if there is still a pending last result, call successcallback first.
 					call_callback_with_last_result();
 					if (repeat === true){
+						
+						var restartFunc = function(){
+							
+							if (error_type !== result_types.FINAL){
+								//show loader/signal "busy", so that the user knows it may take a while before (s)he can start talking again
+								mediaManager._preparing(_pluginName);
+							}
+							
+							//restart:
+							androidSpeechPlugin.startRecord(
+									languageManager.getLanguageConfig(_pluginName),
+									successCallbackWrapper(currentSuccessCallback),
+									failureCallbackWrapper(currentFailureCallback),
+									intermediate_results
+							);
+						};
 						
 						
 //								"NETWORK_TIMEOUT":			1, //Nuance: SERVER_CONNECTION
@@ -387,39 +465,35 @@ newMediaPlugin = {
 //								// >= 10  --> UNKNOWN:
 //								"UNKNOWN":					10 //Nuance -> 0
 						
+						
 						//minor errors -> restart the recognition
 						if (
-									error_code == error_codes_enum.ERROR_RECOGNIZER_BUSY
-								||	error_code == error_codes_enum.NETWORK_TIMEOUT
-								||	error_code == error_codes_enum.SPEECH_TIMEOUT
-								||	error_code == error_codes_enum.NO_MATCH
-						){
+									error_code === error_codes_enum.ERROR_RECOGNIZER_BUSY
+								||	error_code === error_codes_enum.NETWORK_TIMEOUT
+								||	error_code === error_codes_enum.SPEECH_TIMEOUT
+								||	error_code === error_codes_enum.NO_MATCH
 							
-							var restartFunc = function(){//show loader so that the user knows it may take a while before (s)he can start talking again
-								
-								if (error_type !== result_types.FINAL){
-									mediaManager._preparing(_pluginName);
-								}
-								
-								//restart:
-								window.plugins.androidSpeechPlugin.recognizeNoEOS(
-										languageManager.getLanguageConfig(_pluginName),
-										successCallbackWrapper(currentSuccessCallback),
-										failureCallbackWrapper(currentFailureCallback),
-										intermediate_results
-								);
-							};
+//								||	error_code === error_codes_enum.CLIENT		//TEST treat CLIENT error analogous to BUSY error: sometimes CLIENT will stop the recognizer, sometimes not ... so just cancel the recognizer in ANY case and restart
+						){
 							
 							//SPECIAL CASE: recognizer already busy -> need to cancel before restarting
 							if(
 										error_code === error_codes_enum.ERROR_RECOGNIZER_BUSY
+//										||	error_code === error_codes_enum.CLIENT
 							){
 								
 								//-> first need to cancel current recognizer, then restart again:
-								window.plugins.androidSpeechPlugin.cancel(function(){
+								
+//								var retryDelay = error_counter * retry_delay;
+//								console.info("androidAudioInput error: "+error_msg+" (code "+error_code+") - canceling and restarting ASR process in "+(2*retryDelay)+"ms...");
+								
+//								setTimeout( function(){
+								androidSpeechPlugin.cancel(function(){
 									
 									//now we can restart the recognizer:
+//										setTimeout( function(){
 									restartFunc();
+//										}, retryDelay);
 									
 								}, function(error){
 									if (cb){
@@ -431,6 +505,8 @@ newMediaPlugin = {
 									}
 									
 								});
+//								}, retryDelay);
+								
 							}
 							else {
 								
@@ -441,22 +517,26 @@ newMediaPlugin = {
 						}
 						//on minor errors that do not stop the recognizer -> do nothing
 						else if(
-								error_code == error_codes_enum.CLIENT
+								error_code === error_codes_enum.CLIENT
 						){
-							console.info("androidAudioInput error: "+error_msg+" (code "+error_code+") - continueing ASR process...");
+							console.info("androidAudioInput error: "+error_msg+" (code "+error_code+") - continuing ASR process...");
 						}
 						// call error callback on "severe" errors
 						else 
 //							if (		error_code < 1 //undefined error!!!
-//								|| 	error_code == error_codes_enum.NETWORK
-//								|| 	error_code == error_codes_enum.SERVER
-//								|| 	error_code == error_codes_enum.AUDIO
-//								|| 	error_code == error_codes_enum.INSUFFICIENT_PERMISSIONS
+//								|| 	error_code === error_codes_enum.NETWORK
+//								|| 	error_code === error_codes_enum.SERVER
+//								|| 	error_code === error_codes_enum.AUDIO
+//								|| 	error_code === error_codes_enum.INSUFFICIENT_PERMISSIONS
 //								|| 	error_code >= error_codes_enum.UNKNOWN // >= : "catch all" for unknown/undefined errors
 //						)
 						{
-							
-							if (cb){
+							if(error_code !== error_codes_enum.INSUFFICIENT_PERMISSIONS && error_counter < max_error_retry){
+								
+								restartFunc();
+									
+							}
+							else if (cb){
 								console.warn("androidAudioInput: Calling error callback (" + error_code + ": " + error_msg + ").");
 								cb(error_msg, error_code, error_suggestion);
 							}
@@ -494,6 +574,9 @@ newMediaPlugin = {
 					currentFailureCallback = failureCallback;
 					currentSuccessCallback = successCallback;
 					repeat = true;
+					
+					error_counter = 0;
+					
 					// HACK: maybe there is a better way to determine intermediate_results with false as standard? similar to webkitAudioInput
 					intermediate_results = (intermediateResults === false) ? false : true;
 
@@ -507,7 +590,7 @@ newMediaPlugin = {
 					
 					mediaManager._preparing(_pluginName);
 
-					window.plugins.androidSpeechPlugin.recognizeNoEOS(
+					androidSpeechPlugin.startRecord(
 							languageManager.getLanguageConfig(_pluginName),
 							successCallbackWrapper(successCallback),
 							failureCallbackWrapper(failureCallback),
@@ -521,7 +604,7 @@ newMediaPlugin = {
 				 */
 				stopRecord: function(successCallback,failureCallback){
 					repeat = false;
-					window.plugins.androidSpeechPlugin.stopRecord(
+					androidSpeechPlugin.stopRecord(
 							successCallbackWrapper(successCallback),
 							failureCallbackWrapper(failureCallback)
 					);
@@ -533,10 +616,10 @@ newMediaPlugin = {
 				 */
 				recognize: function(successCallback,failureCallback){
 					repeat = false;
-
+					error_counter = 0;
 					mediaManager._preparing(_pluginName);
 
-					window.plugins.androidSpeechPlugin.recognize(
+					androidSpeechPlugin.recognize(
 							languageManager.getLanguageConfig(_pluginName),
 							successCallbackWrapper(successCallback),
 							failureCallbackWrapper(failureCallback)
@@ -550,10 +633,11 @@ newMediaPlugin = {
 				cancelRecognition: function(successCallBack,failureCallBack){
 					last_result = void(0);
 					repeat = false;
+					error_counter = 0;
 
 					mediaManager._ready(_pluginName);
 					
-					window.plugins.androidSpeechPlugin.cancel(successCallBack, failureCallBack);
+					androidSpeechPlugin.cancel(successCallBack, failureCallBack);
 				}
 			});
 

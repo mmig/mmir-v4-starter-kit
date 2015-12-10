@@ -1,5 +1,5 @@
 ﻿/*
- * 	Copyright (C) 2012-2013 DFKI GmbH
+ * 	Copyright (C) 2012-2015 DFKI GmbH
  * 	Deutsches Forschungszentrum fuer Kuenstliche Intelligenz
  * 	German Research Center for Artificial Intelligence
  * 	http://www.dfki.de
@@ -26,7 +26,7 @@
 
 /**
  * part of Cordova plugin: de.dfki.iui.mmir.NuancePlugin
- * @version 0.7.0
+ * @version 0.12.0
  * @ignore
  */
 newMediaPlugin = {
@@ -40,6 +40,12 @@ newMediaPlugin = {
 			 * @memberOf NuanceAndroidAudioInput#
 			 */
 			var languageManager = require('languageManager');
+			
+			/** 
+			 * @type NuancePlugin
+			 * @memberOf NuanceAndroidAudioInput#
+			 */
+			var nuancePlugin = window.plugins.nuancePlugin;
 
 			/**  @memberOf NuanceAndroidAudioInput# */
 			var id = 0;
@@ -93,6 +99,35 @@ newMediaPlugin = {
 			 * @default false: improved feedback mode is enabled by default
 			 */
 			var disable_improved_feedback_mode = false;
+			
+			/**
+			 * Counter for error-in-a-row: 
+			 * each time an error is encountered, this counter is increased.
+			 * On starting/canceling, or on an internal success/result callback,
+			 * the counter is reset.
+			 * 
+			 * Thus, this counter keeps track how many times in a row
+			 * the (internal) error-callback was triggered.
+			 * 
+			 * NOTE: this is currently used, to try restarting <code>max_error_retry</code>
+			 * 		 times the ASR, even on "critical" errors (during repeat-mode). 
+			 * 
+			 * @see #max_error_retry
+			 * 
+			 * @memberOf AndroidAudioInput#
+			 */
+			var error_counter = 0;
+			
+			/**
+			 * Maximal number of errors-in-a-row for trying to restart
+			 * recognition in repeat-mode.
+			 * 
+			 * @see #error_counter
+			 * 
+			 * @memberOf AndroidAudioInput#
+			 * @default 5
+			 */
+			var max_error_retry = 5;
 
 			/**
 			 * Error codes (returned by the native/Cordova plugin)
@@ -150,18 +185,18 @@ newMediaPlugin = {
 			function _updateMicLevelListeners(actionType, handler){
 				//add to plugin-listener-list
 				if(actionType=== 'added'){
-					window.plugins.nuancePlugin.onMicLevelChanged(handler);
+					nuancePlugin.onMicLevelChanged(handler);
 				}
 				//remove from plugin-listener-list
 				else if(actionType === 'removed'){
-					window.plugins.nuancePlugin.offMicLevelChanged(handler);
+					nuancePlugin.offMicLevelChanged(handler);
 				}
 			}
 			//observe changes on listener-list for mic-levels-changed-event
 			mediaManager._addListenerObserver(MIC_CHANGED_EVT_NAME, _updateMicLevelListeners);
 			var list = mediaManager.getListeners(MIC_CHANGED_EVT_NAME);
 			for(var i=0, size= list.length; i < size; ++i){
-				window.plugins.nuancePlugin.onMicLevelChanged(list[i]);
+				nuancePlugin.onMicLevelChanged(list[i]);
 			}
 
 			/**
@@ -195,11 +230,13 @@ newMediaPlugin = {
 				return (function (res){
 					
 //					console.log("nuanceAudioInput: " + JSON.stringify(res));//FIXM DEBUG
-
+					
 					var asr_result = null;
 					var asr_score = -1;
 					var asr_type = -1;
 					var asr_alternatives = [];
+					
+					error_counter = 0;
 
 					if(res) {
 						
@@ -242,7 +279,7 @@ newMediaPlugin = {
 								call_callback_with_last_result();
 							}
 
-							window.plugins.nuancePlugin.recognizeNoEOS(
+							nuancePlugin.startRecord(
 									languageManager.getLanguageConfig(_pluginName),
 									successCallbackWrapper(currentSuccessCallback),
 									failureCallbackWrapper(currentFailureCallback),
@@ -253,11 +290,11 @@ newMediaPlugin = {
 							// save the last result and start recognition again
 //							last_result = [asr_result, asr_score, asr_type, asr_alternatives];
 
-//							window.plugins.nuancePlugin.recognizeNoEOS(
-//							languageManager.getLanguageConfig(_pluginName),
-//							successCallbackWrapper(currentSuccessCallback),
-//							failureCallbackWrapper(currentFailureCallback),
-//							intermediate_results
+//							nuancePlugin.startRecord(
+//								languageManager.getLanguageConfig(_pluginName),
+//								successCallbackWrapper(currentSuccessCallback),
+//								failureCallbackWrapper(currentFailureCallback),
+//								intermediate_results
 //							);
 //							console.warn("[NuanceAudioInput] Success - Repeat - Else\nType: " + asr_type+"\n"+JSON.stringify(res));
 						}
@@ -267,20 +304,31 @@ newMediaPlugin = {
 
 						mediaManager._ready(_pluginName);
 
-						if (asr_type === result_types.RECORDING_DONE){
-						} else if (asr_type === result_types.FINAL){
+						if (asr_type === result_types.INTERMEDIATE){
+							
+							//if we are in non-repeat mode, then INTERMEDIATE 
+							//results are actually FINAL ones 
+							// (since we normally have no stopRecording-callback)
+							asr_type = result_types.FINAL;
+							
 						}
+//						else if (asr_type === result_types.RECORDING_DONE){
+//							//nothing to do (yet)
+//						}
+//						else if (asr_type === result_types.FINAL){
+//							//nothing to do (yet)
+//						}
+						
+						//send any previous results, if there are any (NOTE: there actually should be none!)
 						call_callback_with_last_result();
 
-						if(typeof res !== "undefined") {
-							if (cb){
-								cb(asr_result, asr_score, asr_type, asr_alternatives);
-							} else {
-								console.error("nuanceAudioInput Error: No callback function defined for success.");
-							}
+						//invoke callback
+						if (cb){
+							cb(asr_result, asr_score, asr_type, asr_alternatives);
 						} else {
-							console.warn("nuanceAudioInput Warning: result parameter is undefined.");
+							console.error("nuanceAudioInput Error: No callback function defined for success.");
 						}
+						
 					}
 				});
 			};
@@ -318,6 +366,8 @@ newMediaPlugin = {
 							error_type = res["type"];
 						}
 					}
+					
+					++error_counter;
 
 					mediaManager._ready(_pluginName);
 
@@ -333,7 +383,24 @@ newMediaPlugin = {
 								||	(error_code == error_codes_enum.RECOGNIZER)
 								||	(error_code == error_codes_enum.CANCEL)
 						){
-							if (cb){
+							
+							if(error_counter < max_error_retry){
+								
+								//show loader so that the user knows it may take a while before he can start talking again
+								if (error_type !== result_types.FINAL){
+									mediaManager._preparing(_pluginName);
+								}
+								
+								//no (serious) error, call voice recognition again
+								return nuancePlugin.startRecord(
+										languageManager.getLanguageConfig(_pluginName),
+										successCallbackWrapper(currentSuccessCallback),
+										failureCallbackWrapper(currentFailureCallback),
+										intermediate_results
+								);
+								
+							}
+							else if (cb){
 								console.warn("nuanceAudioInput: Calling error callback (" + error_code + ": " + error_msg + ").");
 								cb(error_msg, error_code, error_suggestion);
 							} else {
@@ -350,7 +417,7 @@ newMediaPlugin = {
 							}
 							
 							//no (serious) error, call voice recognition again
-							return window.plugins.nuancePlugin.recognizeNoEOS(
+							return nuancePlugin.startRecord(
 									languageManager.getLanguageConfig(_pluginName),
 									successCallbackWrapper(currentSuccessCallback),
 									failureCallbackWrapper(currentFailureCallback),
@@ -363,7 +430,7 @@ newMediaPlugin = {
 						// do no repeat, just call errorCallback
 						if (cb){
 							console.debug("nuanceAudioInput: Calling error callback (" + error_code + ").");
-							cb(error_msg, error_code, error_suggestion);
+							cb(error_msg, error_code, error_suggestion, error_type);
 						} else {
 							console.error("nuanceAudioInput Error: No callback function defined for failure.");
 						}
@@ -378,11 +445,13 @@ newMediaPlugin = {
 				 * @memberOf NuanceAndroidAudioInput.prototype
 				 * @see mmir.MediaManager#startRecord
 				 */
-				startRecord: function(successCallback, failureCallback, intermediateResults, isDisableImprovedFeedback){
+				startRecord: function(successCallback, failureCallback, intermediateResults, isDisableImprovedFeedback, isUseLongPauseForIntermediate){
 
 					currentFailureCallback = failureCallback;
 					currentSuccessCallback = successCallback;
 					repeat = true;
+					error_counter = 0;
+					
 					// HACK: maybe there is a better way to determine intermediate_results with false as standard? similar to webkitAudioInput
 					intermediate_results = (intermediateResults === false) ? false : true;
 					
@@ -396,11 +465,11 @@ newMediaPlugin = {
 
 					mediaManager._preparing(_pluginName);
 
-					window.plugins.nuancePlugin.recognizeNoEOS(
+					nuancePlugin.startRecord(
 							languageManager.getLanguageConfig(_pluginName),
 							successCallbackWrapper(successCallback),
 							failureCallbackWrapper(failureCallback),
-							intermediate_results
+							intermediate_results, isUseLongPauseForIntermediate
 					);
 				},
 				/**
@@ -410,7 +479,7 @@ newMediaPlugin = {
 				 */
 				stopRecord: function(successCallback,failureCallback){
 					repeat = false;
-					window.plugins.nuancePlugin.stopRecord(
+					nuancePlugin.stopRecord(
 							successCallbackWrapper(successCallback),
 							failureCallbackWrapper(failureCallback)
 					);
@@ -422,10 +491,11 @@ newMediaPlugin = {
 				 */
 				recognize: function(successCallback,failureCallback){
 					repeat = false;
+					error_counter = 0;
 
 					mediaManager._preparing(_pluginName);
 
-					window.plugins.nuancePlugin.recognize(
+					nuancePlugin.recognize(
 							languageManager.getLanguageConfig(_pluginName),
 							successCallbackWrapper(successCallback),
 							failureCallbackWrapper(failureCallback)
@@ -439,14 +509,15 @@ newMediaPlugin = {
 				cancelRecognition: function(successCallBack,failureCallBack){
 					last_result = void(0);
 					repeat = false;
+					error_counter = 0;
 
 					mediaManager._ready(_pluginName);
 
-					window.plugins.nuancePlugin.cancelRecognition(successCallBack, failureCallBack);
+					nuancePlugin.cancelRecognition(successCallBack, failureCallBack);
 				},
 				getMicLevels: function(successCallback,failureCallback){
 
-					window.plugins.nuancePlugin.getMicLevels(
+					nuancePlugin.getMicLevels(
 							successCallback,
 							failureCallback
 					);

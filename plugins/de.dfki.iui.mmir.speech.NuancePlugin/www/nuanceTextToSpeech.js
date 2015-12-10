@@ -1,5 +1,5 @@
 /*
- * 	Copyright (C) 2012-2013 DFKI GmbH
+ * 	Copyright (C) 2012-2015 DFKI GmbH
  * 	Deutsches Forschungszentrum fuer Kuenstliche Intelligenz
  * 	German Research Center for Artificial Intelligence
  * 	http://www.dfki.de
@@ -26,7 +26,7 @@
 
 /**
  * part of Cordova plugin: de.dfki.iui.mmir.NuancePlugin
- * @version 0.7.0
+ * @version 0.12.0
  * @ignore
  */
 newMediaPlugin = {
@@ -54,6 +54,63 @@ newMediaPlugin = {
 			 */
 			var commonUtils = require('commonUtils');
 			
+			/** 
+			 * @type NuancePlugin
+			 * @memberOf NuanceAndroidTextToSpeech#
+			 */
+			var nuancePlugin = window.plugins.nuancePlugin;
+			
+			/** 
+			 * @type Enum<String>
+			 * @memberOf NuanceAndroidTextToSpeech#
+			 */
+			var return_types = {
+					"TTS_BEGIN": "TTS_BEGIN",
+					"TTS_DONE": "TTS_DONE"
+			};
+			
+			/** 
+			 * @type Function
+			 * @memberOf NuanceAndroidTextToSpeech#
+			 */
+			function createSuccessWrapper(onEnd, onStart){
+				return function(msg){
+					
+					var isHandled = false;
+					if(msg){
+						
+						if(msg.type === return_types.TTS_BEGIN){
+							isHandled = true;
+							if(onStart){
+								onStart(msg.message);
+							} else {
+								console.debug('NuanceTTS.js: started.');//FIXME debug (use mediamanager's logger instead)
+							}
+						}
+						else if(msg.type === return_types.TTS_DONE){
+							isHandled = true;
+							if(onEnd){
+								onEnd(msg.message);
+							} else {
+								console.debug('NuanceTTS.js: finished.');//FIXME debug (use mediamanager's logger instead)
+							}
+						}
+					}
+					
+					if(isHandled === false) {
+						//DEFALT: treat callback-invocation as DONE callback
+						
+						console.warn('NuanceTTS.js: success-callback invoked without result / specific return-message.');//FIXME debug (use mediamanager's logger instead)
+						
+						if(onEnd){
+							onEnd();
+						} else {
+							console.debug('NuanceTTS.js: finished.');//FIXME debug (use mediamanager's logger instead)
+						}
+					}
+				};
+			}
+			
 			//invoke the passed-in initializer-callback and export the public functions:
 			callBack({
 					/**
@@ -76,19 +133,15 @@ newMediaPlugin = {
 				    			text = parameter;
 				    		}
 				    		
-					    	window.plugins.nuancePlugin.speak(
-					    			text, 
-					    			successCallBack, 
-					    			failureCallBack,
-					    			languageManager.getLanguageConfig(_pluginName, 'language', _langSeparator)
-					    			//TODO get & set voice (API in plugin is missing for that ... currently...)
-					    			//, languageManager.getLanguageConfig(_pluginName, 'voice')
+					    	nuancePlugin.tts(
+					    			text,
+					    			languageManager.getLanguageConfig(_pluginName, 'language', _langSeparator),
+					    			//TODO get & set voice (API in plugin is missing for that ... currently...):
+					    			//languageManager.getLanguageConfig(_pluginName, 'voice'),
+					    			createSuccessWrapper(successCallBack, startCallBack), 
+					    			failureCallBack
 					    	);
 					    	
-					    	//TODO implement real start-callback (needs to be done within java-/javascript-plugin)
-					    	if(startCallBack){
-					    		startCallBack();
-					    	}
 				    	} catch(e){
 				    		if(failureCallBack){
 				    			failureCallBack(e);
@@ -103,7 +156,7 @@ newMediaPlugin = {
 					 */
 	    			cancelSpeech: function(successCallBack,failureCallBack){
 	    				
-	    				window.plugins.nuancePlugin.cancelSpeech(successCallBack, failureCallBack);
+	    				nuancePlugin.cancelSpeech(successCallBack, failureCallBack);
 	    				
 	    			},
 					setTextToSpeechVolume: function(newValue){

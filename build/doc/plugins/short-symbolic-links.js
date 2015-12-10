@@ -1,7 +1,15 @@
 /**
-* Transform '{@link #x}' to '{@link longname#x x}'.
+* 
+* Transforms '{@link #x}' to '{@link longname#x x}'.
+* 
+* Allow using shortened links for references within
+* the same context.
+* 
 *
 * This looks in @description and @classdesc tags only.
+* In addition, @see tags are either processed as 
+* "single links" (i.e. '#x', '.x', or '~x') or as
+* "description text" (i.e. containing {@link #x}).
 * 
 * original idea / code base from: https://gist.github.com/pnstickne/fb90239787bd74ca5753
 */
@@ -24,7 +32,7 @@ function expandLinks (text, scope) {
 
 function expandSeeTagPath(text, scope) {
 
-	//do not preceed, if there is link-tag:
+	//do not proceed, if there is link-tag:
 	if(/\{\s*@link\s+\S+\s*\}/g.test(text)){
 		return;
 	}
