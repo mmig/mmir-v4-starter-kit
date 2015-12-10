@@ -8,13 +8,19 @@
 	core.config({
 		
 		paths:{
-			//overwrite / replace MMIR config:
-			'jqViewEngine': '../appjs/jqViewEngine',
+			//overwrite / replace MMIR config values:
+			
+			//register a custom rendering module
+			// NOTE: the framework also needs to be configured to actually use it (see below for an example)
+			'jqViewEngine': '../appjs/jqSimpleViewEngine',
+			
 //			//overwrite framework's jQuery library with another version:
 //			'jquery': '../content/js/jquery-x.y.z',
 			
 //			//overwrite the framework's Layout implementation with an app-specific class:
 //			'layout': '../appjs/remoteLayout',
+			
+			'apprenderer': '../appjs/micrenderer',
 			
 			//register a 3rd party library
 			'jbox': '../content/js/jBox-v0.3.2'
@@ -54,6 +60,8 @@
 			}
 	});
 	
+	//this would set a "custom" rendering engine/implementation
+	// (the module "jqViewEngine" is registered above)
 //	core.viewEngine = 'jqViewEngine';
 	
 	core.logLevel = 'info';

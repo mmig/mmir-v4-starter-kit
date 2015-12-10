@@ -14,8 +14,69 @@ mmir.ready(function () {
 	initHistoryBackHandler();
 	//set default behavior for buttons:
     mmir.DialogManager.setOnPageRenderedHandler(executeAfterEachPageIsLoaded);
-    //start app by triggering INIT event on dialog-engine:
-    mmir.DialogManager.raise('init');
+    
+    // load/initialize the app asynchronously, an then "signal" the framework
+    // that it should start with the first page by firing the "init" event
+    require(['apprenderer', 'env'], function(renderFactory, env){
+    	
+    	//NOTE: need to set the canvas element in controller's on_page_load()
+    	mmir.app.renderer = renderFactory.createMicRenderer();
+    	mmir.app.rendererId = 'mic-renderer';
+    	mmir.app.renderer.id = mmir.app.rendererId;
+    	mmir.app.renderer.repaint = function(val){
+    		
+    		if(typeof val !== 'number'){
+    			val = 0;
+    		}
+    		
+    		var $canvas = $('#'+this.id);
+    		mmir.app.renderer.draw(val, $canvas);
+    	};
+    	
+    	var isCordova = env.isCordovaEnv;
+    	var isNuanceSpeech = false;
+    	var cordovaSpeechModules = mmir.ConfigurationManager.get('mediaManager.plugins.cordova', true, null);
+    	if(cordovaSpeechModules){
+    		for(var i=cordovaSpeechModules.length-1; i <= 0; --i){
+    			if(/nuanceAudioInput\.js/i.test(cordovaSpeechModules[i])){
+    				isNuanceSpeech = true;
+    				break;
+    			}
+    		}
+    	}
+    	
+    	mmir.MediaManager.on('miclevelchanged', function(micLevel){
+    		
+    		var max = 90;
+    		if(isCordova){
+    			
+    			//unfortunately we have to do some normalization for the various Speech plugins...
+    			
+    			//convert to positive values, if necessary (we are only interested in the absolute values)
+    			if(micLevel < 0){
+    				micLevel = -micLevel;
+    			}
+    			
+    			//normalize very small values to zero
+    			if(micLevel < 1){
+					micLevel = 0;
+				} else if(isNuanceSpeech){
+	    			max -= 20;
+	    			micLevel -= 20;
+				}
+    			
+    		}
+    		var scale = max/4;
+    		
+    		//map float-value [0, 90] to integer [0, 4]
+    		var val = parseInt(micLevel / scale);
+    		mmir.app.renderer.repaint(val);
+    	});
+    	
+        //start app by triggering INIT event on dialog-engine:	
+    	mmir.DialogManager.raise('init');
+    	
+    });
 
     
     //setup handler for BACK button (and for swipe-left gesture)
@@ -140,6 +201,45 @@ mmir.ready(function () {
     	
     	var isUseEndOfSpeechDetection = IS_WITH_END_OF_SPEECH_DETECTION;
     	
+    	var setActive = function(isActive){
+    		
+    		//add or remove the  active-class to mic-button:
+    		var func = isActive? 'add' : 'remove';
+    		$('#mic_button')[func+'Class']('footer_button_clicked');
+    		
+    		//reset microphone-levels visualization to 0
+    		mmir.app.renderer.repaint(0);
+    	};
+    	
+    	var isActive = function(){
+    		return $('#mic_button').hasClass('footer_button_clicked');
+    	};
+    	
+    	var evalSemantics = function(asr_result){
+    		
+    		mmir.SemanticInterpreter.getASRSemantic(asr_result, function(result){
+    			
+    			var semantic;
+	    		if(result.semantic != null) {
+	    			semantic = result.semantic;
+	    			semantic.phrase = asr_result;
+	    			console.log("semantic : " + result.semantic);
+	    		}
+	    		else {
+	    			
+	    			//create "no-match" semantic-object:
+	    			semantic = {
+	    				"NoMatch": {
+	    					"phrase": asr_result
+	    				}
+	    			};
+	    		}
+	    		
+	    		mmir.InputEngine.raise("speech_input_event",  semantic);
+			});
+    		
+    	};
+    	
     	var successFunc = function recognizeSuccess(asr_result, asr_score, asr_type, asr_alternatives, asr_unstable){
     		
     		console.log('[AudioInput] recoginition ('+asr_type+'): '  + JSON.stringify(asr_result));
@@ -150,11 +250,10 @@ mmir.ready(function () {
     		} else if(asr_type === 'FINAL'){
     			
     			//mark microphone button as in-active when recording is finished
-    			$('#mic_button').removeClass('footer_button_clicked');
+    			setActive(false);
     		}
     		
     		if(asr_result){
-    			
     			
     			if(
     				// a final ASR result
@@ -169,30 +268,42 @@ mmir.ready(function () {
         		){
     			
 		    		mmir.MediaManager.textToSpeech(asr_result,
-		    				function onFinished(){ console.debug('Synthesized "'+asr_result+'".');}, 
-		    				function onError(err){ console.error('Could not synthesize "'+asr_result+'": '+err);},
-		    				function onPrepared(){ console.debug('prepared TTS audio for "'+asr_result+'", starting to read now... ');}
+		    				
+		    				function onFinished(){
+		    			
+		    					console.debug('Synthesized "'+asr_result+'".');
+		    					
+		    					//after TTS finished, evaluate the semantics for the ASR result:
+		    					evalSemantics(asr_result);
+		    					
+		    				}, 
+		    				function onError(err){
+		    					
+		    					console.error('Could not synthesize "'+asr_result+'": '+err);
+		    					
+		    					//if there was an TTS error, try to evaluate the semantics anyway:
+		    					evalSemantics(asr_result);
+		    					
+		    				},
+		    				function onPrepared(){
+		    					console.debug('prepared TTS audio for "'+asr_result+'", starting to read now... ');
+		    				}
 		    		);
+		    		
     			}
-	
-	    		mmir.SemanticInterpreter.getASRSemantic(asr_result, function(result){
-		    		if (result.semantic != null) {
-		    			semantic = result.semantic;
-		    			semantic.phrase = asr_result;
-		    			console.log("semantic : " + result.semantic);
-		    		}
-		    		else {
-		    			semantic = { "NoMatch": { "phrase": asr_result }};
-		    		}
-		    		mmir.InputEngine.raise("speech_input_event",  semantic);
-    			});
-    		
+    			else {
+    				//if ASR is not an "end-result", try to evaluate the semantics for the ASR result anyway:
+					evalSemantics(asr_result);
+    			}
+    			
     		}
     		
     	};
     	
     	var errorFunc = function recognizeError (err){
-    		$('#mic_button').removeClass('footer_button_clicked');
+
+    		setActive(false);
+
     		console.error('[AudioInput] Error while finishing recoginition: '+JSON.stringify(err));
     		
 
@@ -204,7 +315,7 @@ mmir.ready(function () {
 
     		
     		//WITHOUT end-of-speech-detection (i.e. manual stop by user interaction):	
-    		if ($('#mic_button').hasClass('footer_button_clicked')){
+    		if (isActive()){
 
     			console.log("[AudioInput] stop recoginition without automtic END OF SPEECH detection");
     			
@@ -215,14 +326,12 @@ mmir.ready(function () {
     			
     			console.log("[AudioInput] start recoginition without automtic END OF SPEECH detection");
     			
-    			$('#mic_button').addClass('footer_button_clicked');
+    			setActive(true);
+    			
     			mmir.MediaManager.startRecord(
-//    				function printResult(res){
-//    					console.log("[AudioInput] start recoginition: "  + res);
-//    				}
-    				successFunc//FIXME should have different call for start/start-and-receive-intermediate-results ...
-    				, function(err){
-    					$('#mic_button').removeClass('footer_button_clicked');
+    				successFunc, //FIXME should have different call for start/start-and-receive-intermediate-results ...
+    				function onError(err){
+    					setActive(false);
     					setTimeout(function(){errorFunc(err);}, 0);
     					alert('tts failed: '+err);
     				}
@@ -235,15 +344,15 @@ mmir.ready(function () {
 
     		console.log("[AudioInput] start recoginition with automatic END OF SPEECH detection");
     		
-    		if ($('#mic_button').hasClass('footer_button_clicked')){
+    		if (isActive()){
 
     			console.log("[AudioInput] speech recoginition with automtic END OF SPEECH detection: already in progress, stopping now...");
     			
     			mmir.MediaManager.stopRecord(
-    				function printResult(res){
+    				function onResult(res){
     					console.log("[AudioInput] MANUALLY stopped recoginition: "  + JSON.stringify(res));
     					successFunc(res);
-    				}, function(err){
+    				}, function onError(err){
     					console.log("[AudioInput] failed to MANUALLY stop recoginition: "  + err);
     					setTimeout(function(){errorFunc(err);}, 0);
     					alert('tts failed: '+err);
@@ -255,10 +364,9 @@ mmir.ready(function () {
     			
     			console.log("[AudioInput] starting recoginition with automatic END OF SPEECH detection now...");
     			
-    			$('#mic_button').addClass('footer_button_clicked');
-//    			setTimeout(function(){
-    				mmir.MediaManager.recognize(successFunc, errorFunc);
-//    			}, 1000);
+    			setActive(true);
+    			
+    			mmir.MediaManager.recognize(successFunc, errorFunc);
     		}
     	}
     }
