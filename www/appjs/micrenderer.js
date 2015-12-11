@@ -44,13 +44,13 @@ function createRenderer(canvasEl){
  * 
  * @memberOf mmir.starterkit.render.impl
  */
-var ch = 88.56109228346457;
+var ch = 67.22012976377954;
 /**
  * original width of the vector graphic (for scaling to canvas size)
  * 
  * @memberOf mmir.starterkit.render.impl
  */
-var cw = 74.1279987401575;
+var cw = 67.12133291338583;
 
 /**
  * The DOMElement Canvas on which the renderer will paint
@@ -180,13 +180,13 @@ function _render(ctx, ampl) {
 ctx.save();
 ctx.beginPath();
 ctx.moveTo(0,0);
-ctx.lineTo(74.1279987401575,0);
-ctx.lineTo(74.1279987401575,88.56109228346457);
-ctx.lineTo(0,88.56109228346457);
+ctx.lineTo(67.12133291338583,0);
+ctx.lineTo(67.12133291338583,67.22012976377954);
+ctx.lineTo(0,67.22012976377954);
 ctx.closePath();
 ctx.clip();
-ctx.translate(0,2.276357022878983e-7);
-ctx.scale(1.066666648538132,1.066666648538132);
+ctx.translate(0,2.472089732918903e-8);
+ctx.scale(1.0666666769440816,1.0666666769440816);
 ctx.translate(0,0);
 ctx.strokeStyle = 'rgba(0,0,0,0)';
 ctx.lineCap = 'butt';
@@ -195,7 +195,7 @@ ctx.miterLimit = 4;
 ctx.save();
 ctx.restore();
 ctx.save();
-ctx.translate(-311.23129,-131.19073);
+ctx.translate(-314.51516,-134.47573);
 ctx.save();
 ctx.transform(1.25,0,0,-1.25,43.856789,867.26273);
 ctx.save();
@@ -209,42 +209,9 @@ ctx.closePath();
 ctx.clip();
 ctx.save();
 ctx.translate(269.3706,561.0596);
-ctx.save();
-ctx.fillStyle = "#ffffff";
-ctx.strokeStyle = "rgba(0, 0, 0, 0)";
-ctx.beginPath();
-ctx.moveTo(0,0);
-ctx.bezierCurveTo(0,15.283,-12.389,27.673,-27.673,27.673);
-ctx.bezierCurveTo(-42.957,27.673,-55.346,15.282999999999998,-55.346,0);
-ctx.bezierCurveTo(-55.346,-12.538,-47.003,-23.114,-35.571,-26.515);
-ctx.lineTo(-27.673,-38.397);
-ctx.lineTo(-19.775999999999996,-26.515);
-ctx.bezierCurveTo(-8.343,-23.115,0,-12.538,0,0);
-ctx.fill();
-ctx.stroke();
-ctx.restore();
 ctx.restore();
 ctx.save();
 ctx.translate(269.3706,561.0596);
-ctx.save();
-ctx.fillStyle = "rgba(0, 0, 0, 0)";
-ctx.strokeStyle = "#656263";
-ctx.lineWidth = 0.25;
-ctx.lineCap = "butt";
-ctx.lineJoin = "miter";
-ctx.miterLimit = 10;
-ctx.beginPath();
-ctx.moveTo(0,0);
-ctx.bezierCurveTo(0,15.283,-12.389,27.673,-27.673,27.673);
-ctx.bezierCurveTo(-42.957,27.673,-55.346,15.282999999999998,-55.346,0);
-ctx.bezierCurveTo(-55.346,-12.538,-47.003,-23.114,-35.571,-26.515);
-ctx.lineTo(-27.673,-38.397);
-ctx.lineTo(-19.775999999999996,-26.515);
-ctx.bezierCurveTo(-8.343,-23.115,0,-12.538,0,0);
-ctx.closePath();
-ctx.fill();
-ctx.stroke();
-ctx.restore();
 ctx.restore();
 ctx.save();
 
