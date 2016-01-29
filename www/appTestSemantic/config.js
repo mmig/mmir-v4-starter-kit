@@ -49,7 +49,7 @@
 			, 'jison': 'mmirf/vendor/libs/jison'
 			, 'pegjs': 'mmirf/vendor/libs/peg-0.8.0'
 			, 'jsccGen':  'mmirf/env/grammar/jsccGenerator'
-			, 'jisonGen': 'mmirf/env/grammar/jisonGenerator'
+			, 'jisonGen': 'mmirf/env/grammar/jisonAsyncGenerator'
 			, 'pegjsGen': 'mmirf/env/grammar/pegjsGenerator'
 			
 			, 'jsonlint': 'appTestSemantic/libs/jsonlint-loc'
