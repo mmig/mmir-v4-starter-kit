@@ -100,13 +100,13 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 	GrammarModel.prototype.getCompiledGrammar = function(){
 //		return this.js;
 		if(this.gc){
-			return this.gc.getJSGrammar();
+			return this.gc.getGrammarSource();
 		}
 	};
 	GrammarModel.prototype.getIntermediateGrammar = function(){
 //		return this.def;
 		if(this.gc){
-			return this.gc.getJSCCGrammar();
+			return this.gc.getGrammarDef();
 		}
 	};
 	GrammarModel.prototype.getGrammarConverter = function(){

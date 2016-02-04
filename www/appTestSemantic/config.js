@@ -1,7 +1,9 @@
 
+var mmir = window.mmir || {};
+
 (function () {
     
-    require.config({
+    mmir.require = require.config({
     	
     	debugMode: true,
     	
@@ -48,9 +50,13 @@
 			, 'jscc':  'mmirf/vendor/libs/jscc-amd'
 			, 'jison': 'mmirf/vendor/libs/jison'
 			, 'pegjs': 'mmirf/vendor/libs/peg-0.8.0'
+			, 'asyncGen': 'mmirf/env/grammar/asyncGenerator'
 			, 'jsccGen':  'mmirf/env/grammar/jsccGenerator'
-			, 'jisonGen': 'mmirf/env/grammar/jisonAsyncGenerator'
+			, 'jsccAsyncGen':  'mmirf/env/grammar/jsccAsyncGenerator'
+			, 'jisonAsyncGen': 'mmirf/env/grammar/jisonAsyncGenerator'
+			, 'jisonGen': 'mmirf/env/grammar/jisonGenerator'
 			, 'pegjsGen': 'mmirf/env/grammar/pegjsGenerator'
+			, 'pegjsAsyncGen': 'mmirf/env/grammar/pegjsAsyncGenerator'
 			
 			, 'jsonlint': 'appTestSemantic/libs/jsonlint-loc'
 			, 'esprima' : 'appTestSemantic/libs/esprima'
@@ -87,6 +93,6 @@
     });
 
     //start application:
-    require(['app']);
+    mmir.require(['app']);
 
 }());

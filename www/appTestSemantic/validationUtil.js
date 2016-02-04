@@ -462,7 +462,7 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 		var grammarId = viewModel.id;
 		if (currentGrammar.executeGrammar.hasErrors) {
 //			var jsparser = require('esprima');
-			var text = currentGrammar.getJSGrammar();
+			var text = currentGrammar.getGrammarSource();
 
 			try {
 				var syntax = jsparser.parse(text, {

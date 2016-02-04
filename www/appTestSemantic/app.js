@@ -8,12 +8,12 @@
   * @name TestGrammarApp
   */
 define(['require', 'jquery', 'mainView', 'appUtil'
-        , 'constants', 'commonUtils', 'languageManager', 'semanticInterpreter', 'grammarConverter'
+        , 'constants', 'commonUtils', 'languageManager', 'configurationManager', 'semanticInterpreter', 'grammarConverter'
         , 'mainView', 'validationUtil', 'checksumUtils', 'waitDialog'
         , 'initApp', 'w2ui'
     ], 
 function(require, $, view, util
-		, constants, commonUtils,languageManager,semanticInterpreter, GrammarConverter
+		, constants, commonUtils,languageManager, configurationManager,semanticInterpreter, GrammarConverter
 		, mainView, validationUtil, checksumUtils, waitDialog
 //		, init, w2ui //w2uipopup
 ){
@@ -173,7 +173,14 @@ function(require, $, view, util
 			}
 		};
 		
+		//include "synthetic" URL in generated compilers
+		// if browser/execution environments supports this feature, then the eval()'ed compilers will
+		// be available in the debugger at source-URL
+		configurationManager.set('grammar.jscc.genSourceUrl', true);
+		configurationManager.set('grammar.jison.genSourceUrl', true);
+		configurationManager.set('grammar.pegjs.genSourceUrl', true);
 
+		
 		////////////////// Initialize Sidebar: //////////////////////////
 		
 		var defLangViewModel, _tmpViewModel, _tmpId;
@@ -757,7 +764,7 @@ function(require, $, view, util
 		
 		//do not proceed, if we already have the compiled JavaScript
 		var gc = viewModel.getGrammarConverter();
-		if(gc && gc.getJSCCGrammar() && gc.getJSGrammar()){// && gc == semanticInterpreter.getGrammarConverter(viewModel.id)){
+		if(gc && gc.getGrammarDef() && gc.getGrammarSource()){// && gc == semanticInterpreter.getGrammarConverter(viewModel.id)){
 			semanticInterpreter.addGrammar(viewModel.id, gc /*FIXME need to set file-format-version!!! */);
 			doSetViewWithCompiledGrammar();
 			return;
@@ -1273,13 +1280,21 @@ function(require, $, view, util
 			view.setTestStopwordText(text);
 		}
 		
-		var res = semanticInterpreter.removeStopwords(text, 
-				viewModel.id);
+		var res;
+		try{
+			res = semanticInterpreter.removeStopwords(text, viewModel.id);
+		} catch (err){
+			view.printError('Could not remove stopwords in phrase "'+text+'": '+err);
+		}
+		
 
 		var res2;
-		if (isEnableAlternateStopwordProcessing) {
-			res2 = semanticInterpreter.removeStopwords_alt(sw_result
-					.toLowerCase(), getLanguage());
+		if (isEnableAlternateStopwordProcessing) { 
+			try{
+				res2 = semanticInterpreter.removeStopwords_alt(text, viewModel.id);
+			} catch (err){
+				view.printError('Could not remove stopwords (ALT METHOD) in phrase "'+text+'": '+err);
+			}
 		}
 		
 		view.clearStopwordTestResult();
