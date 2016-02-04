@@ -1,6 +1,6 @@
 (function(){
   var semanticInterpreter = require("semanticInterpreter");
-var fileFormatVersion = 3;
+var options = {fileFormat:4,execMode:"sync"};
 var grammarFunc = function(asr_recognized_text){
 var theGrammarConverterInstance = this;
 
@@ -737,7 +737,7 @@ __parse( asr_recognized_text, new Array(), new Array(), _semanticAnnotationResul
 return _semanticAnnotationResult.result;
 
 };
-semanticInterpreter.addGrammar("de", grammarFunc, fileFormatVersion);
+semanticInterpreter.addGrammar("de", grammarFunc, options);
 
 semanticInterpreter.setStopwords("de",["bitte"]);
 return grammarFunc;

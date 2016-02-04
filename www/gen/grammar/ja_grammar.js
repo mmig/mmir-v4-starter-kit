@@ -1,6 +1,6 @@
 (function(){
   var semanticInterpreter = require("semanticInterpreter");
-var fileFormatVersion = 3;
+var options = {fileFormat:4,execMode:"sync"};
 var grammarFunc = function(asr_recognized_text){
 var theGrammarConverterInstance = this;
 
@@ -513,7 +513,7 @@ __parse( asr_recognized_text, new Array(), new Array(), _semanticAnnotationResul
 return _semanticAnnotationResult.result;
 
 };
-semanticInterpreter.addGrammar("ja", grammarFunc, fileFormatVersion);
+semanticInterpreter.addGrammar("ja", grammarFunc, options);
 
 semanticInterpreter.setStopwords("ja",["\u304F\u3060\u3055\u3044","\u4E0B\u3055\u3044"]);
 return grammarFunc;
