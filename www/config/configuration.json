@@ -3,6 +3,7 @@
     "usePrecompiledViews": "false",
     "usePrecompiledGrammarsOnly": "true",
     "grammarCompiler": "jscc",
+    "ignoreGrammarFiles": ["ir", "sp"],
     
     "html5AudioInput": {
 	    "silenceDetector": {
