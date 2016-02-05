@@ -524,6 +524,7 @@ define(['jquery', 'viewModel', 'appUtil', 'validationUtil', 'w2ui'], function($,
 	 * @memberOf MainView.private
 	 */
 	function _printError(msg) {
+		w2ui.layout.show(CONSOLE_PANEL);
 		_printConsole("ERROR: " + msg, 'error');
 	}
 
