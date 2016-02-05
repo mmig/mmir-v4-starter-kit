@@ -1,6 +1,6 @@
 (function(){
   var semanticInterpreter = require("semanticInterpreter");
-var fileFormatVersion = 3;
+var options = {fileFormat:4,execMode:"sync"};
 var grammarFunc = function(asr_recognized_text){
 var theGrammarConverterInstance = this;
 
@@ -858,7 +858,7 @@ __parse( asr_recognized_text, new Array(), new Array(), _semanticAnnotationResul
 return _semanticAnnotationResult.result;
 
 };
-semanticInterpreter.addGrammar("en", grammarFunc, fileFormatVersion);
+semanticInterpreter.addGrammar("en", grammarFunc, options);
 
 semanticInterpreter.setStopwords("en",["in","switch","turn","turned","please","the","and"]);
 return grammarFunc;
