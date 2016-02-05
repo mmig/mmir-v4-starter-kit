@@ -47,10 +47,10 @@ var mmir = window.mmir || {};
 			//grammar related
 			, 'grammarConverter' : 'mmirf/semantic/grammarConverter'
 			, 'semanticInterpreter' : 'mmirf/semantic/semanticInterpreter'
+			, 'asyncGrammar': 'semantic/asyncGrammar'
 			, 'jscc':  'mmirf/vendor/libs/jscc-amd'
 			, 'jison': 'mmirf/vendor/libs/jison'
 			, 'pegjs': 'mmirf/vendor/libs/peg-0.8.0'
-			, 'asyncLoader': 'env/grammar/asyncLoader'
 			, 'asyncGen': 'mmirf/env/grammar/asyncGenerator'
 			, 'jsccGen':  'mmirf/env/grammar/jsccGenerator'
 			, 'jsccAsyncGen':  'mmirf/env/grammar/jsccAsyncGenerator'
