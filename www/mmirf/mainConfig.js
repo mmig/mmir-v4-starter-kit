@@ -127,12 +127,17 @@ var mmirf_config = {
     	//grammar related
 		, 'grammarConverter': 'semantic/grammarConverter'
 		, 'semanticInterpreter': 'semantic/semanticInterpreter'
+		, 'asyncGrammar': 'semantic/asyncGrammar'
 		, 'jscc':  'vendor/libs/jscc-amd'
 		, 'jison': 'vendor/libs/jison'
 		, 'pegjs': 'vendor/libs/peg-0.8.0'
-		, 'jsccGen':  'env/grammar/jsccGenerator'
+		, 'asyncGen': 'env/grammar/asyncGenerator'
+		, 'jsccGen': 'env/grammar/jsccGenerator'
+		, 'jsccAsyncGen': 'env/grammar/jsccAsyncGenerator'
 		, 'jisonGen': 'env/grammar/jisonGenerator'
+		, 'jisonAsyncGen': 'env/grammar/jisonAsyncGenerator'
 		, 'pegjsGen': 'env/grammar/pegjsGenerator'
+		, 'pegjsAsyncGen': 'env/grammar/pegjsAsyncGenerator'
 
 		//MD5 checksum computation: for checking pre-compiled resources, e.g.
 		//    grammars (JSON->JS), and templates (eHTML->JS)
