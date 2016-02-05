@@ -66,7 +66,7 @@ function(require, $, view, util
 	 * @type String
 	 * @memberOf TestGrammarApp
 	 */
-	var _initialGrammarGenerator;
+	var _initialGrammarGenerator = configurationManager.get('grammarCompiler', true, void(0));
 
 	/**
 	 * parse query/search string for grammar-generator "argument"
@@ -134,6 +134,11 @@ function(require, $, view, util
 		
 		if(_initialGrammarGenerator && _initialGrammarGenerator !== semanticInterpreter.getGrammarEngine()){
 			semanticInterpreter.setGrammarEngine(_initialGrammarGenerator);
+		}
+		
+		var grammarCompileMode = configurationManager.get('grammarAsyncCompileMode', true);
+		if(typeof grammarCompileMode !== 'undefined'){
+			semanticInterpreter.setEngineCompileMode(grammarCompileMode);
 		}
 		
 		var languageManager = mmir.LanguageManager.getInstance();
@@ -227,7 +232,7 @@ function(require, $, view, util
 			var currentGrammarId = currentGrammarModel.id;
 			
 			//FIX russa: need to remove GrammarConvert from SemanticInterpreter:
-			//    otherwise, the newly compiled grammar will modified the
+			//    otherwise, the newly compiled grammar will modify the
 			//    existing/registered grammar (with the same ID)
 			//    ... which would not be a problem, if we dicard the old grammar,
 			//    but in case of the Grammar Editor we may want to reload the
@@ -726,7 +731,10 @@ function(require, $, view, util
 		
 //		util.cleanInlineHandler();
 //		
-//		tool = util;//FIXME TEST
+		
+		//export showWait/hideWait to mainView
+//		mainView.showWaitDialog = _showLoader;
+		mainView.hideWaitDialog = _hideLoader;
 	};
 	
 	/**
