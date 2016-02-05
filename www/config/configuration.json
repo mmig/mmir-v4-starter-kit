@@ -3,6 +3,7 @@
     "usePrecompiledViews": "false",
     "usePrecompiledGrammarsOnly": "true",
     "grammarCompiler": "jscc",
+    "grammarAsyncCompileMode": true,
     "ignoreGrammarFiles": ["ir", "sp"],
     
     "html5AudioInput": {
