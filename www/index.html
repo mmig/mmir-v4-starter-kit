@@ -1,13 +1,8 @@
 <!DOCTYPE html>
 <html>
- <head>
 
-  <title>mmir-starter-kit</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!--
-  Copyright (C) 2012-2013 DFKI GmbH
+<!--
+  Copyright (C) 2012-2016 DFKI GmbH
   Deutsches Forschungszentrum fuer Kuenstliche Intelligenz
   German Research Center for Artificial Intelligence
   http://www.dfki.de
@@ -31,6 +26,20 @@
   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   -->
+  
+ <head>
+
+  <title>mmir-starter-kit</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!--   this CSP policy may need to be adjusted, see
+    	 https://github.com/apache/cordova-plugin-whitelist
+    	 
+    	 (NOTE 'unsafe-eval' in the http-equiv attribute is required by the MMIR framework)
+  -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: gap: https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *">
   
   <!-- auto-detect Cordova-environment and load its library if necessary: -->
   <script type="text/javascript" src="mmirf/tools/initCordova.js"></script>

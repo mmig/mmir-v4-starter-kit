@@ -423,6 +423,9 @@
            
 		    <string>
 		    	
+		    	//export require as requirejs:
+		    	var requirejs = require;
+		    	
 		        //set the framework's src-path from the build-properties file
                 //  (may be different than the default value in mainConfig.js)
                 var appSrcDir = '${jsSrcDirBase}';
