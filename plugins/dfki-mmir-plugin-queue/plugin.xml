@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin 
+    xmlns="http://cordova.apache.org/ns/plugins/1.0"
+    id="dfki-mmir-plugin-queue"
+    version="0.1.1">
+
+    <name>QueuePlugin</name>
+    
+    <keywords>cordova,scion,android</keywords>
+    
+    <description>
+      Cordova plugin that enables event queueing for SCION (SCXML interpreter) in Android. 
+    </description>
+    
+    <license>MIT</license>
+
+    <author>DFKI</author>
+
+    <engines>
+        <engine name="cordova" version=">=3.0" />
+    </engines>
+
+    <!-- android -->
+    <platform name="android">
+       <js-module src="www/queuePlugin.js" name="queuePlugin">
+          <clobbers target="window.cordova.plugins.queuePlugin" />
+       </js-module>
+
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="QueuePlugin">
+                <param name="android-package" value="de.dfki.iui.mmir.plugins.QueuePlugin" />
+            </feature>
+        </config-file>
+        
+        <source-file
+            src="src/android/de/dfki/iui/mmir/plugins/QueuePlugin.java"
+            target-dir="src/de/dfki/iui/mmir/plugins" />
+        
+    </platform>
+</plugin>
