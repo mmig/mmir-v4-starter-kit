@@ -97,7 +97,7 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
         this.handler = handler;
         this.id = id;
         this.audioFile = file;
-        this.recorder = new MediaRecorder();
+//        this.recorder = new MediaRecorder();//[CB-8020] DISABLED: do not create recorder on instance initialization, by lazily in startRecording()
 
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             this.tempFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmprecording.3gp";
@@ -140,6 +140,10 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
             break;
         case NONE:
             this.audioFile = file;
+            //[CB-8020] create recorder lazily, if it does not already exist:
+            if(this.recorder == null){
+                this.recorder = new MediaRecorder();
+            }
             this.recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             this.recorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT); // THREE_GPP);
             this.recorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT); //AMR_NB);
@@ -352,21 +356,32 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
         this.player.setOnCompletionListener(this);
         // seek to any location received while not prepared
         this.seekToPlaying(this.seekOnPrepared);
+        
+        // Save off duration
+        this.duration = getDurationInSeconds();//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (moved from below: use MEDIA_STARTING in sense of "media ready" -> duration already set when state-change is propagated)
+        // Send status notification to JavaScript
+        sendStatusChange(MEDIA_DURATION, null, this.duration);
+        
+        
+        this.setState(STATE.MEDIA_STARTING);//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (now set to MEDIA_STARTING in the sense of "media ready")
+        
         // If start playing after prepared
         if (!this.prepareOnly) {
             this.player.start();
             this.setState(STATE.MEDIA_RUNNING);
             this.seekOnPrepared = 0; //reset only when played
-        } else {
-            this.setState(STATE.MEDIA_STARTING);
-        }
-        // Save off duration
-        this.duration = getDurationInSeconds();
+        } 
+//        else {//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (moved up: send this state-update for auto-play too!) 
+//            this.setState(STATE.MEDIA_STARTING);
+//        }
+            
+//        // Save off duration
+//        this.duration = getDurationInSeconds();//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (moved above: use MEDIA_STARTING in sense of "media ready" -> duration already set when state-change is propagated)
         // reset prepare only flag
         this.prepareOnly = true;
 
-        // Send status notification to JavaScript
-        sendStatusChange(MEDIA_DURATION, null, this.duration);
+//        // Send status notification to JavaScript
+//        sendStatusChange(MEDIA_DURATION, null, this.duration);
     }
 
     /**
@@ -481,7 +496,7 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
                 case MEDIA_LOADING:
                     //cordova js is not aware of MEDIA_LOADING, so we send MEDIA_STARTING instead
                     Log.d(LOG_TAG, "AudioPlayer Loading: startPlaying() called during media preparation: " + STATE.MEDIA_STARTING.ordinal());
-                    this.prepareOnly = false;
+//                    this.prepareOnly = false;//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (disable: do not produce side-effects...)
                     return false;
                 case MEDIA_STARTING:
                 case MEDIA_RUNNING:
@@ -540,7 +555,8 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
             this.player.setAudioStreamType(AudioManager.STREAM_MUSIC);
             //if it's a streaming file, play mode is implied
             this.setMode(MODE.PLAY);
-            this.setState(STATE.MEDIA_STARTING);
+//            this.setState(STATE.MEDIA_STARTING);//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (send MEDIA_STARTING when prepared -> see onPrepared)
+            this.state = STATE.MEDIA_LOADING;//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (do not send state-change: JS does not know state LOADING / not part of the API spec.)
             this.player.setOnPreparedListener(this);
             this.player.prepareAsync();
         }
@@ -561,7 +577,9 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
                     this.player.setDataSource(Environment.getExternalStorageDirectory().getPath() + "/" + file);
                 }
             }
-                this.setState(STATE.MEDIA_STARTING);
+
+//                this.setState(STATE.MEDIA_STARTING);//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (send MEDIA_STARTING when prepared -> see onPrepared)
+                this.state = STATE.MEDIA_LOADING;//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (do not send state-change: JS does not know state LOADING / not part of the API spec.)
                 this.player.setOnPreparedListener(this);
                 this.player.prepare();
 
