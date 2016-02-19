@@ -27,6 +27,9 @@ import android.media.MediaRecorder;
 import android.os.Environment;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -94,7 +97,7 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
         this.handler = handler;
         this.id = id;
         this.audioFile = file;
-        this.recorder = new MediaRecorder();
+//        this.recorder = new MediaRecorder();//[CB-8020] DISABLED: do not create recorder on instance initialization, by lazily in startRecording()
 
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             this.tempFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/tmprecording.3gp";
@@ -133,10 +136,14 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
         switch (this.mode) {
         case PLAY:
             Log.d(LOG_TAG, "AudioPlayer Error: Can't record in play mode.");
-            this.handler.webView.sendJavascript("cordova.require('org.apache.cordova.media.Media').onStatus('" + this.id + "', "+MEDIA_ERROR+", { \"code\":"+MEDIA_ERR_ABORTED+"});");
+            sendErrorStatus(MEDIA_ERR_ABORTED);
             break;
         case NONE:
             this.audioFile = file;
+            //[CB-8020] create recorder lazily, if it does not already exist:
+            if(this.recorder == null){
+                this.recorder = new MediaRecorder();
+            }
             this.recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             this.recorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT); // THREE_GPP);
             this.recorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT); //AMR_NB);
@@ -152,11 +159,11 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
                 e.printStackTrace();
             }
 
-            this.handler.webView.sendJavascript("cordova.require('org.apache.cordova.media.Media').onStatus('" + this.id + "', "+MEDIA_ERROR+", { \"code\":"+MEDIA_ERR_ABORTED+"});");
+            sendErrorStatus(MEDIA_ERR_ABORTED);
             break;
         case RECORD:
             Log.d(LOG_TAG, "AudioPlayer Error: Already recording.");
-            this.handler.webView.sendJavascript("cordova.require('org.apache.cordova.media.Media').onStatus('" + this.id + "', "+MEDIA_ERROR+", { \"code\":"+MEDIA_ERR_ABORTED+"});");
+            sendErrorStatus(MEDIA_ERR_ABORTED);
         }
     }
 
@@ -227,7 +234,7 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
         if (this.readyPlayer(this.audioFile)) {
             this.player.seekTo(milliseconds);
             Log.d(LOG_TAG, "Send a onStatus update for the new seek");
-            this.handler.webView.sendJavascript("cordova.require('org.apache.cordova.media.Media').onStatus('" + this.id + "', " + MEDIA_POSITION + ", " + milliseconds / 1000.0f + ");");
+            sendStatusChange(MEDIA_POSITION, null, (milliseconds / 1000.0f));
         }
         else {
             this.seekOnPrepared = milliseconds;
@@ -246,7 +253,7 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
         }
         else {
             Log.d(LOG_TAG, "AudioPlayer Error: pausePlaying() called during invalid state: " + this.state.ordinal());
-            this.handler.webView.sendJavascript("cordova.require('org.apache.cordova.media.Media').onStatus('" + this.id + "', " + MEDIA_ERROR + ", { \"code\":" + MEDIA_ERR_NONE_ACTIVE + "});");
+            sendErrorStatus(MEDIA_ERR_NONE_ACTIVE);
         }
     }
 
@@ -262,7 +269,7 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
         }
         else {
             Log.d(LOG_TAG, "AudioPlayer Error: stopPlaying() called during invalid state: " + this.state.ordinal());
-            this.handler.webView.sendJavascript("cordova.require('org.apache.cordova.media.Media').onStatus('" + this.id + "', " + MEDIA_ERROR + ", { \"code\":" + MEDIA_ERR_NONE_ACTIVE + "});");
+            sendErrorStatus(MEDIA_ERR_NONE_ACTIVE);
         }
     }
 
@@ -284,7 +291,7 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
     public long getCurrentPosition() {
         if ((this.state == STATE.MEDIA_RUNNING) || (this.state == STATE.MEDIA_PAUSED)) {
             int curPos = this.player.getCurrentPosition();
-            this.handler.webView.sendJavascript("cordova.require('org.apache.cordova.media.Media').onStatus('" + this.id + "', " + MEDIA_POSITION + ", " + curPos / 1000.0f + ");");
+            sendStatusChange(MEDIA_POSITION, null, (curPos / 1000.0f));
             return curPos;
         }
         else {
@@ -300,7 +307,7 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
      * @return                  T=streaming, F=local
      */
     public boolean isStreaming(String file) {
-        if (file.contains("http://") || file.contains("https://")) {
+        if (file.contains("http://") || file.contains("https://") || file.contains("rtsp://")) {
             return true;
         }
         else {
@@ -349,21 +356,32 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
         this.player.setOnCompletionListener(this);
         // seek to any location received while not prepared
         this.seekToPlaying(this.seekOnPrepared);
+        
+        // Save off duration
+        this.duration = getDurationInSeconds();//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (moved from below: use MEDIA_STARTING in sense of "media ready" -> duration already set when state-change is propagated)
+        // Send status notification to JavaScript
+        sendStatusChange(MEDIA_DURATION, null, this.duration);
+        
+        
+        this.setState(STATE.MEDIA_STARTING);//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (now set to MEDIA_STARTING in the sense of "media ready")
+        
         // If start playing after prepared
         if (!this.prepareOnly) {
             this.player.start();
             this.setState(STATE.MEDIA_RUNNING);
             this.seekOnPrepared = 0; //reset only when played
-        } else {
-            this.setState(STATE.MEDIA_STARTING);
-        }
-        // Save off duration
-        this.duration = getDurationInSeconds();
+        } 
+//        else {//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (moved up: send this state-update for auto-play too!) 
+//            this.setState(STATE.MEDIA_STARTING);
+//        }
+            
+//        // Save off duration
+//        this.duration = getDurationInSeconds();//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (moved above: use MEDIA_STARTING in sense of "media ready" -> duration already set when state-change is propagated)
         // reset prepare only flag
         this.prepareOnly = true;
 
-        // Send status notification to JavaScript
-        this.handler.webView.sendJavascript("cordova.require('org.apache.cordova.media.Media').onStatus('" + this.id + "', " + MEDIA_DURATION + "," + this.duration + ");");
+//        // Send status notification to JavaScript
+//        sendStatusChange(MEDIA_DURATION, null, this.duration);
     }
 
     /**
@@ -391,7 +409,7 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
         this.player.release();
 
         // Send error notification to JavaScript
-        this.handler.webView.sendJavascript("cordova.require('org.apache.cordova.media.Media').onStatus('" + this.id + "', { \"code\":" + arg1 + "});");
+        sendErrorStatus(arg1);
         return false;
     }
 
@@ -402,7 +420,7 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
      */
     private void setState(STATE state) {
         if (this.state != state) {
-            this.handler.webView.sendJavascript("cordova.require('org.apache.cordova.media.Media').onStatus('" + this.id + "', " + MEDIA_STATE + ", " + state.ordinal() + ");");
+            sendStatusChange(MEDIA_STATE, null, (float)state.ordinal());
         }
         this.state = state;
     }
@@ -410,12 +428,12 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
     /**
      * Set the mode and send it to JavaScript.
      *
-     * @param state
+     * @param mode
      */
     private void setMode(MODE mode) {
         if (this.mode != mode) {
             //mode is not part of the expected behavior, so no notification
-            //this.handler.webView.sendJavascript("cordova.require('org.apache.cordova.media.Media').onStatus('" + this.id + "', " + MEDIA_STATE + ", " + mode + ");");
+            //this.handler.webView.sendJavascript("cordova.require('cordova-plugin-media.Media').onStatus('" + this.id + "', " + MEDIA_STATE + ", " + mode + ");");
         }
         this.mode = mode;
     }
@@ -451,7 +469,7 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
             break;
         case RECORD:
             Log.d(LOG_TAG, "AudioPlayer Error: Can't play in record mode.");
-            this.handler.webView.sendJavascript("cordova.require('org.apache.cordova.media.Media').onStatus('" + this.id + "', " + MEDIA_ERROR + ", { \"code\":" + MEDIA_ERR_ABORTED + "});");
+            sendErrorStatus(MEDIA_ERR_ABORTED);
             return false; //player is not ready
         }
         return true;
@@ -472,13 +490,13 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
                     try {
                         this.loadAudioFile(file);
                     } catch (Exception e) {
-                        this.handler.webView.sendJavascript("cordova.require('org.apache.cordova.media.Media').onStatus('" + this.id + "', "+MEDIA_ERROR+", { \"code\":"+MEDIA_ERR_ABORTED+"});");
+                        sendErrorStatus(MEDIA_ERR_ABORTED);
                     }
                     return false;
                 case MEDIA_LOADING:
                     //cordova js is not aware of MEDIA_LOADING, so we send MEDIA_STARTING instead
                     Log.d(LOG_TAG, "AudioPlayer Loading: startPlaying() called during media preparation: " + STATE.MEDIA_STARTING.ordinal());
-                    this.prepareOnly = false;
+//                    this.prepareOnly = false;//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (disable: do not produce side-effects...)
                     return false;
                 case MEDIA_STARTING:
                 case MEDIA_RUNNING:
@@ -487,24 +505,38 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
                 case MEDIA_STOPPED:
                     //if we are readying the same file
                     if (this.audioFile.compareTo(file) == 0) {
-                        //reset the audio file
-                        player.seekTo(0);
-                        player.pause();
-                        return true;
+                        //maybe it was recording?
+                        if(this.recorder!=null && player==null) {
+                            this.player = new MediaPlayer();
+                            this.prepareOnly = false;
+
+                            try {
+                                this.loadAudioFile(file);
+                            } catch (Exception e) {
+                                sendErrorStatus(MEDIA_ERR_ABORTED);
+                            }
+                            return false;//we´re not ready yet
+                        } 
+                        else {
+                           //reset the audio file
+                            player.seekTo(0);
+                            player.pause();
+                            return true; 
+                        } 
                     } else {
                         //reset the player
                         this.player.reset();
                         try {
                             this.loadAudioFile(file);
                         } catch (Exception e) {
-                            this.handler.webView.sendJavascript("cordova.require('org.apache.cordova.media.Media').onStatus('" + this.id + "', " + MEDIA_ERROR + ", { \"code\":" + MEDIA_ERR_ABORTED + "});");
+                            sendErrorStatus(MEDIA_ERR_ABORTED);
                         }
-                        //if we had to prepare= the file, we won't be in the correct state for playback
+                        //if we had to prepare the file, we won't be in the correct state for playback
                         return false;
                     }
                 default:
                     Log.d(LOG_TAG, "AudioPlayer Error: startPlaying() called during invalid state: " + this.state);
-                    this.handler.webView.sendJavascript("cordova.require('org.apache.cordova.media.Media').onStatus('" + this.id + "', " + MEDIA_ERROR + ", { \"code\":" + MEDIA_ERR_ABORTED + "});");
+                    sendErrorStatus(MEDIA_ERR_ABORTED);
             }
         }
         return false;
@@ -523,7 +555,8 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
             this.player.setAudioStreamType(AudioManager.STREAM_MUSIC);
             //if it's a streaming file, play mode is implied
             this.setMode(MODE.PLAY);
-            this.setState(STATE.MEDIA_STARTING);
+//            this.setState(STATE.MEDIA_STARTING);//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (send MEDIA_STARTING when prepared -> see onPrepared)
+            this.state = STATE.MEDIA_LOADING;//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (do not send state-change: JS does not know state LOADING / not part of the API spec.)
             this.player.setOnPreparedListener(this);
             this.player.prepareAsync();
         }
@@ -544,12 +577,43 @@ public class AudioPlayer implements OnCompletionListener, OnPreparedListener, On
                     this.player.setDataSource(Environment.getExternalStorageDirectory().getPath() + "/" + file);
                 }
             }
-                this.setState(STATE.MEDIA_STARTING);
+
+//                this.setState(STATE.MEDIA_STARTING);//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (send MEDIA_STARTING when prepared -> see onPrepared)
+                this.state = STATE.MEDIA_LOADING;//CB-6880 impl.: MODIFICATION use MEDIA_LOADING (do not send state-change: JS does not know state LOADING / not part of the API spec.)
                 this.player.setOnPreparedListener(this);
                 this.player.prepare();
 
                 // Get duration
                 this.duration = getDurationInSeconds();
             }
+    }
+
+    private void sendErrorStatus(int errorCode) {
+        sendStatusChange(MEDIA_ERROR, errorCode, null);
+    }
+
+    private void sendStatusChange(int messageType, Integer additionalCode, Float value) {
+
+        if (additionalCode != null && value != null) {
+            throw new IllegalArgumentException("Only one of additionalCode or value can be specified, not both");
+        }
+
+        JSONObject statusDetails = new JSONObject();
+        try {
+            statusDetails.put("id", this.id);
+            statusDetails.put("msgType", messageType);
+            if (additionalCode != null) {
+                JSONObject code = new JSONObject();
+                code.put("code", additionalCode.intValue());
+                statusDetails.put("value", code);
+            }
+            else if (value != null) {
+                statusDetails.put("value", value.floatValue());
+            }
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "Failed to create status details", e);
+        }
+
+        this.handler.sendEventMessage("status", statusDetails);
     }
 }

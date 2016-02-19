@@ -86,28 +86,31 @@
         }
     },
     "installed_plugins": {
-        "de.dfki.iui.mmir.QueuePlugin": {
+        "cordova-plugin-dialogs": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         },
-        "org.apache.cordova.file": {
+        "cordova-plugin-media": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         },
-        "org.apache.cordova.media": {
+        "cordova-plugin-file": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         },
-        "org.apache.cordova.network-information": {
+        "cordova-plugin-network-information": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         },
-        "org.apache.cordova.vibration": {
+        "cordova-plugin-vibration": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         },
-        "org.apache.cordova.dialogs": {
+        "cordova-plugin-whitelist": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         },
-        "de.dfki.iui.mmir.speech.AndroidSpeech": {
+        "dfki-mmir-plugin-queue": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         },
-        "de.dfki.iui.mmir.speech.NuancePlugin": {
+        "dfki-mmir-plugin-speech-android": {
+            "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
+        },
+        "dfki-mmir-plugin-speech-nuance": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         }
     },
