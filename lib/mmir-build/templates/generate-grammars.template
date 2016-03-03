@@ -76,7 +76,7 @@ function doLoadAppConfig(define){
 //setup and init PEG.js
 (function(){
 	
-{peg_0_8_0|s}
+{peg_0_9_0|s}
 
 	definejs('pegjs',  function(){ return PEG; });
 						
