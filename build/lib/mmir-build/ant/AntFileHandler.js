@@ -39,11 +39,10 @@
 
 importClass(java.io.File);
 importClass(java.io.FileInputStream);
-//importClass(java.io.FileWriter);
 importClass(java.io.InputStreamReader);
 importClass(java.io.OutputStreamWriter);
 importClass(java.io.FileOutputStream);
-importClass(java.io.LineNumberReader);
+importClass(java.io.BufferedReader);
 
 
 var isDebugOutput = typeof isDebugOutput !== 'undefined'? isDebugOutput : true; 
@@ -59,22 +58,24 @@ function loadLocalFile(path, type){
 		throw new Error('error reading file '+path+': file does not exist!');
 	}
 	
-	var r = new LineNumberReader(new InputStreamReader( new FileInputStream(f), 'UTF-8'));
-	
-	var line;
-	var theJSONgrammarString = '';
-	while ((line = r.readLine()) != null) {
-		theJSONgrammarString += line;
+	var r = new BufferedReader(new InputStreamReader( new FileInputStream(f), 'UTF-8'));
+	var buf = java.lang.reflect.Array.newInstance(java.lang.Character.TYPE, 256);
+	var len = 0;
+	var res = [];
+	while ((len = r.read(buf)) !== -1) {
+		res.push(new java.lang.String(buf, 0, len));
 	}
 	r.close();
+	
+	var str = res.join('');
 	
 	if(isDebugOutput) console.log('read contents from file: '+path);
 	
 	if(type && type === 'text'){
-		return theJSONgrammarString;
+		return str;
 	}
 	
-	return JSON.parse(theJSONgrammarString);
+	return JSON.parse(str);
 }
 
 /*
@@ -116,4 +117,9 @@ function saveToFile(str, path, doNotOverWrite, doCreateMissingDirectories){
 	if(isDebugOutput) console.log('wrote String (len '+str.length+') to file: '+path);
 	
 	return true;
+}
+
+if(typeof definejs !== 'undefined'){
+	definejs('loadLocalFile', function(){ return loadLocalFile; });
+	definejs('saveToFile', function(){ return saveToFile; });
 }
