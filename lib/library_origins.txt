@@ -18,9 +18,16 @@ Apache Batik (Apache License 2.0)
 requirejs (MIT and/or BSD license: cf. comment/license notice in file)
 * r.js
 
-jquery-deferred for NodeJS (MIT license: cf. Readme.md file)
+jquery-deferred for Node.js (MIT license: cf. Readme.md file)
 * nodejs-jquery-deferred/*
 
 jsonlint (MIT license: cf. comments in *.js files)
 * jsonlint.parser.js
 * jsonlint.parser.min.js
+
+dust for Node.js (MIT license: cf. LICENSE file)
+* nodejs-dust/*
+  (NOTE: slightly modified by DFKI/russa file /lib/server.js; original file included at /lib/server.js_ORIGINAL)
+
+properties for Node.js (MIT license: cf. LICENSE file)
+* nodejs-properties/*
