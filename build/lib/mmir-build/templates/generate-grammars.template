@@ -1,0 +1,152 @@
+
+{!InitNodeJsEnv|s!}
+{!InitGrammarGeneratorNodeJsEnv|s!}
+{!NodeJsFileHandler|s!}
+
+//export require as requirejs:
+var requirejs = require;
+
+//set the framework's src-path from the build-properties file
+//  (may be different than the default value in mainConfig.js)
+var appSrcDir = '{jsSrcDirBase|s|url}';
+require.config({
+	baseUrl: './' + appSrcDir,
+	paths: {'core': 'core'}
+});
+
+require(['core'], function(core){
+
+	//define "auto-start" module for starting the template processing
+	// (gets triggered after main-config for requirejs is was applied)
+	definejs('doStartBuildProc', function(){
+		//now: do start the build process:
+		doStartBuildEnv();
+	});
+	core.startModule = 'doStartBuildProc';
+	
+	//disable tracing in logger-module: (current library stacktrace.js does not support nodejs / TODO repl. with https://www.npmjs.com/package/stack-trace in nodejs env)
+	core.logTrace = false;
+	
+	//configure replacement / build-stub implementations:
+	var buildLibDir = '{buildDirLib|s|url}mmir-build/';
+	
+	//...determine correct build/ sub-dir by analysing the main-app's dir:
+	var appDirParts = appSrcDir.split('/');
+	for(var i=0, size=appDirParts.length; i+1 != size; ++i){
+		if(appDirParts[i] !== '.'){
+			buildLibDir = '../' + buildLibDir;
+		}
+	}
+	
+	//set the paths for the build-implementations:
+	var buildPaths = {
+		  'jquery': buildLibDir+'jqueryDummy'
+		, 'jqueryajax': buildLibDir+'jqueryAjaxDummy'
+		, 'env': buildLibDir+'envDetectBuild'
+		, 'jqm': buildLibDir+'jqueryMobileDummy'
+	};
+	
+	if(!{isAntTargetStr|s}){
+		//remove PEG.js / Jison depenencies
+		//  (need to be initialized separately, since requirejs.shim does not work in nodejs; see below)
+		buildPaths.pegjs = void(0);
+		buildPaths.jison = void(0);
+	}
+	
+	
+	core.config({
+		baseUrl: './' + appSrcDir,
+		paths: buildPaths
+	});
+	
+	//load main-config for requirejs
+	// (also triggers the auto-start module)
+	doLoadAppConfig(require.define);
+});
+
+//apply main-config for requirejs 
+// (need to pass in requirejs' define as argument "define")
+function doLoadAppConfig(define){
+
+{mainConfig|s}
+
+}
+
+
+//setup and init PEG.js
+(function(){
+	
+{peg_0_8_0|s}
+
+	definejs('pegjs',  function(){ return PEG; });
+						
+})();
+
+//setup and init Jison
+var _bnf;
+(function(){
+	
+{jison|s}
+	
+	_bnf = bnf;
+	definejs('jison',  function(){ return Jison; });
+						
+})();
+
+//encapsule build-process (gets triggered after build-paths are configured; see above)
+function doStartBuildEnv(){
+
+	//build AMD module for CryptoJS/md5 library:
+	definejs('md5impl', function(){
+	
+{md5|s}
+
+		return CryptoJS;
+	});
+	
+	definejs('jsonlint', function(){
+
+{!-- ... and an AMD module for the jsonlint parser ... !}
+{jsonlint_parser|s}
+
+		return jsl.parser;
+	});
+					
+	var checksumUtils;	    		
+	var jsl;
+	
+	// * load dependencies (SemanticInterpreter, jQuery) 
+	// * setup JSON parser (for creating detailed error messages)
+	// * initialize checksum-utils (with loaded dependencies)
+	require(['constants', 'jqueryajax'], function(constants){
+
+		//fix base-dir location (since we do not execute from the main web-directory)
+		constants.init('{baseDir|s|url}www/');
+
+		require(['pegjs', 'jison', 'semanticInterpreter', 'jquery', 'jsonlint', 'md5impl','checksumUtils','configurationManager'], function(){
+			
+			
+			var bnf = _bnf;
+			var Jison = require('jison');
+			
+			jsl = {
+				parser: require('jsonlint')
+			};
+			
+			//load deferred-impl. via node's require function:
+			var jqueryDeferred = jqueryDeferred || requiren(jqueryDeferredModuleUri);
+			
+			//attach deferred-impl. to jquery:
+			jqueryDeferred.extend(require('jquery'), jqueryDeferred);
+			
+			checksumUtils = require('checksumUtils');
+			checksumUtils.init( require('md5impl') );
+			
+			//start the standalone-grammar parser / generator: 
+			
+{StandaloneSemanticParserCompileExec|s}
+
+		});
+	});
+	
+}//END: doStartBuild(){..

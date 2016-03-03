@@ -40,8 +40,12 @@ console.debug = function(){};
 
 //retrieve command-line argument for assets-path -> create base-path
 var theBasePath = theArguments[2] + 'www/';
+var theLibPath = theArguments[3];
 
 forBrowser = theBasePath;
 
 IS_DEBUG_ENABLED = false;
 isDebugOutput = false;
+
+var jqueryDeferredModuleUri = theLibPath+'nodejs-jquery-deferred/index.js';
+

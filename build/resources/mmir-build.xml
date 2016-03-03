@@ -53,6 +53,7 @@
 		</classpath>
 	</taskdef>
 	
+	
 	<!-- ############# Main Build Targets ############# -->
 	
 	<target name="clean" depends="cleanTemp,cleanEngine,cleanGrammars" description="remove temporary and generated files (input-/dialog-engine, grammars)">
@@ -195,6 +196,50 @@
 	<target name="createTempCompileDir" description="Create directory for temporary files">
 	    <mkdir dir="${buildDirTempJS}" />
 	</target>
+	
+
+	<!-- ############# Build ANT Templates Targets: create templates / ANT scripts that generate the base script for grammars/views ############# -->
+	
+	<!--
+		NOTE these need to be executed when the grammar-/views-generator templates were changes in
+		build/lib/mmir-lib/templates/*
+	-->
+
+	<import file="${antScriptGrammarsTemplate}"/>
+	
+	<property name="exec.js.compile.ant.grammars.template" value="${jsBuildDirBase}generator/build-standalone-grammar-gen.js" />
+	<property name="exec.js.compile.ant.views.template" value="${jsBuildDirBase}generator/build-standalone-view-gen.js" />
+
+	<target name="createBaseAntTemplates" depends="createBaseGrammarsAntTemplates,createBaseViewsAntTemplates">
+		<echo message="created ANT generator templates." />
+	</target>
+	
+	<target name="createBaseGrammarsAntTemplates" depends="checkNodeJsAvailable">
+			
+		<echo message="Running node.js environment with script file &quot;${exec.js.compile.ant.grammars.template}&quot; and argument &quot;true&quot;" />
+		
+		<exec executable="${exec.nodejs}" failonerror="true">
+			<arg value="${exec.js.compile.ant.grammars.template}"/>
+			<arg value="true"/>
+        </exec>
+		
+		<echo message="created ANT generator template for grammars." />
+		
+	</target>
+	
+	<target name="createBaseViewsAntTemplates" depends="checkNodeJsAvailable">
+			
+		<echo message="Running node.js environment with script file &quot;${exec.js.compile.ant.views.template}&quot; and argument &quot;true&quot;" />
+		
+		<exec executable="${exec.nodejs}" failonerror="true">
+			<arg value="${exec.js.compile.ant.views.template}"/>
+			<arg value="true"/>
+        </exec>
+		
+		<echo message="created ANT generator template for views." />
+		
+	</target>
+	
 	
 	<!-- ############# Build Targets: compile DialogEngine (with up-to-date check) ############# -->
 
@@ -415,165 +460,19 @@
 						with the default JavaScript environment.
 	 -->
 	 
-	<target name="createBaseParserScriptFile" depends="createTempCompileDir">
-		<echo message="Building base script file ${base.js.compile.grammar.parser.generator} for compiling GrammarParser..." />
-	    <mkdir dir="${buildDir}" />
-	    <mkdir dir="${buildDirBin}" />
-		<concat destfile="${base.js.compile.grammar.parser.generator}" fixlastline="true" outputencoding="UTF-8">
-           
-		    <string>
-		    	
-		    	//export require as requirejs:
-		    	var requirejs = require;
-		    	
-		        //set the framework's src-path from the build-properties file
-                //  (may be different than the default value in mainConfig.js)
-                var appSrcDir = '${jsSrcDirBase}';
-                require.config({
-                	baseUrl: './' + appSrcDir,
-                	paths: {'core': 'core'}
-                });
-		    	
-                require(['core'], function(core){
-                
-                	//define "auto-start" module for starting the template processing
-                	// (gets triggered after main-config for requirejs is was applied)
-                	definejs('doStartBuildProc', function(){
-                		//now: do start the build process:
-	                	doStartBuildEnv();
-                	});
-					core.startModule = 'doStartBuildProc';
-					
-					//disable tracing in logger-module: (current library stacktrace.js does not support nodejs / TODO repl. with https://www.npmjs.com/package/stack-trace in nodejs env)
-					core.logTrace = false;
-					
-	                //configure replacement / build-stub implementations:
-	                var buildLibDir = '${buildDirLib}mmir-build/';
-	                
-	                //...determine correct build/ sub-dir by analysing the main-app's dir:
-	                var appDirParts = appSrcDir.split('/');
-	                for(var i=0, size=appDirParts.length; i+1 != size; ++i){
-	                	if(appDirParts[i] !== '.'){
-	                		buildLibDir = '../' + buildLibDir;
-	                	}
-	                }
-	                
-	                //set the paths for the build-implementations:
-	                core.config({
-	                	baseUrl: './' + appSrcDir,
-		                paths: {
-		                	  'jquery': buildLibDir+'jqueryDummy'
-		 					, 'jqueryajax': buildLibDir+'jqueryAjaxDummy'
-		 					, 'env': buildLibDir+'envDetectBuild'
-		 					, 'jqm': buildLibDir+'jqueryMobileDummy'
-		    				
-		    				//remove PEG.js / Jison depenencies
-		    				//  (need to be initialized separately, since requirejs.shim does not work in nodejs; see below)
-		    				, 'pegjs': void(0)
-		    				, 'jison': void(0)
-		                }
-	                });
-	                
-	                //load main-config for requirejs
-	                // (also triggers the auto-start module)
-	                doLoadAppConfig(require.define);
-				});
-				
-				//apply main-config for requirejs 
-				// (need to pass in requirejs' define as argument "define")
-				function doLoadAppConfig(define){
-            </string>
-            <fileset dir="${jsSrcDirBase}"             includes="mainConfig.js" />
-            <string>
-                }
-            	
-            	
-            	//setup and init PEG.js
-            	(function(){
-    				
-	    	</string>
-	        <fileset dir="${jsSrcDirBase}vendor/libs"       includes="peg-0.8.0.js" />
-	    	<string>
-    	    
-	    			definejs('pegjs',  function(){ return PEG; });
-	    				    			
-	    		})();
-	    		
-            	//setup and init Jison
-	    		var _bnf;
-            	(function(){
-    				
-	    	</string>
-	        <fileset dir="${jsSrcDirBase}vendor/libs"       includes="jison.js" />
-	    	<string>
-	    			
-    	    		_bnf = bnf;
-	    			definejs('jison',  function(){ return Jison; });
-	    				    			
-	    		})();
-                
-                //encapsule build-process (gets triggered after build-paths are configured; see above)
-				function doStartBuildEnv(){
-            	
-					//build AMD module for CryptoJS/md5 library:
-                	definejs('md5impl', function(){
-            </string>
-			<fileset dir="${jsSrcDirBase}vendor/libs"  includes="md5.js" />
-			<string>
-				    	return CryptoJS;
-				    });
-	                
-	                definejs('jsonlint', function(){
-	    	</string>
-            <!-- ... and an AMD module for the jsonlint parser ... -->
-			<fileset dir="${buildDirLib}"              includes="jsonlint.parser.js" />
-			<string>
-						return jsl.parser;
-					});
-				    	    		
-		    		var checksumUtils;	    		
-		    		var jsl;
-		    		
-		    		// * load dependencies (SemanticInterpreter, jQuery) 
-		    		// * setup JSON parser (for creating detailed error messages)
-		    		// * initialize checksum-utils (with loaded dependencies)
-					require(['constants', 'jqueryajax'], function(constants){
 
-						//fix base-dir location (since we do not execute from the main web-directory)
-						constants.init('${baseDir}www/');
-				
-			    		require(['pegjs', 'jison', 'semanticInterpreter', 'jquery', 'jsonlint', 'md5impl','checksumUtils','configurationManager'], function(){
-				    		
-							
-							var bnf = _bnf;
-							var Jison = require('jison');
-							
-				    		jsl = {
-				    			parser: require('jsonlint')
-				    		};
-							
-							//load deferred-impl. via node's require function:
-							var jqueryDeferred = requiren(theJsLibPath+'nodejs-jquery-deferred/index.js');
-							
-							//attach deferred-impl. to jquery:
-							jqueryDeferred.extend(require('jquery'), jqueryDeferred);
-				    		
-			    			checksumUtils = require('checksumUtils');
-			    			checksumUtils.init( require('md5impl') );
-			    			
-			    			//start the standalone-grammar parser / generator: 
-	    	</string>
-			<fileset dir="${jsBuildDirBase}ant"         includes="StandaloneSemanticParserCompileExec.js" />
-			<string>
-			    
-			    		});
-					});
-		    		
-		    	}//END: doStartBuild(){..
-	    	</string>
-        </concat>
-		<echo message="${base.js.compile.grammar.parser.generator} built." />
+	<target name="createBaseParserScriptFileNodeJs" depends="checkNodeJsAvailable,createTempCompileDir">
+					
+			<echo message="Running node.js environment with script file &quot;${exec.js.compile.ant.grammars.template}&quot; and no arguments" />
+			
+			<exec executable="${exec.nodejs}" failonerror="true">
+				<arg value="${exec.js.compile.ant.grammars.template}"/>
+	        </exec>
+			
+			<echo message="created generator script for grammars." />
+			
 	</target>
+	
 	
 	<target name="cleanTempFilesGrammarParserGenerator" description="Clean temporary files that where created when compiling the GrammarParser">
 		<echo message="Deleting temporary files in ${buildDirTempJS}..." />
@@ -652,7 +551,7 @@
 		</fail>
 	</target>
 
-	<target name="createGrammarParserGeneratorScriptFileRhino" depends="verifyRhinoAvailable,createBaseParserScriptFile">
+	<target name="createGrammarParserGeneratorScriptFileRhino" depends="verifyRhinoAvailable,createBaseParserScriptFileAnt">
 		<echo message="Building complete js file &quot;${exec.js.compile.grammar.parser.generator}&quot; for Rhino environment..." />
 		<concat destfile="${exec.js.compile.grammar.parser.generator}" fixlastline="true" outputencoding="UTF-8">
 			<fileset dir="${jsBuildDirBase}rhino" includes="InitRhinoEnv.js" />
@@ -668,9 +567,9 @@
 		description="Compile GrammarParserGenerator script with Rhino environment (slow)"
 		unless="${is.up.to.date.grammarjs}">
 
-		<echo message="Running Rhino environment with script file &quot;${exec.js.compile.grammar.parser.generator}&quot; and argument line &quot;-jar ${pathRhinoJar} -opt -1 ${exec.js.compile.grammar.parser.generator} ${grammarDefinitionJsonDir} ${grammarDefinitionJsonFile} ${grammarLanguageCode} ${outDirCompiledGrammar} ${outFileCompiledGrammar} ${buildDirLib}r.js ${execBuildLibDir}&quot;" />
+		<echo message="Running Rhino environment with script file &quot;${exec.js.compile.grammar.parser.generator}&quot; and argument line &quot;-jar ${pathRhinoJar} -opt -1 ${exec.js.compile.grammar.parser.generator} ${grammarDefinitionJsonDir} ${grammarDefinitionJsonFile} ${grammarLanguageCode} ${outDirCompiledGrammar} ${outFileCompiledGrammar} ${execBuildLibDir}&quot;" />
 		<exec executable="java" failonerror="true">
-			<arg line="-jar ${pathRhinoJar} -opt -1 ${exec.js.compile.grammar.parser.generator} ${grammarDefinitionJsonDir} ${grammarDefinitionJsonFile} ${grammarLanguageCode} ${outDirCompiledGrammar} ${outFileCompiledGrammar} ${buildDirLib}r.js ${execBuildLibDir}" />
+			<arg line="-jar ${pathRhinoJar} -opt -1 ${exec.js.compile.grammar.parser.generator} ${grammarDefinitionJsonDir} ${grammarDefinitionJsonFile} ${grammarLanguageCode} ${outDirCompiledGrammar} ${outFileCompiledGrammar} ${execBuildLibDir}" />
         </exec>
 	</target>
 	
@@ -765,7 +664,7 @@
 		</fail>
 	</target>
 
-	<target name="createGrammarParserGeneratorScriptFileNodeJs" depends="verifyNodeJsAvailable,createBaseParserScriptFile">
+	<target name="createGrammarParserGeneratorScriptFileNodeJs" depends="verifyNodeJsAvailable,createBaseParserScriptFileNodeJs">
 		<echo message="Building complete js file &quot;${exec.js.compile.grammar.parser.generator}&quot; for node.js environment..." />
 		<concat destfile="${exec.js.compile.grammar.parser.generator}" fixlastline="true" outputencoding="UTF-8">
 			<fileset dir="${jsBuildDirBase}nodejs" includes="InitNodeJsEnv.js" />
