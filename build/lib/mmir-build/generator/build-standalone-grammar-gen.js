@@ -46,7 +46,7 @@ properties.parse('mmir-build.properties', {path: true, variables: true}, functio
 		'NodeJsFileHandler.js': 					'${jsBuildDirBase}'+ (!isAntTarget? 'nodejs/NodeJsFileHandler.js' 				: 'ant/AntFileHandler.js'),
 		
 		'mainConfig.js': 							'${jsSrcDirBase}mainConfig.js',
-		'peg-0.8.0.js': 							'${jsSrcDirBase}vendor/libs/peg-0.8.0.js',
+		'peg-0.9.0.js': 							'${jsSrcDirBase}vendor/libs/peg-0.9.0.js',
 		'jison.js': 								'${jsSrcDirBase}vendor/libs/jison.js',
 		'md5.js': 									'${jsSrcDirBase}vendor/libs/md5.js',
 		'jsonlint.parser.js': 						'${buildDirLib}jsonlint.parser.js',
