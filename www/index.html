@@ -39,7 +39,7 @@
     	 (NOTE 'unsafe-eval' in the http-equiv attribute is required by the MMIR framework)
   -->
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: gap: https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *">
+        content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: gap: https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src * blob: file:">
   
   <!-- auto-detect Cordova-environment and load its library if necessary: -->
   <script type="text/javascript" src="mmirf/tools/initCordova.js"></script>
