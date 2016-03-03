@@ -50,7 +50,7 @@ var mmir = window.mmir || {};
 			, 'asyncGrammar': 'semantic/asyncGrammar'
 			, 'jscc':  'mmirf/vendor/libs/jscc-amd'
 			, 'jison': 'mmirf/vendor/libs/jison'
-			, 'pegjs': 'mmirf/vendor/libs/peg-0.8.0'
+			, 'pegjs': 'mmirf/vendor/libs/peg-0.9.0'
 			, 'asyncGen': 'mmirf/env/grammar/asyncGenerator'
 			, 'jsccGen':  'mmirf/env/grammar/jsccGenerator'
 			, 'jsccAsyncGen':  'mmirf/env/grammar/jsccAsyncGenerator'

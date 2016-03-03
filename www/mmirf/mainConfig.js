@@ -130,7 +130,7 @@ var mmirf_config = {
 		, 'asyncGrammar': 'semantic/asyncGrammar'
 		, 'jscc':  'vendor/libs/jscc-amd'
 		, 'jison': 'vendor/libs/jison'
-		, 'pegjs': 'vendor/libs/peg-0.8.0'
+		, 'pegjs': 'vendor/libs/peg-0.9.0'
 		, 'asyncGen': 'env/grammar/asyncGenerator'
 		, 'jsccGen': 'env/grammar/jsccGenerator'
 		, 'jsccAsyncGen': 'env/grammar/jsccAsyncGenerator'
@@ -147,6 +147,7 @@ var mmirf_config = {
 		//utility function for loading LINK tags (i.e. CSS files) into the current document
 		, 'loadCss' : 'tools/loadCss'
 
+		, 'jsonUtils' : 'tools/extensions/JsonUtils'
 	    , 'commonUtilsCompatibility' : 'tools/extensions/CommonUtilsCompatibility'
 	    , 'languageManagerCompatibility' : 'tools/extensions/LanguageManagerCompatibility'
 	    
