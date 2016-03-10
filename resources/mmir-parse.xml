@@ -58,7 +58,7 @@
 		<!-- Need to re-create filelist, since new files may have been created (or deleted).
 			 NOTE that inheritAll needs to be false in order to force re-reading of directories/files.
 		 -->
-		<antcall target="generateFileListJSONFile" inheritAll="false" />
+		<antcall target="generateFileListJSONFileRhino" inheritAll="false" />
 		<echo>Finished parsing templates (RHINO).</echo>
 	</target>
 	
