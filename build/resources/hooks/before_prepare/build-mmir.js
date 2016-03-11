@@ -38,10 +38,6 @@ module.exports.getAntArgs = function(cmd, buildFile) {
         // args.push('-Dout.dir=ant-build', '-Dgen.absolute.dir=ant-gen');
     // }
     
-    //ignore missing node-executable: no need to check for availability of NodeJS
-    //                                since we started the ANT task using node...
-    args.push('-DdoIgnoreMissingNodeJsPath=true');
-    
     return args;
 };
 
