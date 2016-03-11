@@ -181,13 +181,13 @@
 	</target>
 	
 	<target name="generateFileListJSONFileRhino" depends="createGeneratedGrammarParserDir,createCompiledDialogEngineDir,createCompiledInputEngineDir,createGeneratedTemplateDir,generateFileListJSONObjectRhino">
-		<echo>writing to file ${outputDirectoryParseFileJson}: ${JSONDirString}</echo>
+		<echo>writing directory structure to file ${outputDirectoryParseFileJson}...</echo>
 		<echo file="${outputDirectoryParseFileJson}">${JSONDirString}</echo>
 		<echo>Created file ${outputDirectoryParseFileJson}.</echo>
 	</target>
 	
 	<target name="generateFileListJSONFile" depends="createGeneratedGrammarParserDir,createCompiledDialogEngineDir,createCompiledInputEngineDir,createGeneratedTemplateDir,generateFileListJSONObject">
-		<echo>writing to file ${outputDirectoryParseFileJson}: ${JSONDirString}</echo>
+		<echo>writing directory structure to file ${outputDirectoryParseFileJson}...</echo>
 		<echo file="${outputDirectoryParseFileJson}">${JSONDirString}</echo>
 		<echo>Created file ${outputDirectoryParseFileJson}.</echo>
 	</target>
@@ -206,7 +206,7 @@
 	<!-- ############# Build ANT Templates Targets: create templates / ANT scripts that generate the base script for grammars/views ############# -->
 	
 	<!--
-		NOTE these need to be executed when the grammar-/views-generator templates were changes in
+		NOTE these need to be executed when the grammar-/views-generator templates were changed in
 		build/lib/mmir-lib/templates/*
 	-->
 
@@ -465,50 +465,52 @@
 						with the default JavaScript environment.
 	 -->
 	 
-
-	<target name="createBaseParserScriptFileNodeJs" depends="checkNodeJsAvailable,createTempCompileDir">
-					
-			<echo message="Running node.js environment with script file &quot;${exec.js.compile.ant.grammars.template}&quot; and no arguments" />
-			
-			<exec executable="${exec.nodejs}" failonerror="true">
-				<arg value="${exec.js.compile.ant.grammars.template}"/>
-	        </exec>
-			
-			<echo message="created generator script for grammars." />
-			
-	</target>
-	
-	
 	<target name="cleanTempFilesGrammarParserGenerator" description="Clean temporary files that where created when compiling the GrammarParser">
 		<echo message="Deleting temporary files in ${buildDirTempJS}..." />
         <delete dir="${buildDirTempJS}" />
 	</target>
 	
-	<target name="createGrammarLanguageListRhino" depends="generateFileListJSONObjectRhino" description="create comma-separated list with language codes for available JSON grammar files">
-				
-		<property name="file.script.generate.languagelist" location="${jsBuildDirBase}rhino/CreateGrammarLanguageList.js"/>
 
-		<echo message="Running Rhino environment with script file &quot;${exec.js.compile.grammar.parser.generator}&quot; and argument line &quot;-jar ${pathRhinoJar} -opt -1 ${file.script.generate.languagelist} ${grammarDefinitionJsonDir} ${grammarDefinitionJsonFile} ${outputDirectoryParseFileJson}&quot;" />
-		<exec executable="java" failonerror="true" outputproperty="grammarLanguageList" logError="true">
-			<arg line="-jar ${pathRhinoJar} -opt -1 ${file.script.generate.languagelist} ${grammarDefinitionJsonDir} ${grammarDefinitionJsonFile} ${outputDirectoryParseFileJson}" />
-        </exec>
-		<echo message="Language list for grammars: &quot;${grammarLanguageList}&quot;" />
+	<target name="-check-need-create-base-grammar-gen-file">
+
+		<condition property="is.create.base.grammar.gen.file" else="false">
+			        
+			<or>
+				<not>
+					<istrue value="${is.create.files.only.if.not.exist}"/>
+				</not>
+				<and>
+					<istrue value="${is.create.files.only.if.not.exist}"/>
+					<not>
+		    			<available property="is.create.base.grammar.gen.file" file="${base.js.compile.grammar.parser.generator}"/>
+					</not>
+				</and>
+			</or>
+			
+		</condition>
+		<echo message="is.create.base.grammar.gen.file -> ${is.create.base.grammar.gen.file}" />
 		
 	</target>
 	
-	<target name="createGrammarLanguageList" depends="generateFileListJSONObject">
+	<target name="-check-need-create-grammar-gen-file">
+
+		<condition property="is.create.grammar.gen.file" else="false">
+			        
+			<or>
+				<not>
+					<istrue value="${is.create.files.only.if.not.exist}"/>
+				</not>
+				<and>
+					<istrue value="${is.create.files.only.if.not.exist}"/>
+					<not>
+		    			<available property="is.create.grammar.gen.file" file="${exec.js.compile.grammar.parser.generator}"/>
+					</not>
+				</and>
+			</or>
+			
+		</condition>
+		<echo message="is.create.grammar.gen.file -> ${is.create.grammar.gen.file}" />
 		
-	    <property name="file.script.generate.languagelist" location="${jsBuildDirBase}nodejs/CreateGrammarLanguageList.js"/>
-		
-		<echo message="Running node.js environment with script file &quot;${file.script.generate.languagelist}&quot; and arguments &quot;${grammarDefinitionJsonDir}&quot;, &quot;${grammarDefinitionJsonFile}&quot;, &quot;${outputDirectoryParseFileJson}&quot;" />
-		<exec executable="${exec.nodejs}" failonerror="true" outputproperty="grammarLanguageList" logError="true">
-			<arg value="${file.script.generate.languagelist}"/>
-			<arg value="${grammarDefinitionJsonDir}"/>
-            <arg value="${grammarDefinitionJsonFile}"/>
-			<arg value="${outputDirectoryParseFileJson}"/>
-        </exec>
-		<echo message="Language list for grammars: &quot;${grammarLanguageList}&quot;" />
-				
 	</target>
 
 	<target name="createGeneratedGrammarParserDir" description="Create base directory for generated semantic parser files">
@@ -565,7 +567,7 @@
 					it is still very SLOW; however it has acceptable speed and is platform independent.
 	-->
 	
-	<target name="checkRhinoAvailable">
+	<target name="checkRhinoAvailable" unless="${is.available.rhino}">
 		<condition property="is.available.rhino" else="false">
 			<not>
 				<available file="${pathRhinoJar}"/>
@@ -578,7 +580,19 @@
 		</fail>
 	</target>
 
-	<target name="createGrammarParserGeneratorScriptFileRhino" depends="verifyRhinoAvailable,createBaseParserScriptFileAnt">
+	<target name="createGrammarLanguageListRhino" depends="generateFileListJSONFileRhino" description="create comma-separated list with language codes for available JSON grammar files">
+					
+		<property name="file.script.generate.languagelist" location="${jsBuildDirBase}rhino/CreateGrammarLanguageList.js"/>
+
+		<echo message="Running Rhino environment with script file &quot;${exec.js.compile.grammar.parser.generator}&quot; and argument line &quot;-jar ${pathRhinoJar} -opt -1 ${file.script.generate.languagelist} ${grammarDefinitionJsonDir} ${grammarDefinitionJsonFile} ${outputDirectoryParseFileJson}&quot;" />
+		<exec executable="java" failonerror="true" outputproperty="grammarLanguageList" logError="true">
+			<arg line="-jar ${pathRhinoJar} -opt -1 ${file.script.generate.languagelist} ${grammarDefinitionJsonDir} ${grammarDefinitionJsonFile} ${outputDirectoryParseFileJson}" />
+        </exec>
+		<echo message="Language list for grammars: &quot;${grammarLanguageList}&quot;" />
+		
+	</target>
+	
+	<target name="createGrammarParserGeneratorScriptFileRhino" depends="verifyRhinoAvailable,createBaseParserScriptFileAnt,-check-need-create-grammar-gen-file" if="${is.create.grammar.gen.file}">
 		<echo message="Building complete js file &quot;${exec.js.compile.grammar.parser.generator}&quot; for Rhino environment..." />
 		<concat destfile="${exec.js.compile.grammar.parser.generator}" fixlastline="true" outputencoding="UTF-8">
 			<fileset dir="${jsBuildDirBase}rhino" includes="InitRhinoEnv.js" />
@@ -623,8 +637,9 @@
 		
 	</target>
 	
-	<target name="compileGrammarParserRhinoEnvAllLanguages" depends="createGeneratedGrammarParserDir,createGrammarLanguageListRhino" description="Compile (and clean up) GrammarParserGenerator scripts for all Languages with Rhino environment (slow)">
+	<target name="compileGrammarParserRhinoEnvAllLanguages" depends="verifyRhinoAvailable,cleanTempFilesGrammarParserGenerator,createGeneratedGrammarParserDir,createGrammarLanguageListRhino" description="Compile (and clean up) GrammarParserGenerator scripts for all Languages with Rhino environment (slow)">
 		<!-- NOTE: ${grammarJsonFileLanguageList} is generated by target createGrammarLanguageListRhino -->
+		<property name="is.create.files.only.if.not.exist" value="true" />
 		<foreach 
 			list="${grammarLanguageList}" 
 			delimiter=","
@@ -643,11 +658,16 @@
 	-->
 	
 	
-	<target name="checkNodeJsAvailableVersion">
+	<target name="checkNodeJsAvailableVersion" unless="${nodejs.version.is.set}">
 		<!-- verify that nodejs is available by querying version information: -->
 		<exec executable="${exec.nodejs}" failifexecutionfails="false" outputproperty="nodejs.version" resultproperty="exec.nodejs.version.result">
 			<arg value="--version"/>
         </exec>
+
+		<condition property="nodejs.version.is.set" else="false">
+			<equals arg1="${exec.nodejs.version.result}" arg2="0" />
+		</condition>
+		
 		<echo message="Using Node.js ${nodejs.version} ..."/>
 	</target>
 	
@@ -661,9 +681,37 @@
 		<fail message="Aborted: Node.js exectuable is missing and/or invalid path specified.${line.separator}Tested command line:${line.separator}${exec.nodejs} --version">
 		</fail>
 	</target>
-
-	<target name="createGrammarParserGeneratorScriptFileNodeJs" depends="verifyNodeJsAvailable,createBaseParserScriptFileNodeJs">
-		<echo message="Building complete js file &quot;${exec.js.compile.grammar.parser.generator}&quot; for node.js environment..." />
+	
+	<target name="createGrammarLanguageList" depends="generateFileListJSONFile">
+			
+	    <property name="file.script.generate.languagelist" location="${jsBuildDirBase}nodejs/CreateGrammarLanguageList.js"/>
+		
+		<echo message="Running node.js environment with script file &quot;${file.script.generate.languagelist}&quot; and arguments &quot;${grammarDefinitionJsonDir}&quot;, &quot;${grammarDefinitionJsonFile}&quot;, &quot;${outputDirectoryParseFileJson}&quot;" />
+		<exec executable="${exec.nodejs}" failonerror="true" outputproperty="grammarLanguageList" logError="true">
+			<arg value="${file.script.generate.languagelist}"/>
+			<arg value="${grammarDefinitionJsonDir}"/>
+            <arg value="${grammarDefinitionJsonFile}"/>
+			<arg value="${outputDirectoryParseFileJson}"/>
+        </exec>
+		<echo message="Language list for grammars: &quot;${grammarLanguageList}&quot;" />
+				
+	</target>
+	
+	<target name="createBaseParserScriptFileNodeJs" depends="checkNodeJsAvailable,createTempCompileDir,-check-need-create-base-grammar-gen-file" if="${is.create.base.grammar.gen.file}">
+			
+		<echo message="Running node.js environment with script file &quot;${exec.js.compile.ant.grammars.template}&quot; and no arguments" />
+			
+		<exec executable="${exec.nodejs}" failonerror="true">
+			<arg value="${exec.js.compile.ant.grammars.template}"/>
+        </exec>
+		
+		<echo message="created generator script for grammars." />
+			
+	</target>
+	
+	<target name="createGrammarParserGeneratorScriptFileNodeJs" depends="verifyNodeJsAvailable,createBaseParserScriptFileNodeJs,-check-need-create-grammar-gen-file" if="${is.create.grammar.gen.file}">
+		
+		<echo message="Building complete js file &quot;${exec.js.compile.grammar.parser.generator}&quot; for node.js environment..."/>
 		<concat destfile="${exec.js.compile.grammar.parser.generator}" fixlastline="true" outputencoding="UTF-8">
 			<fileset dir="${jsBuildDirBase}nodejs" includes="InitNodeJsEnv.js" />
 			<fileset dir="${jsBuildDirBase}nodejs" includes="InitGrammarGeneratorNodeJsEnv.js" />
@@ -715,8 +763,10 @@
 		
 	</target>
 	
-	<target name="compileGrammarParserNodeJsEnvAllLanguages" depends="createGeneratedGrammarParserDir,createGrammarLanguageList" description="Compile (and clean up) GrammarParserGenerator script for all Languages with node.js environment (fast)">
+	<target name="compileGrammarParserNodeJsEnvAllLanguages" depends="verifyNodeJsAvailable,cleanTempFilesGrammarParserGenerator,createGeneratedGrammarParserDir,createGrammarLanguageList" description="Compile (and clean up) GrammarParserGenerator script for all Languages with node.js environment (fast)">
 		<!-- NOTE: ${grammarJsonFileLanguageList} is generated by target createGrammarLanguageList -->
+		
+		<property name="is.create.files.only.if.not.exist" value="true" />
 		<foreach 
 			list="${grammarLanguageList}"
 			delimiter=","

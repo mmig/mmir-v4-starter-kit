@@ -3,9 +3,11 @@ var Dependo = require('dependo'),
  	esprima = require('esprima'),
  	fs = require('fs');
 
-
-var targetPath = './';
+//path that will be parsed for dependencies
+var targetPath = './';//use './' if running form root of mmirf-directory; e.g. if running from root of /www, use './mmirf'
+//path to the (temp) config-file that will by used for dependency parsing
 var configPath = 'dep-req-config.js';
+//the basePath to the mmirf-directory
 var baseUrl = '';//use '' if running from root of mmirf-directory; e.g. if running from root of /www, use './mmirf'
 var outputPath = 'dep.html';
 var options = {
@@ -16,6 +18,31 @@ var options = {
 		findNestedDependencies: true,
 		title: 'MMIR Framework Dependencies (v3.6)'
 };
+
+
+//optional command-line arguments
+//1. basePath (OPTIONAL)	the path to the mmir-lib directory (default: '')
+//2. targetPath (OPTIONAL)	the path that will be parsed for dependencies (default: './')
+//3. configPath (OPTIONAL)	the path to the temporary requirejs config (used for dependency parsing)
+//3. outputPath (OPTIONAL)	the output path for creating the HTML file
+var arguments = process.argv;
+var argslen = arguments.length;
+if(argslen >= 2){
+	baseUrl = arguments[2];
+	console.log('non-default basePath: "'+baseUrl+'"');
+}
+if(argslen >= 3){
+	targetPath = arguments[3];
+	console.log('non-default targetPath: "'+targetPath+'"');
+}
+if(argslen >= 4){
+	configPath = arguments[4];
+	console.log('non-default configPath: "'+configPath+'"');
+}
+if(argslen >= 5){
+	outputPath = arguments[5];
+	console.log('non-default outputPath: "'+outputPath+'"');
+}
 
 //HELPER find identifier >reqPropName< in parsing >data<
 //       and return the range (in the parsed string) for its value-definition.
@@ -158,7 +185,9 @@ function fixImportScript(file){//{filename: STRING, src: STRING}
 	return file;
 };
 
-createRequireConfig('mainConfig.js', configPath, baseUrl);
+var origConfigPath = (baseUrl? baseUrl + '/' : '') + 'mainConfig.js';
+console.log('orig conf: '+origConfigPath);
+createRequireConfig(origConfigPath, configPath, baseUrl);
 options.requireConfig = configPath;
 options.onParseFile = fixImportScript;
 
