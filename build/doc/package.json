@@ -14,7 +14,9 @@
   "dependencies": {
     "jsdoc-master": "git+https://github.com/jsdoc3/jsdoc.git",
 	"node-jsdoc-toolkit-fix-tests": "git+https://github.com/matthewkastor/node-jsdoc-toolkit#fix-tests",
-	"ink-docstrap": "~0.5.2"
+	"ink-docstrap": "~0.5.2",
+	"dependo": "~0.1.6",
+	"esprima": "~2.7.2"
   },
   "scripts": {
     "postinstall": "node scripts/fix-node-jsdoc-toolkit.js"
