@@ -24,13 +24,13 @@ WARINING: _this project includes resources from [MMIR-lib][4] at `www/mmirf/` an
 
 #### Details
 
-This is an example application that uses the [MMIR framework][4] (included as GIT subtree reference in ```/www/mmirf```).
+This is an example application that uses the [MMIR framework][4] (included as GIT subtree reference in `/www/mmirf`).
 
 Basic integration into the Cordova 3 build process is done by including the [MMIR tools][5]
-(as GIT subtree reference in ```/build```; note: running the default ```ant``` task in within the build/tool directory will
+(as GIT subtree reference in `/build`; note: running the default `ant` task in within the build/tool directory will
 copy the build-resources into the projects root directory).
 
-Activated platforms _(for Cordova 3.x)_:
+Activated platforms _(for Cordova 5.x or later)_:
  * `android`
  * 
 
@@ -52,7 +52,7 @@ There is also a demo page for the [grammar editor / tester][10] (for testing the
 
 ##### Prerequisites
 
-Installed Cordova 3.x - 4.x environment (see Cordova documentation on CLI based development for more details).
+Installed Cordova 5.x - 6.x environment (see Cordova documentation on CLI based development for more details).
 
 ##### Additional Prerequisites: Android
 
@@ -61,26 +61,31 @@ development tools for Android installed, if you want to build and run the applic
 
 ##### Build
 
-After checking out the the project, you need to run ```cordova build``` within the project directory. 
+After checking out the the project, you need to run `cordova build` within the project directory. 
 
 
 ###### Platform: Android
 
+
+**NOTE** since Cordova 5, platform specific development for Android in Eclipse is not fully any more!
+         _(you may use `Android Studio` instead)_
+ 
+
 For platform-specific development, the Android projects can be imported into Eclipse (see
 Cordova's platform guides for Android for prerequisites etc.):
 
- * select ```import...``` and then ```Existing Android Code Into Workspace```
- * then select the sub-directory ```/platforms/android```
+ * select `import...` and then `Existing Android Code Into Workspace`
+ * then select the sub-directory `/platforms/android`
 
 This will import 2 projects: the Cordova-library project and the project for the MMIR StarterKit.
 
-The imported StarterKit project contains a reference to ```/www``` in the root directory of the project,
-along with a copy in its own ```/platform/android/assets/www``` directory (NOTE: by default, the Eclipse 
+The imported StarterKit project contains a reference to `/www` in the root directory of the project,
+along with a copy in its own `/platform/android/assets/www` directory (NOTE: by default, the Eclipse 
 project is configured, to hide this copy).
-If you want to make platform-independent changes, you should use the referenced "directory" ```/www```
+If you want to make platform-independent changes, you should use the referenced "directory" `/www`
 in the project's root.
-After changing files, you need to run ```cordova build``` in order to propagate the changes
-from the ```/www``` directory to the ```/platform/android/assets/www``` directory.
+After changing files, you need to run `cordova build` in order to propagate the changes
+from the `/www` directory to the `/platform/android/assets/www` directory.
 
 
 ###### Platform: xxxx

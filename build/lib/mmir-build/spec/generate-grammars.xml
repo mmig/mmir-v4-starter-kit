@@ -2,12 +2,12 @@
 	<!-- generated file: do not change -->
 	<project name="Mobile DialogSystem - Create Generator Script for compiled Grammars" default="createBaseParserScriptFileAnt">
 		<property name="isAntTargetStr" value="true" />
-		<target name="createBaseParserScriptFileAnt" depends="createTempCompileDir">
-		<echo message="Building base script file ${base.js.compile.grammar.parser.generator} for compiling GrammarParser..." />
-	    <mkdir dir="${buildDir}" />
-	    <mkdir dir="${buildDirBin}" />
-		<concat destfile="${base.js.compile.grammar.parser.generator}" fixlastline="true" outputencoding="UTF-8">
-		<string>
+		<target name="createBaseParserScriptFileAnt" depends="createTempCompileDir,-check-need-create-base-grammar-gen-file" if="${is.create.base.grammar.gen.file}">
+			<echo message="Building base script file ${base.js.compile.grammar.parser.generator} for compiling GrammarParser..." />
+		    <mkdir dir="${buildDir}" />
+		    <mkdir dir="${buildDirBin}" />
+			<concat destfile="${base.js.compile.grammar.parser.generator}" fixlastline="true" outputencoding="UTF-8">
+			<string>
 
 
 
@@ -173,8 +173,8 @@ function doStartBuildEnv(){
 	
 }//END: doStartBuild(){..
 
-		    </string>
-		    </concat>
-			<echo message="${base.js.compile.grammar.parser.generator} built." />
-		</target>
+	    </string>
+	    </concat>
+		<echo message="${base.js.compile.grammar.parser.generator} built." />
+	</target>
 </project>
