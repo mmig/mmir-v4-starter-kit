@@ -604,9 +604,16 @@
 	</target>
 	
 	<target name="executeGrammarParserGeneratorRhinoEnv"
-		depends="checkGeneratedGrammarParserUpToDate,createGeneratedGrammarParserDir,createGrammarParserGeneratorScriptFileRhino"
+		depends="checkGeneratedGrammarParserUpToDate"
 		description="Compile GrammarParserGenerator script with Rhino environment (slow)"
 		unless="${is.up.to.date.grammarjs}">
+
+		<antcall target="-executeGrammarParserGeneratorRhinoEnv"/>
+		
+	</target>
+	
+	<target name="-executeGrammarParserGeneratorRhinoEnv"
+		depends="createGeneratedGrammarParserDir,createGrammarParserGeneratorScriptFileRhino">
 
 		<echo message="Running Rhino environment with script file &quot;${exec.js.compile.grammar.parser.generator}&quot; and argument line &quot;-jar ${pathRhinoJar} -opt -1 ${exec.js.compile.grammar.parser.generator} ${grammarDefinitionJsonDir} ${grammarDefinitionJsonFile} ${grammarLanguageCode} ${outDirCompiledGrammar} ${outFileCompiledGrammar} ${execBuildLibDir}&quot;" />
 		<exec executable="java" failonerror="true">
@@ -723,9 +730,16 @@
 	
 	
 	<target name="executeGrammarParserGeneratorNodeJsEnv" 
-		depends="checkGeneratedGrammarParserUpToDate,createGeneratedGrammarParserDir,createGrammarParserGeneratorScriptFileNodeJs" 
+		depends="checkGeneratedGrammarParserUpToDate" 
 		description="Compile GrammarParserGenerator script with node.js environment (fast)"
 		unless="${is.up.to.date.grammarjs}">
+
+		<antcall target="-executeGrammarParserGeneratorNodeJsEnv"/>
+		
+	</target>
+	
+	<target name="-executeGrammarParserGeneratorNodeJsEnv" 
+		depends="createGeneratedGrammarParserDir,createGrammarParserGeneratorScriptFileNodeJs">
 
 		<echo message="Running node.js environment with script file &quot;${exec.js.compile.grammar.parser.generator}&quot; and arguments &quot;${grammarDefinitionJsonDir}&quot;, &quot;${grammarDefinitionJsonFile}&quot;, &quot;${grammarLanguageCode}&quot;, &quot;${outDirCompiledGrammar}&quot;, &quot;${outFileCompiledGrammar}&quot;, &quot;${execBuildLibDir}&quot;" />
 		<exec executable="${exec.nodejs}" failonerror="true">
