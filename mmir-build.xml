@@ -597,7 +597,7 @@
 		<concat destfile="${exec.js.compile.grammar.parser.generator}" fixlastline="true" outputencoding="UTF-8">
 			<fileset dir="${jsBuildDirBase}rhino" includes="InitRhinoEnv.js" />
 			<fileset dir="${jsBuildDirBase}rhino" includes="InitGrammarGeneratorRhinoEnv.js" />
-			<fileset dir="${jsBuildDirBase}ant"   includes="AntFileHandler.js" />
+			<fileset dir="${jsBuildDirBase}rhino"   includes="RhinoFileHandler.js" />
 			<fileset file="${base.js.compile.grammar.parser.generator}" />
         </concat>
 		<echo message="${exec.js.compile.grammar.parser.generator} built." />
