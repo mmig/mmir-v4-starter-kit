@@ -30,16 +30,17 @@ var mmir;
 
 
 </string>
-<fileset dir="${jsBuildDirBase}ant" includes="AntFileHandler.js" />
-<string>
+<fileset dir="${jsBuildDirBase}rhino" includes="RhinoFileHandler.js" />
 
+<fileset dir="${jsBuildDirBase}common" includes="ChecksumHandler.js" />
+<string>
 
 //set the framework's src-path from the build-properties file
 //  (may be different than the default value in mainConfig.js)
 var appSrcDir = '${jsSrcDirBase}';
 require.config({
-baseUrl: './' + appSrcDir,
-paths: {'core': 'core'}
+	baseUrl: './' + appSrcDir,
+	paths: {'core': 'core'}
 });
 
 require(['core'], function(core){
@@ -47,71 +48,16 @@ require(['core'], function(core){
 //export core module to "global" mmir variable:
 mmir = core;
 
-//define "auto-start" module for starting the template processing
-// (gets triggered after main-config for requirejs is was applied)
-definejs('doStartTemplateProc', function(){
-	//now: do start processing the eHTML template files
-	doStartTemplateProcessing();
-});
-core.startModule = 'doStartTemplateProc';
+////define "auto-start" module for starting the template processing
+//// (gets triggered after main-config for requirejs is was applied)
+//definejs('doStartTemplateProc', ['require'], function(req){
+//	//now: do start processing the eHTML template files
+//	doStartTemplateProcessing(req);
+//});
+//core.startModule = 'doStartTemplateProc';
 
 //disable tracing in logger-module: (current library stacktrace.js does not support nodejs / TODO repl. with https://www.npmjs.com/package/stack-trace in nodejs env)
 core.logTrace = false;
-
-//configure replacement / build-stub implementations:
-var buildLibDir = '${buildDirLib}mmir-build/';
-
-//...determine correct build/ sub-dir by analysing the main-app's dir:
-var appDirParts = appSrcDir.split('/');
-for(var i=0, size=appDirParts.length; i+1 != size; ++i){
-	if(appDirParts[i] !== '.'){
-		buildLibDir = '../' + buildLibDir;
-	}
-}
-
-//set the paths for the build-implementations:
-core.config({
-	baseUrl: './' + appSrcDir,
-	paths: {
-		  'jquery': buildLibDir+'jqueryDummy'
-		, 'jqueryajax': buildLibDir+'jqueryAjaxDummy'
-		, 'env': buildLibDir+'envDetectBuild'
-		, 'jqm': buildLibDir+'jqueryMobileDummy'
-		
-		//disable jQueryMobile plugin SimpleModal (not needed in nodejs-environment)
-		, 'jqmSimpleModal': void(0)
-		
-		//disable loadCss module (not needed in nodejs-environment)
-		, 'loadCss': void(0)
-		
-		//parsingResult has a hidden dependency on org.antrl
-		// (need custom module-definition -> see below)
-		, 'parsingResult': void(0)
-		
-		//"remove" configs for ANTRL parsers:
-		//  these need to be initilized separately -> see below definejs(..)
-		//  ...since requirejs' shim does not work in nodejs
-		, 'antlr3': void(0)
-		, 'ES3Lexer': void(0)
-		, 'ES3Parser': void(0)
-		, 'contentLexer': void(0)
-		, 'contentParser': void(0)
-		, 'scriptLexer': void(0)
-		, 'scriptParser': void(0)
-		, 'templateLexer': void(0)
-		//, 'templateParser': void(0)
-	}
-});
-
-//define dummy loadCss module:
-definejs('loadCss', function(){
-	//no-op
-	return function(){};
-});
-//define dummy jqmSimpleModal module:
-definejs('jqmSimpleModal', ['jqueryajax'] , function(jquery){
-	return jquery;
-});
 
 //set up dummy implementation for LanguageManager:
 core.LanguageManager = {};
@@ -126,128 +72,16 @@ doLoadAppConfig(require.define);
 // (need to pass in requirejs' define as argument "define")
 function doLoadAppConfig(define){
 
-</string>
-<fileset dir="${jsSrcDirBase}" includes="mainConfig.js" />
-<string>
+	require.config({"baseUrl":"./www/mmirf/","config":{"inputManager":{"scxmlDoc":"config/statedef/inputDescriptionSCXML.xml","mode":"extended"},"dialogManager":{"scxmlDoc":"config/statedef/dialogDescriptionSCXML.xml","mode":"extended"},"logger":{"trace":false}},"paths":{"core":"core","main":"main","jquery":"../../build/lib/mmir-build/jqueryDummy","scion":"vendor/libs/scion-amd","constants":"tools/constants","commonUtils":"tools/commonUtils","stringExtension":"tools/extensions/StringExtensions","dictionary":"tools/dictionary","paramsParseFunc":"tools/paramsParseFunc","env":"../../build/lib/mmir-build/envDetectBuild","envInit":"tools/envInit","inputManager":"manager/dialog/inputManager","dialogManager":"manager/dialog/dialogManager","engineConfig":"manager/dialog/engineConfig","scionEngine":"manager/dialog/scion/scionEngine","scionUtil":"manager/dialog/scion/scionUtil","controllerManager":"manager/controllerManager","controller":"mvc/controllers/controller","helper":"mvc/controllers/helper","modelManager":"manager/modelManager","presentationManager":"manager/presentationManager","jqmViewEngine":"env/view/jqmViewEngine","jqm":"../../build/lib/mmir-build/jqueryMobileDummy","jqmSimpleModal":"../../build/lib/mmir-build/jqmSimpleModalDummy","waitDialog":"tools/stdlne-wait-dlg","antlr3":"../../build/lib/mmir-build/mod/antlr3-all_amd","configurationManager":"manager/settings/configurationManager","languageManager":"manager/settings/languageManager","mediaManager":"manager/mediaManager","notificationManager":"manager/notificationManager","viewConstants":"mvc/views/viewConstants","layout":"mvc/views/layout","view":"mvc/views/view","partial":"mvc/views/partial","contentElement":"mvc/views/contentElement","yield":"mvc/views/yield","renderUtils":"mvc/parser/templateRenderUtils","parserModule":"mvc/parser/parserModule","storageUtils":"mvc/parser/storageUtils","parseUtils":"mvc/parser/templateParseUtils","ES3Lexer":"../../build/lib/mmir-build/mod/ES3Lexer_amd","ES3Parser":"../../build/lib/mmir-build/mod/ES3Parser_amd","scriptLexer":"../../build/lib/mmir-build/mod/MmirScriptLexer_amd","scriptParser":"../../build/lib/mmir-build/mod/MmirScriptParser_amd","contentLexer":"../../build/lib/mmir-build/mod/MmirScriptContentLexer_amd","contentParser":"../../build/lib/mmir-build/mod/MmirScriptContentParser_amd","templateLexer":"../../build/lib/mmir-build/mod/MmirTemplateLexer_amd","templateParser":"../../build/lib/mmir-build/mod/MmirTemplateParser_amd","templateProcessor":"mvc/parser/templateProcessor","parsingResult":"mvc/parser/parsingResult","grammarConverter":"semantic/grammarConverter","semanticInterpreter":"semantic/semanticInterpreter","asyncGrammar":"semantic/asyncGrammar","jscc":"vendor/libs/jscc-amd","jison":"vendor/libs/jison","pegjs":"../../build/lib/mmir-build/mod/peg-0.9.0_amd","asyncGen":"env/grammar/asyncGenerator","jsccGen":"env/grammar/jsccGenerator","jsccAsyncGen":"env/grammar/jsccAsyncGenerator","jisonGen":"env/grammar/jisonGenerator","jisonAsyncGen":"env/grammar/jisonAsyncGenerator","pegjsGen":"env/grammar/pegjsGenerator","pegjsAsyncGen":"env/grammar/pegjsAsyncGenerator","md5":"../../build/lib/mmir-build/mod/md5_amd","checksumUtils":"tools/checksumUtils","loadCss":"../../build/lib/mmir-build/loadCssDummy","jsonUtils":"tools/extensions/JsonUtils","commonUtilsCompatibility":"tools/extensions/CommonUtilsCompatibility","languageManagerCompatibility":"tools/extensions/LanguageManagerCompatibility","jqueryajax":"../../build/lib/mmir-build/jqueryAjaxDummy","stacktrace":"../../build/lib/mmir-build/stacktraceDummy","logger":"tools/logger"}});
+	
+	require(['core', 'logger'], function(core){
+//		require([core.startModule]);
+		doStartTemplateProcessing();
+	});
 
 }
 
 function doStartTemplateProcessing(){
-definejs('antlr3', function(){
-		
-		org = {};
-		window.org = org;
-		if (typeof org.antlr === "undefined" || !org.antlr) {
-			org.antlr = {};
-		}
-		if (typeof org.antlr.runtime == "undefined" || !org.antlr.runtime) {
-			org.antlr.runtime = {};
-		}
-		if (typeof org.antlr.runtime.tree == "undefined" || !org.antlr.runtime.tree) {
-			org.antlr.runtime.tree = {};
-		}
-		
-</string>
-<fileset dir="${jsSrcDirBase}vendor/libs" includes="antlr3-all.js" />
-<string>
-
-	return org;
-});
-
-
-require(['antlr3'], function(org){
-
-	//re-route the define-call from parsingResult.js
-	// in order to "add" its hidden dependency on org.antlr:
-	var define = function(){
-		var size = arguments.length + 1;
-		var args = new Array(size);
-		
-		//insert module name:
-		args[0] = 'parsingResult';
-		
-		//... and copy arguments from original call
-		for(var i=1; i != size; ++i){
-			args[i]=arguments[i-1];
-		}
-		
-		return definejs.apply(window, args);
-	};
-	
-	
-
-</string>
-<fileset dir="${jsSrcDirBase}gen/parser" includes="ES3Lexer.js" />
-
-<fileset dir="${jsSrcDirBase}gen/parser" includes="ES3Parser.js" />
-
-<fileset dir="${jsSrcDirBase}gen/parser" includes="MmirES3Walker.js" />
-
-<fileset dir="${jsSrcDirBase}gen/parser" includes="MmirScriptContentLexer.js" />
-
-<fileset dir="${jsSrcDirBase}gen/parser" includes="MmirScriptContentParser.js" />
-
-<fileset dir="${jsSrcDirBase}gen/parser" includes="MmirScriptLexer.js" />
-
-<fileset dir="${jsSrcDirBase}gen/parser" includes="MmirScriptParser.js" />
-
-<fileset dir="${jsSrcDirBase}gen/parser" includes="MmirTemplateLexer.js" />
-<string>
-
-
-	definejs('ES3Lexer',  function(){ return ES3Lexer; });
-	definejs('ES3Parser', function(){ return ES3Parser; });
-	
-	definejs('contentLexer',  function(){ return MmirScriptContentLexer; });
-	definejs('contentParser', function(){ return MmirScriptContentParser; });
-	
-	definejs('scriptLexer',  function(){ return MmirScriptLexer; });
-	definejs('scriptParser', function(){ return MmirScriptParser; });
-	
-	definejs('templateLexer',  function(){ return MmirTemplateLexer; });
-	//definejs('templateParser', function(){ return MmirTemplateParser; });
-						
-});
-
-
-require(['antlr3'], function(org){
-
-	//re-route the define-call from parsingResult.js
-	// in order to "add" its hidden dependency on org.antlr:
-	var define = function(){
-		var size = arguments.length + 1;
-		var args = new Array(size);
-		
-		//insert module name:
-		args[0] = 'parsingResult';
-		
-		//... and copy arguments from original call
-		for(var i=1; i != size; ++i){
-			args[i]=arguments[i-1];
-		}
-		
-		return definejs.apply(window, args);
-	};
-
-
-</string>
-<fileset dir="${jsSrcDirBase}mvc/parser" includes="parsingResult.js" />
-<string>
-
-
-});//END of custom define-definition for parsingResult
-
-
-
-
-definejs('md5impl', function(){
-
-</string>
-<fileset dir="${jsSrcDirBase}vendor/libs" includes="md5.js" />
-<string>
-
-	return CryptoJS;
-});
 
 definejs('jsonlint', function(){
 
@@ -264,7 +98,7 @@ var jsl;
 
 var jqueryDeferred = jqueryDeferred || requiren(jqueryDeferredModuleUri);
 
-require(['constants', 'checksumUtils', 'md5impl'], function(constants, checksumUtils, md5impl){
+require(['constants', 'checksumUtils', 'md5'], function(constants, checksumUtils, md5impl){
 
 	checksumUtils.init(md5impl);
 	
@@ -287,7 +121,7 @@ require(['constants', 'checksumUtils', 'md5impl'], function(constants, checksumU
 					'commonUtils', 'controllerManager', 'presentationManager'], function(){
 		
 </string>
-<fileset dir="${jsBuildDirBase}ant" includes="StandaloneTemplateParserExec.js" />
+<fileset dir="${jsBuildDirBase}common" includes="StandaloneTemplateParserExec.js" />
 <string>
 
 		});
