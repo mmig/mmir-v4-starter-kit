@@ -58,57 +58,19 @@
  * 
  */
 
-var theArguments = process.argv;
+var theArguments = process.env.callParams || process.argv;
 var baseLanguageDir				= theArguments && theArguments.length > 2? theArguments[2] : null;
 var grammarFileName 			= theArguments && theArguments.length > 3? theArguments[3] : null;
 var dirListFile					= theArguments && theArguments.length > 4? theArguments[4] : null;
 
 
-var strDirList = require('fs').readFileSync(dirListFile, 'utf-8');
+var createLanguageList = require('./createLanguageList.js');
+
+var langList = createLanguageList.create(baseLanguageDir, grammarFileName, dirListFile, false);
 
 function printResult(resultStr){
 	console.log(resultStr);
 }
 
-var jsonDirList;
-//try to avoid eval() -> use JSON if available
-if(typeof JSON !== 'undefined'){
-	jsonDirList = JSON.parse(strDirList);
-}
-else {
-	jsonDirList = eval('var dummy='+strDirList+';dummy');
-}
-
-var contains = function(array, entry){
-	for(var i=0, size = array.length; i < size; ++i){
-		if(array[i]==entry){
-			return true;
-		}
-	}
-	return false;
-};
-
-
-var result = [];
-
-for(var prop in jsonDirList){
-	var len = (""+baseLanguageDir).length - prop.toString().length - 1;
-	if( baseLanguageDir.indexOf(prop) === len){
-		var list = jsonDirList[prop];
-		for(var i=0, size = list.length; i < size; ++i){
-			var langSubDir = list[i];
-			var dir = prop+'/'+langSubDir;
-			
-			if(typeof jsonDirList[dir] !== 'undefined'){
-				var content = jsonDirList[dir];
-				if(contains(content, grammarFileName)){
-
-					result.push(langSubDir);
-				}
-			}
-		}
-	}
-}
-
 //print result/language-list
-printResult(result.join(','));
+printResult(langList.join(','));
