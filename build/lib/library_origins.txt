@@ -31,3 +31,10 @@ dust for Node.js (MIT license: cf. LICENSE file)
 
 properties for Node.js (MIT license: cf. LICENSE file)
 * nodejs-properties/*
+
+xmldom for Node.js (MIT license: cf. LICENSE file)
+* nodejs-xmldom/*
+  (NOTE with modification see https://github.com/mmig/xmldom/tree/fix-empty-line-parsing)
+
+esprima for Node.js (BSD license: cf. LICENSE.BSD file)
+* nodejs-esprima/*

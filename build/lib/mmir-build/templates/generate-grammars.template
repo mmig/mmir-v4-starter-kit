@@ -3,6 +3,8 @@
 {!InitGrammarGeneratorNodeJsEnv|s!}
 {!NodeJsFileHandler|s!}
 
+{ChecksumHandler|s}
+
 //export require as requirejs:
 var requirejs = require;
 
@@ -16,94 +18,50 @@ require.config({
 
 require(['core'], function(core){
 
-	//define "auto-start" module for starting the template processing
-	// (gets triggered after main-config for requirejs is was applied)
-	definejs('doStartBuildProc', function(){
-		//now: do start the build process:
-		doStartBuildEnv();
-	});
-	core.startModule = 'doStartBuildProc';
+//	//define "auto-start" module for starting the template processing
+//	// (gets triggered after main-config for requirejs is was applied)
+//	definejs('doStartBuildProc', function(){
+//		//now: do start the build process:
+//		doStartGrammarBuildEnv();
+//	});
+//	core.startModule = 'doStartBuildProc';
 	
 	//disable tracing in logger-module: (current library stacktrace.js does not support nodejs / TODO repl. with https://www.npmjs.com/package/stack-trace in nodejs env)
 	core.logTrace = false;
 	
-	//configure replacement / build-stub implementations:
-	var buildLibDir = '{buildDirLib|s|url}mmir-build/';
-	
-	//...determine correct build/ sub-dir by analysing the main-app's dir:
-	var appDirParts = appSrcDir.split('/');
-	for(var i=0, size=appDirParts.length; i+1 != size; ++i){
-		if(appDirParts[i] !== '.'){
-			buildLibDir = '../' + buildLibDir;
-		}
-	}
-	
-	//set the paths for the build-implementations:
-	var buildPaths = {
-		  'jquery': buildLibDir+'jqueryDummy'
-		, 'jqueryajax': buildLibDir+'jqueryAjaxDummy'
-		, 'env': buildLibDir+'envDetectBuild'
-		, 'jqm': buildLibDir+'jqueryMobileDummy'
-	};
-	
-	if(!{isAntTargetStr|s}){
-		//remove PEG.js / Jison depenencies
-		//  (need to be initialized separately, since requirejs.shim does not work in nodejs; see below)
-		buildPaths.pegjs = void(0);
-		buildPaths.jison = void(0);
-	}
-	
-	
-	core.config({
-		baseUrl: './' + appSrcDir,
-		paths: buildPaths
-	});
-	
 	//load main-config for requirejs
 	// (also triggers the auto-start module)
-	doLoadAppConfig(require.define);
+	doLoadAppConfig();
 });
 
 //apply main-config for requirejs 
 // (need to pass in requirejs' define as argument "define")
-function doLoadAppConfig(define){
+function doLoadAppConfig(){
 
-{mainConfig|s}
+	require.config({_buildConfig|s});
+	
+	require(['core', 'logger'], function(core){
+//		require([core.startModule]);
+		doStartGrammarBuildEnv();
+	});
 
 }
 
 
-//setup and init PEG.js
-(function(){
-	
-{peg_0_9_0|s}
-
-	definejs('pegjs',  function(){ return PEG; });
-						
-})();
-
-//setup and init Jison
-var _bnf;
-(function(){
-	
-{jison|s}
-	
-	_bnf = bnf;
-	definejs('jison',  function(){ return Jison; });
-						
-})();
+////setup and init Jison
+//var _bnf;
+//(function(){
+//	
+//{!jison|s!}
+//	
+//	_bnf = bnf;
+//	definejs('jison',  function(){ return Jison; });
+//						
+//})();
 
 //encapsule build-process (gets triggered after build-paths are configured; see above)
-function doStartBuildEnv(){
+function doStartGrammarBuildEnv(){
 
-	//build AMD module for CryptoJS/md5 library:
-	definejs('md5impl', function(){
-	
-{md5|s}
-
-		return CryptoJS;
-	});
-	
 	definejs('jsonlint', function(){
 
 {!-- ... and an AMD module for the jsonlint parser ... !}
@@ -123,24 +81,24 @@ function doStartBuildEnv(){
 		//fix base-dir location (since we do not execute from the main web-directory)
 		constants.init('{baseDir|s|url}www/');
 
-		require(['pegjs', 'jison', 'semanticInterpreter', 'jquery', 'jsonlint', 'md5impl','checksumUtils','configurationManager'], function(){
+		require(['md5', 'jison', 'jsonlint', 'jquery', 'checksumUtils', 'pegjs', 'semanticInterpreter','configurationManager'], function(md5Impl, jison, jsonlint, jquery, checksumUtils){
 			
 			
-			var bnf = _bnf;
-			var Jison = require('jison');
+//			var bnf = _bnf;
+			var Jison = jison;
 			
 			jsl = {
-				parser: require('jsonlint')
+				parser: jsonlint
 			};
 			
 			//load deferred-impl. via node's require function:
 			var jqueryDeferred = jqueryDeferred || requiren(jqueryDeferredModuleUri);
 			
 			//attach deferred-impl. to jquery:
-			jqueryDeferred.extend(require('jquery'), jqueryDeferred);
+			jqueryDeferred.extend(jquery, jqueryDeferred);
 			
-			checksumUtils = require('checksumUtils');
-			checksumUtils.init( require('md5impl') );
+//			checksumUtils = require('checksumUtils');
+			checksumUtils.init( md5Impl );
 			
 			//start the standalone-grammar parser / generator: 
 			

@@ -39,6 +39,13 @@ var theJsLibPath						= theArguments && theArguments.length > 7? theArguments[7]
 
 var theGrammarEngine					= theArguments && theArguments.length > 8? theArguments[8] : null;
 
+var onNodeModuleInit;
+if(typeof isRunAsModule !== 'undefined'  && isRunAsModule){
+
+	theJsLibPath = global.mmir.nodejs.config.grammar.jsLibPath;
+	onNodeModuleInit = global.mmir.nodejs.config.grammar.onModuleInit;
+}
+
 //store nodejs' require (use requirejs by default; see below)
 var requiren = require;
 

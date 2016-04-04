@@ -13,6 +13,10 @@
 
 
 
+</string>
+<fileset dir="${jsBuildDirBase}common" includes="ChecksumHandler.js" />
+<string>
+
 //export require as requirejs:
 var requirejs = require;
 
@@ -26,102 +30,50 @@ require.config({
 
 require(['core'], function(core){
 
-	//define "auto-start" module for starting the template processing
-	// (gets triggered after main-config for requirejs is was applied)
-	definejs('doStartBuildProc', function(){
-		//now: do start the build process:
-		doStartBuildEnv();
-	});
-	core.startModule = 'doStartBuildProc';
+//	//define "auto-start" module for starting the template processing
+//	// (gets triggered after main-config for requirejs is was applied)
+//	definejs('doStartBuildProc', function(){
+//		//now: do start the build process:
+//		doStartGrammarBuildEnv();
+//	});
+//	core.startModule = 'doStartBuildProc';
 	
 	//disable tracing in logger-module: (current library stacktrace.js does not support nodejs / TODO repl. with https://www.npmjs.com/package/stack-trace in nodejs env)
 	core.logTrace = false;
 	
-	//configure replacement / build-stub implementations:
-	var buildLibDir = '${buildDirLib}mmir-build/';
-	
-	//...determine correct build/ sub-dir by analysing the main-app's dir:
-	var appDirParts = appSrcDir.split('/');
-	for(var i=0, size=appDirParts.length; i+1 != size; ++i){
-		if(appDirParts[i] !== '.'){
-			buildLibDir = '../' + buildLibDir;
-		}
-	}
-	
-	//set the paths for the build-implementations:
-	var buildPaths = {
-		  'jquery': buildLibDir+'jqueryDummy'
-		, 'jqueryajax': buildLibDir+'jqueryAjaxDummy'
-		, 'env': buildLibDir+'envDetectBuild'
-		, 'jqm': buildLibDir+'jqueryMobileDummy'
-	};
-	
-	if(!${isAntTargetStr}){
-		//remove PEG.js / Jison depenencies
-		//  (need to be initialized separately, since requirejs.shim does not work in nodejs; see below)
-		buildPaths.pegjs = void(0);
-		buildPaths.jison = void(0);
-	}
-	
-	
-	core.config({
-		baseUrl: './' + appSrcDir,
-		paths: buildPaths
-	});
-	
 	//load main-config for requirejs
 	// (also triggers the auto-start module)
-	doLoadAppConfig(require.define);
+	doLoadAppConfig();
 });
 
 //apply main-config for requirejs 
 // (need to pass in requirejs' define as argument "define")
-function doLoadAppConfig(define){
+function doLoadAppConfig(){
 
-</string>
-<fileset dir="${jsSrcDirBase}" includes="mainConfig.js" />
-<string>
+	require.config({"baseUrl":"./www/mmirf/","config":{"inputManager":{"scxmlDoc":"config/statedef/inputDescriptionSCXML.xml","mode":"extended"},"dialogManager":{"scxmlDoc":"config/statedef/dialogDescriptionSCXML.xml","mode":"extended"},"logger":{"trace":false}},"paths":{"core":"core","main":"main","jquery":"../../build/lib/mmir-build/jqueryDummy","scion":"vendor/libs/scion-amd","constants":"tools/constants","commonUtils":"tools/commonUtils","stringExtension":"tools/extensions/StringExtensions","dictionary":"tools/dictionary","paramsParseFunc":"tools/paramsParseFunc","env":"../../build/lib/mmir-build/envDetectBuild","envInit":"tools/envInit","inputManager":"manager/dialog/inputManager","dialogManager":"manager/dialog/dialogManager","engineConfig":"manager/dialog/engineConfig","scionEngine":"manager/dialog/scion/scionEngine","scionUtil":"manager/dialog/scion/scionUtil","controllerManager":"manager/controllerManager","controller":"mvc/controllers/controller","helper":"mvc/controllers/helper","modelManager":"manager/modelManager","presentationManager":"manager/presentationManager","jqmViewEngine":"env/view/jqmViewEngine","jqm":"../../build/lib/mmir-build/jqueryMobileDummy","jqmSimpleModal":"../../build/lib/mmir-build/jqmSimpleModalDummy","waitDialog":"tools/stdlne-wait-dlg","antlr3":"../../build/lib/mmir-build/mod/antlr3-all_amd","configurationManager":"manager/settings/configurationManager","languageManager":"manager/settings/languageManager","mediaManager":"manager/mediaManager","notificationManager":"manager/notificationManager","viewConstants":"mvc/views/viewConstants","layout":"mvc/views/layout","view":"mvc/views/view","partial":"mvc/views/partial","contentElement":"mvc/views/contentElement","yield":"mvc/views/yield","renderUtils":"mvc/parser/templateRenderUtils","parserModule":"mvc/parser/parserModule","storageUtils":"mvc/parser/storageUtils","parseUtils":"mvc/parser/templateParseUtils","ES3Lexer":"../../build/lib/mmir-build/mod/ES3Lexer_amd","ES3Parser":"../../build/lib/mmir-build/mod/ES3Parser_amd","scriptLexer":"../../build/lib/mmir-build/mod/MmirScriptLexer_amd","scriptParser":"../../build/lib/mmir-build/mod/MmirScriptParser_amd","contentLexer":"../../build/lib/mmir-build/mod/MmirScriptContentLexer_amd","contentParser":"../../build/lib/mmir-build/mod/MmirScriptContentParser_amd","templateLexer":"../../build/lib/mmir-build/mod/MmirTemplateLexer_amd","templateParser":"../../build/lib/mmir-build/mod/MmirTemplateParser_amd","templateProcessor":"mvc/parser/templateProcessor","parsingResult":"mvc/parser/parsingResult","grammarConverter":"semantic/grammarConverter","semanticInterpreter":"semantic/semanticInterpreter","asyncGrammar":"semantic/asyncGrammar","jscc":"vendor/libs/jscc-amd","jison":"vendor/libs/jison","pegjs":"../../build/lib/mmir-build/mod/peg-0.9.0_amd","asyncGen":"env/grammar/asyncGenerator","jsccGen":"env/grammar/jsccGenerator","jsccAsyncGen":"env/grammar/jsccAsyncGenerator","jisonGen":"env/grammar/jisonGenerator","jisonAsyncGen":"env/grammar/jisonAsyncGenerator","pegjsGen":"env/grammar/pegjsGenerator","pegjsAsyncGen":"env/grammar/pegjsAsyncGenerator","md5":"../../build/lib/mmir-build/mod/md5_amd","checksumUtils":"tools/checksumUtils","loadCss":"../../build/lib/mmir-build/loadCssDummy","jsonUtils":"tools/extensions/JsonUtils","commonUtilsCompatibility":"tools/extensions/CommonUtilsCompatibility","languageManagerCompatibility":"tools/extensions/LanguageManagerCompatibility","jqueryajax":"../../build/lib/mmir-build/jqueryAjaxDummy","stacktrace":"../../build/lib/mmir-build/stacktraceDummy","logger":"tools/logger"}});
+	
+	require(['core', 'logger'], function(core){
+//		require([core.startModule]);
+		doStartGrammarBuildEnv();
+	});
 
 }
 
 
-//setup and init PEG.js
-(function(){
-	
-</string>
-<fileset dir="${jsSrcDirBase}vendor/libs" includes="peg-0.9.0.js" />
-<string>
-
-	definejs('pegjs',  function(){ return PEG; });
-						
-})();
-
-//setup and init Jison
-var _bnf;
-(function(){
-	
-</string>
-<fileset dir="${jsSrcDirBase}vendor/libs" includes="jison.js" />
-<string>
-	
-	_bnf = bnf;
-	definejs('jison',  function(){ return Jison; });
-						
-})();
+////setup and init Jison
+//var _bnf;
+//(function(){
+//	
+//
+//	
+//	_bnf = bnf;
+//	definejs('jison',  function(){ return Jison; });
+//						
+//})();
 
 //encapsule build-process (gets triggered after build-paths are configured; see above)
-function doStartBuildEnv(){
+function doStartGrammarBuildEnv(){
 
-	//build AMD module for CryptoJS/md5 library:
-	definejs('md5impl', function(){
-	
-</string>
-<fileset dir="${jsSrcDirBase}vendor/libs" includes="md5.js" />
-<string>
-
-		return CryptoJS;
-	});
-	
 	definejs('jsonlint', function(){
 
 
@@ -143,29 +95,29 @@ function doStartBuildEnv(){
 		//fix base-dir location (since we do not execute from the main web-directory)
 		constants.init('${baseDir}www/');
 
-		require(['pegjs', 'jison', 'semanticInterpreter', 'jquery', 'jsonlint', 'md5impl','checksumUtils','configurationManager'], function(){
+		require(['md5', 'jison', 'jsonlint', 'jquery', 'checksumUtils', 'pegjs', 'semanticInterpreter','configurationManager'], function(md5Impl, jison, jsonlint, jquery, checksumUtils){
 			
 			
-			var bnf = _bnf;
-			var Jison = require('jison');
+//			var bnf = _bnf;
+			var Jison = jison;
 			
 			jsl = {
-				parser: require('jsonlint')
+				parser: jsonlint
 			};
 			
 			//load deferred-impl. via node's require function:
 			var jqueryDeferred = jqueryDeferred || requiren(jqueryDeferredModuleUri);
 			
 			//attach deferred-impl. to jquery:
-			jqueryDeferred.extend(require('jquery'), jqueryDeferred);
+			jqueryDeferred.extend(jquery, jqueryDeferred);
 			
-			checksumUtils = require('checksumUtils');
-			checksumUtils.init( require('md5impl') );
+//			checksumUtils = require('checksumUtils');
+			checksumUtils.init( md5Impl );
 			
 			//start the standalone-grammar parser / generator: 
 			
 </string>
-<fileset dir="${jsBuildDirBase}ant" includes="StandaloneSemanticParserCompileExec.js" />
+<fileset dir="${jsBuildDirBase}common" includes="StandaloneSemanticParserCompileExec.js" />
 <string>
 
 		});

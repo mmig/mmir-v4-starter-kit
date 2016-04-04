@@ -39,8 +39,16 @@ consoleDebugImpl = console.debug;
 console.debug = function(){};
 
 //retrieve command-line argument for assets-path -> create base-path
-var theBasePath = theArguments[2] + 'www/';
-var theLibPath = theArguments[3];
+var theBasePath = (theArguments.length > 2? theArguments[2] : '') + 'www/';
+var theLibPath  =  theArguments.length > 3? theArguments[3] : '../../lib/';
+
+var onNodeModuleInit;
+if(typeof isRunAsModule !== 'undefined'  && isRunAsModule){
+
+	theBasePath = global.mmir.nodejs.config.view.basePath + 'www/';
+	theLibPath = global.mmir.nodejs.config.view.jsLibPath;
+	onNodeModuleInit = global.mmir.nodejs.config.view.onModuleInit;
+}
 
 forBrowser = theBasePath;
 
