@@ -21,8 +21,10 @@ function(){
 /**
  * Creates / initializes the renderer
  * 
- * @param {Canvas} canvasEl
+ * @param {Canvas} [canvasEl]
  * 				the DOM Canvas element on which the renderer will paint
+ * @param {RenderOptions} [opt]
+ * 				options (colors) for rendering
  * 
  * @return {Renderer} a renderer with functions
  * 			<code>draw(ampl : INTEGER)</code>
@@ -33,11 +35,39 @@ function(){
  * @example
  * 
  *  var canvas = document.getElementById('c');
- *  var renderer =  createRenderer(canvas);
+ *  
+ *  //NOTE these are actually the default colors!
+ *  var options = {
+ *		color: {
+ *			//colors for level 1 (active / inactive)
+ *			1: {
+ *				on: '#116611',
+ *				off: '#676666'
+ *			},
+ *			//colors for level 2
+ *			2: {
+ *				on: '#2D882D',
+ *				off: '#969696'
+ *			},
+ *			//colors for level 3
+ *			3: {
+ *				on: '#55AA55',
+ *				off: '#C1C1C1'
+ *			},
+ *			//colors for level 4
+ *			4: {
+ *				on: '#88CC88',
+ *				off: '#E9E9E9'
+ *			},
+ *			//color for the microphone symbol
+ *			micro: '#4f4c4d'
+ *		}
+ *	};
+ *
+ *  var renderer =  createRenderer(canvas, options);
  *  renderer.draw(2);
  */
-function createRenderer(canvasEl){
-
+function createRenderer(canvasEl, opt){
 
 /**
  * original height of the vector graphic (for scaling to canvas size)
@@ -53,6 +83,59 @@ var ch = 67.22012976377954;
 var cw = 67.12133291338583;
 
 /**
+ * the value of the previous amplitude that was rendered
+ * 
+ * @type Number
+ * @memberOf mmir.starterkit.render.impl
+ */
+var lastAmpl;
+
+/**
+ * the options that will be used for rendering
+ * 
+ * @type RenderingOptions
+ * @memberOf mmir.starterkit.render.impl
+ */
+var options = {
+	color: {
+		//colors for level 1 (active / inactive)
+		1: {
+			on: '#116611',
+			off: '#676666'
+		},
+		//colors for level 2
+		2: {
+			on: '#2D882D',
+			off: '#969696'
+		},
+		//colors for level 3
+		3: {
+			on: '#55AA55',
+			off: '#C1C1C1'
+		},
+		//colors for level 4
+		4: {
+			on: '#88CC88',
+			off: '#E9E9E9'
+		},
+		micro: '#4f4c4d'
+			
+	}
+};
+
+
+//shift arguments, if necessary:
+if(canvasEl && !opt){
+	
+	//test & set options, if they were supplied:
+	if(_setOptions(canvasEl)){
+		//canvasEl was actually the options -> shift arguments
+		opt = canvasEl;
+		canvasEl = void(0);
+	}
+}
+
+/**
  * The DOMElement Canvas on which the renderer will paint
  * 
  * @type Canvas
@@ -61,12 +144,80 @@ var cw = 67.12133291338583;
 var canvas = _getCanvas(canvasEl);
 
 /**
- * the value of the previous amplitude that was rendered
+ * Set rendering options.
  * 
- * @type Number
+ * Supported options:
+ * {
+ * 	color: {
+ * 		//colors for rendering levels 1 - 4
+ * 		1: {on: STRING html color code, off: STRING html color code},
+ * 		2: {on: STRING html color code, off: STRING html color code},
+ * 		3: {on: STRING html color code, off: STRING html color code},
+ * 		4: {on: STRING html color code, off: STRING html color code}, 
+ * 	}
+ * }
+ * 
+ * @param {RenderingOptions} [opt]
+ * 				if opt is FALSY, it will be ignored
+ * 
+ * @returns {Boolean} <code>true</code> if <code>opt</code> is a valid options object
+ * 					  (and its options were applied)
+ * 
  * @memberOf mmir.starterkit.render.impl
  */
-var lastAmpl;
+function _setOptions(opt){
+
+	var isOptions = false;
+	
+	if(opt){
+		
+		if(opt.color){
+			
+			for(var i in opt.color){
+				if(opt.color.hasOwnProperty(i)){
+					
+					if(typeof options.color[i] === 'string'){
+						
+						options.color[i] = opt.color[i];
+					} else {
+						
+						for(var j in opt.color[i]){
+							if(opt.color[i].hasOwnProperty(j)){
+								
+								if(options.color[i]){
+									isOptions = true;
+									options.color[i][j] = opt.color[i][j];
+								}
+							}
+						}
+					}
+					
+				}//END: if( hasOwnProperty(i) )
+			}//END: for( i in opt.color)
+			
+			
+		}//END: if( opt.color )
+	}//END: if( opt )
+	
+	return isOptions;
+}
+
+/**
+ * get the color for the circle at index i
+ * 
+ * @memberOf mmir.starterkit.render.impl
+ */
+function _getColor(i, isActive){
+	
+	var colSel = isActive? 'on' : 'off';
+	if(i < 1){
+		i = 1;
+	} else if(i > 4){
+		i = 4;
+	}
+	
+	return options.color[i][colSel];
+}
 
 /**
  * HELPER normalize canvas argument
@@ -145,26 +296,6 @@ function _draw(ampl, canvasEl, isForce) {
 	lastAmpl = ampl;
 	
 	ctx.restore();
-}
-
-/**
- * get the color for the circle at index i
- * 
- * @memberOf mmir.starterkit.render.impl
- */
-function _getColor(i, isActive){
-	if(i === 1){
-		return isActive? "#116611" : "#676666";
-	}
-	if(i === 2){
-		return isActive? "#2D882D" : "#969696";
-	}
-	if(i === 3){
-		return isActive? "#55AA55" : "#C1C1C1";
-	}
-	//if(i === 4){
-		return isActive? "#88CC88" : "#E9E9E9";
-	//}
 }
 
 /**
@@ -399,7 +530,7 @@ ctx.restore();
 ctx.save();
 ctx.translate(235.4277,550.0728);
 ctx.save();
-ctx.fillStyle = "#4f4c4d";
+ctx.fillStyle = options.color.micro;
 ctx.strokeStyle = "rgba(0, 0, 0, 0)";
 ctx.beginPath();
 ctx.moveTo(0,0);
@@ -516,7 +647,8 @@ return {
 	/** @memberOf mmir.starterkit.renderer */
 	draw: _draw,
 	/** @memberOf mmir.starterkit.renderer */
-	set: function(cvsEl){
+	set: function(cvsEl, options){
+		_setOptions(options);
 		canvas = _getCanvas(cvsEl);
 	}
 };
