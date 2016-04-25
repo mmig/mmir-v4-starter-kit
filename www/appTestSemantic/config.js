@@ -21,7 +21,7 @@ var mmir = window.mmir || {};
 		    // core
 	 	    'main': 'mmirf/main'
 		    // lib
-		    , 'jquery': 'mmirf/vendor/libs/jquery-2.1.3'
+		    , 'jquery': 'mmirf/vendor/libs/jquery-2.2.3'
 		    
 		    // globals and AMDs
 	 	    , 'constants': 'mmirf/tools/constants'
