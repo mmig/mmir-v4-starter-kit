@@ -1,4 +1,4 @@
-<h2>@(mmir.LanguageManager.getInstance().getText('password_place_holder'))</h2>
+<h2>@(mmir.LanguageManager.getInstance().getText('choose-language'))</h2>
 @var(par_available_languages)
 @var(size)
 @var(set_lang)
