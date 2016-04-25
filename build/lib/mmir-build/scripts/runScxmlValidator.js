@@ -10,7 +10,7 @@ var options;// = {throwError: true};
 var runner = new oncomplete();
 
 validateScxmls.run(function(err){
-	err? console.error('FAILED: '+err) : console.log('SCXML files are VALID.');
+	err? console.error('FAILED: '+err) : console.log('SUCCESS: SCXML files are VALID.');
 	console.log('------------------- finished validating SCXML files! -------------------');
 	runner && runner.setCompleted();
 }, options);

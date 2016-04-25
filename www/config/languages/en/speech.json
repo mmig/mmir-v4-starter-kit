@@ -1,5 +1,6 @@
 {
 	"language": "en-GB",
+	"long": "eng-GBR",
 	
 	"plugins": {
 		"maryTextToSpeech": {

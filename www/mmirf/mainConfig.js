@@ -40,7 +40,7 @@ var mmirf_config = {
  	    , 'main': 'main'
  	    
 	    // lib
- 	    , 'jquery': 'vendor/libs/jquery-2.1.3'
+ 	    , 'jquery': 'vendor/libs/jquery-2.2.3'
  	    , 'scion': 'vendor/libs/scion-amd'
 	    
 	    // globals and AMDs
@@ -76,7 +76,7 @@ var mmirf_config = {
 	    , 'jqmViewEngine': 'env/view/jqmViewEngine'
 	    
 	    //dependencies for the jqmViewEngine (NOTE these may not be loaded, if jqmViewEngine is not loaded)
-		, 'jqm' : 			'vendor/libs/jquery.mobile-1.4.3'
+		, 'jqm' : 			'vendor/libs/jquery.mobile-1.4.5'
 		, 'jqmSimpleModal':	'vendor/libs/jquery.simplemodal-1.4.4'
 		
 		, 'waitDialog':		'tools/stdlne-wait-dlg'
