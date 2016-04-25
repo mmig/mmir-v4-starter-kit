@@ -25,7 +25,7 @@
     
         <div id="pageContainer" data-role="page" class="type-interior" data-url="pageContainer" data-cache="false" >
             
-            <div id="pageHeader" data-role="header" data-position="fixed" data-theme="b" style="height:50px; vertical-align: middle;">
+            <div id="pageHeader" data-role="header" data-position="fixed" data-theme="b" data-tap-toggle="false" style="vertical-align: middle;">
               @yield("header")
             </div>
             
@@ -33,7 +33,7 @@
               @yield("content")	
             </div>
             
-            <div id="pageFooter" data-role="footer" data-position="fixed" >
+            <div id="pageFooter" data-role="footer" data-position="fixed" data-tap-toggle="false">
               <div id="mic_button" class="round footer_button mic_button">
 			    <img src="content/images/mic.png" width="50" height="50" style="left:3px; position:relative; top:2px;"></img>
 			  </div>

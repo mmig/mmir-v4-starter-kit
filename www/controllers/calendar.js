@@ -43,6 +43,11 @@
 	 
 	//set-up render for microphone-levels
 	mmir.app.renderer.initPage();
+	
+	//FIX jqm > 1.4.3 needs explicit call for updating header/footer
+	//    padding after dynamically inserting page
+	$('#pageHeader').toolbar('updatePagePadding');
+	$('#pageFooter').toolbar('updatePagePadding');
 	 
 //	 //prevent "click trough" of vclicks/taps from previous view
 //	 this.setToPseudoModalState();
