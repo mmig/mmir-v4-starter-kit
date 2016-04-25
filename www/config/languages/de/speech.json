@@ -1,9 +1,9 @@
 {
 	"language": "de-DE",
+	"long": "deu-DEU",
 	
 	"plugins": {
 		"maryTextToSpeech": {
-			"language": "de",
 			"voice": "bits1-hsmm"
 		},
 		"nuanceAudioInput": {
