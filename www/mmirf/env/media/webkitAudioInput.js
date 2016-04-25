@@ -37,12 +37,23 @@ newMediaPlugin = {
 			 */
 			var languageManager = require('languageManager');
 
+			/** @type SpeechRecognition
+			 * @memberOf WebkitAudioInput# */
+			var SpeechRecognitionImpl;
+			
             //detect feature avaibility:
-			if(typeof webkitSpeechRecognition === 'undefined'){
-				
+			if(typeof webkitSpeechRecognition !== 'undefined'){
+				SpeechRecognitionImpl = webkitSpeechRecognition;
+			} else if(typeof mozSpeechRecognition === 'undefined'){
+				SpeechRecognitionImpl = mozSpeechRecognition;
+			} else if(typeof SpeechRecognition === 'undefined'){
+				SpeechRecognitionImpl = SpeechRecognition;
+			}
+			
+			if(!SpeechRecognitionImpl){
 				//... browser does NOT support this speech-input-module: create warning message and dummy functions for the MediaManager
 				
-				console.warn('Could not load webkitAudioInput plugin: API webkitSpeechRecognition is not available!');
+				console.warn('Could not load webkitAudioInput plugin: API SpeechRecognition is not available!');
 				
 				//FIXME this error message is a quick an dirty hack -- there should be a more general way for defining the error message...
 				var msg = 'Unfortunately, your internet browser'
@@ -129,9 +140,9 @@ newMediaPlugin = {
 			/** @memberOf WebkitAudioInput# */
 			var micLevelsImplFile = 'webMicLevels';
 			
-			/** @type webkitSpeechRecognition
+			/** @type SpeechRecognition
 			 * @memberOf WebkitAudioInput# */
-			var recognition = new webkitSpeechRecognition();
+			var recognition = new SpeechRecognitionImpl();
 			/** @type Function
 			 * @memberOf WebkitAudioInput# */
 			var currentSuccessCallback;
@@ -445,9 +456,7 @@ newMediaPlugin = {
                 	console.debug("[webkitAudioInput.Debug] active: " + active);
                 }
                 
-                if(mediaManager.micLevelsAnalysis.enabled()){
-                	mediaManager.micLevelsAnalysis.start();
-                }
+                mediaManager.micLevelsAnalysis.start();
             };
             /** @memberOf WebkitAudioInput.recognition# */
             recognition.onspeechstart = function(event){
@@ -963,7 +972,7 @@ newMediaPlugin = {
 							console.info('STUB::micLevelsAnalysis.start()');
 						},
 						stop: function(){
-							console.info('STUB::micLevelsAnalysis.start()');
+							console.info('STUB::micLevelsAnalysis.stop()');
 						},
 						enable: function(enable){
 							console.info('STUB::micLevelsAnalysis.enable('+(typeof enable === 'undefined'? '': enable)+') -> false');
