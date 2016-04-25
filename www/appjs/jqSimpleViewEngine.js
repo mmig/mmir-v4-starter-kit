@@ -37,7 +37,7 @@ define(['jquery', 'loadCss', 'logger', 'module'],function(jquery, loadCss, Logge
 	
 	//load CSS for jQuery Mobile:
 	var JQM_CSS_ID   = 'jqm-css';
-	var JQM_CSS_HREF = 'mmirf/vendor/styles/jquery.mobile-1.4.3.min.css';
+	var JQM_CSS_HREF = 'mmirf/vendor/styles/jquery.mobile-1.4.5.min.css';
 	loadCss({href: JQM_CSS_HREF, id: JQM_CSS_ID});
 	
 	var promise = jquery.Deferred();
