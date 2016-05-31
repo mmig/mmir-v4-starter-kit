@@ -175,21 +175,6 @@ module.exports = [
         "runs": true
     },
     {
-        "file": "plugins/cordova-plugin-network-information/www/network.js",
-        "id": "cordova-plugin-network-information.network",
-        "clobbers": [
-            "navigator.connection",
-            "navigator.network.connection"
-        ]
-    },
-    {
-        "file": "plugins/cordova-plugin-network-information/www/Connection.js",
-        "id": "cordova-plugin-network-information.Connection",
-        "clobbers": [
-            "Connection"
-        ]
-    },
-    {
         "file": "plugins/cordova-plugin-vibration/www/vibration.js",
         "id": "cordova-plugin-vibration.notification",
         "merges": [
@@ -210,6 +195,21 @@ module.exports = [
         ]
     },
     {
+        "file": "plugins/cordova-plugin-network-information/www/network.js",
+        "id": "cordova-plugin-network-information.network",
+        "clobbers": [
+            "navigator.connection",
+            "navigator.network.connection"
+        ]
+    },
+    {
+        "file": "plugins/cordova-plugin-network-information/www/Connection.js",
+        "id": "cordova-plugin-network-information.Connection",
+        "clobbers": [
+            "Connection"
+        ]
+    },
+    {
         "file": "plugins/dfki-mmir-plugin-speech-android/www/androidspeech.js",
         "id": "dfki-mmir-plugin-speech-android.androidSpeechPlugin",
         "clobbers": [
@@ -221,13 +221,6 @@ module.exports = [
         "id": "dfki-mmir-plugin-speech-android.androidTtsPlugin",
         "clobbers": [
             "window.cordova.plugins.androidTtsPlugin"
-        ]
-    },
-    {
-        "file": "plugins/dfki-mmir-plugin-speech-nuance/www/nuance.js",
-        "id": "dfki-mmir-plugin-speech-nuance.nuanceSpeechPlugin",
-        "clobbers": [
-            "window.cordova.plugins.nuanceSpeechPlugin"
         ]
     }
 ];
