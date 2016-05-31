@@ -95,9 +95,6 @@
         "cordova-plugin-file": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         },
-        "cordova-plugin-network-information": {
-            "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
-        },
         "cordova-plugin-vibration": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         },
@@ -107,10 +104,10 @@
         "dfki-mmir-plugin-queue": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         },
-        "dfki-mmir-plugin-speech-android": {
+        "cordova-plugin-network-information": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         },
-        "dfki-mmir-plugin-speech-nuance": {
+        "dfki-mmir-plugin-speech-android": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         }
     },

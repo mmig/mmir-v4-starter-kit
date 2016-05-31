@@ -3,3 +3,6 @@
 /ant-gen
 /ant-build
 /local.properties
+/.gradle/
+/build/
+/gradle/

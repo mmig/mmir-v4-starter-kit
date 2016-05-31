@@ -11,9 +11,6 @@
         <param name="android-package" value="org.apache.cordova.file.FileUtils" />
         <param name="onload" value="true" />
     </feature>
-    <feature name="NetworkStatus">
-        <param name="android-package" value="org.apache.cordova.networkinformation.NetworkManager" />
-    </feature>
     <feature name="Vibration">
         <param name="android-package" value="org.apache.cordova.vibration.Vibration" />
     </feature>
@@ -24,14 +21,14 @@
     <feature name="QueuePlugin">
         <param name="android-package" value="de.dfki.iui.mmir.plugins.QueuePlugin" />
     </feature>
+    <feature name="NetworkStatus">
+        <param name="android-package" value="org.apache.cordova.networkinformation.NetworkManager" />
+    </feature>
     <feature name="AndroidSpeechPlugin">
         <param name="android-package" value="de.dfki.iui.mmir.plugins.speech.android.AndroidSpeechRecognizer" />
     </feature>
     <feature name="AndroidSpeechSynthesisPlugin">
         <param name="android-package" value="de.dfki.iui.mmir.plugins.speech.android.AndroidSpeechSynthesizer" />
-    </feature>
-    <feature name="NuanceSpeechPlugin">
-        <param name="android-package" value="de.dfki.iui.mmir.plugins.speech.nuance.NuanceSpeechPlugin" />
     </feature>
     <name>MMIR StarterKit</name>
     <description>
