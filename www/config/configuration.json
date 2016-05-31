@@ -25,7 +25,7 @@
     "mediaManager": {
     	"plugins": {
     		"browser": ["html5AudioOutput.js",
-    		            "webkitAudioInput.js",
+    		            "webspeechAudioInput.js",
     		            "maryTextToSpeech.js"
     		],
     		"cordova": ["cordovaAudioOutput.js",
