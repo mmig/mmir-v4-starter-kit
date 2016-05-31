@@ -30,9 +30,6 @@
     <feature name="AndroidSpeechSynthesisPlugin">
         <param name="android-package" value="de.dfki.iui.mmir.plugins.speech.android.AndroidSpeechSynthesizer" />
     </feature>
-    <feature name="NuanceSpeechPlugin">
-        <param name="android-package" value="de.dfki.iui.mmir.plugins.speech.nuance.NuanceSpeechPlugin" />
-    </feature>
     <name>MMIR StarterKit</name>
     <description>
         A sample Apache Cordova application for the MMIR StarterKit.

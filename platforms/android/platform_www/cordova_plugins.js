@@ -222,13 +222,6 @@ module.exports = [
         "clobbers": [
             "window.cordova.plugins.androidTtsPlugin"
         ]
-    },
-    {
-        "file": "plugins/dfki-mmir-plugin-speech-nuance/www/nuance.js",
-        "id": "dfki-mmir-plugin-speech-nuance.nuanceSpeechPlugin",
-        "clobbers": [
-            "window.cordova.plugins.nuanceSpeechPlugin"
-        ]
     }
 ];
 module.exports.metadata = 

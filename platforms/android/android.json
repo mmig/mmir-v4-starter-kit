@@ -43,10 +43,6 @@
                         {
                             "xml": "<feature name=\"AndroidSpeechSynthesisPlugin\"><param name=\"android-package\" value=\"de.dfki.iui.mmir.plugins.speech.android.AndroidSpeechSynthesizer\" /></feature>",
                             "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"NuanceSpeechPlugin\"><param name=\"android-package\" value=\"de.dfki.iui.mmir.plugins.speech.nuance.NuanceSpeechPlugin\" /></feature>",
-                            "count": 1
                         }
                     ]
                 }
@@ -60,22 +56,6 @@
                         },
                         {
                             "xml": "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<uses-permission android:name=\"android.permission.INTERNET\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<uses-permission android:name=\"android.permission.RECORD_AUDIO\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\" />",
                             "count": 1
                         }
                     ],
@@ -112,9 +92,6 @@
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         },
         "dfki-mmir-plugin-speech-android": {
-            "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
-        },
-        "dfki-mmir-plugin-speech-nuance": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         }
     },
@@ -341,13 +318,6 @@
             "id": "dfki-mmir-plugin-speech-android.androidTtsPlugin",
             "clobbers": [
                 "window.cordova.plugins.androidTtsPlugin"
-            ]
-        },
-        {
-            "file": "plugins/dfki-mmir-plugin-speech-nuance/www/nuance.js",
-            "id": "dfki-mmir-plugin-speech-nuance.nuanceSpeechPlugin",
-            "clobbers": [
-                "window.cordova.plugins.nuanceSpeechPlugin"
             ]
         }
     ]

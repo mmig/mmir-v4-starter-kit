@@ -64,13 +64,5 @@
         },
         "is_top_level": true,
         "variables": {}
-    },
-    "dfki-mmir-plugin-speech-nuance": {
-        "source": {
-            "type": "local",
-            "path": "d:\\git_repo\\mmir-plugin-speech-nuance"
-        },
-        "is_top_level": true,
-        "variables": {}
     }
 }

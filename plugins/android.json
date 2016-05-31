@@ -109,9 +109,6 @@
         },
         "dfki-mmir-plugin-speech-android": {
             "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
-        },
-        "dfki-mmir-plugin-speech-nuance": {
-            "PACKAGE_NAME": "de.dfki.iui.mmir.starterkit"
         }
     },
     "dependent_plugins": {}
