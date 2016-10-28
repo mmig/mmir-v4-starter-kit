@@ -1,5 +1,6 @@
 <h2>@(mmir.LanguageManager.getInstance().getText('choose_language'))</h2>
 @var(par_available_languages)
+@var(i)
 @var(size)
 @var(set_lang)
 @var(set_list_class)
