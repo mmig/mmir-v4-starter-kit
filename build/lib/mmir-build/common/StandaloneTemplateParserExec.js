@@ -117,7 +117,7 @@ var MmirScriptContentParser = require('contentParser');
 		parserPrintError 	= function() { parserPrintErrorImpl.apply(context, arguments); };
 		//parserCreatePrintMessage = function() { return parserCreatePrintMessageImpl.apply(context, arguments); }
 
-	    MmirTemplateLexer.prototype.emitErrorMessageRRR = function(msg) {
+	    MmirTemplateLexer.prototype.emitErrorMessage = function(msg) {
 	    	console.error( parserCreatePrintMessage('[ERROR] TemplateLexer: ',msg) );
 		};
 	//	MmirTemplateParser.prototype.emitErrorMessage = function(msg) {
@@ -166,7 +166,7 @@ var configurationManager = require('configurationManager');
 //force view-generation (i.e. disable change-check for compiled views)
 configurationManager.set('usePrecompiledViews', 'false');
 
-console.log('------------------------------------------------ completed initialization, start parsing *.ehtml files... ---------------------------');
+console.log('------------------------------------- completed initialization, start parsing *.ehtml files... -------------------');
 
 var controllerManager = require('controllerManager');
 
@@ -314,7 +314,7 @@ function _generateCompiledViews(options){
 					throw(new Error('Encountered errors while reading templates files: abort parsing!'+msg));
 				}
 			    
-			    console.log('------------------------------------------------------- finished parsing *.ehtml templates -----------------------------------------');
+			    console.log('--------------------------------------------- finished parsing *.ehtml templates --------------------------------');
 			    
 			    var storageBasePath = compiledViewGenPath;
 			    
@@ -417,8 +417,7 @@ function _generateCompiledViews(options){
 						}
 						regExprFileExt.lastIndex = 0;
 						
-						console.log(' ');
-						console.log('preparing view (ehtml) at views/'+name+'/'+viewName+' for storage...');
+						console.log('  processing view (ehtml) at views/'+name+'/'+viewName+'...');
 						
 						var isPartial = isPartialView(viewName);
 						
@@ -506,11 +505,10 @@ function _generateCompiledViews(options){
 					
 				}//END: for( views-list )
 
-				console.log('  ');
-				console.log('----------------------------- finished processing views ---------------------');
-				console.log('  processed views: '+total);
-				console.log('  un-changed views: '+unchangedCounter);
-				console.log('----------------------- wrote '+wroteFileCounter+' file(s) to '+storageBasePath+' -----------------------');
+				console.log('  ----');
+				console.log('  processed views (updated / total): '+ (total-unchangedCounter)+ ' / ' + total);
+				console.log('  wrote '+wroteFileCounter+' file(s) to '+storageBasePath);
+				console.log('----------------------------------------------- finished processing views ---------------------------------------\n');
 				
 		    });//END:  presentationManager.init().then(...
 		    
