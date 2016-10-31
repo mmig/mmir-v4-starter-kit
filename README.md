@@ -90,9 +90,10 @@ or is not an AMD module and needs a requirejs shim configuration (see also secti
 
 After changing a (nodejs) build script, e.g. for processing view-template or for processing grammars, in
 `build/lib/mmir-build/templates/`
-
 the helper script
-`node build/scripts/generateAntGenScripts.js`
+
+    node build/lib/mmir-build/scripts/generateAntGenScripts.js
+    
 should be executed, which will create/update the Rhino/Java-based build scripts in
 `build/lib/mmir-build/spec/`
 
@@ -103,15 +104,21 @@ Vendor libraries should be "requirejs compatible" (i.e. an AMD module):
 This can be achieved either by the library itself being an AMD module, or by adding
 a requirejs shim configuration in `mainConfig.js` (see documentation of requirejs for more details).
 
-If a vendor library is added with a shim configuration, then the helper script
-`node build/scripts/processRequirejsShimConfig.js`
-must be executed which will create an AMD module for the library in
-`build/lib/mmir-build/mod/`
-This library will be used during build (i.e. `cordova prepare`) in the nodejs environment 
+If a vendor library is added with a shim configuration, then the helper script(*)
+
+    node build/lib/mmir-build/scripts/processRequirejsShimConfig.js
+     
+must be executed which will create an AMD module for the library in `build/lib/mmir-build/mod/`. 
+This AMD library will then be used during build (i.e. `cordova prepare`) in the nodejs environment 
 (since requirejs shims do not work in nodejs).
 
 NOTE: if the license of the added libraries allow it, you could also use the AMD modules instead
       of the original library and remove the shim configuration
+      
+> (*): if the web-app root directory is different than `<project dir>/www`, then the direcotry needs
+>    to be added as an argument, e.g. if its located in `<project dir>/src/assets`, then run the script with
+>
+>     node build/lib/mmir-build/scripts/processRequirejsShimConfig.js src/assets
 
 --
 ### License

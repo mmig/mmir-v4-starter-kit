@@ -96,7 +96,7 @@ function doStartGrammarBuildEnv(){
 	require(['constants', 'jqueryajax'], function(constants){
 
 		//fix base-dir location (since we do not execute from the main web-directory)
-		constants.init('${baseDir}www/');
+		constants.init('${appRootDir}/');
 
 		require(['md5', 'jison', 'jsonlint', 'jquery', 'checksumUtils', 'pegjs', 'semanticInterpreter','configurationManager'], function(md5Impl, jison, jsonlint, jquery, checksumUtils){
 			
