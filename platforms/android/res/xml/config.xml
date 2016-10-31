@@ -37,8 +37,8 @@
         <param name="android-package" value="org.apache.cordova.media.AudioHandler" />
     </feature>
     <name>mmir-starter-kit</name>
-    <description>An awesome Ionic/Cordova app.</description>
-    <author email="hi@ionicframework" href="http://ionicframework.com/">Ionic Framework Team</author>
+    <description>the mmir-starter-kit with Ionic2/Cordova.</description>
+    <author>MMIG team</author>
     <content src="index.html" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
