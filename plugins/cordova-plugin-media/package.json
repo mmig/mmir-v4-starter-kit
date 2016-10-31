@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-media",
-  "version": "2.1.0",
+  "version": "2.3.1-dev",
   "description": "Cordova Media Plugin",
   "cordova": {
     "id": "cordova-plugin-media",
@@ -36,9 +36,13 @@
     "cordova-windows",
     "cordova-tizen"
   ],
-  "peerDependencies": {
-    "cordova-plugin-file": "^4.0.0"
+  "scripts": {
+    "test": "npm run jshint",
+    "jshint": "jshint www && jshint src && jshint tests"
   },
   "author": "Apache Software Foundation",
-  "license": "Apache 2.0"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "jshint": "^2.6.0" 
+  }
 }

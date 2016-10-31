@@ -1,72 +1,39 @@
-<?xml version='1.0' encoding='utf-8'?>
-
-<widget id="de.dfki.iui.mmir.starterkit"
-    	version="3.1.0"
-    	xmlns="http://www.w3.org/ns/widgets"
-    	xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    
-    <name>MMIR StarterKit</name>
-    <description>
-        A sample Apache Cordova application for the MMIR StarterKit.
-    </description>
-    <author email="" href="https://github.com/mmig/mmir-starter-kit">
-        DFKI MMIG Team
-    </author>
-    
-    <!-- 
-    		start the app's page with search-query/param "env=cordova",
-    		so that the MMIR framework can "detect" the Cordova enviornment
-      -->
-    <content src="index.html?env=cordova" />
-    
-    
-    <!-- 
-    	 allows access to all remote locations
-    	 
-    	 USE THIS SETTING ONLY DURING DEVELOPMENT!
-    	 
-    	 see the Cordova documentation for more details
-    	 https://cordova.apache.org/docs/en/latest/guide/appdev/whitelist/index.html
-    	 
-     -->
-    <access origin="*" />
-    
-    
-    <!-- 
-    	Set your Nunace credentials here, for using the Nuance Speech plugin (Nuance SpeechKit / Dragon Mobile SDK)
-    	
-    	NOTE: you also need to change /www/config/configuration.json, if you want to use the Nuance Speech plugin.
-    		  Set the correspondin values to "nuanceXXX.js":
-    	
-		    	...
-		    	"mediaManager": {
-			    	"plugins": {
-			    		...
-			    		"cordova": ["cordovaAudioOutput.js",
-			    		            "nuanceAudioInput.js",
-			    		            "nuanceTextToSpeech.js"
-			    		]
-			    	}
-			    }
-			    ...
-	    
-     -->
-    <preference name="nuanceAppKey" value="{ 
-        (byte)0x... <copy'n'paste your app key here, in Android format>
-    }"/>
-    <preference name="nuanceAppId" value="NMDPTRIAL_...<copy'n'paste your app ID here>"/>
-    <preference name="nuanceServerUrl" value="<copy'n'paste the server URL for the SpeechKit service>"/>
-    <preference name="nuanceServerPort" value="<copy'n'paste the port number>"/>
-    <preference name="nuanceServerSsl" value="<use true, if you are using SSL>"/>
-
-    <!-- OPTIONAL (can be omitted)
-            if SSL is used, this settings can be used for strengthening the encryption
-     -->
-    <preference name="nuanceCertSummary" value="<copy'n'paste the cert summary>"/>
-     <!-- OPTIONAL (can be omitted)
-            if SSL is used, this settings can be used for strengthening the encryption
-     -->
-    <!-- preference name="nuanceCertData" value="<copy'n'paste the cert data>"/-->
-
-    
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<widget id="de.dfki.iui.mmir.starterkit" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+  <name>mmir-starter-kit</name>
+  <description>the mmir-starter-kit with Ionic2/Cordova.</description>
+  <author>MMIG team</author>
+  <content src="index.html"/>
+  <access origin="*"/>
+  <allow-intent href="http://*/*"/>
+  <allow-intent href="https://*/*"/>
+  <allow-intent href="tel:*"/>
+  <allow-intent href="sms:*"/>
+  <allow-intent href="mailto:*"/>
+  <allow-intent href="geo:*"/>
+  <platform name="android">
+    <allow-intent href="market:*"/>
+  </platform>
+  <platform name="ios">
+    <allow-intent href="itms:*"/>
+    <allow-intent href="itms-apps:*"/>
+  </platform>
+  <preference name="webviewbounce" value="false"/>
+  <preference name="UIWebViewBounce" value="false"/>
+  <preference name="DisallowOverscroll" value="true"/>
+  <preference name="android-minSdkVersion" value="16"/>
+  <preference name="BackupWebStorage" value="none"/>
+  <preference name="SplashScreenDelay" value="0"/>
+  <preference name="FadeSplashScreen" value="false"/>
+  <preference name="FadeSplashScreenDuration" value="0"/>
+  <preference name="SplashScreenBackgroundColor" value="0xFFFFFFFF"/>
+  <feature name="StatusBar">
+    <param name="ios-package" onload="true" value="CDVStatusBar"/>
+  </feature>
+  <plugin name="cordova-plugin-device" spec="~1.1.3"/>
+  <plugin name="cordova-plugin-console" spec="~1.0.4"/>
+  <plugin name="cordova-plugin-whitelist" spec="~1.3.0"/>
+  <plugin name="cordova-plugin-splashscreen" spec="~4.0.0"/>
+  <plugin name="cordova-plugin-statusbar" spec="~2.2.0"/>
+  <plugin name="ionic-plugin-keyboard" spec="~2.2.1"/>
 </widget>
