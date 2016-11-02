@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    	
+    	<!-- NOTE datebox-1.4.2 does not work well with jQuery Mobile 1.4.3
+    	          ... the older version 1.4.0 seems to work fine though. 
+    	-->
+        @*style( "../../assets/content/stylesheets/jqm-datebox-1.4.0.min")
+     	@style( "../../assets/content/stylesheets/jqm-extentions" )*@
+        @style( "../../assets/content/stylesheets/application")
+        @style( "../../assets/content/stylesheets/flags")
+        
+		@* @script("assets/content/libs/jqm-datebox-1.4.2.comp.flipbox.min")
+		@script("assets/content/libs/jquery.mobile.datebox.i18n.de.utf8")
+		@script("assets/content/libs/jquery.mobile.datebox.i18n.ja.utf8")
+		@script("assets/content/libs/jquery.mobile.datebox.i18n.en.utf8") *@
+        
+        <!-- 
+        	this comment will be ignored:
+        	upon parsing all HTML comment will be removed before processing the content.
+         -->
+         
+    </head>
+    <body>
+    
+        <div id="pageContainer" data-role="page" class="type-interior" data-url="pageContainer" data-cache="false" >
+            
+            <div id="pageHeader" data-role="header" data-position="fixed" data-theme="b" data-tap-toggle="false" style="vertical-align: middle;">
+              @yield("header")
+            </div>
+            
+            <div id="pageContent" role="main" class="ui-content" style="padding-bottom:1px;">
+              @yield("content")	
+            </div>
+            
+            <div id="pageFooter" data-role="footer" data-position="fixed" data-tap-toggle="false">
+              <div id="mic_button" class="round footer_button mic_button">
+			    <img src="content/images/mic.png" width="50" height="50" style="left:3px; position:relative; top:2px;"></img>
+			  </div>
+		      @yield('footer')
+            </div>
+            
+        </div>
+        
+    </body>
+    
+    <dialogs>
+    	@yield('dialogs')
+    </dialogs>
+</html>
