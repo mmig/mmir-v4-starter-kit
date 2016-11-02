@@ -1,0 +1,65 @@
+
+<ion-header>
+  <ion-navbar>
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>login-page</ion-title>
+  </ion-navbar>
+</ion-header>
+
+
+<ion-content padding class="page-login-page">
+
+
+  <h2>Login</h2>
+
+  <ion-list>
+
+    <ion-item>
+      <ion-label fixed>Username</ion-label>
+      <ion-input type="text" [(ngModel)]="user.name"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label fixed>Password</ion-label>
+      <ion-input type="password" [(ngModel)]="user.password"></ion-input>
+    </ion-item>
+
+  </ion-list>
+
+  <button ion-button color="light" icon-right>
+      Login
+      <ion-icon name='log-in'></ion-icon>
+  </button>
+
+  <span *ngIf="user.name" class="user">as {{user.name}}</span>
+
+  <hr/>
+
+  <h3>or register yourself</h3>
+
+  <button ion-button color="light" icon-right>
+      Sing Up
+      <ion-icon name='create'></ion-icon>
+  </button>
+
+  <ion-fab right bottom>
+    <button id="mic_button" ion-fab color="vibrant"><ion-icon name="mic"></ion-icon></button>
+  </ion-fab>
+
+</ion-content>
+
+<ion-footer>
+
+  <ion-toolbar>
+
+    <ion-buttons left start>
+     <button ion-button>
+       <ion-icon name="flag"></ion-icon>
+        Language...
+     </button>
+    </ion-buttons>
+
+  </ion-toolbar>
+</ion-footer>
