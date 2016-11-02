@@ -199,7 +199,7 @@ commonUtils.loadImpl = function _loadStubCtrlImpl(librariesPath, isSerial, compl
 		
 		
 		//mock loading controller implementation files: use stubs instead
-		var list = commonUtils.getDirectoryContentsWithFilter(librariesPath, "*.js");
+		var list = commonUtils.listDir(librariesPath, /^.*\.js$/ig);
 		
 		var fn;
 		for(var i=0,size=list.length; i < size; ++i){
@@ -342,7 +342,7 @@ function _generateCompiledViews(options){
 			    
 			    var constants = require('constants');
 			    
-				var viewList = utils.getDirectoryContents('views');
+				var viewList = utils.listDir('views');
 				
 				//prepare view-list and compute total count of views that will be compiled
 				var counter = 0;
@@ -356,7 +356,7 @@ function _generateCompiledViews(options){
 						continue;
 					}
 					
-					var views = utils.getDirectoryContents('views/'+name);
+					var views = utils.listDir('views/'+name);
 					
 					viewList[i] = {
 						name: name,

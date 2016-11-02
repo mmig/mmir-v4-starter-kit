@@ -19,7 +19,7 @@ later updates from this repository can be fetched from wihtin the referencing pr
 
 ### Dependencies
 
-The current build process requires the **[MMIR-lib][4] version 3.7.4 or later**
+The current build process requires the **[MMIR-lib][4] version 3.7.5 or later**
 
 By default the build process will assume that the MMIR-based application is
 located at `www/` and the MMIR-library files at `www/mmirf/`:
@@ -40,10 +40,10 @@ When the contents of this repository are located in the sub-directory
 
     /build
 
-of a Cordova 5.x (CLI generated) project, running the ANT task ```build.xml```
+of a Cordova >= 5.x (CLI generated) project, running the ANT task ```build.xml```
 of this repository (within the sub-directory, i.e. `build/build.xml`) will set
  up the resources (_"tooling"_) for building MMIR-based applications with
- Cordova 5.x:
+ Cordova >= 5.x:
     
     hooks/before_build/**
     mmir-build.properties
