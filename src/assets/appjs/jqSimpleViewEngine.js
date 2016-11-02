@@ -31,13 +31,15 @@
  *  
  *  @depends jQuerySimpleModalDialog
  */
-define(['jquery', 'loadCss', 'logger', 'module'],function(jquery, loadCss, Logger, module){
+define(['constants', 'jquery', 'loadCss', 'logger', 'module'],function(consts, jquery, loadCss, Logger, module){
 
 	var log = Logger.create(module);
 	
+	var basePath = consts.getBasePath();
+	
 	//load CSS for jQuery Mobile:
 	var JQM_CSS_ID   = 'jqm-css';
-	var JQM_CSS_HREF = 'mmirf/vendor/styles/jquery.mobile-1.4.5.min.css';
+	var JQM_CSS_HREF = basePath+'mmirf/vendor/styles/jquery.mobile-1.4.5.min.css';
 	loadCss({href: JQM_CSS_HREF, id: JQM_CSS_ID});
 	
 	var promise = jquery.Deferred();

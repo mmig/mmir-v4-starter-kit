@@ -46,10 +46,10 @@ Application.prototype.on_page_load = function (){
 	//set-up render for microphone-levels
 	mmir.app.renderer.initPage();
 
-	//FIX jqm > 1.4.3 needs explicit call for updating header/footer
-	//    padding after dynamically inserting page
-	$('#pageHeader').toolbar('updatePagePadding');
-	$('#pageFooter').toolbar('updatePagePadding');
+//	//FIX jqm > 1.4.3 needs explicit call for updating header/footer
+//	//    padding after dynamically inserting page
+//	$('#pageHeader').toolbar('updatePagePadding');
+//	$('#pageFooter').toolbar('updatePagePadding');
 
 };
 
@@ -278,8 +278,8 @@ Application.prototype.changeLanguage = function(newLang) {
 	var currLang = mmir.LanguageManager.getInstance().getLanguage();
 	var newLang = mmir.LanguageManager.getInstance().setLanguage(newLang);
 
-	//also set the new language for jqm plugin datebox:
-	jQuery.mobile.datebox.prototype.options.useLang = newLang;
+//	//also set the new language for jqm plugin datebox:
+//	jQuery.mobile.datebox.prototype.options.useLang = newLang;
 
 	return currLang != newLang;
 };

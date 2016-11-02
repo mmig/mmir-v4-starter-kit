@@ -1,6 +1,7 @@
 {
     "language": "en",
     "usePrecompiledViews": "false",
+    "defaultLayoutName": null,
     "usePrecompiledGrammarsOnly": "true",
     "grammarCompiler": "jscc",
     

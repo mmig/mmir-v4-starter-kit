@@ -12,7 +12,7 @@
 			
 			//register a custom rendering module
 			// NOTE: the framework also needs to be configured to actually use it (see below for an example)
-			'jqViewEngine': '../appjs/jqSimpleViewEngine',
+			'ionicViewEngine': '../appjs/ionicViewEngine',//jqSimpleViewEngine',
 			
 //			//overwrite framework's jQuery library with another version:
 //			'jquery': '../content/js/jquery-x.y.z',
@@ -35,8 +35,8 @@
 				init: function(loadCss){
 					
 					//load stylesheets (async & non-blocking)
-					loadCss({href: 'content/stylesheets/jbox-themes/TooltipDark.css', id: 'jbox-theme-css'});
-					loadCss({href: 'content/stylesheets/jBox.css', id: 'jbox-css'});
+					loadCss({href: 'assets/content/stylesheets/jbox-themes/TooltipDark.css', id: 'jbox-theme-css'});
+					loadCss({href: 'assets/content/stylesheets/jBox.css', id: 'jbox-css'});
 					
 					return jBox;
 				}
@@ -48,13 +48,18 @@
 		, config: {
 				//set specific debug levels
 			    'inputManager': {
+			        scxmlDoc: 'assets/config/statedef/inputDescriptionSCXML.xml',
 				    logLevel: 'warn'
 			    }
 			    , 'dialogManager': {
+			        scxmlDoc: 'assets/config/statedef/dialogDescriptionSCXML.xml',
 				    logLevel: 'warn'
 			    }
 			    , 'mediaManager': {
 				    logLevel: 'debug'
+			    }
+			    , 'constants': {
+			    	basePath: 'assets/'
 			    }
 			    
 			}
@@ -62,9 +67,11 @@
 	
 	//this would set a "custom" rendering engine/implementation
 	// (the module "jqViewEngine" is registered above)
-//	core.viewEngine = 'jqViewEngine';
+	core.viewEngine = 'ionicViewEngine';
 	
 	core.logLevel = 'info';
+	
+	core._mmirLibPath= './assets/mmirf';
 	
 	//add a listener for Cordova initialization, in order to do something 
 	// as soon as "Cordova becomes available"
