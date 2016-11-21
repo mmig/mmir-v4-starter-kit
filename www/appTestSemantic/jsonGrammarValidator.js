@@ -757,8 +757,8 @@ define(['commonUtils', 'grammarConverter'], function(utils, GrammarConverter){
 						w = w.toLowerCase();//<- variable-names are all-lower-case
 						if(!map[w] || map[w].state !== exists){
 							map[w] = {
-								state: exists,
-								location: [UTTERANCE, u, PHRASES, i, w]
+								state: exists
+								//TODO store type (token or utterance)
 							};
 						} 
 //						else if(map[w].state !== exists)TODO? add multiple locations?
@@ -771,83 +771,59 @@ define(['commonUtils', 'grammarConverter'], function(utils, GrammarConverter){
 				if(utt[SEMANTIC]){
 					
 					var _reVarNames = this.reVarNames;
-					var validateVars = function(va, location){
-						var vname, loc;
-						vname = _reVarNames.exec(va)
-						if(!vname){
+					var _reVars = this.reVars;
+					
+
+					// for each semantic-entry: verify that variable-reference
+					// 1. are syntactically correct
+					// 2. refer to a TOKEN or UTTERENCE in one of the utt's PHRASES
+					var validateVars = function(val, location){
+						
+						var vname, loc, vmatch, semVal;
+						_reVars.lastIndex = 0;
+						semVal = '"' + val +'"';//<- "simulate" stringified value, as is currently use in GrammarConverter/Generator
+						
+						while(vmatch = _reVars.exec(semVal)){//FIXME change parsing in GrammarConverter/Generator: do not parse stringified SEMANTIC object!
 							
-							loc = location.slice(0);
-							loc.push(va);
-							problems.push(new Problem(
-									loc,
-									'Variable "'+va+'" in SEMANTIC contains invalid characters',
-									'ERROR'
-							));
+							va = vmatch[1];
 							
-						} else {
+							//has access-index?
+//							this.reVarIndex.lastIndex = 0;//TODO check/verify index-access
 							
-							if(!map[vname[1]] || map[vname[1]].state !== exists){
+							//is variable name valid?
+							vname = _reVarNames.exec(va)
+							if(!vname){
+								
 								loc = location.slice(0);
 								loc.push(va);
 								problems.push(new Problem(
 										loc,
-										'Variable "'+va+'" in SEMANTIC does not reference a TOKEN or UTTERANCE in one of the PHRASES',
+										'Variable "'+va+'" in SEMANTIC contains invalid characters',
 										'ERROR'
 								));
+								
+								
+							} else {
+								
+								//refers the variable to a token or utterance in utt's phrases?
+								if(!map[vname[1]] || map[vname[1]].state !== exists){
+									
+									loc = location.slice(0);
+									loc.push(va);
+									problems.push(new Problem(
+											loc,
+											'Variable "'+va+'" in SEMANTIC does not reference a TOKEN or UTTERANCE in one of the PHRASES',
+											'ERROR'
+									));
+									
+
+									//TODO check/verify access to semantic attributes of utterance-references
+								}
 							}
 						}
 					}
 					processJSON(utt[SEMANTIC], validateVars, [UTTERANCE, u, SEMANTIC]);
-				
-					
-//					var semVal, vmatch, va, ind, vname, loc;
-//					for(var sem in utt[SEMANTIC]){
-//						
-//						if(utt[SEMANTIC].hasOwnProperty(sem)){
-//							
-//							semVal = utt[SEMANTIC][sem];
-//							
-//							// for each semantic-entry: verify that variable-reference
-//							// 1. are syntactically correct
-//							// 2. refer to a TOKEN or UTTERENCE in one of the PHRASES
-//							
-////							this.reVars.lastIndex = 0;
-////							while(vmatch = this.reVars.exec(semVal)){//FIXME change parsing in GrammarConverter/Generator: do not parse stringified SEMANTIC object!
-////								va = vmatch[1];
-//								va = semVal;//FIXME
-////								//has access-index?
-////								this.reVarIndex.lastIndex = 0;
-//								
-//								vname = this.reVarNames.exec(va)
-//								if(!vname){
-//									
-//									loc = [UTTERANCE, u, SEMANTIC, sem, semVal];
-//									problems.push(new Problem(
-//											loc,
-//											'Variable "'+va+'" in SEMANTIC contains invalid characters',
-//											'ERROR'
-//									));
-//									
-//								} else {
-//									
-//									if(!map[vname[1]] || map[vname[1]].state !== exists){
-//										loc = [UTTERANCE, u, SEMANTIC, sem, semVal];
-//										problems.push(new Problem(
-//												loc,
-//												'Variable "'+va+'" in SEMANTIC does not reference a TOKEN or UTTERANCE in one of the PHRASES',
-//												'ERROR'
-//										));
-//									}
-//								}
-//								
-//								
-////							}
-//							
-//
-//						}//END: if(utt[SEMANTIC].hasOwnProperty())
-//							
-//					}//END: for(utt[SEMANTIC])
-							
+						
 				}//END: if(utt[SEMANTIC])
 				
 			}
