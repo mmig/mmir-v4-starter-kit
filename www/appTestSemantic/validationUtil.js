@@ -335,8 +335,9 @@ define(['appUtil', 'jsonlint', 'esprima', 'grammarValidator'], function(util, js
 			var problems3 = validator.validateTokenDuplicates();
 			var problems4 = validator.validateUtteranceDuplicates();
 			var problems5 = validator.validateStopwords();
+			var problems6 = validator.validateUtteranceVarRefs();
 	
-			var list = problems.concat(problems2, problems3, problems4, problems5);
+			var list = problems.concat(problems2, problems3, problems4, problems5, problems6);
 			if (list.length) {
 				//TEST debug:
 				if (false){

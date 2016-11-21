@@ -3,7 +3,7 @@
  * Validation tools for JSON grammar files.
  * 
  */
-define(['commonUtils'], function(utils){
+define(['commonUtils', 'grammarConverter'], function(utils, GrammarConverter){
 	
 	var PATH_SEP = '.';
 	var getLoc = function(location){
@@ -22,22 +22,25 @@ define(['commonUtils'], function(utils){
 		this.message = message;
 		this.level = level;
 	};
-	
 	Problem.prototype.toString = function(){
 		return this.level+' at '+this._locationStr(this.location)+': '+this.message+'.';
 	};
 	Problem.prototype._locationStr = getLoc;
-	
+
+	/** @memberOf GrammarValidator */
 	var isArray = utils.isArray;
-	
+
+	/** @memberOf GrammarValidator */
 	var isPlainObject = function(obj){
 		return typeof obj === 'object' && obj !== null && ! isArray(obj);
 	};
-	
+
+	/** @memberOf GrammarValidator */
 	var toTypeString = function(obj){
 		return isArray(obj)? 'Array' : obj===null? 'NULL' : typeof obj;
 	};
-	
+
+	/** @memberOf GrammarValidator */
 	var isUpperCase = function(str){//ignore underscores
 		for(var i=0, len = str.length; i < len; ++i){
 			if( /[a-z]/.test(str.charAt(i)) ){
@@ -47,22 +50,95 @@ define(['commonUtils'], function(utils){
 		return true;
 	};
 	
+	/** @memberOf GrammarValidator */
 	var hasIdStart = function(str){//allow ASCII letters only
 		return /^[a-zA-Z].*/i.test(str);
 	};
+	/** @memberOf GrammarValidator */
 	var isId = function(str){//allow ASCII letters and digits
 		return /^[a-zA-Z0-9_]+/i.test(str);
 	};
 
+	/** @memberOf GrammarValidator */
+	var processJSON = function(obj, validateFunc, location, data){
+		
+		var loc;
+		
+		//different treatments for: STRING, ARRAY, OBJECT types (and 'REST' type, i.e. all ohters)
+		if(typeof obj === 'string'){
+			//STRING: encode the string
+			return validateFunc(obj, location, data);
+		}
+		else if( isArray(obj) ) {
+			//ARRAY: process all entries:
+			for(var i=0, size = obj.length; i < size; ++i){
+				loc = location.slice(0);
+				loc.push(i);
+				obj[i] = processJSON(obj[i], validateFunc, loc, data);
+			}
+			
+			return obj;
+		}
+		else if(obj === null) {//NOTE null is typeof object!
+			return null;
+		}	
+		else if(typeof obj === 'object') {
+			//OBJECT: process all the object's properties (but only, if they are not inherited)
+			for(var p in obj){
+				if(obj.hasOwnProperty(p)){
+					loc = location.slice(0);
+					loc.push(p);
+					obj[p] = processJSON(obj[p], validateFunc, loc, data);
+				}
+			}
+			return obj;
+		}
+		else {
+			return obj;
+		}
+	};
+
 	//some "keywords" that are used in grammars
+	/** @memberOf GrammarValidator */
 	var STOPWORDS = 'stop_word'; 
+	/** @memberOf GrammarValidator */
 	var TOKEN = 'tokens';
+	/** @memberOf GrammarValidator */
 	var UTTERANCE = 'utterances';
+	/** @memberOf GrammarValidator */
 	var PHRASES = 'phrases';
+	/** @memberOf GrammarValidator */
 	var SEMANTIC = 'semantic';
+	
+	//GrammarConverter instance for accessing converter-values TODO make these static in GrammarConverter?
+	/** @memberOf GrammarValidator */
+	var GC = new GrammarConverter();
 	
 	var GrammarValidator = function(grammar){
 		this.grammar = grammar;
+		
+		this.varPrefix = GC.variable_prefix;
+		this.reVars = GC.variable_regexp;
+		
+		//FIXME should get these from grammar-converter and/or generator!?!
+		this.reVarIndex = /\[(\d+)\]/;
+		this.reVarNames = new RegExp('_\\$([a-zA-Z_][a-zA-Z0-9_\\-]*)');
+		
+		this._checkIfNotRegExpr = function(token){
+			
+			//test for character-group
+			if( ! /([^\\]\[)|(^\[).*?[^\\]\]/.test(token)){
+				
+				//test for grouping
+				if( ! /([^\\]\()|(^\().*?[^\\]\)/.test(token) ){
+				
+					//try for single-characters that occur in reg-expr FIXME this may procude false-positives!!!
+					return ! /[\?|\*|\+|\^|\|\\]/.test(token); //excluded since these may be more common in natural text: . $
+				}
+			}
+			
+			return false;
+		};
 	};
 	
 	/**
@@ -181,7 +257,7 @@ define(['commonUtils'], function(utils){
 						));
 					}
 					
-					var v;
+					var v, v2;
 					// 5. for each token-entry: verify it is a STRING
 					for(var i=0; i < size; ++i){
 						v = tlist[i];
@@ -191,10 +267,20 @@ define(['commonUtils'], function(utils){
 									'TOKEN value is not a STRING, but has type '+ toTypeString(v),
 									'WARN'
 							));
+						} else {
+							// 6. for each token-entry: verify it is lower case
+							v2 = v.toLowerCase();
+							if(v !== v2 && this._checkIfNotRegExpr(v)){
+								problems.push(new Problem(
+										[TOKEN, t, i, v],
+										'TOKEN value "'+v+'" should be all lower case ',
+										'WARN'
+								));
+							}
 						}
 					}
 
-					// 6. TODO check for *simplified* RegExpr & validate that they can be created
+					// 7. TODO check for *simplified* RegExpr & validate that they can be created
 					//         (e.g. see env/grammar/jisonGenerator.js -> _convertRegExpr(), _checkIfNotRegExpr())
 				}
 				
@@ -631,6 +717,145 @@ define(['commonUtils'], function(utils){
 
 		return isReturnUtteranceMap? map : problems;
 	};
+
+	/**
+	 * Verify syntax for accessing variables, i.e. content/text of token/utterance matches in PHRASES
+	 * (within the "semantic" definition for an utterance)
+	 */
+	GrammarValidator.prototype.validateUtteranceVarRefs = function(){
+
+		var problems = [];
+		
+		var exists = '$$';
+		var reWs = /\s+/;
+		
+		for(var u in this.grammar[UTTERANCE]){
+			
+			if(this.grammar[UTTERANCE].hasOwnProperty(u)){
+				
+				var utt = this.grammar[UTTERANCE][u];
+				var plist = utt[PHRASES];
+				if(!plist){
+					break;
+				}
+				var size = plist.length;
+				
+				var v, words, w;
+				//map for all tokens & utterances that occur in on of the phrases in utt:
+				var map = {};
+				
+				//gather all token/utterance references that occur in the phrases of utt
+				for(var i=0; i < size; ++i){
+					
+					v = plist[i];
+					
+					//remember all tokens/utterances that occur the phrase
+					reWs.lastIndex = 0;
+					words = v.split(reWs);
+					for(var i2=0,size2=words.length; i2 < size2; ++i2){
+						w = words[i2];
+						w = w.toLowerCase();//<- variable-names are all-lower-case
+						if(!map[w] || map[w].state !== exists){
+							map[w] = {
+								state: exists,
+								location: [UTTERANCE, u, PHRASES, i, w]
+							};
+						} 
+//						else if(map[w].state !== exists)TODO? add multiple locations?
+						
+					}
+					
+				}//END for(phrases)
+				
+
+				if(utt[SEMANTIC]){
+					
+					var _reVarNames = this.reVarNames;
+					var validateVars = function(va, location){
+						var vname, loc;
+						vname = _reVarNames.exec(va)
+						if(!vname){
+							
+							loc = location.slice(0);
+							loc.push(va);
+							problems.push(new Problem(
+									loc,
+									'Variable "'+va+'" in SEMANTIC contains invalid characters',
+									'ERROR'
+							));
+							
+						} else {
+							
+							if(!map[vname[1]] || map[vname[1]].state !== exists){
+								loc = location.slice(0);
+								loc.push(va);
+								problems.push(new Problem(
+										loc,
+										'Variable "'+va+'" in SEMANTIC does not reference a TOKEN or UTTERANCE in one of the PHRASES',
+										'ERROR'
+								));
+							}
+						}
+					}
+					processJSON(utt[SEMANTIC], validateVars, [UTTERANCE, u, SEMANTIC]);
+				
+					
+//					var semVal, vmatch, va, ind, vname, loc;
+//					for(var sem in utt[SEMANTIC]){
+//						
+//						if(utt[SEMANTIC].hasOwnProperty(sem)){
+//							
+//							semVal = utt[SEMANTIC][sem];
+//							
+//							// for each semantic-entry: verify that variable-reference
+//							// 1. are syntactically correct
+//							// 2. refer to a TOKEN or UTTERENCE in one of the PHRASES
+//							
+////							this.reVars.lastIndex = 0;
+////							while(vmatch = this.reVars.exec(semVal)){//FIXME change parsing in GrammarConverter/Generator: do not parse stringified SEMANTIC object!
+////								va = vmatch[1];
+//								va = semVal;//FIXME
+////								//has access-index?
+////								this.reVarIndex.lastIndex = 0;
+//								
+//								vname = this.reVarNames.exec(va)
+//								if(!vname){
+//									
+//									loc = [UTTERANCE, u, SEMANTIC, sem, semVal];
+//									problems.push(new Problem(
+//											loc,
+//											'Variable "'+va+'" in SEMANTIC contains invalid characters',
+//											'ERROR'
+//									));
+//									
+//								} else {
+//									
+//									if(!map[vname[1]] || map[vname[1]].state !== exists){
+//										loc = [UTTERANCE, u, SEMANTIC, sem, semVal];
+//										problems.push(new Problem(
+//												loc,
+//												'Variable "'+va+'" in SEMANTIC does not reference a TOKEN or UTTERANCE in one of the PHRASES',
+//												'ERROR'
+//										));
+//									}
+//								}
+//								
+//								
+////							}
+//							
+//
+//						}//END: if(utt[SEMANTIC].hasOwnProperty())
+//							
+//					}//END: for(utt[SEMANTIC])
+							
+				}//END: if(utt[SEMANTIC])
+				
+			}
+		}
+
+		return problems;
+	};
+
 	
 	return GrammarValidator;
 });
