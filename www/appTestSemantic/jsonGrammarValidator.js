@@ -98,6 +98,31 @@ define(['commonUtils', 'grammarConverter'], function(utils, GrammarConverter){
 		}
 	};
 
+	/**
+	 * Creates a RegExp for checking, if a stopword occurs in a TOKEN string
+	 *
+	 * @param  {Array<string>} stopwords the grammar's stopword list (may be empty)
+	 * @return {RegExp}           a RegExp that captures 3 groups (the matched token in 2nd group, i.e. match[2])
+	 */
+	var createStopwordInTokRegExp = function(stopwords){
+
+		if(!stopwords || stopwords.length < 1){
+			return null;
+		}
+
+		//create ReExp that matches if a stopword is found that
+		// 1. is preceeded by STRING_START or a whitespace
+		// 2. is succeeded by a whitespace or STRING_END
+		var sb = ['(^|\\s)('];
+		for(var i=0, size = stopwords.length; i < size; ++i){
+			sb.push(stopwords[i], '|');
+		}
+		sb.pop();//remove last separator '|'
+		sb.push(')(\\s|$)');
+
+		return new RegExp(sb.join(''), 'im');
+	};
+
 	//some "keywords" that are used in grammars
 	/** @memberOf GrammarValidator */
 	var STOPWORDS = 'stop_word';
@@ -132,7 +157,7 @@ define(['commonUtils', 'grammarConverter'], function(utils, GrammarConverter){
 				//test for grouping
 				if( ! /([^\\]\()|(^\().*?[^\\]\)/.test(token) ){
 
-					//try for single-characters that occur in reg-expr FIXME this may procude false-positives!!!
+					//try for single-characters that occur in reg-expr FIXME this may produce false-positives!!!
 					return ! /[\?|\*|\+|\^|\|\\]/.test(token); //excluded since these may be more common in natural text: . $
 				}
 			}
@@ -140,35 +165,20 @@ define(['commonUtils', 'grammarConverter'], function(utils, GrammarConverter){
 			return false;
 		};
 
-		//TODO should each instance get its own GC? (since we modify the static instance here...)
-		GC.json_grammar_definition = grammar;
-		GC.stop_words_regexp = null;
-		GC.stop_words_regexp_enc = null;
-
-		this.reStopwords = GC.getStopWordsRegExpr();
-		this.reStopwordsEnc = GC.getStopWordsEncRegExpr();
+		this.reStopwords = createStopwordInTokRegExp(grammar[STOPWORDS]);
 		/**
 		 * @param {String} text
 		 * @returns {String} the (first) matched stopword or null
 		 */
 		this._matchStopword = function(text){
 
-    		var found = null;
-    		if(this.reStopwordsEnc){
-    			this.reStopwordsEnc.lastIndex = 0;
-    			found = this.reStopwordsEnc.exec(text);
-    		}
-
-    		if(found){
-    			return found[1];
-    		}
-
 			this.reStopwords.lastIndex = 0;
 			found = this.reStopwords.exec(text);
 
 			if(found){
-    			return found[1];
-    		}
+				return found[2];
+			}
+
 			return null;
 		};
 
@@ -194,28 +204,28 @@ define(['commonUtils', 'grammarConverter'], function(utils, GrammarConverter){
 		if( ! isArray( this.grammar[STOPWORDS] )){
 
 			var msg = this.grammar[STOPWORDS]?
-					 'Unknown specification for STOPWORDS: using type "'+ toTypeString(this.grammar[STOPWORDS])+'" (expected Array)'
+					'Unknown specification for STOPWORDS: using type "'+ toTypeString(this.grammar[STOPWORDS])+'" (expected Array)'
 					:'No STOPWORDS specified: must have property "'+STOPWORDS+'" (with type array)';
 
-			problems.push(new Problem([STOPWORDS], msg, 'ERROR'));
+					problems.push(new Problem([STOPWORDS], msg, 'ERROR'));
 		}
 
 		if( ! isPlainObject(this.grammar[TOKEN] )){
 
 			var msg = this.grammar[TOKEN]?
-					 'Unknown specification for TOKENS: using type "'+ toTypeString(this.grammar[TOKEN])+'" (expected JSON object)'
+					'Unknown specification for TOKENS: using type "'+ toTypeString(this.grammar[TOKEN])+'" (expected JSON object)'
 					:'No TOKENS specified: must have property "'+TOKEN+'" (with type object)';
 
-			problems.push(new Problem([TOKEN], msg, 'ERROR'));
+					problems.push(new Problem([TOKEN], msg, 'ERROR'));
 		}
 
 		if( ! isPlainObject(this.grammar[UTTERANCE] )){
 
 			var msg = this.grammar[UTTERANCE]?
-					 'Unknown specification for UTTERANCES: using type "'+toTypeString(this.grammar[UTTERANCE])+'" (expected JSON object)'
+					'Unknown specification for UTTERANCES: using type "'+toTypeString(this.grammar[UTTERANCE])+'" (expected JSON object)'
 					:'No UTTERANCES specified: must have property "'+UTTERANCE+'" (with type object)';
 
-			problems.push(new Problem([UTTERANCE], msg, 'ERROR'));
+					problems.push(new Problem([UTTERANCE], msg, 'ERROR'));
 		}
 
 		var p2 = this._validateTokenStructure();
@@ -402,13 +412,13 @@ define(['commonUtils', 'grammarConverter'], function(utils, GrammarConverter){
 				if( ! isArray(plist)){
 					var msg = typeof plist !== 'undefined'?
 							'PHRASES field is not an array, but instead has type: '+ toTypeString(plist) :
-							'PHRASES field is missing';
+								'PHRASES field is missing';
 
-					problems.push(new Problem(
-							[UTTERANCE, u, PHRASES],
-							msg,
-							'ERROR'
-					));
+							problems.push(new Problem(
+									[UTTERANCE, u, PHRASES],
+									msg,
+									'ERROR'
+							));
 				}
 				else {
 
@@ -529,8 +539,8 @@ define(['commonUtils', 'grammarConverter'], function(utils, GrammarConverter){
 				}
 				else {
 					map[sw] = {
-						state: full,
-						location: [STOPWORDS, i, sw]
+							state: full,
+							location: [STOPWORDS, i, sw]
 					};
 				}
 
@@ -623,8 +633,8 @@ define(['commonUtils', 'grammarConverter'], function(utils, GrammarConverter){
 				}
 				else {
 					map[t] = {
-						state: full,
-						location: [TOKEN, t]
+							state: full,
+							location: [TOKEN, t]
 					};
 				}
 			}
@@ -646,8 +656,8 @@ define(['commonUtils', 'grammarConverter'], function(utils, GrammarConverter){
 				}
 				else {
 					map[u] = {
-						state: full,
-						location: [UTTERANCE, u]
+							state: full,
+							location: [UTTERANCE, u]
 					};
 				}
 			}
@@ -710,8 +720,8 @@ define(['commonUtils', 'grammarConverter'], function(utils, GrammarConverter){
 					}
 					else {
 						map[v] = {
-							state: full,
-							location: [TOKEN, t, i, v]
+								state: full,
+								location: [TOKEN, t, i, v]
 						};
 					}
 				}
@@ -761,8 +771,8 @@ define(['commonUtils', 'grammarConverter'], function(utils, GrammarConverter){
 					}
 					else {
 						map[v] = {
-							state: full,
-							location: [UTTERANCE, u, PHRASES, i, v]
+								state: full,
+								location: [UTTERANCE, u, PHRASES, i, v]
 						};
 					}
 				}
@@ -812,8 +822,8 @@ define(['commonUtils', 'grammarConverter'], function(utils, GrammarConverter){
 						w = w.toLowerCase();//<- variable-names are all-lower-case
 						if(!map[w] || map[w].state !== exists){
 							map[w] = {
-								state: exists
-								//TODO store type (token or utterance)
+									state: exists
+									//TODO store type (token or utterance)
 							};
 						}
 //						else if(map[w].state !== exists)TODO? add multiple locations?
