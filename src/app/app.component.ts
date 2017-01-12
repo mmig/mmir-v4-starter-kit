@@ -1,5 +1,7 @@
-import { Component, ViewChild } from '@angular/core';
-import { Nav, Platform } from 'ionic-angular';
+import {RegistrationPage} from './../pages/registration-page/registration-page';
+
+import { Component, ViewChild, OnInit } from '@angular/core';
+import { Nav, Platform, Events } from 'ionic-angular';
 import { StatusBar, Splashscreen } from 'ionic-native';
 
 
@@ -7,28 +9,43 @@ import { LoginPage } from '../pages/login-page/login-page';
 import { Page1 } from '../pages/page1/page1';
 import { Page2 } from '../pages/page2/page2';
 
-declare var mmir;
+import { MmirProvider } from '../providers/mmir';
+import { AppConfig } from './../providers/app-config';
 
 @Component({
   templateUrl: 'app.html'
 })
-export class MyApp {
+export class MyApp implements OnInit {
+
   @ViewChild(Nav) nav: Nav;
 
   rootPage: any = LoginPage;
 
   pages: Array<{title: string, component: any}>;
 
-  constructor(public platform: Platform) {
-    this.initializeApp();
+  mmir;
+
+  constructor(
+    public platform: Platform,
+    public events: Events,
+    public appConfig: AppConfig,
+    public mmirProvider: MmirProvider
+  ) {
+
+    this.mmir = mmirProvider.mmir;
 
     // used for an example of ngFor and navigation
     this.pages = [
       { title: 'Login', component: LoginPage },
+      { title: 'Registration', component: RegistrationPage },
       { title: 'Welcome', component: Page2 },
       { title: 'Add Appointment', component: Page1 }
     ];
 
+  }
+
+  ngOnInit(){
+    this.initializeApp();
   }
 
   initializeApp() {
@@ -39,34 +56,7 @@ export class MyApp {
       Splashscreen.hide();
     });
 
-    mmir.ready(() => {
-
-    	//FIXME "converting" angular2 components to views
-    	mmir.PresentationManager._ionicNavCtrl = this.nav;
-	    let loginView = this.createView('login', LoginPage);
-	    let welcomeView = this.createView('welcome', Page2);
-	    let registrationView = this.createView('registration', Page1);
-	    let appointmentView = this.createView('create_appointment', Page2);
-
-	    //FIXME registering views
-    	mmir.PresentationManager.addView('Application', loginView);
-    	mmir.PresentationManager.addView('Application', registrationView);
-    	mmir.PresentationManager.addView('Application', welcomeView);
-    	mmir.PresentationManager.addView('Calendar', appointmentView);
-
-    	//FIXME HACK wait until mmir.app has initialized:
-    	var doStart = function(){
-    		if(mmir.app && mmir.app.initialize){
-		    	//start mmir app
-		    	mmir.app.initialize.then(function(){
-		    		mmir.DialogManager.raise('init');
-		    	});
-		    } else {
-		    	setTimeout(doStart, 50);
-		    }
-	    };
-	    doStart();
-    });
+	  this.mmirInit();
   }
 
   openPage(page) {
@@ -75,13 +65,23 @@ export class MyApp {
     this.nav.setRoot(page.component);
   }
 
-  private createView(name: string, page: Component){//FIXME
-    return {
-      _name: name,
-      getName: function(){
-        return this._name;
-      },
-      view: page
-    };
+
+  private mmirInit(){
+
+    this.mmirProvider.init(this.platform, this.nav, this.events, this.appConfig, [
+      { ctrl: 'Application', name: 'login', view: LoginPage },
+      { ctrl: 'Application', name: 'registration', view: RegistrationPage },
+      { ctrl: 'Application', name: 'welcome', view: Page2 },
+      { ctrl: 'Application', name: 'create_appointment', view: Page1 }
+    ]);
+
+    // this.mmir.ready(() => {
+    //
+    //   this.appConfig.get('speechEngine').then(defCtx => {
+    //     this.mmir.MediaManager.setDefaultCtx(defCtx);
+    //   });
+    //
+    // });
   }
+
 }
