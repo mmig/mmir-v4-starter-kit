@@ -4,7 +4,7 @@
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title>login-page</ion-title>
+    <ion-title>{{localize("mmig")}}</ion-title>
   </ion-navbar>
 </ion-header>
 
@@ -12,24 +12,24 @@
 <ion-content padding class="page-login-page">
 
 
-  <h2>Login</h2>
+  <h2>{{localize("login_header")}}</h2>
 
   <ion-list>
 
     <ion-item>
-      <ion-label fixed>Username</ion-label>
+      <ion-label fixed>{{localize("user_name_place_holder")}}</ion-label>
       <ion-input type="text" [(ngModel)]="user.name"></ion-input>
     </ion-item>
 
     <ion-item>
-      <ion-label fixed>Password</ion-label>
+      <ion-label fixed>{{localize("password_place_holder")}}</ion-label>
       <ion-input type="password" [(ngModel)]="user.password"></ion-input>
     </ion-item>
 
   </ion-list>
 
-  <button ion-button color="light" icon-right>
-      Login
+  <button (click)="handleClick($event, 'login_btn')" ion-button color="light" icon-right>
+      {{localize("login_label")}}
       <ion-icon name='log-in'></ion-icon>
   </button>
 
@@ -37,10 +37,10 @@
 
   <hr/>
 
-  <h3>or register yourself</h3>
+  <h3>{{localize("registration_text")}}</h3>
 
-  <button ion-button color="light" icon-right>
-      Sing Up
+  <button (click)="handleClick($event, 'sign_up_btn')" ion-button color="light" icon-right>
+      {{localize("registration_label")}}
       <ion-icon name='create'></ion-icon>
   </button>
 
@@ -55,7 +55,7 @@
   <ion-toolbar>
 
     <ion-buttons left start>
-     <button ion-button>
+     <button name="language_btn" ion-button>
        <ion-icon name="flag"></ion-icon>
         Language...
      </button>
