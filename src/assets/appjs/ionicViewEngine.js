@@ -1,48 +1,48 @@
 
 /**
  * Example for a simplified view/rendering engine:
- * 
+ *
  * uses the jQuery Mobile styles, but instead of jQM page transitions,
- * page-contents are simply replaced upon page-changes. 
- * 
+ * page-contents are simply replaced upon page-changes.
+ *
  * <h3>Side Effects</h3>
  * <ul>
  * 	<li>loads the jQuery Mobile CSS file</li>
  * </ul>
- * 
+ *
  * @example
  * //use page-transition with effect 'slide' (animated as not reversed motion)
  * mmir.DialogManager.render('theController', 'theView');
- * 
+ *
  * @class
  * @name jqmSimpleViewEngine
- * @static 
- *  
+ * @static
+ *
  * Libraries:
  *  - jQuery (>= v1.6.2)
- *  
+ *
  *  @depends document (DOM object)
- *  
+ *
  *  @depends jQuery.Deferred
- *  
+ *
  *  @depends jQuery.parseHTML
  *  @depends jQuery.appendTo
  *  @depends jQuery#selector
- *  
+ *
  *  @depends jQuerySimpleModalDialog
  */
 define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 
 	var log = Logger.create(module);
-	
-		
+
+
 	var promise = jquery.Deferred();
-	
+
 	require(['jquery', 'languageManager', 'controllerManager'],
 	    function(jq, languageManager, controllerManager
 	){
 
-		
+
 		//property names for passing the respected objects from doRenderView() to doRemoveElementsAfterViewLoad()
 		var FIELD_NAME_VIEW 		 = '__view';
 		var FIELD_NAME_DATA 		 = '__renderData';
@@ -55,8 +55,8 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 			var view = data[FIELD_NAME_VIEW];
 			var renderData = data[FIELD_NAME_DATA];
 
-			//FIX handle missing ctrl/view parameter gracefully 
-			//     this may occur when doRemoveElementsAfterViewLoad is 
+			//FIX handle missing ctrl/view parameter gracefully
+			//     this may occur when doRemoveElementsAfterViewLoad is
 			//     triggered NOT through doRenderView but by some automatic
 			//	   mechanism, e.g. BACK history event that was not handled
 			//	   by the framework (which ideally should not happen ...)
@@ -80,6 +80,20 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 
 		};
 
+		var isIonInit = false;
+		var ionNavCtrl;//<- set when ionWillEnter gets registered (see below)
+		var ionWillEnter = function(ionViewCtrl){
+			console.log('ionicViewEngine->viewWillEnter: ', arguments);
+			var currIndex = ionNavCtrl.length() - 1;
+			var targetIndex = ionViewCtrl.index;
+			if(targetIndex === currIndex - 1){
+				//-> BACK: need to "update" dialog-engine, since BACK was triggered outside the state-engine
+				// WARNING: this also means that BACK must always be triggered via the navCtrl!
+				console.info('ionicViewEngine->BACK detected');//DEBUG
+				mmir.DialogManager.raise('back', {navRender: false});//<- just update the state-machine, without (re-) rendering the target view
+			}
+		};
+
 		//FIXME wik: remove jQm
 //		// set jQuery Mobile's default transition to "none":
 //		// TODO make this configurable (through mmir.ConfigurationManager)?
@@ -96,9 +110,9 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 		 * the HTML document of the application, while the old one is
 		 * removed.<br>
 		 * At the end the <b>on_page_load</b> action is performed.
-		 * 
+		 *
 		 * @function doRenderView
-		 * 
+		 *
 		 * @param {String}
 		 *            ctrlName Name of the controller
 		 * @param {String}
@@ -109,15 +123,20 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 		 *            ctrl Controller object of the view to render
 		 * @param {Object}
 		 *            [data] optional data for the view.
-		 *            
+		 *
 		 */
 		var doRenderView = function(ctrlName, viewName, view, ctrl, data){
 
 			//if set to FALSE by one of the hooks (ie. before_page_prepare / before_page_load)
-			//   will prevent rendering of the view! 
+			//   will prevent rendering of the view!
 			var isContinue;
 
-			//trigger "before page preparing" hooks on controller, if present/implemented: 
+			//HACK (for BACK detection) do not continue if data.navRender === false
+			if(data && data.navRender === false){
+				return;/////////////////////// EARLY EXIT ////////////////////////
+			}
+
+			//trigger "before page preparing" hooks on controller, if present/implemented:
 			isContinue = ctrl.performIfPresent('before_page_prepare', data, viewName);
 			if(isContinue === false){
 				return;/////////////////////// EARLY EXIT ////////////////////////
@@ -136,7 +155,7 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 //				content: newPage
 			};
 
-			//trigger "before page loading" hooks on controller, if present/implemented: 
+			//trigger "before page loading" hooks on controller, if present/implemented:
 			isContinue = ctrl.performIfPresent('before_page_load', data, pageEvtData);//<- this is triggered for every view in the corresponding controller
 			if(isContinue === false){
 				return;/////////////////////// EARLY EXIT ////////////////////////
@@ -153,30 +172,45 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 			changeOptions[FIELD_NAME_DATA] = data;
 			changeOptions[FIELD_NAME_CONTROLLER] = ctrl;
 
-			//change visible page from old to new one (using simple jQuery replace function)
-//			var pageContainer = oldContent;
-//			pageContainer.replaceWith(newPage);
-			
-			this._ionicNavCtrl.push(view.view, {//.setRoot(view
-			      data: data//changeOptions
+			//HACK add listener for viewWillEnter events for detecting BACK naviation (i.e. navCtrl.pop())
+			if(!isIonInit){
+				isIonInit = true;
+				ionNavCtrl = this._ionicNavCtrl;
+				this._ionicNavCtrl.viewWillEnter.subscribe(ionWillEnter);
+			}
+
+			var transitionOpt = {
+				// animate 	boolean 	Whether or not the transition should animate.
+				animate: data && data.navAnimate === true
+			};
+			if(transitionOpt.navAnimate){
+				// direction 	string 	The conceptual direction the user is navigating. For example, is the user navigating forward, or back?
+				transitionOpt.direction = data && data.navDirection? data.navDirection : 'forward';
+
+				//TODO evaluate ionic's other animation-options!
+					// animation 	string 	What kind of animation should be used: 'md-transition' | 'ios-transition' | 'wp-transition'.
+					// duration 	number 	The length in milliseconds the animation should take.
+					// easing 	string 	The easing for the animation.
+			}
+
+			this._ionicNavCtrl.push(view.view, {data: data}, transitionOpt).then(function(){
+				doRemoveElementsAfterViewLoad.call(this, /*newPage,*/{},changeOptions);
 			});
-			
-			doRemoveElementsAfterViewLoad.call(this, /*newPage,*/{},changeOptions);
 		};
-		
+
 		promise.resolve({
-			
+
 			render: doRenderView,
 			/**
              * Closes a modal window / dialog.<br>
-             * 
+             *
              * @depends jQuery Mobile SimpleModal
-             * 
+             *
              * @function hideCurrentDialog
              * @public
              */
             hideCurrentDialog : function() {
-                
+
                 if (jq.modal != null) {
                 	//TODO implement this!
 //                    jq.modal.close();
@@ -187,11 +221,11 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
             },
             /**
              * Opens the requested dialog.<br>
-             * 
+             *
              * @depends jQuery Mobile SimpleModal
              * @depends mmir.ControllerManager
-             * 
-             * 
+             *
+             *
              * @function showDialog
              * @param {String}
              *            ctrlName Name of the controller
@@ -199,33 +233,33 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
              *            dialogId Id of the dialog
              * @param {Object}
              *            data Optionally data - not used
-             *            
+             *
              * @returns {Object} the instance of the current dialog that was opened
-             * 
+             *
              * @public
              */
             showDialog : function(ctrlName, dialogId, data) {
 
             	//TODO implement!!
-            	
+
 				this.hideCurrentDialog();
 
 				var ctrl = controllerManager.getController(ctrlName);
-				
+
 				if (ctrl != null) {
-					
+
 					//TODO
-					
+
 				} else {
 					console.error("PresentationManager[jqmViewEngine].showDialog: Could not find Controller for '" + ctrlName + "'");
 				}
 			},
-			
+
 			/**
 			 * Shows a "wait" dialog, i.e. "work in progress" notification.
-			 * 
+			 *
 			 * @function showWaitDialog
-			 * 
+			 *
 			 * @param {String} [text] OPTIONAL
 			 * 				the text that should be displayed.
 			 * 				If omitted the language setting for <code>loadingText</code>
@@ -235,46 +269,46 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 			 * 				(e.g. "a" or "b").
 			 * 				NOTE: if this argument is used, then the <code>text</code>
 			 * 					  must also be supplied.
-			 * 
+			 *
 			 * @public
-			 * 
+			 *
 			 * @depends stdlne-wait-dlg (Standalone Wait Dialog)
 			 * @depends mmir.LanguageManager
-			 * 
+			 *
 			 * @see #hideWaitDialog
 			 */
 			showWaitDialog : function(text, theme) {
 
 //				var loadingText = typeof text === 'undefined'? languageManager.getText('loadingText') : text;
-//				
+//
 //				if(typeof theme !== 'undefined'){
 //					dlg.defaultStyle = theme;
 //					//TOD
 //				}
-//				
+//
 //				dlg.show(loadingText, _viewEngineWaitId);
 				//TODO
 			},
 
 			/**
 			 * Hides / closes the "wait" dialog.
-			 * 
+			 *
 			 * @function hideWaitDialog
 			 * @public
-			 * 
+			 *
 			 * @depends stdlne-wait-dlg (Standalone Wait Dialog)
-			 * 
+			 *
 			 * @see #showWaitDialog
 			 */
 			hideWaitDialog : function() {
 //				dlg.hide(_viewEngineWaitId);
 				//TODO
 			}
-			
+
 //			/////////////////////////////////// Additional non-standard functions & properties /////////////
 
 		});
 	});
-	
+
 	return promise;
 });
