@@ -13,7 +13,7 @@ mmir.ready(function () {
     //initialize BACK-BUTTON handling:
 //	initHistoryBackHandler();//FIXME "translate" to ionic
 	//set default behavior for buttons:
-    mmir.DialogManager.setOnPageRenderedHandler(executeAfterEachPageIsLoaded);
+    // mmir.DialogManager.setOnPageRenderedHandler(executeAfterEachPageIsLoaded);
 
 
 	//FIXME HACK micrenderer
@@ -143,34 +143,34 @@ mmir.ready(function () {
 //
 //    }
 
-    //function that will be registered with the DialogManager to be executed
-    // each time after a view was rendered
-    function executeAfterEachPageIsLoaded() {
+    // //function that will be registered with the DialogManager to be executed
+    // // each time after a view was rendered
+    // function executeAfterEachPageIsLoaded() {
+		
+    	// //add a generic click-handler for BUTTONs
+    	// //  generates a click-input for the InputEngine based on the button's name-attribute
+    	// $("button").each(function(index, el) {
+		    // var tis = $(this);
+		    // var eventName;
+		    // tis.bind('click', function(event) {
+		
+			    // if(this.id==='mic_button')//HACK: let mic-button be handled by document-eventhandler
+			    	// return;////////////// EARLY EXIT /////////////////
+		
+		    	// event.preventDefault();
+		
+				// eventName = "click_on_" + tis.attr("name");
+		
+				// triggerClickFeedback();
+		
+				// mmir.InputEngine.raise("touch_input_event");
+				// mmir.InputEngine.raise(eventName);
+		
+				// return false;
+		    // });
+		// });
 
-    	//add a generic click-handler for BUTTONs
-    	//  generates a click-input for the InputEngine based on the button's name-attribute
-    	$("button").each(function(index, el) {
-		    var tis = $(this);
-		    var eventName;
-		    tis.bind('click', function(event) {
-
-			    if(this.id==='mic_button')//HACK: let mic-button be handled by document-eventhandler
-			    	return;////////////// EARLY EXIT /////////////////
-
-		    	event.preventDefault();
-
-				eventName = "click_on_" + tis.attr("name");
-
-				triggerClickFeedback();
-
-				mmir.InputEngine.raise("touch_input_event");
-				mmir.InputEngine.raise(eventName);
-
-				return false;
-		    });
-		});
-
-    };
+    // };
 
     //set up the handler for the microphone button:
     // we register this handler on the document, so this needs to be done only once
