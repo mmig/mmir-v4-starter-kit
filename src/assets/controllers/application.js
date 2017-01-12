@@ -3,24 +3,24 @@
  * 	Deutsches Forschungszentrum fuer Kuenstliche Intelligenz
  * 	German Research Center for Artificial Intelligence
  * 	http://www.dfki.de
- * 
- * 	Permission is hereby granted, free of charge, to any person obtaining a 
- * 	copy of this software and associated documentation files (the 
- * 	"Software"), to deal in the Software without restriction, including 
- * 	without limitation the rights to use, copy, modify, merge, publish, 
- * 	distribute, sublicense, and/or sell copies of the Software, and to 
- * 	permit persons to whom the Software is furnished to do so, subject to 
+ *
+ * 	Permission is hereby granted, free of charge, to any person obtaining a
+ * 	copy of this software and associated documentation files (the
+ * 	"Software"), to deal in the Software without restriction, including
+ * 	without limitation the rights to use, copy, modify, merge, publish,
+ * 	distribute, sublicense, and/or sell copies of the Software, and to
+ * 	permit persons to whom the Software is furnished to do so, subject to
  * 	the following conditions:
- * 
- * 	The above copyright notice and this permission notice shall be included 
+ *
+ * 	The above copyright notice and this permission notice shall be included
  * 	in all copies or substantial portions of the Software.
- * 
- * 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
- * 	OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
- * 	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
- * 	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
- * 	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
- * 	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+ *
+ * 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * 	OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * 	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * 	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * 	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * 	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
@@ -59,7 +59,7 @@ Application.prototype.on_page_load_login = function (){
 
 	//handle language selection:
 	$('#languageListView li')
-	.bind('vmousedown',           function(){	
+	.bind('vmousedown',           function(){
 		$(this).addClass(	'ui-focus ui-btn-active ui-btn-down-a');
 	})
 	.bind('vmouseup vmousecancel',function(){
@@ -91,7 +91,7 @@ Application.prototype.on_page_load_login = function (){
 	});
 
 	//handle click on language-button in footer
-	$('#lang_button').on('vclick', function(e){
+	$('#lang_button').on('click', function(e){
 		e.preventDefault();
 
 		mmir.app.triggerClickFeedback();
@@ -103,7 +103,7 @@ Application.prototype.on_page_load_login = function (){
 
 	//handle click on modal-layer
 	// (visible when language menu is open)
-	$('#modal').on('vclick', function(e){
+	$('#modal').on('click', function(e){
 		e.preventDefault();
 
 		mmir.app.triggerClickFeedback();
@@ -137,7 +137,7 @@ Application.prototype.initAsrTestInput = function(){
 		button.buttonMarkup({theme: theming});
 	};
 
-	$('#asr').on('vclick', function(event) {
+	$('#asr').on('click', function(event) {
 
 		//switch ASR activation state
 
@@ -149,15 +149,15 @@ Application.prototype.initAsrTestInput = function(){
 		//text += ' set-ASR-to_'+(isAsrActive? 'active' : 'INactive');
 		if (!isAsrActive){
 			mmir.MediaManager.getInstance().startRecord(function(text, idInfo){
-				
+
 				var textSoFar = textElement.val();
 				textSoFar += ' '+ text;
 				textElement.val( textSoFar );
-				
+
 			}, function(e){
-				
+
 				console.error('Error using startRecord: '+ e);
-				
+
 			}, true //<- isUseIntermediateResultsMode
 			);
 		} else {
@@ -177,7 +177,7 @@ Application.prototype.initAsrTestInput = function(){
 		setActive( $('#asr'), isAsrActive);
 	});
 
-	$('#asr-normal').on('vclick', function(event) {
+	$('#asr-normal').on('click', function(event) {
 
 		//switch ASR activation state
 
@@ -214,14 +214,14 @@ Application.prototype.initAsrTestInput = function(){
 		setActive( $('#asr-normal'), isAsrActive);
 	});
 
-	$('#clear').on('vclick', function(event) {
+	$('#clear').on('click', function(event) {
 		$('#asr-text').val('');
-	});  
+	});
 };
 
-Application.prototype.login = function(){
-	var email = $('#emailField #email').val();
-	var password = $('#passwordField #password').val();
+Application.prototype.login = function(data){
+	var email = data && data.name? data.name : $('#emailField #email').val();
+	var password = data && data.password? data.password : $('#passwordField #password').val();
 	if(this.verify(email,password)){
 		mmir.ModelManager.getModel('User').create(email);
 		mmir.DialogManager.raise("user_logged_in");
@@ -232,9 +232,10 @@ Application.prototype.login = function(){
 	}
 };
 
-Application.prototype.register = function(){
-	var email = $('#registration-form #email').val();
-	var password = $('#registration-form #password').val();
+Application.prototype.register = function(data){
+	
+	var email = data && data.name? data.name : $('#emailField #email').val();
+	var password = data && data.password? data.password : $('#passwordField #password').val();
 
 	this.registerUsers[email] = password;
 	mmir.ModelManager.getModel('User').create(email);
@@ -261,11 +262,11 @@ Application.prototype.slide_up_language_menu = function() {
 };
 
 /**
- * 
+ *
  * This function changes the application language.
- * 
+ *
  * NOTE: the current view needs to updated separately (if necessary).
- * 
+ *
  * @function changeLanguage
  * @param {String} newLang The new language which is to be used
  * @returns {Boolean} <code>true</code> if the language has change, <code>false</code> otherwise
