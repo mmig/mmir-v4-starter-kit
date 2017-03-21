@@ -33,7 +33,7 @@
       <ion-icon name='log-in'></ion-icon>
   </button>
 
-  <span *ngIf="user.name" class="user">as {{user.name}}</span>
+  <!--span *ngIf="user.name" class="user">as {{user.name}}</span-->
 
   <hr/>
 
@@ -55,9 +55,8 @@
   <ion-toolbar>
 
     <ion-buttons left start>
-     <button name="language_btn" ion-button>
-       <ion-icon name="flag"></ion-icon>
-        Language...
+     <button name="language_btn" ion-button icon-left [class]="'flags '+language" (click)="handleClick($event, 'language_btn')">
+      {{language}}
      </button>
     </ion-buttons>
 
