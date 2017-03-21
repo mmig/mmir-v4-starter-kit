@@ -1,4 +1,3 @@
-import {RegistrationPage} from './../pages/registration-page/registration-page';
 
 import { Component, ViewChild, OnInit } from '@angular/core';
 import { Nav, Platform, Events } from 'ionic-angular';
@@ -6,8 +5,11 @@ import { StatusBar, Splashscreen } from 'ionic-native';
 
 
 import { LoginPage } from '../pages/login-page/login-page';
-import { Page1 } from '../pages/page1/page1';
-import { Page2 } from '../pages/page2/page2';
+import { RegistrationPage } from './../pages/registration-page/registration-page';
+import { WelcomePage } from '../pages/welcome-page/welcome-page';
+import { CalendarPage } from '../pages/calendar-page/calendar-page';
+// import { Page1 } from '../pages/page1/page1';
+// import { Page2 } from '../pages/page2/page2';
 
 import { MmirProvider } from '../providers/mmir';
 import { AppConfig } from './../providers/app-config';
@@ -38,8 +40,8 @@ export class MyApp implements OnInit {
     this.pages = [
       { title: 'Login', component: LoginPage },
       { title: 'Registration', component: RegistrationPage },
-      { title: 'Welcome', component: Page2 },
-      { title: 'Add Appointment', component: Page1 }
+      { title: 'Welcome', component: WelcomePage },
+      { title: 'Add Appointment', component: CalendarPage }
     ];
 
   }
@@ -68,11 +70,11 @@ export class MyApp implements OnInit {
 
   private mmirInit(){
 
-    this.mmirProvider.init(this.platform, this.nav, this.events, this.appConfig, [
-      { ctrl: 'Application', name: 'login', view: LoginPage },
-      { ctrl: 'Application', name: 'registration', view: RegistrationPage },
-      { ctrl: 'Application', name: 'welcome', view: Page2 },
-      { ctrl: 'Application', name: 'create_appointment', view: Page1 }
+    this.mmirProvider.init(this.platform, this.nav, /*this.events,*/ this.appConfig, [
+      { ctrlName: 'Application', name: 'login', view: LoginPage },
+      { ctrlName: 'Application', name: 'registration', view: RegistrationPage },
+      { ctrlName: 'Application', name: 'welcome', view: WelcomePage },
+      { ctrlName: 'Calendar', name: 'create_appointment', view: CalendarPage }
     ]);
 
     // this.mmir.ready(() => {

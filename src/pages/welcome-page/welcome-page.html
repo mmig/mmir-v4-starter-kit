@@ -1,0 +1,24 @@
+
+<ion-header>
+  <ion-navbar>
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>{{localize("welcome_header")}}</ion-title>
+  </ion-navbar>
+</ion-header>
+
+
+<ion-content padding>
+
+  <h2>
+    {{localize("welcome_text")}}
+    <span *ngIf="mmir.User.getInstance()">, {{mmir.User.getInstance().getName()}}!</span>
+  </h2>
+
+  <button (click)="handleClick($event, 'appointment_btn')" ion-button color="light" icon-left>
+    <ion-icon name='add-circle'></ion-icon>
+    {{localize("create_appointment")}}
+  </button>
+
+</ion-content>
