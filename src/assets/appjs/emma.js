@@ -345,6 +345,30 @@ define(['core', 'jquery'], function(mmir, $){
 //			};
 
 			return emmaData;
+		},
+		getTarget: function(emmaData, target){
+			if(emmaData && emmaData.interpretation){
+				return emmaData.interpretation.target;
+			}
+		},
+		getProperty: function(emmaData, name){
+			if(emmaData && emmaData.interpretation){
+				return emmaData.interpretation[name];
+			}
+		},
+		_setEmmaFuncData: function(emmaEvent, funcName, funcData, isOverwrite){//funcName: 'recognition' | 'understanding'
+			if(!emmaEvent.interpretation){
+				emmaEvent.interpretation = {};
+			}
+			if(!emmaEvent.interpretation['function']){
+				emmaEvent.interpretation['function'] = {};
+			}
+			if(!emmaEvent.interpretation['function'][funcName]){
+				emmaEvent.interpretation['function'][funcName] = {};
+			} else if(!isOverwrite){
+				return;///////////////////////;
+			}
+			emmaEvent.interpretation['function'][funcName] = funcData;
 		}, _extractAsrData: function(asrEmmaEvent){
 			var recog;
 			if(asrEmmaEvent && (recog = this._extractEmmaFuncData(asrEmmaEvent, 'recognition')).length > 0){
