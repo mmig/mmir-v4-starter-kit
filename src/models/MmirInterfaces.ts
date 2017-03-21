@@ -188,11 +188,11 @@ export interface Constants {
 }
 export interface ControllerManager {
     create: () => any;
-    getController: (ctrlName: any) => any;
-    getControllerNames: () => any;
+    getController: (ctrlName: string) => any;
+    getControllerNames: () => Array<string>;
     init: (callback: any, ctx: any) => any;
-    perform: (ctrlName: any, actionName: any, data: any) => any;
-    performHelper: (ctrlName: any, actionName: any, data: any, ...args: any[]) => any;
+    perform: (ctrlName: string, actionName: string, data: any) => any;
+    performHelper: (ctrlName: string, actionName: string, data: any, ...args: any[]) => any;
 }
 export interface DialogEngine {
     doc: string;
@@ -244,21 +244,21 @@ export interface InputManager {
     raise: (...args: any[]) => void;
 }
 export interface LanguageManager {
-    determineLanguage: (lang: any) => any;
-    existsDictionary: (lang: any) => any;
-    existsGrammar: (lang: any) => any;
-    existsSpeechConfig: (lang: any) => any;
+    determineLanguage: (lang: string) => any;
+    existsDictionary: (lang: string) => any;
+    existsGrammar: (lang: string) => any;
+    existsSpeechConfig: (lang: string) => any;
     fixLang: (providerName: any, langCode: any) => any;
-    getDefaultLanguage: () => any;
-    getDictionary: () => any;
-    getLanguage: () => any;
-    getLanguageConfig: (pluginId: any, feature: any, separator: any) => any;
-    getLanguages: () => any;
-    getText: (textVarName: any) => any;
-    init: (lang: any) => any;
-    setLanguage: (lang: any) => any;
-    setNextLanguage: () => any;
-    setToCompatibilityMode: (success: any) => any;
+    getDefaultLanguage: () => string;
+    getDictionary: () => {[id:string]: string};
+    getLanguage: () => string;
+    getLanguageConfig: (pluginId: string, feature: string, separator?: string) => any;
+    getLanguages: () => Array<string>;
+    getText: (textVarName: string) => string;
+    init: (lang: string) => any;
+    setLanguage: (lang: string) => any;
+    setNextLanguage: () => string;
+    setToCompatibilityMode: (success: Function) => any;
 }
 export interface MediaManager {
     ctx: any;
@@ -307,38 +307,38 @@ export interface ModelManager {
 }
 export interface NotificationManager {
     alert: (message: any, alertCallback: any, title: any, buttonName: any) => void;
-    beep: (times: any) => void;
+    beep: (times: number) => void;
     confirm: (message: any, confirmCallback: any, title: any, buttonLabels: any) => void;
-    createSound: (name: any, url: any, isKeepOnPause: any) => void;
-    getVolume: () => any;
+    createSound: (name: string, url: string, isKeepOnPause: boolean) => void;
+    getVolume: () => number;
     init: () => any;
     initBeep: () => void;
-    initSound: (name: any) => void;
+    initSound: (name: string) => void;
     isVibrateAvailable: () => any;
     isVibrateEnabled: () => any;
-    playSound: (name: any, times: any, onFinished: any, onError: any) => void;
-    setVibrateEnabled: (enabled: any) => void;
-    setVolume: (vol: any) => void;
-    stopSound: (name: any) => void;
-    vibrate: (milliseconds: any) => void;
+    playSound: (name: string, times: number, onFinished: Function, onError: Function) => void;
+    setVibrateEnabled: (enabled: boolean) => void;
+    setVolume: (vol: number) => void;
+    stopSound: (name: string) => void;
+    vibrate: (milliseconds: number) => void;
 }
 export interface PresentationManager {
     pageIndex: number;
-    addLayout: (layout: any) => void;
-    addPartial: (ctrlName: any, partial: any) => void;
-    addView: (ctrlName: any, view: any) => void;
-    callRenderEngine: (funcName: any, args: any) => any;
-    getLayout: (layoutName: any, doUseDefaultIfMissing: any) => any;
-    getPartial: (controllerName: any, partialName: any) => any;
-    getView: (controllerName: any, viewName: any) => any;
+    addLayout: (layout: Layout) => void;
+    addPartial: (ctrlName: string, partial: Partial) => void;
+    addView: (ctrlName: string, view: View) => void;
+    callRenderEngine: (funcName: string, args: Array<any>) => any;
+    getLayout: (layoutName: string, doUseDefaultIfMissing: boolean) => any;
+    getPartial: (controllerName: string, partialName: string) => any;
+    getView: (controllerName: string, viewName: string) => any;
     hideCurrentDialog: (...args: any[]) => void;
     hideWaitDialog: (...args: any[]) => void;
     reRenderView: () => void;
     renderPreviousView: () => void;
-    renderView: (ctrlName: any, viewName: any, data: any) => void;
+    renderView: (ctrlName: string, viewName: string, data: any) => void;
     setRenderEngine: (theRenderEngine: any) => void;
-    showDialog: (ctrlName: any, dialogId: any, data: any, ...args: any[]) => any;
-    showWaitDialog: (text: any, data: any, ...args: any[]) => void;
+    showDialog: (ctrlName: string, dialogId: string, data: any, ...args: any[]) => any;
+    showWaitDialog: (text: string, data: any, ...args: any[]) => void;
 }
 export interface RequireJs extends Function {
     isBrowser: boolean;
@@ -346,4 +346,186 @@ export interface RequireJs extends Function {
     specified: (id: any) => any;
     toUrl: (moduleNamePlusExt: any) => any;
     undef: (id: any) => void;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export interface RenderEngine {
+    hideCurrentDialog(): void;
+    hideWaitDialog(): void;
+    render(ctrlName: string, viewName: string, view: View, ctrl: Controller, data?: any): void;
+    showDialog(ctrlName: string, dialogId?: string, data?: any): void;
+    showWaitDialog(text?: string, theme?: string): void;
+}
+
+export interface Layout {
+    constructor(name: string, definition: string, remote?: boolean, ignoreMissingBody?: boolean);
+
+    getBodyContents(): string;
+    getDialogsContents(): string;
+    getHeaderContents(): string;
+
+    getName(): string;
+    getYields(): Array<YieldDeclaration>;
+    stringify(): string;
+
+    //static TagElement(tag: any, content: any, tagType: any): any;
+    //static getTagAttr(str: any, target: any): any;
+}
+
+export interface YieldDeclaration {
+    constructor(parsingElement: ParsingResult, contentAreaType: any);
+
+    getName(): string;
+    getNameType(): number;
+
+    getAreaType(): number;
+    getEnd(): number;
+    getStart(): number;
+
+    getValue(rawPropertyValue: any, proptertyType: any, data: any): any;
+    stringify(): string;
+}
+
+export interface View {
+    constructor(ctrl: any, name: string, definition: string);
+
+    getContentElement(name: string): ContentElement;
+    getController(): Controller;
+    getDefinition(): string;
+    getName(): string;
+    stringify(): string;
+}
+
+export interface Partial {
+    constructor(ctrl: Controller, name: string, definition: string);
+
+    getContentElement(): ContentElement;
+    getController(): Controller;
+    getDefinition(): string;
+    getName(): string;
+    stringify(): string;
+}
+
+export interface ContentElement {
+    constructor(group: ParsingResult|Array<string>|{name: string, content: string, offset?: number, parent?: ContentElement}, view: View, parser: any, renderer: any, ...args: any[]);
+
+    getController(): Controller;
+
+    getDefinition(): string;
+
+    getEnd(): number;
+
+    getName(): string;
+
+    getOffset(): number;
+
+    getRawText(): string;
+
+    getStart(): number;
+
+    getView(): View;
+
+    hasDynamicContent(): boolean;
+
+    stringify(): string;
+
+    toHtml(): string;
+
+    toStrings(renderingBuffer?: Array<string>, data?: any): any;
+
+}
+
+export interface ParsingResult {
+    constructor(thetokens: any);
+
+    getCallDataEnd(): number;
+
+    getCallDataStart(): number;
+
+    getCallDataType(): string;
+
+    getEnd(): number;
+
+    getStart(): number;
+
+    getType(): number;
+
+    getTypeName(): string;
+
+    getValue(rawPropertyValue: any, proptertyType: any, data: any): any;
+
+    hasCallData(): boolean;
+
+    hasElse(): boolean;
+
+    hasVarReferences(): boolean;
+
+    isElse(): boolean;
+
+    isEscape(): boolean;
+
+    isEscapeEnter(): boolean;
+
+    isEscapeExit(): boolean;
+
+    isFor(): boolean;
+
+    isHelper(): boolean;
+
+    isIf(): boolean;
+
+    isLocalize(): boolean;
+
+    isRender(): boolean;
+
+    isScriptBlock(): boolean;
+
+    isScriptStatement(): boolean;
+
+    isScriptTag(): boolean;
+
+    isStyleTag(): boolean;
+
+    isYield(): boolean;
+
+    isYieldContent(): boolean;
+
+    setEndFrom(thetokens: any): void;
+
+    setStartFrom(thetokens: any): void;
+
+    stringify(): string;
+
+}
+
+export type FileInfo = {name: string, path: string, fileName?: string};
+
+export interface Helper {
+    constructor(ctrl: string, name: string, ctx: any);
+    perform(actionName: string, data: any, ...args: any[]): any;
+}
+
+export interface Controller {
+    constructor(name: any, jsonDef: any, ctx: any);
+
+    getName(): string;
+
+    getHelper(): Helper;
+
+    getLayoutName(): string;
+    getPartialNames(): Array<string>;
+    getViewNames(): Array<string>;
+
+    perform(actionName: string, data: any, ...args: any[]): any;
+    performHelper(actionName: string, data: any, ...args: any[]): any;
+    performIfPresent(actionName: string, data: any, ...args: any[]): any;
+
+    getPartials(): Array<FileInfo>;
+    getViews(): Array<FileInfo>;
+    getLayout(): FileInfo;
+    parsePartials(partialDefs: Array<FileInfo>): void;
+    parseViews(viewDefs: Array<FileInfo>): void;
+    loadHelper(name: string, helperPath: string, ctx: any): void;
+
 }

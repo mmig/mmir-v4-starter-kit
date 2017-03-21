@@ -59,9 +59,12 @@ export interface ISpeechDictate {
 export interface ISpeechCommand {
 
   /**
-   * Called for determine the understanding of an ASR result.
+   * Called for determining the understanding of an ASR result.
    *
-   * This should invoke
+   * E.g. apply a grammar to the ASR text, or keyword spotting, or some other
+   * kind of "natural language understanding" (NLU).
+   *
+   * With the NLU result, this function should invoke
    * <pre>
    * InputManager.raise('speech', understandingResult);
    * </pre>
@@ -76,7 +79,7 @@ export interface ISpeechCommand {
    */
   determineSpeechCmd(asrEmmaEvent: RecognitionEmma): void;
   /**
-   * Called "applying" an understood command.
+   * Called for "applying" an understood command.
    *
    * This function should select the "best" command(s) from semanticEmmaEvent and
    * execute it/them.
@@ -90,7 +93,7 @@ export interface ISpeechCommand {
    * found for the user input.
    *
    * @param  {semanticEmmaEvent} emma the EMMA event contain an understanding result with a list
-   *                                    of understood Cmd
+   *                                    understood Cmd(s)
    */
   execSpeechCmd(semanticEmmaEvent: UnderstandingEmma): void;
 
@@ -112,7 +115,7 @@ export interface ISpeechOutput {
   /**
    * Called when text should should be read.
    *
-   * When reading starts, the function must trigger teh "reading-started" event:
+   * When reading starts, the function must trigger the "reading-started" event:
    *
    * <pre>
    * mmir.DialogManager.raise('reading-started')
@@ -166,6 +169,7 @@ export interface ISpeechOutput {
 ////////////// Guided Speech Input Controller interfaces /////////////////////
 ////////////// (triggered when input_mode === 'guided') //////////////////////
 
+//TODO add doc for guided input
 export interface IGuidedSpeechInput {
 
   // _util.ctrlGuided.perform('resetGuidedInputForCurrentControl');
@@ -333,8 +337,10 @@ export interface Cmd {
     action: CmdType;
     param: CmdParam;
     confidence: number;//range [0,1]
-    type: boolean;//true for recognized cmd
+    // type: boolean;//true for recognized cmd
 }
+
+////////////////// FIXME these are actually application specific -- remove these from here! //////////////
 
 export type CmdType = 'nav' | 'show' | 'close' | 'read' | 'choose';
 
