@@ -17,7 +17,7 @@ mmir.ready(function () {
 
 
 	//FIXME HACK micrenderer
-	mmir.app.renderer = mmir.app.renderer || {initPage: function(){}, repaint:function(){}};//FIXME dummy
+	// mmir.app.renderer = mmir.app.renderer || {initPage: function(){}, repaint:function(){}};//FIXME dummy
 	mmir.app.initialize = mmir.require('jquery').Deferred();//FIXME HACK for ionic init
 
 
@@ -146,26 +146,26 @@ mmir.ready(function () {
     // //function that will be registered with the DialogManager to be executed
     // // each time after a view was rendered
     // function executeAfterEachPageIsLoaded() {
-		
+
     	// //add a generic click-handler for BUTTONs
     	// //  generates a click-input for the InputEngine based on the button's name-attribute
     	// $("button").each(function(index, el) {
 		    // var tis = $(this);
 		    // var eventName;
 		    // tis.bind('click', function(event) {
-		
+
 			    // if(this.id==='mic_button')//HACK: let mic-button be handled by document-eventhandler
 			    	// return;////////////// EARLY EXIT /////////////////
-		
+
 		    	// event.preventDefault();
-		
+
 				// eventName = "click_on_" + tis.attr("name");
-		
+
 				// triggerClickFeedback();
-		
+
 				// mmir.InputEngine.raise("touch_input_event");
 				// mmir.InputEngine.raise(eventName);
-		
+
 				// return false;
 		    // });
 		// });
@@ -494,7 +494,7 @@ mmir.ready(function () {
             console.warn("Exception while querying loaded plugins: " + e);
         }
 
-    };
+    }
 
     function test_isNetworkAvailable(){
 
@@ -505,7 +505,7 @@ mmir.ready(function () {
     		console.log("Network access is available.");
     	}
 
-    };
+    }
 
     mmir.app.initialize.resolve();
 

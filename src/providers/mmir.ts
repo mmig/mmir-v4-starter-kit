@@ -3,10 +3,15 @@ import { Injectable, Component } from '@angular/core';
 import { Http } from '@angular/http';
 import { Platform, Nav, Events } from 'ionic-angular';
 
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/toPromise';
+// import 'rxjs/add/operator/map';
+// import 'rxjs/add/operator/toPromise';
 
-import { MmirModule, DialogEngine, DialogManager, PresentationManager } from './../models/MmirInterfaces';
+import {Observable} from 'rxjs/Observable';
+import {Subject} from 'rxjs/Subject';
+import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+
+import { MmirModule, DialogEngine, DialogManager, PresentationManager, Controller, View } from './../models/MmirInterfaces';
+import { ShowSpeechStateOptions, ReadingOptions, ReadingShowOptions, StopReadingOptions, RecognitionEmma, UnderstandingEmma } from './../models/ISpeechInput';
 
 import { AppConfig } from './app-config';
 
@@ -14,14 +19,39 @@ declare var mmir;//FIXME
 
 var __mmir = mmir;
 
+type SpeechEventName = 'showSpeechInputState' |                         //ISpeechState
+                        'startMicLevels' | 'stopMicLevels' |            //ISpeechFeedback
+                        'showDictationResult' |                         //ISpeechDictate
+                        'determineSpeechCmd' | 'execSpeechCmd' |        //ISpeechCommand
+                        'cancelSpeechIO' |                              //ISpeechInputProcessor
+                        'read' | 'stopReading' | 'showReadingStatus' |  //ISpeechOutput
+                        'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed' //IGuidedSpeechInput
+                        ;
+export interface SpeechEventEmitter {
+    showSpeechInputState: BehaviorSubject<ShowSpeechStateOptions>;
+    startMicLevels: BehaviorSubject<ShowSpeechStateOptions>;
+    stopMicLevels: BehaviorSubject<ShowSpeechStateOptions>;
+    showDictationResult: BehaviorSubject<RecognitionEmma>;
+    determineSpeechCmd: BehaviorSubject<RecognitionEmma>;
+    execSpeechCmd: BehaviorSubject<UnderstandingEmma>;
+    cancelSpeechIO: BehaviorSubject<void>;
+    read: BehaviorSubject<string|ReadingOptions>;
+    stopReading: BehaviorSubject<StopReadingOptions>;
+    showReadingStatus: BehaviorSubject<ReadingShowOptions>//;
+    //'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed'
+}
+
 export interface IonicPresentationManager extends PresentationManager {
   _ionicNavCtrl: Nav;
+  addView: (ctrlName: string, view: View|IonicView) => void;
+  _getIonicViewController: (ctrl: IonicController) => Component;
 }
 
 export interface IonicDialogManager extends DialogManager {
   _perform;
   _raise;
-  _eventEmitter: Events;
+  _emma;
+  _eventEmitter: SpeechEventEmitter;//{[id: string]: Subject<any>};//Events;
   _isDebugVui: boolean;
 }
 
@@ -29,15 +59,21 @@ export interface IonicDialogEngine extends DialogEngine {
   worker;
 }
 
-export type ViewDecl = {name: string, ctrl: string, view: any};
-export type ViewDef = {_name: string, getName: () => string, view: Component};
+export type Action = {name: string, data: any};
+export interface IonicController extends Controller {
+  _eventEmitter: Subject<Action>;
+  _ionicViews: {[id:string]: IonicView};
+}
+
+export type ViewDecl = {name: string, ctrlName: string, view: any};
+export type IonicView = {_name: string, getName: () => string, view: Component, ctrl?: IonicController};
 
 @Injectable()
 export class MmirProvider {
 
   private platform: Platform;
   private nav: Nav;
-  private evt: Events;
+  private evt: SpeechEventEmitter;//{[id: string]: Subject<any>};//Events;
   private appConfig: AppConfig;
 
   private _mmir : MmirModule;
@@ -63,15 +99,32 @@ export class MmirProvider {
   public init(
     platform: Platform,
     nav: Nav,
-    events: Events,
+    // events: Events,
     appConfig: AppConfig,
     views?: Array<ViewDecl>
   ): Promise<MmirProvider> {
 
     this.platform = platform;
     this.nav = nav;
-    this.evt = events;
+    // this.evt = events;
     this.appConfig = appConfig;
+
+    this.evt = {
+      'showSpeechInputState': new BehaviorSubject<ShowSpeechStateOptions>(null),//TODO set meaningful initial state?
+      'startMicLevels': new BehaviorSubject<ShowSpeechStateOptions>(null),//TODO set meaningful initial state?
+      'stopMicLevels': new BehaviorSubject<ShowSpeechStateOptions>(null),//TODO set meaningful initial state?
+      'showDictationResult': new Subject<RecognitionEmma>(),
+      'determineSpeechCmd': new Subject<RecognitionEmma>(),
+      'execSpeechCmd': new Subject<UnderstandingEmma>(),
+      'cancelSpeechIO': new Subject<void>(),
+      'read': new Subject<string|ReadingOptions>(),
+      'stopReading': new Subject<StopReadingOptions>(),
+      'showReadingStatus': new BehaviorSubject<ReadingShowOptions>(null)//,//TODO set meaningful initial state?
+
+      //TODO GuidedInput events?
+      //'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed'
+
+    } as SpeechEventEmitter;
 
     // apply setting for debug output:
     //  (technically we should wait for the promise to finish, but since this
@@ -102,6 +155,7 @@ export class MmirProvider {
 
   private mmirInit(views?: Array<ViewDecl>): Promise<MmirProvider> {
 
+    //promise for setting up mmir to work within angular/ionic
     return new Promise<MmirProvider>((resolve, reject) => {
       this._mmir.ready(() => {
 
@@ -109,15 +163,39 @@ export class MmirProvider {
 
         let presentMng: IonicPresentationManager = this.mmir.PresentationManager as IonicPresentationManager;
         presentMng._ionicNavCtrl = this.nav;
+        presentMng._getIonicViewController = function(ctrl: IonicController){
+          let ionicViewController = this._ionicNavCtrl.last();
+          for(let viewName in ctrl._ionicViews){
+            if(ionicViewController.instance.constructor == ctrl._ionicViews[viewName].view){
+              return ionicViewController.instance;
+            }
+          }
+          return null;
+        };
 
+        let ctrlManager = this.mmir.ControllerManager;
+        let ctrl: IonicController;
         if(views){
           let decl: ViewDecl;
-          let view: ViewDef;
+          let view: IonicView;
           for(let i=0,size = views.length; i < size; ++i){
             decl = views[i];
             view = this.mmirCreateView(decl.name, decl.view);
-          	presentMng.addView(decl.ctrl, view);
+
+            ctrl = ctrlManager.getController(decl.ctrlName) as IonicController;
+            if(!ctrl._ionicViews){
+              ctrl._ionicViews = {};
+            }
+            ctrl._ionicViews[decl.name] = view;
+
+          	presentMng.addView(decl.ctrlName, view);
           }
+        }
+
+        let ctrlList: Array<string> = ctrlManager.getControllerNames();
+        for(let i=ctrlList.length-1; i >= 0; --i){
+          ctrl = ctrlManager.getController(ctrlList[i]) as IonicController;
+          ctrl._eventEmitter = new Subject<Action>();
         }
 
 
@@ -125,12 +203,35 @@ export class MmirProvider {
         dlg._perform = dlg.perform;//TODO do we need previous impl.?
         dlg._eventEmitter = this.evt;
         dlg._isDebugVui = this.isDebugVui;
-        dlg.perform = function(ctrlName, actionName, data) {
+        dlg.perform = function(ctrlName: string, actionName: string, data: any) {
 
           let target = ctrlName+':'+actionName;
           if (this.isDebugVui) console.log('DialogManager: emit action for '+target+' ', data);
           // this._eventEmitter.publish(target, data); FIXME: "convert" _perform to event-emitting?
-          return this._perform.apply(this, arguments);
+          let speechEmitter: Subject<any> = this._eventEmitter[actionName];
+          if(speechEmitter){
+            if(typeof data !== 'undefined'){
+              speechEmitter.next(data);
+            } else {
+              speechEmitter.next();
+            }
+          } else {
+
+            //if component has a function actionName -> invoke this action
+            let ctrl = ctrlManager.getController(ctrlName) as IonicController;//TODO make ctrlManager instance property
+            //FIXME should we check the requested controller's views (i.e. if the current view is one of the controller's)
+            //      or should we just use/check the current view?
+            let activeCtrlView = presentMng._getIonicViewController(ctrl);//TODO make presentMng instance propperty
+            if(activeCtrlView[actionName]){
+
+              return activeCtrlView[actionName](data);//FIXME how should argument be handled? ... if view-function does not define arguments?
+
+            } else {
+
+              //default/fallback: invoke method on legacy controller
+              return this._perform.apply(this, arguments);
+            }
+          }
         };
         // dlg._raise = dlg.raise;
         // dlg.raise = function(eventName, eventData) {
@@ -147,13 +248,15 @@ export class MmirProvider {
         this.mmir.require(['emma'], (emma) => {
 
           //circumvent message-queue for init-event:
-          // (this allows to pass non-stringified and -fyable object instances)
+          // (this allows to pass non-stringified and non-stringifyable object instances)
       		dlgEngine.worker._engineGen.call(dlgEngine.worker._engineInstance, 'init', {
             eventHandler: this.evt,
             appConfig: this.appConfig,
             mmir: this._mmir,
             emma: emma
           });
+
+          dlg._emma = emma;
 
           resolve(this);
 
@@ -164,7 +267,7 @@ export class MmirProvider {
     });//END: new Promise()
   }
 
-  private mmirCreateView(name: string, page: Component): ViewDef {//FIXME
+  private mmirCreateView(name: string, page: Component): IonicView {//FIXME
     return {
       _name: name,
       getName: function(){
