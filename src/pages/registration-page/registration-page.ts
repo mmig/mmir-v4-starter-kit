@@ -1,9 +1,9 @@
-import {ViewPage} from './../../models/ViewPage';
-import { MmirModule } from './../../models/MmirInterfaces';
-import { MmirProvider } from './../../providers/mmir';
-
 import { Component } from '@angular/core';
-import { NavController, NavParams } from 'ionic-angular';
+import { NavController, NavParams, AlertController } from 'ionic-angular';
+
+import { UserAuthProvider } from './../../providers/user-auth';
+import { ViewPage } from './../../models/ViewPage';
+import { MmirProvider } from './../../providers/mmir';
 
 @Component({
   selector: 'registration-page',
@@ -19,6 +19,8 @@ export class RegistrationPage extends ViewPage {
 
   constructor(
     public navCtrl: NavController,
+    private alertCtrl: AlertController,
+    private userAuth: UserAuthProvider,
     params: NavParams,
     mmirProvider: MmirProvider
   ) {
@@ -37,4 +39,34 @@ export class RegistrationPage extends ViewPage {
   public handleClick(event, name){
     super.handleClick(event, name, this.user);
   }
+
+  register(data?: {name: string, password: string}){
+
+  	let email = data && data.name? data.name : '';
+  	let password = data && data.password? data.password : '';
+
+    if(email && password){
+
+    	this.user[email]= password;
+    	this.mmir.ModelManager.getModel('User').create(email);
+
+      this.userAuth.addUserAuth(email, password)
+          .then(() => this.dlg.raise('user_registered'))
+          .catch(err => console.error(err));
+
+    } else {
+
+      let alert = this.alertCtrl.create();
+      alert.setTitle('Registering Failed!');
+      alert.setMessage('Invalid user name or password.');
+      alert.addButton(this.lang.getText('buttonOk'));
+      alert.present();
+
+      //FIXME need to reset this.mmir.ModelManager.getModel('User').getInstance()!!!
+
+      this.dlg.raise('user_registered', {user: {name: name, password: password}});
+    }
+
+  }
+
 }

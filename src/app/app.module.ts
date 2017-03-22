@@ -15,6 +15,7 @@ import { FabMiclevels } from './../components/fab-miclevels/fab-miclevels';
 
 import { MmirProvider } from '../providers/mmir';
 import { AppConfig } from '../providers/app-config';
+import { UserAuthProvider } from './../providers/user-auth';
 
 @NgModule({
   declarations: [
@@ -40,6 +41,6 @@ import { AppConfig } from '../providers/app-config';
     // Page1,
     // Page2
   ],
-  providers: [Storage, MmirProvider, AppConfig]
+  providers: [Storage, MmirProvider, AppConfig, UserAuthProvider]
 })
 export class AppModule {}
