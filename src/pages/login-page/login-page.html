@@ -44,8 +44,13 @@
       <ion-icon name='create'></ion-icon>
   </button>
 
-  <ion-fab right bottom>
-    <button id="mic_button" ion-fab color="vibrant"><ion-icon name="mic"></ion-icon></button>
+  <ion-fab class="speech-input-ctrl" right bottom>
+    <fab-miclevels [width]="96" [height]="96" [active]="asrOn"></fab-miclevels>
+    <button id="speech-cmd-btn" ion-fab color="vibrant"
+
+        (click)="microClicked($event, 'speech-cmd-btn')"
+        [class.isActive]="asrOn"><ion-icon name="mic"></ion-icon>
+    </button>
   </ion-fab>
 
 </ion-content>
