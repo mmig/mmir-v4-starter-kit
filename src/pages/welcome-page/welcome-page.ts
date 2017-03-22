@@ -10,11 +10,14 @@ import { NavController } from 'ionic-angular';
 })
 export class WelcomePage extends ViewPage {
 
+  public userModel;
+
   constructor(
     public navCtrl: NavController,
     mmirProvider: MmirProvider
   ) {
     super(mmirProvider);
+    this.userModel = this.mmir.ModelManager.getModel('User').getInstance();
   }
 
   ionViewDidLoad() {

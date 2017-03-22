@@ -12,8 +12,7 @@
 <ion-content padding>
 
   <h2>
-    {{localize("welcome_text")}}
-    <span *ngIf="mmir.User.getInstance()">, {{mmir.User.getInstance().getName()}}!</span>
+    {{localize("welcome_text")}}<span *ngIf="userModel">, {{userModel.getName()}}!</span>
   </h2>
 
   <button (click)="handleClick($event, 'appointment_btn')" ion-button color="light" icon-left>
