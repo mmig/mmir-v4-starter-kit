@@ -1,7 +1,5 @@
-import {IonicDialogManager} from './../providers/mmir';
-import {DialogManager} from './MmirInterfaces';
 import {MmirModule, LanguageManager, InputManager} from './MmirInterfaces';
-import {MmirProvider} from './../providers/mmir';
+import {MmirProvider, IonicDialogManager} from './../providers/mmir';
 
 export interface MmirAppModule extends MmirModule {
   app: any;
@@ -79,7 +77,7 @@ export class ViewPage {
     if(this.lang){
       return this.lang.getText(res);
     } else {
-      console.warn('mmir.LanguageManager not ready yet...');
+      // console.info('mmir.LanguageManager not ready yet...');
       return '';
     }
   }
