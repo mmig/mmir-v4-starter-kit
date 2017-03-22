@@ -27,7 +27,7 @@
 
 <state id="AppStart" name="AppStart">
 
-  <transition event="init" name="init" target="Main">
+  <transition event="init" name="init" target="LoginView">
       <script>//<![CDATA[
 
       	var data = _event.data;
@@ -73,6 +73,24 @@
        	        }
        	        return input_mode;
 			},
+			/** HELPER: set "state-change-without-rendering" */
+			setIsRender: function(event, isRender){
+        if(!event){
+          return event;
+        }
+        event.data = event.data || {};
+				event.data.navRender = isRender;
+        return event
+			},
+			/** HELPER: set rendering / navigation for trying to navigate within nav-history (i.e. try to go to last instance of the targeted view) */
+			setNavInHistory: function(event){
+        if(!event){
+          return event;
+        }
+        event.data = event.data || {};
+        event.data.navBack = true;
+				return event;
+			},
 			speechCtrlName: 'SpeechInput',
 			readCtrlName: 'SpeechOutput',
 			guidedCtrlName: 'GuidedInput',//FIXME no impl. yet
@@ -114,7 +132,10 @@
 
 		console.info('DialogEngine initialized.');
 
+    _util.dlg.getOnPageRenderedHandler();//FIXME DEBUG
+
       //]]></script>
+      <assign location="_event.data" expr="{navGoRoot: true}"/>
   </transition>
 </state>
 
@@ -145,30 +166,11 @@
 		    </script>
 		</onexit>
 
-		<!-- transition name="click_on_language_btn" event="click_on_language_btn" >
-	        <script>
-		        _util.dlg.performHelper('SpeechViz','slide_down_language_menu');
-	        </script>
-	    </transition>
-
-	    <transition name="language_choosen" event="language_choosen" >
-   			<assign expr="'slidedown'" location="navigation_transition"></assign>
-	        <script>
-	            var isChanged = _event.data &amp;&amp; _event.data.changed ? _event.data.changed : false;
-	            if(isChanged){
-					//_util.dlg.render('SpeechViz', 'input');//, {transition: navigation_transition, reverse: navigation_backwards_direction});
-					_util.dlg.raise('renderView');
-				}
-				else {
-					_util.dlg.performHelper('SpeechViz','slide_up_language_menu');
-				}
-	        </script>
-   			<assign expr="'slide'" location="navigation_transition"></assign>
-	    </transition-->
-
-
-		<!-- transition event="gotoStart" name="gotoStart" target="TestSpeechInput" />
-		<transition event="gotoSettings" name="gotoSettings" target="TestAppSettings" /-->
+    <onentry>
+		    <script>
+		        console.log('entered MAIN -> ', _event);
+		    </script>
+		</onentry>
 
 		<transition event="showSpeechStateActive" name="showSpeechStateActive">
 		    <script>
@@ -206,7 +208,6 @@
 		    </script>
 		</transition>
 
-
 		<transition event="speech-recognition" name="speech-recognition" cond="_util.isSpeechCommand(_event.data)">
 		    <script>
 		        console.info('speech-recognition (command-mode) with data ', _event.data);
@@ -235,7 +236,7 @@
         <script>
           var data = _event &amp;&amp; _event.data;
           console.log('starting DialogEngine state machine ', data);
-  			  _util.dlg.render('Application', 'login', data);
+          _util.dlg.render('Application', 'login', data);
         </script>
       </onentry>
 
@@ -244,7 +245,7 @@
 
       <transition name="language_btn" event="language_btn" >
         <script>
-  			_util.dlg.perform('Application','showLangMenu');
+  			     _util.dlg.perform('Application','showLangMenu');
         </script>
       </transition>
 
@@ -267,73 +268,121 @@
 		</state>
 
     <state id="registration_form" name="registration_form">
+
       <onentry>
         <script>
-  			_util.dlg.render('Application', 'registration', _event.data);
+          _util.dlg.render('Application', 'registration', _event.data);
         </script>
       </onentry>
+
       <transition event="register_btn" name="register_btn" target="try_to_register_new_user" />
-      <transition event="back" name="back" target="LoginView" />
+
+      <transition event="back" name="back" target="LoginView">
+        <assign location="_event" expr="_util.setNavInHistory(_event)"/>
+      </transition>
+
     </state>
 
     <state id="try_to_register_new_user" name="try_to_register_new_user">
+
       <onentry>
         <script>
-  			_util.dlg.perform('Application', 'register', _event.data);
+  			  _util.dlg.perform('Application', 'register', _event.data);
         </script>
       </onentry>
-      <transition cond="mmir.User.getInstance() == null" target="LoginView"></transition>
-      <transition cond="mmir.User.getInstance() != null" target="MainView"></transition>
+
+      <transition event="user_registered" cond="mmir.User.getInstance() == null" target="LoginView">
+        <assign location="_event" expr="_util.setNavInHistory(_event)"/>
+      </transition>
+
+      <transition event="user_registered" cond="mmir.User.getInstance() != null" target="MainView">
+        <script>
+          _event.data = _event.data || {};
+          //remove RegisterView from navigation-history:
+          _event.data.navReplace = true;
+        </script>
+      </transition>
+
     </state>
 
     <state id="login_user" name="login_user">
+
       <onentry>
         <script>
   			_util.dlg.perform('Application','login', _event.data);
         </script>
       </onentry>
-      <transition event="login_failed" target="LoginView" />
+
+      <transition event="login_failed" target="LoginView" >
+        <assign location="_event" expr="_util.setIsRender(_event, false)"/>
+      </transition>
+
       <transition event="user_logged_in" cond="mmir.User.getInstance() != null" target="MainView" />
-      <transition event="user_logged_in" cond="mmir.User.getInstance() == null" target="LoginView" />
+
+      <transition event="user_logged_in" cond="mmir.User.getInstance() == null" target="LoginView">
+        <assign location="_event" expr="_util.setIsRender(_event, false)"/>
+      </transition>
+
     </state>
 
     <state id="MainView" name="MainView">
+
       <onentry>
         <script>
           var data = _event &amp;&amp; _event.data;
-  			  _util.dlg.render('Application', 'welcome', data);
+          _util.dlg.render('Application', 'welcome', data);
         </script>
       </onentry>
+
       <transition event="appointment_btn" name="appointment_btn" target="CreateAppointmentView" />
-      <transition event="back" name="back" target="LoginView" />
+
+      <transition event="back" name="back" target="LoginView">
+        <assign location="_event" expr="_util.setNavInHistory(_event)"/>
+      </transition>
 
     </state>
 
     <state id="CreateAppointmentView" name="CreateAppointmentView">
+
       <initial>
         <onentry>
-  		<script>
-  			_util.dlg.render('Calendar', 'create_appointment', _event.data);
-  		</script>
+      		<script>
+            _util.dlg.render('Calendar', 'create_appointment', _event.data);
+      		</script>
         </onentry>
       </initial>
 
-      <transition event="save_appointment_btn" name="save_appointment_btn" target="save_appointment">
-      </transition>
+      <transition event="save_appointment_btn" name="save_appointment_btn" target="save_appointment" />
 
       <transition event="discard_appointment_btn" name="discard_appointment_btn" target="MainView">
+        <assign location="_event" expr="_util.setNavInHistory(_event)"/>
       </transition>
 
       <transition event="back" name="back" target="MainView">
+        <assign location="_event" expr="_util.setNavInHistory(_event)"/>
       </transition>
 
       <state id="save_appointment" name="save_appointment">
+
         <onentry>
       		<script>
       	  		_util.dlg.perform('Calendar','saveAppointment');
       		</script>
         </onentry>
-        <transition target="MainView" />
+
+        <transition target="MainView">
+
+          <assign location="_event" expr="_util.setNavInHistory(_event)"/>
+
+          <script>
+            if(!_event){//FIXME transition has no event object -> HACK inserting one manually
+              _event = {};
+              _events.push(_util.setNavInHistory(_event));
+            }
+            console.log('save_appointment -> ',_event);
+          </script>
+
+        </transition>
       </state>
 
     </state>

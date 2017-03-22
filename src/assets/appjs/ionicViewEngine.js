@@ -1,35 +1,20 @@
 
 /**
- * Example for a simplified view/rendering engine:
  *
- * uses the jQuery Mobile styles, but instead of jQM page transitions,
- * page-contents are simply replaced upon page-changes.
- *
- * <h3>Side Effects</h3>
- * <ul>
- * 	<li>loads the jQuery Mobile CSS file</li>
- * </ul>
  *
  * @example
  * //use page-transition with effect 'slide' (animated as not reversed motion)
  * mmir.DialogManager.render('theController', 'theView');
  *
  * @class
- * @name jqmSimpleViewEngine
+ * @name ionicViewEngine
  * @static
  *
  * Libraries:
- *  - jQuery (>= v1.6.2)
+ *  - Ionic2/Angular2
  *
- *  @depends document (DOM object)
+ *  @depends Ionic2/Angular2
  *
- *  @depends jQuery.Deferred
- *
- *  @depends jQuery.parseHTML
- *  @depends jQuery.appendTo
- *  @depends jQuery#selector
- *
- *  @depends jQuerySimpleModalDialog
  */
 define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 
@@ -43,36 +28,31 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 	){
 
 
-		//property names for passing the respected objects from doRenderView() to doRemoveElementsAfterViewLoad()
+		//property names for passing the respected objects from doRenderView() to afterViewLoadHandler()
 		var FIELD_NAME_VIEW 		 = '__view';
 		var FIELD_NAME_DATA 		 = '__renderData';
 		var FIELD_NAME_CONTROLLER 	 = '__ctrl';
 
 		//function for removing "old" content from DOM (-> remove old, un-used page content)
-		var doRemoveElementsAfterViewLoad = function(event, data){
+		var afterViewLoadHandler = function(data){
 
 			var ctrl = data[FIELD_NAME_CONTROLLER];
 			var view = data[FIELD_NAME_VIEW];
 			var renderData = data[FIELD_NAME_DATA];
 
-			//FIX handle missing ctrl/view parameter gracefully
-			//     this may occur when doRemoveElementsAfterViewLoad is
-			//     triggered NOT through doRenderView but by some automatic
-			//	   mechanism, e.g. BACK history event that was not handled
-			//	   by the framework (which ideally should not happen ...)
 			var viewName;
 			if(view){
 				viewName = view.getName();
 			}
 
 			if(!ctrl){
-				console.error('PresentationManager[jqmViewEngine].__doRemoveElementsAfterViewLoad: missing controller (and view)!',data.options);
+				console.error('PresentationManager[jqmViewEngine].__afterViewLoadHandler: missing controller (and view)!',data.options);
 				return;
 			}
 
 			//trigger "after page loading" hooks on controller:
 			// the hook for all views of the controller MUST be present/implemented:
-			ctrl.perform('on_page_load', renderData, viewName);
+			ctrl.performIfPresent('on_page_load', renderData, viewName);
 			//... the hook for single/specific view MAY be present/implemented:
 			if(view){
 				ctrl.performIfPresent('on_page_load_'+viewName, renderData);
@@ -83,21 +63,28 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 		var isIonInit = false;
 		var ionNavCtrl;//<- set when ionWillEnter gets registered (see below)
 		var ionWillEnter = function(ionViewCtrl){
-			console.log('ionicViewEngine->viewWillEnter: ', arguments);
-			var currIndex = ionNavCtrl.length() - 1;
-			var targetIndex = ionViewCtrl.index;
-			if(targetIndex === currIndex - 1){
-				//-> BACK: need to "update" dialog-engine, since BACK was triggered outside the state-engine
-				// WARNING: this also means that BACK must always be triggered via the navCtrl!
-				console.info('ionicViewEngine->BACK detected');//DEBUG
-				mmir.DialogManager.raise('back', {navRender: false});//<- just update the state-machine, without (re-) rendering the target view
+
+			console.log('ionicViewEngine->viewWillEnter: ', arguments);//DEBUG
+			console.log('ionicViewEngine->viewWillEnter.history['+ionNavCtrl.length()+']->', ionNavCtrl.getViews().map(function(el){return el.name;}));//DEBUG
+
+			var isRendering = ionViewCtrl.data && ionViewCtrl.data.rendering;
+			if(isRendering){
+				//page-change was triggered by ionicViewEngine -> reset rendering status
+				ionViewCtrl.data.rendering = false;
+			} else {
+				//page-change was NOT triggered by ionicViewEngine -> try to detect, if it is a BACK transtion
+				//  (e.g. by ionic's BACK-button or NavPop or external operation on the NavController)
+				// TODO handle case, that it is not a back-transition ... what to do in that case? can that even occur?
+				var currIndex = ionNavCtrl.length() - 1;
+				var targetIndex = ionViewCtrl.index;
+				if(targetIndex === currIndex - 1){
+					//-> BACK: need to "update" dialog-engine, since BACK was triggered outside the state-engine
+					// WARNING: this also means that BACK must always be triggered via the navCtrl!
+					console.info('ionicViewEngine->BACK detected');//DEBUG
+					mmir.DialogManager.raise('back', {navRender: false});//<- just update the state-machine, without (re-) rendering the target view
+				}//TODO else ...? trigger a listener?
 			}
 		};
-
-		//FIXME wik: remove jQm
-//		// set jQuery Mobile's default transition to "none":
-//		// TODO make this configurable (through mmir.ConfigurationManager)?
-//		jq.mobile.defaultPageTransition = 'none';
 
 		/**
 		 * Actually renders the View.<br>
@@ -138,12 +125,12 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 
 			//trigger "before page preparing" hooks on controller, if present/implemented:
 			isContinue = ctrl.performIfPresent('before_page_prepare', data, viewName);
-			if(isContinue === false){
+			if(isContinue === false || (data && data.defaultPrevented)){
 				return;/////////////////////// EARLY EXIT ////////////////////////
 			}
 
 			isContinue = ctrl.performIfPresent('before_page_prepare_'+viewName, data);
-			if(isContinue === false){
+			if(isContinue === false || (data && data.defaultPrevented)){
 				return;/////////////////////// EARLY EXIT ////////////////////////
 			}
 
@@ -157,12 +144,12 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 
 			//trigger "before page loading" hooks on controller, if present/implemented:
 			isContinue = ctrl.performIfPresent('before_page_load', data, pageEvtData);//<- this is triggered for every view in the corresponding controller
-			if(isContinue === false){
+			if(isContinue === false || pageEvtData.defaultPrevented){
 				return;/////////////////////// EARLY EXIT ////////////////////////
 			}
 
 			isContinue = ctrl.performIfPresent('before_page_load_'+viewName, data, pageEvtData);
-			if(isContinue === false){
+			if(isContinue === false || pageEvtData.defaultPrevented){
 				return;/////////////////////// EARLY EXIT ////////////////////////
 			}
 
@@ -183,6 +170,7 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 				// animate 	boolean 	Whether or not the transition should animate.
 				animate: data && data.navAnimate === true
 			};
+
 			if(transitionOpt.navAnimate){
 				// direction 	string 	The conceptual direction the user is navigating. For example, is the user navigating forward, or back?
 				transitionOpt.direction = data && data.navDirection? data.navDirection : 'forward';
@@ -193,8 +181,65 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 					// easing 	string 	The easing for the animation.
 			}
 
-			this._ionicNavCtrl.push(view.view, {data: data}, transitionOpt).then(function(){
-				doRemoveElementsAfterViewLoad.call(this, /*newPage,*/{},changeOptions);
+			var goBack = data && data.navBack;
+			if(goBack){
+
+				var history = this._ionicNavCtrl.getViews();
+				var lastIndex = history.length - 1;
+				var oldIndex = - 1, oldView;
+				for(var i= lastIndex; i >= 0; --i){
+					oldView = history[i];
+					if(oldView.component === view.view){
+						oldIndex = i;
+						break;
+					}
+				}
+
+				var navFunc, navArgs;
+
+				if(oldIndex > -1){
+					//FIXME set rendering = true
+					oldView.data = oldView.data || {};
+					oldView.data.rendering = true;
+					transitionOpt.direction = 'back';
+					if(oldIndex < lastIndex){
+						navFunc = 'remove';
+						navArgs = [oldIndex + 1, lastIndex - oldIndex, transitionOpt];
+					} else {
+						navFunc = 'pop';
+						navArgs = [transitionOpt];
+					}
+				}
+			}
+
+			if(!navFunc){
+
+				var goRoot = data && data.navGoRoot;
+				navFunc = goRoot? 'setRoot' : 'push';
+				navArgs = [view.view, {data: data, rendering: true}, transitionOpt];
+
+				if(!goRoot){
+					var isReplace = data && data.navReplace;
+					if(isReplace){
+						navFunc = 'insert';
+						var insertIndex = this._ionicNavCtrl.length() - 1;
+
+						//adjust arguments: add insertion-index at beginning, and do not animate for INSERT
+						navArgs[2] = {animate: false};
+						navArgs.unshift(insertIndex);
+					}
+				}
+			}
+
+			var renderEngine = this;
+			this._ionicNavCtrl[navFunc].apply(this._ionicNavCtrl, navArgs).then(function(){
+				if(navFunc === 'insert'){
+					renderEngine._ionicNavCtrl.pop(transitionOpt).then(function(){
+						afterViewLoadHandler.call(renderEngine, changeOptions);
+					});
+				} else {
+					afterViewLoadHandler.call(renderEngine, changeOptions);
+				}
 			});
 		};
 
