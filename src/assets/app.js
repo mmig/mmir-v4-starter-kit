@@ -143,46 +143,6 @@ mmir.ready(function () {
 //
 //    }
 
-    // //function that will be registered with the DialogManager to be executed
-    // // each time after a view was rendered
-    // function executeAfterEachPageIsLoaded() {
-
-    	// //add a generic click-handler for BUTTONs
-    	// //  generates a click-input for the InputEngine based on the button's name-attribute
-    	// $("button").each(function(index, el) {
-		    // var tis = $(this);
-		    // var eventName;
-		    // tis.bind('click', function(event) {
-
-			    // if(this.id==='mic_button')//HACK: let mic-button be handled by document-eventhandler
-			    	// return;////////////// EARLY EXIT /////////////////
-
-		    	// event.preventDefault();
-
-				// eventName = "click_on_" + tis.attr("name");
-
-				// triggerClickFeedback();
-
-				// mmir.InputEngine.raise("touch_input_event");
-				// mmir.InputEngine.raise(eventName);
-
-				// return false;
-		    // });
-		// });
-
-    // };
-
-    //set up the handler for the microphone button:
-    // we register this handler on the document, so this needs to be done only once
-    $(document).on('click', '#mic_button', function(event){
-
-		event.preventDefault();
-
-		triggerClickFeedback();
-
-		microClicked();
-	});
-
 
     /////////////////////////////////////////////////// SPEECH INPUT / OUTPUT EXAMPLE //////////////////////////////
 
@@ -395,90 +355,6 @@ mmir.ready(function () {
     		}
     	}
     }
-
-
-    ///////////////////////////////////////// CLICK FEEDBACK EXAMPLE ////////////////////////////////////////
-
-    var IS_SOUND_FEEDBACK  = true;
-    var IS_HAPTIC_FEEDBACK = true;
-    //default time-duration for click-feedback vibration
-    var CLICK_VIBRATE_DURATION = 50;//ms
-
-    function isSoundFeedbackEnabled() {
-    	var isSound = mmir.ConfigurationManager.get('soundFeedbackEnabled');
-    	if(typeof isSound === 'undefined'){
-    		isSound = IS_SOUND_FEEDBACK;
-    	}
-    	return isSound;
-    }
-
-    function isHapticFeedbackEnabled() {
-    	var isHaptic = mmir.ConfigurationManager.get('hapticFeedbackEnabled');
-    	if(typeof isHaptic === 'undefined'){
-    		isHaptic = IS_HAPTIC_FEEDBACK;
-    	}
-    	return isHaptic;
-    }
-    /**
-     *
-     * @param config (optional) cofiguration object with fields
-     * 			config.audio BOOLEAN set if sound should be included in this feedback
-     * 			config.haptic BOOLEAN set if vibration should be included in this feedback
-     */
-    function triggerClickFeedback(config){
-
-    	var isSound  = config && typeof config.sound  !== 'undefined'? config.sound  : true;
-    	var isHaptic = config && typeof config.haptic !== 'undefined'? config.haptic : true;
-
-
-    	//TODO haptic and sound feedback should be run in parallel, not sequential (... use 'threads'?)
-    	if(isHaptic && isHapticFeedbackEnabled()){
-    		triggerHapticFeedback();
-    	}
-
-    	if(isSound && isSoundFeedbackEnabled()){
-    		triggerSoundFeedback();
-    	}
-    }
-
-    function triggerHapticFeedback(){
-		setTimeout(function(){
-	    	mmir.NotificationManager.vibrate(CLICK_VIBRATE_DURATION);
-		},0);
-    }
-
-    function triggerSoundFeedback(){
-    	//do not block function, return immediatly using setTimeout
-    	setTimeout(function(){
-        	mmir.NotificationManager.beep(1);
-    	},0);
-    }
-
-    function triggerErrorFeedback(){
-    	triggerMulitpleVibrationFeedback(3);
-    }
-
-    function triggerMulitpleVibrationFeedback(number){
-
-    	var doTriggerErrorVibrateFeedback = function(){
-    		setTimeout(function(){
-    			triggerClickFeedback();
-    			++count;
-    			if(count < number){
-    				doTriggerErrorVibrateFeedback();
-    			}
-    		}, 4*CLICK_VIBRATE_DURATION);
-    	};
-
-    	triggerClickFeedback();
-    	var count = 1;
-    	if(count < number){
-    		doTriggerErrorVibrateFeedback();
-    	}
-    }
-
-    //export feedback-function:
-    mmir.app.triggerClickFeedback = triggerClickFeedback;
 
     ///////////////////////////////////////// TEST and DEBUG functions ////////////////////////////////////////
 
