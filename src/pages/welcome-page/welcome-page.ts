@@ -1,8 +1,8 @@
-import { MmirProvider } from './../../providers/mmir';
-import { ViewPage } from './../../models/ViewPage';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { NavController } from 'ionic-angular';
 
+import { MmirProvider } from './../../providers/mmir';
+import { ViewPage } from './../../models/ViewPage';
 
 @Component({
   selector: 'welcome-page',
@@ -14,9 +14,10 @@ export class WelcomePage extends ViewPage {
 
   constructor(
     public navCtrl: NavController,
+    ref: ChangeDetectorRef,
     mmirProvider: MmirProvider
   ) {
-    super(mmirProvider);
+    super(mmirProvider, ref);
     this.userModel = this.mmir.ModelManager.getModel('User').getInstance();
   }
 

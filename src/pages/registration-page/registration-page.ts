@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { NavController, NavParams, AlertController } from 'ionic-angular';
 
 import { UserAuthProvider } from './../../providers/user-auth';
@@ -21,10 +21,11 @@ export class RegistrationPage extends ViewPage {
     public navCtrl: NavController,
     private alertCtrl: AlertController,
     private userAuth: UserAuthProvider,
+    ref: ChangeDetectorRef,
     params: NavParams,
     mmirProvider: MmirProvider
   ) {
-    super(mmirProvider);
+    super(mmirProvider, ref);
 
     let user = params.get('data');
     if(user){

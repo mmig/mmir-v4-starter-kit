@@ -12,6 +12,7 @@ import { CalendarPage } from '../pages/calendar-page/calendar-page';
 // import { Page2 } from '../pages/page2/page2';
 
 import { FabMiclevels } from './../components/fab-miclevels/fab-miclevels';
+import { LanguageMenu } from './../components/language-menu/language-menu';
 
 import { MmirProvider } from '../providers/mmir';
 import { AppConfig } from '../providers/app-config';
@@ -24,9 +25,8 @@ import { UserAuthProvider } from './../providers/user-auth';
     RegistrationPage,
     WelcomePage,
     CalendarPage,
-    // Page1,
-    // Page2,
-    FabMiclevels
+    FabMiclevels,
+    LanguageMenu
   ],
   imports: [
     IonicModule.forRoot(MyApp)
@@ -37,9 +37,8 @@ import { UserAuthProvider } from './../providers/user-auth';
     LoginPage,
     RegistrationPage,
     WelcomePage,
-    CalendarPage
-    // Page1,
-    // Page2
+    CalendarPage,
+    LanguageMenu
   ],
   providers: [Storage, MmirProvider, AppConfig, UserAuthProvider]
 })

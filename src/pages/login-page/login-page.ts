@@ -1,5 +1,8 @@
-import { Component } from '@angular/core';
-import { NavController, AlertController, NavParams } from 'ionic-angular';
+
+import { Component, ChangeDetectorRef } from '@angular/core';
+import { NavController, AlertController, ModalController, NavParams } from 'ionic-angular';
+
+import { LanguageMenu } from './../../components/language-menu/language-menu';
 
 import { UserAuthProvider, UserAuth } from './../../providers/user-auth';
 import { ViewPage } from './../../models/ViewPage';
@@ -30,11 +33,13 @@ export class LoginPage extends ViewPage {
   constructor(
     public navCtrl: NavController,
     private alertCtrl: AlertController,
+    private modalCtrl: ModalController,
     private authProvider: UserAuthProvider,
+    ref: ChangeDetectorRef,
     params: NavParams,
     mmirProvider: MmirProvider
   ) {
-    super(mmirProvider);
+    super(mmirProvider, ref);
 
     let data = params.get('data');
     if(data && data.user){
@@ -72,37 +77,22 @@ export class LoginPage extends ViewPage {
   }
 
   showLangMenu() {
-
-    let alert = this.alertCtrl.create();
-    alert.setTitle(this.lang.getText('choose_language'));
-    alert.setCssClass('language-menu');
-
-    let current: string = this.lang.getLanguage();
-    let list: Array<string> = this.lang.getLanguages();
-    let lang:string;
-    for(let i=0, size = list.length; i < size; ++i){
-      lang = list[i];
-      alert.addInput({
-        type: 'radio',
-        label: lang,
-        value: lang,
-        checked: lang === current
-      });
-    }
-
-    alert.addButton(this.lang.getText('buttonCancel'));
-    alert.addButton({
-      text: this.lang.getText('buttonOk'),
-      handler: data => {
-        console.log('selected language: ',data);
-    		this.dlg.raise('language_choosen', {language: data});
+    let languageDialog = this.modalCtrl.create(LanguageMenu);
+    languageDialog.onDidDismiss(data => {
+      // console.log(data);
+      if(data){
+        this.dlg.raise('language_choosen', {language: data});
+      } else {
+        console.info('closed language-menu without seletion');
       }
     });
-    alert.present();
+    languageDialog.present();
   }
 
   updateLanguage(newLang: string){
     this._languange = newLang;
+    //this function may get invoked asynchronously -> request change detection for updating localize() strings
+    this.detectChanges();
   }
 
   login(data?: {name: string, password: string}){

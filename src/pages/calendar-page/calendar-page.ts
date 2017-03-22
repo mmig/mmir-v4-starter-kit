@@ -1,8 +1,10 @@
-import {ViewPage} from './../../models/ViewPage';
-import {MmirProvider} from './../../providers/mmir';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { NavController, AlertController } from 'ionic-angular';
 
+import {ViewPage} from './../../models/ViewPage';
+import {MmirProvider} from './../../providers/mmir';
+
+import {triggerClickFeedback} from '../../models/HapticFeedback';
 
 @Component({
   selector: 'calendar-page',
@@ -18,9 +20,10 @@ export class CalendarPage extends ViewPage {
   constructor(
     public navCtrl: NavController,
     private alertCtrl: AlertController,
+    ref: ChangeDetectorRef,
     mmirProvider: MmirProvider
   ) {
-    super(mmirProvider);
+    super(mmirProvider, ref);
   }
 
   ionViewDidLoad() {
@@ -53,7 +56,12 @@ export class CalendarPage extends ViewPage {
       let alert = this.alertCtrl.create({
         title: 'STUB: appointment successfully created!',
         message: JSON.stringify(jData, null, 2),
-        buttons: [this.lang.getText('buttonOk')]
+        buttons: [{
+          text: this.lang.getText('buttonOk'),
+          handler: () => {
+            triggerClickFeedback();
+          }
+        }]
       });
 
       alert.present();
