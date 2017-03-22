@@ -105,7 +105,7 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
       return;
     }
 
-    // console.log('mic-paint: '+value);
+    console.log('mic-paint: '+value);
 
     const minLevelRad = 28;//TODO calc from fab btn
     const centerx = this.width/2;//38;//TODO calc from fab btn & canvas size
@@ -130,6 +130,12 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
 
     this._mmir.ready(()=>{
 
+      if(this._isDestroyed){
+        return;///////////// EARLY EXIT //////////////
+      }
+
+      console.log('registering mic-level-change handler...');//DEBUG
+
       this.isCordova = this._mmir.require('env').isCordovaEnv;
      	this.isNuanceSpeech = false;
 
@@ -153,8 +159,10 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
 
   ngOnDestroy(){
     this._isDestroyed = true;
-    this._mmir.MediaManager.off('miclevelchanged', this.handleMicLevelChange)
-    this.handleMicLevelChange = null;
+    if(this._isInit){
+      this._mmir.MediaManager.off('miclevelchanged', this.handleMicLevelChange)
+      this.handleMicLevelChange = null;
+    }
   }
 
   ngOnChanges(changes){
