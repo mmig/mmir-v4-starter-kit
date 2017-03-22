@@ -1,12 +1,13 @@
+import {ControllerManager} from './../models/MmirInterfaces';
 
 import { Injectable, Component } from '@angular/core';
 import { Http } from '@angular/http';
-import { Platform, Nav, Events } from 'ionic-angular';
+import { Platform, Nav } from 'ionic-angular';
 
 // import 'rxjs/add/operator/map';
 // import 'rxjs/add/operator/toPromise';
 
-import {Observable} from 'rxjs/Observable';
+// import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 
@@ -47,6 +48,10 @@ export interface IonicPresentationManager extends PresentationManager {
   _getIonicViewController: (ctrl: IonicController) => Component;
 }
 
+export interface IonicControllerManager extends ControllerManager {
+  _createIonicController: (ctrlName: string, viewName?: string, ionicViewCtrl?: any) => IonicController;
+}
+
 export interface IonicDialogManager extends DialogManager {
   _perform;
   _raise;
@@ -63,6 +68,7 @@ export type Action = {name: string, data: any};
 export interface IonicController extends Controller {
   _eventEmitter: Subject<Action>;
   _ionicViews: {[id:string]: IonicView};
+  addView: (viewName:string, ionicView: any) => void;
 }
 
 export type ViewDecl = {name: string, ctrlName: string, view: any};
@@ -166,14 +172,14 @@ export class MmirProvider {
         presentMng._getIonicViewController = function(ctrl: IonicController){
           let ionicViewController = this._ionicNavCtrl.last();
           for(let viewName in ctrl._ionicViews){
-            if(ionicViewController.instance.constructor == ctrl._ionicViews[viewName].view){
+            if(ionicViewController.instance.constructor == ctrl._ionicViews[viewName]){
               return ionicViewController.instance;
             }
           }
           return null;
         };
 
-        let ctrlManager = this.mmir.ControllerManager;
+        let ctrlManager = this.mmir.ControllerManager as IonicControllerManager;
         let ctrl: IonicController;
         if(views){
           let decl: ViewDecl;
@@ -183,10 +189,11 @@ export class MmirProvider {
             view = this.mmirCreateView(decl.name, decl.view);
 
             ctrl = ctrlManager.getController(decl.ctrlName) as IonicController;
-            if(!ctrl._ionicViews){
-              ctrl._ionicViews = {};
+            if(!ctrl){
+              ctrl = ctrlManager._createIonicController(decl.ctrlName, decl.name, decl.view);
+            } else {
+              ctrl.addView(decl.name, decl.view);
             }
-            ctrl._ionicViews[decl.name] = view;
 
           	presentMng.addView(decl.ctrlName, view);
           }

@@ -8,11 +8,14 @@
 	core.config({
 
 		paths:{
+			
 			//overwrite / replace MMIR config values:
+
+			'controllerManager': '../appjs/ionicControllerManager',
 
 			//register a custom rendering module
 			// NOTE: the framework also needs to be configured to actually use it (see below for an example)
-			'ionicViewEngine': '../appjs/ionicViewEngine',//jqSimpleViewEngine',
+			'ionicViewEngine': '../appjs/ionicViewEngine',
 
 			'emma': '../appjs/emma',
 
