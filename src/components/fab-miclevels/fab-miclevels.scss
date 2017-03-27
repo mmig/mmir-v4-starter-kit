@@ -1,15 +1,17 @@
 fab-miclevels {
 
-  //define size: make it 20px larger than a FAB
-  $fab-miclevels-offset: 20px;
-  $fab-miclevels-size: $fab-size + $fab-miclevels-offset;
-
+  // //define size: make it 20px larger than a FAB
+  // $fab-miclevels-offset: 20px;
+  // $fab-miclevels-size: $fab-size + $fab-miclevels-offset;
+  //
   .mic-levels {
-    width: $fab-miclevels-size;
-    height: $fab-miclevels-size;
-    left: - ($fab-miclevels-offset/2);//apply offset for centering beneath the FAB
-    top: - ($fab-miclevels-offset/2);//apply offset for centering beneath the FAB
-    position: absolute;//"move" element out of component-flow
+    // width: $fab-miclevels-size;
+    // height: $fab-miclevels-size;
+    // left: - ($fab-miclevels-offset/2);//apply offset for centering beneath the FAB
+    // top: - ($fab-miclevels-offset/2);//apply offset for centering beneath the FAB
+    // position: absolute;//"move" element out of component-flow
+    
+    pointer-events: none;//let click/tap through the underlying elements
   }
 
 }
