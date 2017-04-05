@@ -53,7 +53,7 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
 
     private static createMicLevelChangeHandler(fabMic: FabMiclevels): Function {
 
-        return function(micLevel: number) {
+        return function(micLevel: number, rms: number) {
 
             let cvs = fabMic.canvas.nativeElement;
             if(cvs.clientHeight === 0 || cvs.clientWidth === 0){//FIXME is there a better way to determine visibility?
@@ -84,6 +84,8 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
                         micLevel -= 20;
                     }
                 }
+            } else {
+                micLevel = 3.5 * rms;
             }
 
 
@@ -98,6 +100,8 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
 
             //map float-value [0, 90] to integer [0, self.levels]
             let val = Math.floor(micLevel / scale);
+
+            // console.log('mic-paint['+rms+']: ('+micLevel+' / '+scale+') -> '+val);
 
             //cut off val > self.levels
             if (!FabMiclevels.isNuanceSpeech) {
@@ -116,11 +120,11 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
             return;
         }
 
-        // console.log('mic-paint: '+value);
-
         const minLevelRad = this.targetRad;
         const centerx = this.width / 2;
         const centery = this.height / 2;
+
+        // console.log('mic-paint: '+value+' (+ '+minLevelRad+') / '+this.levels);
 
         this.ctx.save()
         this.ctx.fillStyle = "rgba(200,200,200, 0.7)"
