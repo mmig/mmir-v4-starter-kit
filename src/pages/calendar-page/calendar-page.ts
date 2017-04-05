@@ -1,7 +1,7 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
 import { NavController, AlertController } from 'ionic-angular';
 
-import {ViewPage} from './../../models/ViewPage';
+import {MmirPage} from './../../models/MmirBasePage';
 import {MmirProvider} from './../../providers/mmir';
 
 import {triggerClickFeedback} from '../../models/HapticFeedback';
@@ -10,7 +10,7 @@ import {triggerClickFeedback} from '../../models/HapticFeedback';
   selector: 'calendar-page',
   templateUrl: 'calendar-page.html'
 })
-export class CalendarPage extends ViewPage {
+export class CalendarPage extends MmirPage {
 
   public subject: string = '';
   public note: string = '';

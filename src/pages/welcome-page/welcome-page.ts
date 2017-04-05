@@ -2,13 +2,13 @@ import { Component, ChangeDetectorRef } from '@angular/core';
 import { NavController } from 'ionic-angular';
 
 import { MmirProvider } from './../../providers/mmir';
-import { ViewPage } from './../../models/ViewPage';
+import { MmirPage } from './../../models/MmirBasePage';
 
 @Component({
   selector: 'welcome-page',
   templateUrl: 'welcome-page.html'
 })
-export class WelcomePage extends ViewPage {
+export class WelcomePage extends MmirPage {
 
   public userModel;
 

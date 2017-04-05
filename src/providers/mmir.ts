@@ -33,12 +33,12 @@ export interface SpeechEventEmitter {
     showSpeechInputState: BehaviorSubject<ShowSpeechStateOptions>;
     startMicLevels: BehaviorSubject<ShowSpeechStateOptions>;
     stopMicLevels: BehaviorSubject<ShowSpeechStateOptions>;
-    showDictationResult: BehaviorSubject<RecognitionEmma>;
-    determineSpeechCmd: BehaviorSubject<RecognitionEmma>;
-    execSpeechCmd: BehaviorSubject<UnderstandingEmma>;
-    cancelSpeechIO: BehaviorSubject<void>;
-    read: BehaviorSubject<string|ReadingOptions>;
-    stopReading: BehaviorSubject<StopReadingOptions>;
+    showDictationResult: Subject<RecognitionEmma>;
+    determineSpeechCmd: Subject<RecognitionEmma>;
+    execSpeechCmd: Subject<UnderstandingEmma>;
+    cancelSpeechIO: Subject<void>;
+    read: Subject<string|ReadingOptions>;
+    stopReading: Subject<StopReadingOptions>;
     showReadingStatus: BehaviorSubject<ReadingShowOptions>//;
     //'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed'
 }
@@ -117,27 +117,33 @@ export class MmirProvider {
     this.appConfig = appConfig;
 
     this.evt = {
-      'showSpeechInputState': new BehaviorSubject<ShowSpeechStateOptions>({state: false, mode: 'command', inputMode: ''})
-        .distinctUntilChanged((state1: ShowSpeechStateOptions, state2: ShowSpeechStateOptions) => {
+      'showSpeechInputState': new BehaviorSubject<ShowSpeechStateOptions>(
+          {state: false, mode: 'command', inputMode: ''}//<-initial state
+        ).distinctUntilChanged((state1: ShowSpeechStateOptions, state2: ShowSpeechStateOptions) => {
           return state1.state === state2.state && state1.mode === state2.mode && state1.inputMode === state2.inputMode && state1.targetId === state2.targetId;
-        }),//TODO set meaningful initial state?
-      'startMicLevels': new BehaviorSubject<ShowSpeechStateOptions>({state: false, mode: 'command', inputMode: ''}),//TODO set meaningful initial state?
-      'stopMicLevels': new BehaviorSubject<ShowSpeechStateOptions>({state: false, mode: 'command', inputMode: ''}),//TODO set meaningful initial state?
+        }),
+      'startMicLevels': new BehaviorSubject<ShowSpeechStateOptions>(
+          {state: false, mode: 'command', inputMode: ''}//<-initial state
+        ),
+      'stopMicLevels': new BehaviorSubject<ShowSpeechStateOptions>(
+          {state: false, mode: 'command', inputMode: ''}//<-initial state
+        ),
       'showDictationResult': new Subject<RecognitionEmma>(),
       'determineSpeechCmd': new Subject<RecognitionEmma>(),
       'execSpeechCmd': new Subject<UnderstandingEmma>(),
       'cancelSpeechIO': new Subject<void>(),
       'read': new Subject<string|ReadingOptions>(),
       'stopReading': new Subject<StopReadingOptions>(),
-      'showReadingStatus': new BehaviorSubject<ReadingShowOptions>({active: false, pageId: ''})
-        .distinctUntilChanged((state1: ReadingShowOptions, state2: ReadingShowOptions) => {
+      'showReadingStatus': new BehaviorSubject<ReadingShowOptions>(
+          {active: false, pageId: ''}//<-initial state
+        ).distinctUntilChanged((state1: ReadingShowOptions, state2: ReadingShowOptions) => {
           if(state1.test || state2.test){
             return false;
           }
           return state1.active === state2.active && state1.pageId === state2.pageId &&
                   state1.readingId === state2.readingId && state1.targetId === state2.targetId &&
                   state1.readingData === state2.readingData;
-        })//,//TODO set meaningful initial state?
+        })//,
 
       //TODO GuidedInput events?
       //'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed'

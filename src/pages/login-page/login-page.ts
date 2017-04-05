@@ -5,7 +5,7 @@ import { NavController, AlertController, ModalController, NavParams } from 'ioni
 import { LanguageMenu } from './../../components/language-menu/language-menu';
 
 import { UserAuthProvider, UserAuth } from './../../providers/user-auth';
-import { ViewPage } from './../../models/ViewPage';
+import { MmirPage } from './../../models/MmirBasePage';
 import { MmirProvider } from './../../providers/mmir';
 import { ShowSpeechStateOptions } from '../../models/ISpeechInput';
 
@@ -14,7 +14,7 @@ import { ShowSpeechStateOptions } from '../../models/ISpeechInput';
   templateUrl: 'login-page.html'
 })
 
-export class LoginPage extends ViewPage {
+export class LoginPage extends MmirPage {
 
   public user: UserAuth = {
     name: 'MMIG-User',

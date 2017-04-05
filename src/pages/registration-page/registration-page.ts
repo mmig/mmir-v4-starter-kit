@@ -2,7 +2,7 @@ import { Component, ChangeDetectorRef } from '@angular/core';
 import { NavController, NavParams, AlertController } from 'ionic-angular';
 
 import { UserAuthProvider } from './../../providers/user-auth';
-import { ViewPage } from './../../models/ViewPage';
+import { MmirPage } from './../../models/MmirBasePage';
 import { MmirProvider } from './../../providers/mmir';
 
 @Component({
@@ -10,7 +10,7 @@ import { MmirProvider } from './../../providers/mmir';
   templateUrl: 'registration-page.html'
 })
 
-export class RegistrationPage extends ViewPage {
+export class RegistrationPage extends MmirPage {
 
   user: {name: string, password: string} = {
     name: '',

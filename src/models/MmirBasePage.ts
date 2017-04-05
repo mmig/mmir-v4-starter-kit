@@ -28,7 +28,7 @@ export interface SpeechEventSubscription {
     //'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed'
 }
 
-export class ViewPage implements OnInit, OnDestroy {
+export class MmirPage implements OnInit, OnDestroy {
 
   protected _mmirProvider: MmirAppProvider;
 
