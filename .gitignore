@@ -34,3 +34,6 @@ UserInterfaceState.xcuserstate
 /res
 
 /mmir-build.settings
+/plugins/de.dfki.iui.mmir.speech.NuancePlugin/bin
+/build/typescript_util
+/build/temp
