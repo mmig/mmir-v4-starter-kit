@@ -7,6 +7,7 @@ import { LanguageMenu } from './../../components/language-menu/language-menu';
 import { UserAuthProvider, UserAuth } from './../../providers/user-auth';
 import { ViewPage } from './../../models/ViewPage';
 import { MmirProvider } from './../../providers/mmir';
+import { ShowSpeechStateOptions } from '../../models/ISpeechInput';
 
 @Component({
   selector: 'login-page',
@@ -68,8 +69,14 @@ export class LoginPage extends ViewPage {
 
   }
 
-  ionViewDidLoad() {
+  protected showSpeechInputState(options: ShowSpeechStateOptions): void {
+    console.info('overriden showSpeechInputState, invoking method on super...');
+    super.showSpeechInputState(options);
+  }
+
+  ionViewCanEnter() {
     console.log('Hello LoginPage Page');
+    return super.ionViewCanEnter();
   }
 
   public handleClick(event, name){

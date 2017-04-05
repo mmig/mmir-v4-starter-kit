@@ -4,6 +4,7 @@ import { Injectable, Component } from '@angular/core';
 import { Http } from '@angular/http';
 import { Platform, Nav } from 'ionic-angular';
 
+import 'rxjs/add/operator/distinctUntilChanged';
 // import 'rxjs/add/operator/map';
 // import 'rxjs/add/operator/toPromise';
 
@@ -116,16 +117,27 @@ export class MmirProvider {
     this.appConfig = appConfig;
 
     this.evt = {
-      'showSpeechInputState': new BehaviorSubject<ShowSpeechStateOptions>(null),//TODO set meaningful initial state?
-      'startMicLevels': new BehaviorSubject<ShowSpeechStateOptions>(null),//TODO set meaningful initial state?
-      'stopMicLevels': new BehaviorSubject<ShowSpeechStateOptions>(null),//TODO set meaningful initial state?
+      'showSpeechInputState': new BehaviorSubject<ShowSpeechStateOptions>({state: false, mode: 'command', inputMode: ''})
+        .distinctUntilChanged((state1: ShowSpeechStateOptions, state2: ShowSpeechStateOptions) => {
+          return state1.state === state2.state && state1.mode === state2.mode && state1.inputMode === state2.inputMode && state1.targetId === state2.targetId;
+        }),//TODO set meaningful initial state?
+      'startMicLevels': new BehaviorSubject<ShowSpeechStateOptions>({state: false, mode: 'command', inputMode: ''}),//TODO set meaningful initial state?
+      'stopMicLevels': new BehaviorSubject<ShowSpeechStateOptions>({state: false, mode: 'command', inputMode: ''}),//TODO set meaningful initial state?
       'showDictationResult': new Subject<RecognitionEmma>(),
       'determineSpeechCmd': new Subject<RecognitionEmma>(),
       'execSpeechCmd': new Subject<UnderstandingEmma>(),
       'cancelSpeechIO': new Subject<void>(),
       'read': new Subject<string|ReadingOptions>(),
       'stopReading': new Subject<StopReadingOptions>(),
-      'showReadingStatus': new BehaviorSubject<ReadingShowOptions>(null)//,//TODO set meaningful initial state?
+      'showReadingStatus': new BehaviorSubject<ReadingShowOptions>({active: false, pageId: ''})
+        .distinctUntilChanged((state1: ReadingShowOptions, state2: ReadingShowOptions) => {
+          if(state1.test || state2.test){
+            return false;
+          }
+          return state1.active === state2.active && state1.pageId === state2.pageId &&
+                  state1.readingId === state2.readingId && state1.targetId === state2.targetId &&
+                  state1.readingData === state2.readingData;
+        })//,//TODO set meaningful initial state?
 
       //TODO GuidedInput events?
       //'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed'
@@ -170,7 +182,7 @@ export class MmirProvider {
         let presentMng: IonicPresentationManager = this.mmir.PresentationManager as IonicPresentationManager;
         presentMng._ionicNavCtrl = this.nav;
         presentMng._getIonicViewController = function(ctrl: IonicController){
-          let ionicViewController = this._ionicNavCtrl.last();
+          let ionicViewController = this._ionicNavCtrl.getActive();
           for(let viewName in ctrl._ionicViews){
             if(ionicViewController.instance.constructor == ctrl._ionicViews[viewName]){
               return ionicViewController.instance;
