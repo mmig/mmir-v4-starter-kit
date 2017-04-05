@@ -170,7 +170,7 @@ export class ViewPage implements OnInit, OnDestroy {
     this.dlg.raise('toggleSpeechInputState', {mode: 'command', targetId: btnId});
 	  this.dlg.raise('showSpeechState');
 
-    this.asrActive(true);//FIXME
+    this.asrActive(!this._asrActive);//FIXME
   }
 
   public asrActive(isActive?: boolean) : boolean {
