@@ -1,6 +1,8 @@
-import { NgModule } from '@angular/core';
-import { IonicApp, IonicModule } from 'ionic-angular';
-import { Storage } from '@ionic/storage';
+import { NgModule, ErrorHandler } from '@angular/core';
+import { IonicApp, IonicModule, IonicErrorHandler } from 'ionic-angular';
+import { IonicStorageModule } from '@ionic/storage';
+import { StatusBar } from '@ionic-native/status-bar';
+import { SplashScreen } from '@ionic-native/splash-screen';
 
 import { MyApp } from './app.component';
 
@@ -29,7 +31,8 @@ import { UserAuthProvider } from './../providers/user-auth';
     LanguageMenu
   ],
   imports: [
-    IonicModule.forRoot(MyApp)
+    IonicModule.forRoot(MyApp),
+    IonicStorageModule.forRoot()
   ],
   bootstrap: [IonicApp],
   entryComponents: [
@@ -40,6 +43,10 @@ import { UserAuthProvider } from './../providers/user-auth';
     CalendarPage,
     LanguageMenu
   ],
-  providers: [Storage, MmirProvider, AppConfig, UserAuthProvider]
+  providers: [
+    Storage, MmirProvider, AppConfig, UserAuthProvider,
+    StatusBar, SplashScreen,
+    {provide: ErrorHandler, useClass: IonicErrorHandler}
+  ]
 })
 export class AppModule {}

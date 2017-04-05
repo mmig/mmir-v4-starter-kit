@@ -31,5 +31,6 @@ $RECYCLE.BIN/
 .DS_Store
 Thumbs.db
 UserInterfaceState.xcuserstate
+/res
 
 /mmir-build.settings

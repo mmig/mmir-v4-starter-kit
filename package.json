@@ -1,46 +1,55 @@
 {
   "name": "mmir-starter-kit_IONIC",
   "author": "MMIG team",
-  "homepage": "http://ionicframework.com/",
+  "homepage": "https://github.com/mmig/mmir",
   "private": true,
   "scripts": {
+    "clean": "ionic-app-scripts clean",
     "build": "ionic-app-scripts build",
-    "watch": "ionic-app-scripts watch",
-    "serve:before": "watch",
-    "emulate:before": "build",
-    "deploy:before": "build",
-    "build:before": "build",
-    "run:before": "build"
+    "ionic:build": "ionic-app-scripts build",
+    "ionic:serve": "ionic-app-scripts serve",
+    "postinstall": "mmir-install-cordova-assets",
+    "preuninstall": "mmir-uninstall-cordova-assets"
   },
   "dependencies": {
-    "@angular/common": "2.0.0",
-    "@angular/compiler": "2.0.0",
-    "@angular/compiler-cli": "0.6.2",
-    "@angular/core": "2.0.0",
-    "@angular/forms": "2.0.0",
-    "@angular/http": "2.0.0",
-    "@angular/platform-browser": "2.0.0",
-    "@angular/platform-browser-dynamic": "2.0.0",
-    "@angular/platform-server": "2.0.0",
-    "@ionic/storage": "1.1.6",
-    "ionic-angular": "2.0.0-rc.1",
-    "ionic-native": "2.2.3",
+    "@angular/common": "2.4.8",
+    "@angular/compiler": "2.4.8",
+    "@angular/compiler-cli": "2.4.8",
+    "@angular/core": "2.4.8",
+    "@angular/forms": "2.4.8",
+    "@angular/http": "2.4.8",
+    "@angular/platform-browser": "2.4.8",
+    "@angular/platform-browser-dynamic": "2.4.8",
+    "@angular/platform-server": "2.4.8",
+    "@ionic-native/core": "3.1.0",
+    "@ionic-native/splash-screen": "3.1.0",
+    "@ionic-native/status-bar": "3.1.0",
+    "@ionic/storage": "2.0.0",
+    "ionic-angular": "2.3.0",
     "ionicons": "3.0.0",
-    "rxjs": "5.0.0-beta.12",
-    "zone.js": "0.6.21"
+    "rxjs": "5.0.1",
+    "sw-toolbox": "3.4.0",
+    "zone.js": "0.7.2"
   },
   "devDependencies": {
-    "@ionic/app-scripts": "^0.0.36",
-    "typescript": "^2.0.3"
+    "@ionic/app-scripts": "1.1.4",
+    "typescript": "2.0.9",
+    "mmir-plugin-tts-speakjs": "D:/git_repo/mmir-plugins-media/mmir-plugin-tts-speakjs"
   },
-  "description": "mmir-starter-kit: An Ionic2 project",
+  "description": "mmir-starter-kit: the MMIR starter-kit based on Ionic2",
   "cordovaPlugins": [
-    "cordova-plugin-device",
-    "cordova-plugin-console",
     "cordova-plugin-whitelist",
-    "cordova-plugin-splashscreen",
+    "cordova-plugin-console",
     "cordova-plugin-statusbar",
-    "ionic-plugin-keyboard"
+    "cordova-plugin-device",
+    "cordova-plugin-splashscreen",
+    "ionic-plugin-keyboard",
+
+    "mmir-plugin-scionqueue",
+    "dfki-mmir-plugin-speech-android",
+    "dfki-mmir-plugin-speech-nuance",
+    "cordova-plugin-network-information",
+    "cordova-plugin-vibration"
   ],
   "cordovaPlatforms": []
 }

@@ -1,7 +1,8 @@
 
 import { Component, ViewChild, OnInit } from '@angular/core';
 import { Nav, Platform, Events } from 'ionic-angular';
-import { StatusBar, Splashscreen } from 'ionic-native';
+import { StatusBar } from '@ionic-native/status-bar';
+import { SplashScreen } from '@ionic-native/splash-screen';
 
 
 import { LoginPage } from '../pages/login-page/login-page';
@@ -29,6 +30,8 @@ export class MyApp implements OnInit {
 
   constructor(
     public platform: Platform,
+    public statusBar: StatusBar,
+    public splashScreen: SplashScreen,
     public events: Events,
     public appConfig: AppConfig,
     public mmirProvider: MmirProvider
@@ -54,8 +57,8 @@ export class MyApp implements OnInit {
     this.platform.ready().then(() => {
       // Okay, so the platform is ready and our plugins are available.
       // Here you can do any higher level native things you might need.
-      StatusBar.styleDefault();
-      Splashscreen.hide();
+      this.statusBar.styleDefault();
+      this.splashScreen.hide();
     });
 
 	  this.mmirInit();
