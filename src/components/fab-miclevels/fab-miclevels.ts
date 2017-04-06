@@ -144,6 +144,8 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
         let targetEl: HTMLElement;
         if (typeof this.target === 'string') {
             targetEl = document.getElementById(this.target);
+        }  else if(this.target && this.target.getNativeElement){
+            targetEl = this.target.getNativeElement();
         } else {
             targetEl = this.target;
         }
