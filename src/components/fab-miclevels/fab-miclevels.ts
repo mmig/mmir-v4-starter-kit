@@ -6,9 +6,6 @@ import { MmirProvider } from './../../providers/mmir';
 import { MmirModule } from './../../models/MmirInterfaces';
 import { SpeechFeedbackOptions, ISpeechFeedback } from './../../models/ISpeechInput';
 
-// const LEVELS = 20;//render 20 different levels;
-const OFFSET = 3;//render <-3> different levels;
-
 //TODO impl. interface ISpeechFeedback instead of OnInit/OnDestroy
 
 @Component({
@@ -31,6 +28,12 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
     private ctx;
     private targetRad: number;//"offset" radius for mic-level 0 (circle that will be renderen for mic-level 0)
     // private levels: number;//count of mic-level steps for rendering values from [min-mic-level, max-mic-level]
+
+    /**
+     * render "- offset" different levels;
+     * (a value > 0 would show a "base activation" as soon as "active === true")
+     */
+    public offset = 3;
 
     @Input() width: number;
     @Input() height: number;
@@ -105,7 +108,7 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
 
             //cut off val > self.levels
             if (!FabMiclevels.isNuanceSpeech) {
-                val = Math.min(val + OFFSET, fabMic.levels);
+                val = Math.min(val + fabMic.offset, fabMic.levels);
             } else {
                 val = Math.min(val, fabMic.levels);
             }
