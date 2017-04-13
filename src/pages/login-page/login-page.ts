@@ -21,12 +21,12 @@ export class LoginPage extends MmirPage {
     password: 'mmig-user'
   }
 
-  private _languange: string;
+  private _language: string;
   public get language(): string {
-    if(!this._languange && this.lang){
-      this._languange = this.lang.getLanguage();
+    if(!this._language && this.lang){
+      this._language = this.lang.getLanguage();
     }
-    return this._languange;
+    return this._language;
   }
 
   private initialized: Promise<any>;
@@ -83,23 +83,26 @@ export class LoginPage extends MmirPage {
     super.handleClick(event, name, this.user);
   }
 
-  showLangMenu() {
+  showLangMenu(): void {
+    this.cancelSpeechIO();
     let languageDialog = this.modalCtrl.create(LanguageMenu);
     languageDialog.onDidDismiss(data => {
       // console.log(data);
       if(data){
         this.dlg.raise('language_choosen', {language: data});
       } else {
-        console.info('closed language-menu without seletion');
+        console.info('closed language-menu without selection');
       }
     });
     languageDialog.present();
   }
 
-  updateLanguage(newLang: string){
-    this._languange = newLang;
-    //this function may get invoked asynchronously -> request change detection for updating localize() strings
-    this.detectChanges();
+  updateLanguage(newLang: string): void {
+    if(this._language !== newLang){
+      this._language = newLang;
+      //this function may get invoked asynchronously -> request change detection for updating localize() strings
+      this.detectChanges();
+    }
   }
 
   login(data?: {name: string, password: string}){
