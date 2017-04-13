@@ -101,7 +101,6 @@ export class MmirPage implements OnInit, OnDestroy {
   }
 
   protected _asrActive: boolean = false;
-  protected _ttsActive: boolean = false;
   protected _isInit: boolean = false;
   protected _isDestroyed: boolean = false;
 
@@ -160,6 +159,7 @@ export class MmirPage implements OnInit, OnDestroy {
   }
 
   public ionViewCanLeave() {
+
     this.isActiveView = false;
 
     const keys = Object.keys(this._speechEventSubscriptions);
@@ -236,15 +236,34 @@ export class MmirPage implements OnInit, OnDestroy {
 
     event.preventDefault();
 
-    console.log('microClicked');
+    // console.log('microClicked');
 
-    // if(!isSyntheticClick(event))
+    if(this.prompt.active){
+      this.prompt.cancel();
+    }
+
+    // if(!isSyntheticClick(event))//TODO detect programatically triggered invocations of this function?
     this.triggerTouchFeedback();
 
     this.dlg.raise('toggleSpeechInputState', {mode: 'command', targetId: btnId});
 	  this.dlg.raise('showSpeechState');
+  }
 
-    // this.asrActive(!this._asrActive);//FIXME
+
+  public ttsClicked(event){
+
+    event.preventDefault();
+
+    if(this.asrActive()){
+      this.asrCancel();
+    }
+
+    if(this.prompt.active){
+      this.prompt.cancel();
+    }
+    // else {
+    //   this.read(defaultPrompt);
+    // }
   }
 
   public asrActive(isActive?: boolean) : boolean {
@@ -279,33 +298,18 @@ export class MmirPage implements OnInit, OnDestroy {
     this._asrActive = false;
   }
 
-  public ttsClicked(event){
-
-    if(this.asrActive()){
-      this.asrCancel();
-    }
-
-    if(this.prompt.active){
-      this.prompt.cancel();
-    }
-    // else {
-    //   this.read(defaultPrompt);
-    // }
-  }
-
-
   ////////////////////////////////////////// Speech Feedback Handler ////////////////////////
 
   protected showSpeechInputState(options: ShowSpeechStateOptions): void {
     console.log('showSpeechInputState -> ', options);
     this._asrActive = options.state;
-    //TODO impl
+    this.detectChanges();
   };
 
   protected showReadingStatus(options: ReadingShowOptions): void {
     console.log('showReadingStatus -> ', options);
-    this._ttsActive = options.active;
-    //TODO impl
+    this.prompt.setActive(options.active);
+    this.detectChanges();
   };
 
   /**
@@ -408,8 +412,8 @@ export class MmirPage implements OnInit, OnDestroy {
    */
   protected cancelSpeechIO(): void {
     console.log('cancelSpeechIO -> ()');
-    this.media.cancelSpeech();
-    this.media.cancelRecognition();
+    this.prompt.cancel();
+    this.asrCancel();
   };
 
   ////////////////////////////////////////// Speech Output Event Handlers ///////////////////////
@@ -438,7 +442,66 @@ export class MmirPage implements OnInit, OnDestroy {
    *                            reading-request is valid (e.g. if reading is context-sensitive)
    */
   protected read(data: string|ReadingOptions): void | boolean {
+
     console.log('read -> ', data);
+
+    let isConsumed = false;
+    let isTest = false;
+    if(typeof data !== 'string'){
+
+      isTest = data.test;
+
+      if(PromptReader.isPromptId(data.readingId)){
+
+        if(isTest){
+          return true;/////////////////// EARYL EXIT ///////////////////
+        }
+
+        isConsumed = true;
+
+        if(data.readingId === PromptReader.PROMPT_WELCOME){
+
+          this.prompt.readStartPrompt();
+
+        } else if(data.readingId === PromptReader.PROMPT_ANSWER){
+
+          this.prompt.readAnswer(data.readingData);
+
+        } else {
+          isConsumed = false;
+          console.error('requested to read unkown prompt: "'+data.readingId+'"');
+        }
+
+        // if(data.readingId === PromptReader.PROMPT_RESULTS_FOUND){
+        //
+        //   let prevFuzzyQueryProps = typeof data === 'string'? null : data.readingData;
+        //
+        //   this.prompt.readResults(this.searchResults, this.searchParams.fuzzyRatings, this.selectedFuzzyProperties, prevFuzzyQueryProps);
+        //
+        // } else if(data.readingId === PromptReader.PROMPT_WELCOME){
+        //
+        //   this.prompt.readStartPrompt();
+        //
+        // } else if(data.readingId === PromptReader.PROMPT_TEST_DRIVE){
+        //
+        //   if(this._currentItem){
+        //     this.prompt.readTestDrivePrompt(this._currentItem);
+        //   } else {
+        //     this.prompt.readNoModelSelectedPrompt('für eine Probefahrt');
+        //   }
+        //
+        // } else {
+        //   isConsumed = false;
+        //   console.error('requested to read unkown prompt: "'+data.readingId+'"');
+        // }
+      }
+    }
+
+    if(!isConsumed && !isTest){
+      console.error('read: unknown read target ', data);
+    }
+
+    return false;
   };
 
   /**
@@ -455,6 +518,10 @@ export class MmirPage implements OnInit, OnDestroy {
    */
   protected stopReading(options: StopReadingOptions): void {
     console.log('stopReading -> ', options);
+    if(this.prompt){
+      //NOTE raising 'reading-stopped' etc. is handled in prompt.cancel()
+      this.prompt.cancel();
+    }
   };
 
   ///////////////////////////////////////////////////
@@ -472,7 +539,7 @@ export class MmirPage implements OnInit, OnDestroy {
 
   ngOnDestroy(){
     this._isDestroyed = true;
-    this.media.cancelSpeech();
-    this.media.cancelRecognition();
+    // this.asrCancel();;
+    // this.prompt.cancel();
   }
 }
