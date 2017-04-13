@@ -88,6 +88,7 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
                     }
                 }
             } else {
+                //for non-Cordova env: use & increase RMS value (so that it will be similar to Cordova env values)
                 micLevel = 3.5 * rms;
             }
 
@@ -96,7 +97,7 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
             if (FabMiclevels.isNuanceSpeech) {
                 scale = max / fabMic.levels;
             } else {
-                scale = max / (fabMic.levels);//-OFFSET);
+                scale = max / (fabMic.levels - fabMic.offset);
             }
 
             //TODO log-scale values?
