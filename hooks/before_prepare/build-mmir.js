@@ -11,7 +11,7 @@ var makeDirs = require(basePath + 'build/lib/mmir-build/nodejs/makeDirs.js');
 var createDirStructureFile = require(basePath + 'build/lib/mmir-build/nodejs/createDirJson.js');
 
 var doRun = function(runnableModule, success, error, options){
-	
+
 	try{
 		runnableModule.run(success, options);
 	} catch (err){
@@ -28,58 +28,58 @@ var subTaskCount = 0;
 
 //init subTasks:
 (function(){
-	
+
 	for(var i in subTasks){
 		if(subTasks.hasOwnProperty(i)){
 			++subTaskCount;
 			subTasks[i].exec = require(basePath + subTasks[i].path);
 		}
 	}
-	
+
 })();
 
 module.exports.run = function() {
-	
+
 	var completed = 0;
 
 	var doSucceed = function() {
-		
+
 //		console.log('finished subtask '+ (completed + 1) +  ' of '+ subTaskCount);
-	    
+
 		if(++completed === subTaskCount){
 			//update dir-structure file:
 			doRun(createDirStructureFile, function(){
-				
+
 					console.log('COMPLETED preparing mmir resources, continuing with preparing platforms...');
 					process.exit(0);
 				}, doFail
 			);
 	    }
 	};
-	
+
 	var doFail = function(err) {
 	    console.error(err);
 	    process.exit(2);
 	};
 
 	doRun(makeDirs, function(){
-		
+
 		doRun(createDirStructureFile, function(){
-			
+
 			for(var i in subTasks){
 
 				doRun(subTasks[i].exec, doSucceed, doFail, subTasks[i].options);
-				
+
 			}
-		
+
 		}, doFail);
-		
+
 	}, doFail);
-	
+
 //	spawn('node', ['build/lib/mmir-build/runDirJsonCreate.js']).done(function(){
 //		...
 //	}, doFail);
-	
+
 }
 
 
