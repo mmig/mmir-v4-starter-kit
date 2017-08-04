@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 
 <widget id="de.dfki.iui.mmir.starterkit"
-    	version="3.1.0"
+    	version="4.0.0"
     	xmlns="http://www.w3.org/ns/widgets"
     	xmlns:cdv="http://cordova.apache.org/ns/1.0">
     
@@ -52,21 +52,33 @@
 	    
      -->
     <preference name="nuanceAppKey" value="{ 
-        (byte)0x... <copy'n'paste your app key here, in Android format>
+        (byte)0x... [copy'n'paste your app key here, in Android format]
     }"/>
-    <preference name="nuanceAppId" value="NMDPTRIAL_...<copy'n'paste your app ID here>"/>
-    <preference name="nuanceServerUrl" value="<copy'n'paste the server URL for the SpeechKit service>"/>
-    <preference name="nuanceServerPort" value="<copy'n'paste the port number>"/>
-    <preference name="nuanceServerSsl" value="<use true, if you are using SSL>"/>
+    <preference name="nuanceAppId" value="NMDPTRIAL_...{copy'n'paste your app ID here}" />
+    <preference name="nuanceServerUrl" value="{copy'n'paste the server URL for the SpeechKit service}" />
+    <preference name="nuanceServerPort" value="{copy'n'paste the port number}" />
+    <preference name="nuanceServerSsl" value="{use true, if you are using SSL}" />
 
     <!-- OPTIONAL (can be omitted)
             if SSL is used, this settings can be used for strengthening the encryption
      -->
-    <preference name="nuanceCertSummary" value="<copy'n'paste the cert summary>"/>
+    <preference name="nuanceCertSummary" value="{copy'n'paste the cert summary}" />
      <!-- OPTIONAL (can be omitted)
             if SSL is used, this settings can be used for strengthening the encryption
      -->
-    <!-- preference name="nuanceCertData" value="<copy'n'paste the cert data>"/-->
+    <!-- preference name="nuanceCertData" value="{copy'n'paste the cert data}"/-->
+	
+	<engine name="android" spec="^6.2.3" />
+    <plugin name="cordova-plugin-console" spec="^1.0.5" />
+    <plugin name="cordova-plugin-device" spec="^1.1.4" />
+    <plugin name="cordova-plugin-media" spec="git+https://github.com/mmig/cordova-plugin-media.git#CB-6880-mediaready-state-impl" />
+    <plugin name="cordova-plugin-network-information" spec="^1.3.3" />
+    <plugin name="cordova-plugin-splashscreen" spec="^4.0.3" />
+    <plugin name="cordova-plugin-statusbar" spec="^2.2.2" />
+    <plugin name="cordova-plugin-vibration" spec="^2.1.5" />
+    <plugin name="cordova-plugin-whitelist" spec="^1.3.1" />
+    <plugin name="dfki-mmir-plugin-queue" spec="git+https://github.com/mmig/mmir-plugin-scionqueue.git" />
+    <plugin name="dfki-mmir-plugin-speech-android" spec="file:D:\git_repo\mmir-plugin-speech-android" />
 
     
 </widget>
