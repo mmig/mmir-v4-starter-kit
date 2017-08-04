@@ -36,28 +36,49 @@ var AndroidSpeechPlugin = function() {
 	this.__micListener = [];
 };
 
-AndroidSpeechPlugin.prototype.recognize = function(language, successCallback, failureCallback, withIntermediateResults){
-	 return exec(successCallback,
-   					 failureCallback,
-   					 'AndroidSpeechPlugin',
-   					 'recognize',
-   					 [language, withIntermediateResults? true : false]);
+AndroidSpeechPlugin.prototype.recognize = function(language, successCallback, failureCallback, withIntermediateResults, maxAlternatives, languageModel){
+	
+	var args = [language, withIntermediateResults? true : false];
+
+	if(typeof maxAlternatives === 'number'){
+		args.push(maxAlternatives);
+	}
+	
+	if(typeof languageModel === 'string' && languageModel){
+		args.push(languageModel);
+	}
+	
+	return exec(successCallback,
+					failureCallback,
+					'AndroidSpeechPlugin',
+					'recognize',
+					args);
 };
 
 /**
  * @deprecated use #startRecord instead
  */
 AndroidSpeechPlugin.prototype.recognizeNoEOS = function(language, successCallback, failureCallback, withIntermediateResults){
-	this.startRecord(language, successCallback, failureCallback, withIntermediateResults);
+	return this.startRecord.apply(this, arguments);
 };
 
-AndroidSpeechPlugin.prototype.startRecord = function(language, successCallback, failureCallback, withIntermediateResults){
+AndroidSpeechPlugin.prototype.startRecord = function(language, successCallback, failureCallback, withIntermediateResults, maxAlternatives, languageModel){
+	
+	var args = [language, withIntermediateResults? true : false];
+	
+	if(typeof maxAlternatives === 'number'){
+		args.push(maxAlternatives);
+	}
+	
+	if(typeof languageModel === 'string' && languageModel){
+		args.push(languageModel);
+	}
 	
 	return exec(successCallback,
 					 failureCallback,
 					 'AndroidSpeechPlugin',
 					 'startRecording',
-					 [language, withIntermediateResults? true : false]);
+					 args);
 };
 
 AndroidSpeechPlugin.prototype.stopRecord = function(successCallback, failureCallback){
@@ -181,5 +202,55 @@ AndroidSpeechPlugin.prototype.offMicLevelChanged = function(listener){
 	return isRemoved;
 };
 
-module.exports = new AndroidSpeechPlugin();
+////////////// back-channel from native implementation: ////////////////////////
+
+/**
+ * Handles messages from native implementation.
+ * 
+ * Supported messages:
+ * 
+ * <ul>
+ * 
+ * 	<li><u>plugin status</u>:<br>
+ * 		<pre>{action: "plugin", "status": STRING}</pre>
+ * 	</li>
+ * 	<li><u>miclevels</u>:<br>
+ * 		<pre>{action: "miclevels", value: NUMBER}</pre>
+ * 	</li>
+ * </ul>
+ */
+function onMessageFromNative(msg) {
+	
+    if (msg.action == 'miclevels') {
+    	
+    	_instance.fireMicLevelChanged(msg.value);
+    	
+    } else if (msg.action == 'plugin') {
+    	
+    	//TODO handle plugin status messages (for now there is only an init-completed message...)
+    	
+    	console.log('[AndroidSpeechPlugin] Plugin status: "' + msg.status+'"');
+    	
+    } else {
+    	
+        throw new Error('[AndroidSpeechPlugin] Unknown action "' + msg.action+'": ', msg);
+    }
+}
+
+//register back-channel for native plugin when cordova gets available:
+if (cordova.platformId === 'android' || cordova.platformId === 'amazon-fireos' || cordova.platformId === 'windowsphone') {
+
+    var channel = require('cordova/channel');
+
+    channel.createSticky('onAndroidSpeechPluginReady');
+    channel.waitForInitialization('onAndroidSpeechPluginReady');
+
+    channel.onCordovaReady.subscribe(function() {
+        exec(onMessageFromNative, undefined, 'AndroidSpeechPlugin', 'msg_channel', []);
+        channel.initializationComplete('onAndroidSpeechPluginReady');
+    });
+}
+
+var _instance = new AndroidSpeechPlugin();
+module.exports = _instance;
 

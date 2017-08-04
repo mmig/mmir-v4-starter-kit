@@ -28,6 +28,8 @@ import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.LOG;
+import org.apache.cordova.PluginResult;
+import org.apache.cordova.PluginResult.Status;
 import org.json.JSONArray;
 
 import android.app.Activity;
@@ -46,15 +48,19 @@ import android.util.Log;
  */
 public class AndroidSpeechRecognizer extends CordovaPlugin {
 	
-	
-    public static final String ACTION_GET_LANGUAGES = "getSupportedLanguages";
+	public static final String ACTION_GET_LANGUAGES = "getSupportedLanguages";
 	public static final String ACTION_RECOGNIZE = "recognize";
 	public static final String ACTION_START_RECORDING = "startRecording";
 	public static final String ACTION_STOP_RECORDING = "stopRecording";
 	public static final String ACTION_CANCEL = "cancel";
 //	public static final String ACTION_MIC_LEVEL = "getMicLevels";
+
+    public static final String LANGUANGE_MODEL_SEARCH = "search";
+    public static final String LANGUANGE_MODEL_DICTATION = "dictation";
 	
 	public static final String ACTION_MIC_LEVEL_LISTENER = "setMicLevelsListener";
+	
+	private static final String INIT_MESSAGE_CHANNEL = "msg_channel";
 	
 	private static final String PLUGIN_NAME = AndroidSpeechRecognizer.class.getSimpleName();
 	private static final int SDK_VERSION = Build.VERSION.SDK_INT;
@@ -80,6 +86,11 @@ public class AndroidSpeechRecognizer extends CordovaPlugin {
      */
     private boolean enableMicLevelsListeners = false;
     
+    /**
+     * Back-channel to JavaScript-side
+     */
+	private CallbackContext messageChannel;
+    
     CordovaInterface _cordova;
     
     @Override
@@ -88,20 +99,23 @@ public class AndroidSpeechRecognizer extends CordovaPlugin {
     	this._cordova = cordova;
     	
     	this.mAudioManager = (AudioManager) this._cordova.getActivity().getSystemService(Context.AUDIO_SERVICE);
+    	
+    	Utils.verifySpeechRecognitionPermissions(cordova.getActivity());
 		
 		super.initialize(cordova, webView);
 	}
 
 	@Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) {
-		Boolean isValidAction = true;
+		
+		boolean isValidAction = true;
 
 //    	this.callbackContext= callbackContext;
 
-		//FIXME DEBUG:
-		try{
-			LOG.i(PLUGIN_NAME + "_DEBUG", String.format("action '%s' with arguments: %s)", action, args.toString(2)));
-		}catch(Exception e){}
+//		//FIXM DEBUG:
+//		try{
+//			LOG.d(PLUGIN_NAME + "_DEBUG", String.format("action '%s' with arguments: %s)", action, args.toString(2)));
+//		}catch(Exception e){}
 		
 		
 		
@@ -121,7 +135,14 @@ public class AndroidSpeechRecognizer extends CordovaPlugin {
 //        	returnMicLevels(callbackContext);
         } else if (ACTION_MIC_LEVEL_LISTENER.equals(action)) {
         	setMicLevelsListener(args, callbackContext);
-        } else {
+        } else if (INIT_MESSAGE_CHANNEL.equals(action)) {
+
+			messageChannel = callbackContext;
+			PluginResult result = new PluginResult(Status.OK, Utils.createMessage("action", "plugin", "status", "initialized plugin channel"));
+			result.setKeepCallback(true);
+			callbackContext.sendPluginResult(result);
+
+		} else {
             // Invalid action
         	callbackContext.error("Unknown action: " + action);
         	isValidAction = false;
@@ -178,9 +199,10 @@ public class AndroidSpeechRecognizer extends CordovaPlugin {
     
     private void _startSpeechRecognitionActivity(JSONArray args, CallbackContext callbackContext, boolean isWithEndOfSpeechDetection) {
         int maxMatches = 0;
-        String prompt = "";//TODO remove? (not used when ASR is directly used as service here...)
         String language = Locale.getDefault().toString();
         boolean isIntermediate = false;
+        String languageModel = null;
+        String prompt = "";//TODO remove? (not used when ASR is directly used as service here...)
 
         try {
         	if (args.length() > 0) {
@@ -197,7 +219,11 @@ public class AndroidSpeechRecognizer extends CordovaPlugin {
             }
             if (args.length() > 3) {
             	// Optional text prompt
-                prompt = args.getString(3);
+            	languageModel = args.getString(3);
+            }
+            if (args.length() > 4) {
+            	// Optional text prompt
+                prompt = args.getString(4);
             }
             
             //TODO if ... withoutEndOfSpeechDetection = ...
@@ -205,10 +231,22 @@ public class AndroidSpeechRecognizer extends CordovaPlugin {
         catch (Exception e) {
             Log.e(PLUGIN_NAME, String.format("startSpeechRecognitionActivity exception: %s", e.toString()));
         }
+        
+        String languageModelParam = RecognizerIntent.LANGUAGE_MODEL_FREE_FORM;
+        if(languageModel != null && languageModel.length() > 0){
+        	if(LANGUANGE_MODEL_SEARCH.equals(languageModel)){
+        		languageModelParam = RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH;
+        	}
+        	else if("dictation".equals(languageModel)){
+        		languageModelParam = RecognizerIntent.LANGUAGE_MODEL_FREE_FORM;
+        	} else {
+        		LOG.w(PLUGIN_NAME, "invalid argument for language model (using default 'dictation' instead): '"+languageModel+"'");
+        	}
+        }
 
         // Create the intent and set parameters
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, languageModelParam);
         
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, language);
         
@@ -217,8 +255,6 @@ public class AndroidSpeechRecognizer extends CordovaPlugin {
         	// try to simulate start/stop-recording behavior (without end-of-speech detection) 
         	
         	//NOTE these setting do not seem to have any effect for default Google Recognizer API level > 16
-        	
-        	intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 10000l);
 
         	intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, new Long(10000));
         	intent.putExtra(RecognizerIntent. EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS , new Long(6 * 1000));
@@ -383,6 +419,15 @@ public class AndroidSpeechRecognizer extends CordovaPlugin {
         	callbackContext.success();	
     	}
     	
+    }
+    
+    //send mic-levels value to JavaScript side
+    void sendMicLevels(float levels){
+    	
+    	PluginResult micLevels = new PluginResult(Status.OK, Utils.createMessage("action", "miclevels", "value", levels));
+		micLevels.setKeepCallback(true);
+		
+		messageChannel.sendPluginResult(micLevels);
     }
     
     //FIXME TEST private/package-level method that allows canceling recognition

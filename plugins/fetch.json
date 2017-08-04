@@ -58,9 +58,8 @@
     },
     "dfki-mmir-plugin-speech-android": {
         "source": {
-            "type": "git",
-            "url": "https://github.com/mmig/mmir-plugin-speech-android",
-            "subdir": "."
+            "type": "local",
+            "path": "C:\\Users\\aaru01\\git_svn\\test_requirejs_packages\\node_modules\\dfki-mmir-plugin-speech-android"
         },
         "is_top_level": true,
         "variables": {}
