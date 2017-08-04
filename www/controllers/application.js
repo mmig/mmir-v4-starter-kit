@@ -3,24 +3,24 @@
  * 	Deutsches Forschungszentrum fuer Kuenstliche Intelligenz
  * 	German Research Center for Artificial Intelligence
  * 	http://www.dfki.de
- * 
- * 	Permission is hereby granted, free of charge, to any person obtaining a 
- * 	copy of this software and associated documentation files (the 
- * 	"Software"), to deal in the Software without restriction, including 
- * 	without limitation the rights to use, copy, modify, merge, publish, 
- * 	distribute, sublicense, and/or sell copies of the Software, and to 
- * 	permit persons to whom the Software is furnished to do so, subject to 
+ *
+ * 	Permission is hereby granted, free of charge, to any person obtaining a
+ * 	copy of this software and associated documentation files (the
+ * 	"Software"), to deal in the Software without restriction, including
+ * 	without limitation the rights to use, copy, modify, merge, publish,
+ * 	distribute, sublicense, and/or sell copies of the Software, and to
+ * 	permit persons to whom the Software is furnished to do so, subject to
  * 	the following conditions:
- * 
- * 	The above copyright notice and this permission notice shall be included 
+ *
+ * 	The above copyright notice and this permission notice shall be included
  * 	in all copies or substantial portions of the Software.
- * 
- * 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
- * 	OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
- * 	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
- * 	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
- * 	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
- * 	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+ *
+ * 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * 	OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * 	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * 	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * 	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * 	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
@@ -33,23 +33,35 @@ var Application = function(){
 	this.name = "Application";
 
 //	stub for simulating user-registry
-	this.registerUsers = new Object();
+	this.registerUsers = {};
 
 //	register the default user, using the default values in login-view
 //	(NOTE: really, you should never store passwords in plain text!)
 	this.registerUsers['MMIG-User'] = 'mmig-user';
 };
 
+Application.prototype._init = function(){
+
+	if(!this._isInit){
+
+		this._isInit = true;
+		this.app = mmir.app;
+	}
+};
 
 Application.prototype.on_page_load = function (){
+
+	this._init();
 
 	//set-up render for microphone-levels
 	mmir.app.renderer.initPage();
 
 	//FIX jqm > 1.4.3 needs explicit call for updating header/footer
 	//    padding after dynamically inserting page
-	$('#pageHeader').toolbar('updatePagePadding');
-	$('#pageFooter').toolbar('updatePagePadding');
+  if($.jqmData){
+		$('#pageHeader').toolbar('updatePagePadding');
+		$('#pageFooter').toolbar('updatePagePadding');
+	}
 
 };
 
@@ -59,10 +71,10 @@ Application.prototype.on_page_load_login = function (){
 
 	//handle language selection:
 	$('#languageListView li')
-	.bind('vmousedown',           function(){	
+	.on(this.app.mousedown_name,           function(){
 		$(this).addClass(	'ui-focus ui-btn-active ui-btn-down-a');
 	})
-	.bind('vmouseup vmousecancel',function(){
+	.on([this.app.mouseup_name, this.app.mousecancel_name].join(' '),function(){
 		$(this).removeClass('ui-focus ui-btn-active ui-btn-down-a');
 	})
 	//
@@ -75,7 +87,7 @@ Application.prototype.on_page_load_login = function (){
 	//		the language menu, it will be triggered after the language menu closes!
 	//		Using the click event here does not have this side effect, obviously.
 	//
-	.bind('click', function(event){
+	.on('click', function(event){
 
 		var lang = $(this).attr('lang');
 
@@ -84,26 +96,26 @@ Application.prototype.on_page_load_login = function (){
 
 		var isChanged = self.changeLanguage(lang);
 
-		mmir.InputManager.raise('touch_input_event');
-		mmir.InputManager.raise('language_choosen', {changed: isChanged});
+		mmir.input.raise('touch_input_event');
+		mmir.input.raise('language_choosen', {changed: isChanged});
 
 		return false;
 	});
 
 	//handle click on language-button in footer
-	$('#lang_button').on('vclick', function(e){
+	$('#lang_button').on(this.app.click_name, function(e){
 		e.preventDefault();
 
 		mmir.app.triggerClickFeedback();
 
-		mmir.InputEngine.raise('touch_input_event');
-		mmir.InputEngine.raise('click_on_language_btn');
+		mmir.input.raise('touch_input_event');
+		mmir.input.raise('click_on_language_btn');
 		return false;
 	});
 
 	//handle click on modal-layer
 	// (visible when language menu is open)
-	$('#modal').on('vclick', function(e){
+	$('#modal').on(this.app.click_name, function(e){
 		e.preventDefault();
 
 		mmir.app.triggerClickFeedback();
@@ -137,7 +149,7 @@ Application.prototype.initAsrTestInput = function(){
 		button.buttonMarkup({theme: theming});
 	};
 
-	$('#asr').on('vclick', function(event) {
+	$('#asr').on(this.app.click_name, function(event) {
 
 		//switch ASR activation state
 
@@ -148,20 +160,20 @@ Application.prototype.initAsrTestInput = function(){
 
 		//text += ' set-ASR-to_'+(isAsrActive? 'active' : 'INactive');
 		if (!isAsrActive){
-			mmir.MediaManager.getInstance().startRecord(function(text, idInfo){
-				
+			mmir.media.startRecord(function(text, idInfo){
+
 				var textSoFar = textElement.val();
 				textSoFar += ' '+ text;
 				textElement.val( textSoFar );
-				
+
 			}, function(e){
-				
+
 				console.error('Error using startRecord: '+ e);
-				
+
 			}, true //<- isUseIntermediateResultsMode
 			);
 		} else {
-			mmir.MediaManager.getInstance().stopRecord(function(text, idInfo){
+			mmir.media.stopRecord(function(text, idInfo){
 				var textSoFar = textElement.val();
 				textSoFar += ' '+ text;
 				textElement.val( textSoFar );
@@ -177,7 +189,7 @@ Application.prototype.initAsrTestInput = function(){
 		setActive( $('#asr'), isAsrActive);
 	});
 
-	$('#asr-normal').on('vclick', function(event) {
+	$('#asr-normal').on(this.app.click_name, function(event) {
 
 		//switch ASR activation state
 
@@ -188,7 +200,7 @@ Application.prototype.initAsrTestInput = function(){
 
 		//text += ' set-ASR-to_'+(isAsrActive? 'active' : 'INactive');
 		if (!isAsrActive){
-			mmir.MediaManager.getInstance().startRecord(function(text, idInfo){
+			mmir.media.startRecord(function(text, idInfo){
 				var textSoFar = textElement.val();
 				textSoFar += ' '+ text;
 				textElement.val( textSoFar );
@@ -198,7 +210,7 @@ Application.prototype.initAsrTestInput = function(){
 			, true //isUseIntermediateResultsMode
 			);
 		} else {
-			mmir.MediaManager.getInstance().stopRecord(function(text, idInfo){
+			mmir.media.stopRecord(function(text, idInfo){
 				var textSoFar = textElement.val();
 				textSoFar += ' '+ text;
 				textElement.val( textSoFar );
@@ -214,21 +226,21 @@ Application.prototype.initAsrTestInput = function(){
 		setActive( $('#asr-normal'), isAsrActive);
 	});
 
-	$('#clear').on('vclick', function(event) {
+	$('#clear').on(this.app.click_name, function(event) {
 		$('#asr-text').val('');
-	});  
+	});
 };
 
 Application.prototype.login = function(){
 	var email = $('#emailField #email').val();
 	var password = $('#passwordField #password').val();
 	if(this.verify(email,password)){
-		mmir.ModelManager.getModel('User').create(email);
-		mmir.DialogManager.raise("user_logged_in");
+		mmir.model.get('User').create(email);
+		mmir.dialog.raise("user_logged_in");
 	}
 	else {
 		alert('Wrong user name or password.\n\nDir you register?');
-		mmir.DialogManager.raise("login_failed");
+		mmir.dialog.raise("login_failed");
 	}
 };
 
@@ -237,9 +249,9 @@ Application.prototype.register = function(){
 	var password = $('#registration-form #password').val();
 
 	this.registerUsers[email] = password;
-	mmir.ModelManager.getModel('User').create(email);
+	mmir.model.get('User').create(email);
 
-	mmir.DialogManager.raise("user_logged_in");
+	mmir.dialog.raise("user_logged_in");
 };
 
 Application.prototype.verify = function(name, pw){
@@ -261,11 +273,11 @@ Application.prototype.slide_up_language_menu = function() {
 };
 
 /**
- * 
+ *
  * This function changes the application language.
- * 
+ *
  * NOTE: the current view needs to updated separately (if necessary).
- * 
+ *
  * @function changeLanguage
  * @param {String} newLang The new language which is to be used
  * @returns {Boolean} <code>true</code> if the language has change, <code>false</code> otherwise
@@ -275,8 +287,8 @@ Application.prototype.changeLanguage = function(newLang) {
 
 	console.debug("[Language] selected " + newLang);//debug
 
-	var currLang = mmir.LanguageManager.getInstance().getLanguage();
-	var newLang = mmir.LanguageManager.getInstance().setLanguage(newLang);
+	var currLang = mmir.lang.getLanguage();
+	var newLang = mmir.lang.setLanguage(newLang);
 
 	//also set the new language for jqm plugin datebox:
 	jQuery.mobile.datebox.prototype.options.useLang = newLang;

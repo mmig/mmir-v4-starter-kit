@@ -3,24 +3,24 @@
  * 	Deutsches Forschungszentrum fuer Kuenstliche Intelligenz
  * 	German Research Center for Artificial Intelligence
  * 	http://www.dfki.de
- * 
- * 	Permission is hereby granted, free of charge, to any person obtaining a 
- * 	copy of this software and associated documentation files (the 
- * 	"Software"), to deal in the Software without restriction, including 
- * 	without limitation the rights to use, copy, modify, merge, publish, 
- * 	distribute, sublicense, and/or sell copies of the Software, and to 
- * 	permit persons to whom the Software is furnished to do so, subject to 
+ *
+ * 	Permission is hereby granted, free of charge, to any person obtaining a
+ * 	copy of this software and associated documentation files (the
+ * 	"Software"), to deal in the Software without restriction, including
+ * 	without limitation the rights to use, copy, modify, merge, publish,
+ * 	distribute, sublicense, and/or sell copies of the Software, and to
+ * 	permit persons to whom the Software is furnished to do so, subject to
  * 	the following conditions:
- * 
- * 	The above copyright notice and this permission notice shall be included 
+ *
+ * 	The above copyright notice and this permission notice shall be included
  * 	in all copies or substantial portions of the Software.
- * 
- * 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
- * 	OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
- * 	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
- * 	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
- * 	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
- * 	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+ *
+ * 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * 	OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * 	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * 	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * 	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * 	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
@@ -83,7 +83,7 @@ function Parametered() {
 		}
 	    }
 	}
-	
+
 	return null;
     }
 
@@ -132,8 +132,8 @@ function DateParam() {
     this.name = 'date';
     this.day = today.getDate();
     this.month = today.getMonth() + 1;
-    this.year = today.getFullYear(); 
-    
+    this.year = today.getFullYear();
+
     DateParam.prototype.getRegExpString = function () {
 	return "^" + this.name + "[0-9]*$";
     };
@@ -150,7 +150,7 @@ function DateParam() {
 		    this.month = data.dateString.month;
 		    parsed = parseInt(this.month, 10);
 		    if (parsed != this.month) {
-			this.month = mobileDS.LanguageManager.getInstance().getText(this.month);
+			this.month = mmir.lang.getText(this.month);
 			parsed = parseInt(this.month, 10);
 			if (parsed != this.month) {
 			    this.month = data.dateString.month;
@@ -169,7 +169,7 @@ function DateParam() {
 		this.year = parseInt(date[2], 10);
 	    }
 	    if (data.variable != 'undefined') {
-		var dateVariable = mobileDS.LanguageManager.getInstance().getText(data.variable);
+		var dateVariable = mmir.lang.getText(data.variable);
 		    dateGoal = new Date(today.getTime());
 		if (dateVariable === 'today') {
 		    // do nothin', as it is already set
@@ -199,14 +199,14 @@ function DateTimeParam() {
 	this.date = new DateParam();
 	this.parameters = [this.time, this.date];
     };
-    
+
     this.initDateTimeParam();
 }
 DateTimeParam.prototype = new Parametered();
 
 function ShowAppointmentsCommand() {
     this.name = 'ShowAppointments';
-   
+
     ShowAppointmentsCommand.prototype.initShowAppointmentsCommand = function () {
 	this.dateTimeFrom = new DateTimeParam();
 	this.dateTimeTo = new DateTimeParam();
@@ -225,7 +225,7 @@ function ShowAppointmentsCommand() {
 	    if (!this.dateTimeTo.parsed) {
 		this.dateTimeTo.time.hour = this.timerange.timeTo.hour;
 		this.dateTimeTo.time.minute = this.timerange.timeTo.minute;
-	    }	
+	    }
 	}
 
 	// alert(this.timerange.parsed+"-"+this.dateTimeFrom.parsed+"-"+this.dateTimeTo.parsed);
@@ -252,7 +252,7 @@ function NumberParam() {
 
     NumberParam.prototype.parse = function (data) {
 	var parsed,
-	    translator = mobileDS.LanguageManager.getInstance();
+	    translator = mmir.lang;
 	if (data != 'undefined') {
 	    this.value = data;
 	    parsed = parseInt(this.value, 10);
@@ -275,7 +275,7 @@ function TimeOrNumberParam() {
 	this.number = new NumberParam();
 	this.parameters = [this.time, this.number];
     };
-    
+
     this.initTimeOrNumberParam();
 }
 TimeOrNumberParam.prototype = new Parametered();
@@ -302,7 +302,7 @@ function TimerangeParam() {
 	    this.timeFrom = this.timeOrNumber.time;
 	}
     };
-    
+
     this.initTimerangeParam();
 }
 TimerangeParam.prototype = new Parametered();
@@ -339,14 +339,14 @@ function FullTitleParam() {
 	this.phrase = new TitleParam();
 	this.parameters = [this.phrase];
     };
-    
+
     this.initFullTitleParam();
 }
 FullTitleParam.prototype = new Parametered();
 
 function CreateAppointmentCommand() {
     this.name = 'CreateAppointment';
-   
+
     CreateAppointmentCommand.prototype.initCreateAppointmentCommand = function () {
 	this.date = new DateParam();
 	this.time = new TimeParam();
