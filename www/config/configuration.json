@@ -1,39 +1,44 @@
 {
-    "language": "en",
-    "usePrecompiledViews": "false",
-    "usePrecompiledGrammarsOnly": "true",
-    "grammarCompiler": "jscc",
-    "grammarAsyncCompileMode": true,
-    "ignoreGrammarFiles": ["ir", "sp"],
-    
-    "html5AudioInput": {
-	    "silenceDetector": {
-	    	"noiseTreshold": "0.1",
-		    "pauseCount": "3",
-		    "minimalSpeachCount": "3",
-		    "resetCount": "15"
+	"language": "en",
+	"usePrecompiledViews": "false",
+	"usePrecompiledGrammarsOnly": "true",
+	"grammarCompiler": "jscc",
+	"grammarAsyncCompileMode": true,
+	"ignoreGrammarFiles": ["ir", "sp"],
+
+	"config": {
+		"paths": {"apprenderer": "appjs/micrenderer"}
+	},
+
+	"html5AudioInput": {
+		"silenceDetector": {
+			"noiseTreshold": "0.1",
+			"pauseCount": "3",
+			"minimalSpeachCount": "3",
+			"resetCount": "15"
 		},
-		
+
 		"silenceBuffer": "2000000",
-	    "webSocketAddress": "ws://localhost:9999",
-	    "soundPackageSize": "4096",
-	    "silenceDetectorPath": "mmirf/env/media/silenceDetection.js"
-    },
-    
-    "maryTextToSpeech": {
-    	"serverBasePath": "http://mary.dfki.de:59125/"
-    },
-    
-    "mediaManager": {
-    	"plugins": {
-    		"browser": ["html5AudioOutput.js",
-    		            "webspeechAudioInput.js",
-    		            "maryTextToSpeech.js"
-    		],
-    		"cordova": ["cordovaAudioOutput.js",
-    		            "androidAudioInput.js",
-    		            "androidTextToSpeech.js"
-    		]
-    	}
-    }
+		"webSocketAddress": "ws://localhost:9999",
+		"soundPackageSize": "4096",
+		"silenceDetectorPath": "mmirf/env/media/silenceDetection.js"
+	},
+
+	"maryTextToSpeech": {
+		"logLevel": "debug",
+			"serverBasePath": "http://mary.dfki.de:59125/"
+	},
+
+	"mediaManager": {
+		"plugins": {
+			"browser": ["html5AudioOutput.js",
+					"webspeechAudioInput",
+					{"mod": "webAudioTextToSpeech", "config": "webttsMaryImpl"}
+			],
+			"cordova": ["cordovaAudioOutput.js",
+						"androidAudioInput.js",
+						"androidTextToSpeech.js"
+			]
+		}
+	}
 }

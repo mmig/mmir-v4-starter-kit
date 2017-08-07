@@ -1,6 +1,10 @@
 /bin
 /gen
+/doc
 /build.settings
 /public_release-diff-info.txt
 /mmir-build.settings
 /plugins/de.dfki.iui.mmir.speech.NuancePlugin/bin
+/node_modules/
+/build/typescript_util
+/build/temp

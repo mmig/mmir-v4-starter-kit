@@ -3,7 +3,7 @@
  * Validation tools for JSON grammar files.
  *
  */
-define(['commonUtils', 'grammarConverter'], function(utils, GrammarConverter){
+define(['mmirf/commonUtils', 'mmirf/grammarConverter'], function(utils, GrammarConverter){
 
 	var PATH_SEP = '.';
 	var getLoc = function(location){

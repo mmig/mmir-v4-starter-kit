@@ -2,74 +2,76 @@
 var mmir = window.mmir || {};
 
 (function () {
-    
+
     mmir.require = require.config({
-    	
-    	debugMode: true,
-    	
-//    	context: 'mmirtestsemint',//requirejs module context: MMIR Test Semantic Interpreter
-    	
-		config: {
-			'initApp': {
-				grammarEditorClass: 'editor',
-				waitDialogCssPath: 'appTestSemantic/css/'
-			}
+
+      debugMode: true,
+
+     	context: 'mmirtestsemint',//requirejs module context: MMIR Test Semantic Interpreter
+
+  		config: {
+  			'initApp': {
+  				grammarEditorClass: 'editor',
+  				waitDialogCssPath: 'appTestSemantic/css/'
+  			}
 		},
-	
+
 		paths : {
-		    
+
 		    // core
-	 	    'main': 'mmirf/main'
-		    // lib
-		    , 'jquery': 'mmirf/vendor/libs/jquery-2.2.3'
-		    
+	 	    'mmirf/main': 'mmirf/main'
+
 		    // globals and AMDs
-	 	    , 'constants': 'mmirf/tools/constants'
-	 	    , 'commonUtils': 'mmirf/tools/commonUtils'
-		    , 'stringExtension': 'mmirf/tools/extensions/StringExtensions'		
-		    , 'dictionary': 'mmirf/tools/dictionary'
-		    , 'paramsParseFunc': 'mmirf/tools/paramsParseFunc'
-			, 'env': 'mmirf/tools/envDetect'
-			, 'envInit': 'mmirf/tools/envInit'
-	
+	 	    , 'mmirf/constants': 'mmirf/tools/constants'
+	 	    , 'mmirf/commonUtils': 'mmirf/tools/commonUtils'
+		    , 'mmirf/stringExtension': 'mmirf/tools/extensions/StringExtensions'
+		    , 'mmirf/dictionary': 'mmirf/tools/dictionary'
+		    , 'mmirf/paramsParseFunc': 'mmirf/tools/paramsParseFunc'
+			  , 'mmirf/env': 'mmirf/tools/envDetect'
+			  , 'mmirf/envInit': 'mmirf/tools/envInit'
+
+        , 'mmirf/encodeUtils': 'mmirf/tools/extensions/EncodeUtils'
+
 		    // @chsc03 required by contentElement, renderUtils, declared in presentationManager
-		    , 'languageManager': 'mmirf/manager/settings/languageManager'
-		    , 'configurationManager': 'mmirf/manager/settings/configurationManager'
-		    	
+		    , 'mmirf/languageManager': 'mmirf/manager/settings/languageManager'
+		    , 'mmirf/configurationManager': 'mmirf/manager/settings/configurationManager'
+
 	    	//MD5 checksum computation: for checking pre-compiled resources, e.g.
 	    	// grammars (JSON->JS), and templates (eHTML->JS)
-	    	, 'md5' : 'mmirf/vendor/libs/md5'
-	    	, 'checksumUtils' : 'mmirf/tools/checksumUtils'
+	    	, 'mmirf/md5' : 'mmirf/vendor/libs/md5'
+	    	, 'mmirf/checksumUtils' : 'mmirf/tools/checksumUtils'
 
-		    , 'logger' : 'mmirf/tools/logger'
-		    , 'stacktrace' : 'mmirf/vendor/libs/stacktrace-v0.6.4'
-		    
+		    , 'mmirf/logger' : 'mmirf/tools/logger'
+		    , 'mmirf/stacktrace' : 'mmirf/vendor/libs/stacktrace-v0.6.4'
+
 			//grammar related
-			, 'grammarConverter' : 'mmirf/semantic/grammarConverter'
-			, 'semanticInterpreter' : 'mmirf/semantic/semanticInterpreter'
-			, 'asyncGrammar': 'semantic/asyncGrammar'
-			, 'jscc':  'mmirf/vendor/libs/jscc-amd'
-			, 'jison': 'mmirf/vendor/libs/jison'
-			, 'pegjs': 'mmirf/vendor/libs/peg-0.9.0'
-			, 'asyncGen': 'mmirf/env/grammar/asyncGenerator'
-			, 'jsccGen':  'mmirf/env/grammar/jsccGenerator'
-			, 'jsccAsyncGen':  'mmirf/env/grammar/jsccAsyncGenerator'
-			, 'jisonAsyncGen': 'mmirf/env/grammar/jisonAsyncGenerator'
-			, 'jisonGen': 'mmirf/env/grammar/jisonGenerator'
-			, 'pegjsGen': 'mmirf/env/grammar/pegjsGenerator'
-			, 'pegjsAsyncGen': 'mmirf/env/grammar/pegjsAsyncGenerator'
-			
+			, 'mmirf/grammarConverter' : 'mmirf/semantic/grammarConverter'
+			, 'mmirf/semanticInterpreter' : 'mmirf/semantic/semanticInterpreter'
+			, 'mmirf/asyncGrammar': 'semantic/asyncGrammar'
+			, 'mmirf/jscc':  'mmirf/vendor/libs/jscc-amd'
+			, 'mmirf/jison': 'mmirf/vendor/libs/jison'
+			, 'mmirf/pegjs': 'mmirf/vendor/libs/peg-0.9.0'
+			, 'mmirf/asyncGen': 'mmirf/env/grammar/asyncGenerator'
+			, 'mmirf/jsccGen':  'mmirf/env/grammar/jsccGenerator'
+			, 'mmirf/jsccAsyncGen':  'mmirf/env/grammar/jsccAsyncGenerator'
+			, 'mmirf/jisonAsyncGen': 'mmirf/env/grammar/jisonAsyncGenerator'
+			, 'mmirf/jisonGen': 'mmirf/env/grammar/jisonGenerator'
+			, 'mmirf/pegjsGen': 'mmirf/env/grammar/pegjsGenerator'
+			, 'mmirf/pegjsAsyncGen': 'mmirf/env/grammar/pegjsAsyncGenerator'
+
+      // libs
+      , 'jquery': 'appTestSemantic/libs/jquery-3.2.1'
 			, 'jsonlint': 'appTestSemantic/libs/jsonlint-loc'
 			, 'esprima' : 'appTestSemantic/libs/esprima'
-			
+
 			, 'orioneditor': 'appTestSemantic/libs/built-editor-amd'
-			
+
 			, 'lodash': 'appTestSemantic/libs/lodash'
-			
+
 			, 'w2ui': 'appTestSemantic/libs/w2ui-1.4.2'
-				
+
 			, 'waitDialog': 'appTestSemantic/libs/stdlne-wait-dlg'
-				
+
 			//app code
 			, 'app': 'appTestSemantic/app'
 			, 'initApp': 'appTestSemantic/initApp'
@@ -80,17 +82,21 @@ var mmir = window.mmir || {};
 			, 'mainView': 'appTestSemantic/mainView'
 			, 'viewModel': 'appTestSemantic/viewModel'
 		},
-	
+
 		shim : {
-			
-			  'jsonlint' : 		{exports: 'jsonlint'}
-			, 'pegjs':       	{exports: 'PEG'}
-			
-			, 'md5': 			{exports : 'CryptoJS'}
-			
+
+			'mmirf/pegjs':       	{exports: 'PEG'}
+			, 'mmirf/md5': 			{exports : 'CryptoJS'}
+
+		  , 'jsonlint' : 		{exports: 'jsonlint'}
 			, 'w2ui': 			['jquery']
-	
-		}
+
+		},
+
+    packages: [{
+  		'name': 'mmirf/util'
+  		, 'location': 'mmirf/tools/util_purejs'
+    }]
     });
 
     //start application:
