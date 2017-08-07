@@ -11,37 +11,37 @@
 		German Research Center for Artificial Intelligence
 		http://www.dfki.de
 
-		Permission is hereby granted, free of charge, to any person obtaining a 
-		copy of this software and associated documentation files (the 
-		"Software"), to deal in the Software without restriction, including 
-		without limitation the rights to use, copy, modify, merge, publish, 
-		distribute, sublicense, and/or sell copies of the Software, and to 
-		permit persons to whom the Software is furnished to do so, subject to 
+		Permission is hereby granted, free of charge, to any person obtaining a
+		copy of this software and associated documentation files (the
+		"Software"), to deal in the Software without restriction, including
+		without limitation the rights to use, copy, modify, merge, publish,
+		distribute, sublicense, and/or sell copies of the Software, and to
+		permit persons to whom the Software is furnished to do so, subject to
 		the following conditions:
 
-		The above copyright notice and this permission notice shall be included 
+		The above copyright notice and this permission notice shall be included
 		in all copies or substantial portions of the Software.
 
-		THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
-		OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
-		MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
-		IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
-		CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
-		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+		THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+		OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+		MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+		IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+		CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	-->
-	
+
     <link rel="stylesheet" href="appTestSemantic/css/built-editor.css" />
     <link rel="stylesheet" href="appTestSemantic/css/w2ui-1.4.2.css" />
     <link rel="stylesheet" href="appTestSemantic/css/font-awesome.css" />
-    
+
     <link rel="stylesheet" href="appTestSemantic/css/app.css" />
-    
+
 	<!-- script type="text/javascript" src="mmirf/vendor/libs/require.js"></script-->
 	<script type="text/javascript" src="appTestSemantic/libs/require-dev.js"></script>
-	
+
 	<script type="text/javascript" src="appTestSemantic/config.js"></script>
-	
+
 </head>
 
 <body>
@@ -51,7 +51,7 @@
 <div id="full">
 
     <div id="semantic-test-main" style="height: 100%;"></div>
-    
+
 </div>
 
 
@@ -66,10 +66,10 @@
 	<div id="console-element">
 		<div id="outputBox" class="outbox"></div>
 	</div>
-	
+
 	<!-- interpretation element (input/output for semantics) -->
 	<div id="interpreter-element" class="side-panel">
-		
+
 		<form id="form-test-semantic">
 			<div class="">
 				<h5>Test Semantics:</h5>
@@ -77,12 +77,12 @@
 				<button id="btn-test-semantic" class="btn">Process</button>
 			</div>
 		</form>
-		
+
 		<div class="" id="defaultProcInterpretationCol">
 			<h5>Result:</h5>
 			<div id="interpretationBox" class="outbox"></div>
 		</div>
-		
+
 		<div class="hidden" id="altProcInterpretationCol">
 			<h5>Alternate Interpreter Result:
 				<span class="text hint small">
@@ -91,37 +91,37 @@
 			</h5>
 			<div id="interpretationBoxAlt" class="outbox"></div>
 		</div>
-		
+
 		<div id="benchmark-semantic-element">
 			<br/>
 			<button id="btn-benchmark-semantic" class="btn">Benchmark...</button>
 			<br/>
 			&nbsp;<span id="benchmark-time"></span>
-			
+
 			<div id="benchmark-alt-semantic" class="hidden">
 				<br/>
 				&nbsp;<span id="benchmark-time-mod"></span>
 			</div>
-			
+
 		</div>
 	</div>
-	
+
 	<!-- outbox for intermediate grammar definition (e.g. jscc / jison / pegjs) -->
 	<div id="intermediate-grammar-element">
 		<textarea id="compileOutBox" readonly="readonly" class="outbox"></textarea>
 	</div>
-	
+
 	<!-- outbox for compiled/executable JavaScript grammar code -->
 	<div id="compiled-grammar-element">
 		<textarea id="compiledParserOutBox" readonly="readonly" class="outbox"></textarea>
 	</div>
-	
+
 	<!-- file-input (stays hidden; is triggered/clicked by JS code when GUI-button is clicked) -->
 	<div id="file-selector-element">
 		<input type="file" id="file-selector" accept="text" name="files[]" />
 	</div>
-	
-	
+
+
 	<!-- stopword-removal tester element -->
 	<div id="stopword-element" class="side-panel">
 		<form id="form-test-stopword">
@@ -136,8 +136,8 @@
 			<h5>After Stopword Removal:</h5>
 			<div id="stopwordBox" class="outbox"></div>
 		</div>
-		<div id="altProcStopwordCol" class="hidden">					
-			<h5>After Stopword Removal 
+		<div id="altProcStopwordCol" class="hidden">
+			<h5>After Stopword Removal
 					<span  class="text hint small">
 						(alternative stopword processing method)
 					</span>:
@@ -145,14 +145,14 @@
 			<div id="stopwordBox2" class="outbox"></div>
 		</div>
 	</div>
-	
+
 </div>
 <!-- END <div id="gui-elements"> -->
 
 
 <!-- ################### SECTION: Popup dialogs & tooltip dialogs ################################# -->
-<div id="dialogs" style="display:none">			
-	
+<div id="dialogs" style="display:none">
+
 	<div id="errorPopup" class="ui-content ui-corner-all">
 	    <div id="errorPopupTitle" class="hidden">
 	    	<div> <i></i> &nbsp;<span>a short title</span></div>
@@ -162,7 +162,7 @@
 	        <div id="errorPopupText">detailed description</div>
 	    </div>
 	</div>
-	
+
 	<div id="infoPopup"class="ui-content ui-corner-all">
 	    <div id="infoPopupTitle" class="hidden">
 	    	<div> <i></i> &nbsp;<span>a short title</span></div>
@@ -171,10 +171,10 @@
 	        <div id="infoPopupText">information text</div>
 	    </div>
 	</div>
-	
+
 	<div id="popupAppHelpInfo" class="ui-content" data-title="Quick Reference">
 	  <div><!-- h3>Quick Reference</h3-->
-	    
+
 	    <h5>Editor Shortcuts</h5>
 	    <ul class="function-list">
 	    	<li><span class="key">CTRL</span> + <span class="key">#</span>: comment / un-comment line</li>
@@ -183,30 +183,30 @@
 			<li><span class="key">CTRL</span> + <span class="key">f</span>: search / replace dialog</li>
 			<li><span class="key">CTRL</span> + <span class="key">l</span>: "go to line" dialog</li>
 			<li><span class="key">CTRL</span> + <span class="key">q</span>: jump to last edited position</li>
-			
+
 			<li><span class="key">CTRL</span> + <span class="key">y</span>: redo</li>
 			<li><span class="key">CTRL</span> + <span class="key">z</span>: undo</li>
 	    </ul>
 	  	<br/><br/>
 	  </div>
 	</div>
-	
+
 	<div id="popupMaskingInfo" class="ui-content" data-title="Masking Information">
 	  <div><h3>Preview masking (for non-ASCII characters)</h3>
-	    
+
 	    <br/>
 	    <blockquote><span class="text warning sub-caption">Warning:</span> applying <em>masking</em>
 	  	will <strong>re-format</strong> the JSON grammar.</blockquote>
 	  	<br/>
-	  	
+
 	    If the JSON values contain <strong>unicode</strong>
 	  	characters (i.e. non-ASCII chars), they will get <em>masked</em> before creating
-	  	the JS/CC definition, and compiling the executable JavaScript grammar.
+	  	the grammar definition (intermediate grammar), and compiling the executable JavaScript grammar.
 	  	<br/><br/>
 	  	You can preview the effects of <em>masking</em> by using
 	  	<strong>mask</strong> and <strong>unmask</strong>.
 	  	<br/><br/>
-	  	
+
 	  	<span class="text sub-caption">Note:</span> that the grammar will not be able
 	  	to detect tokens that correspond to the masking pattern itself,
 	  	e.g. the token <code>~~751F~~</code> will not be detected, but
@@ -214,10 +214,10 @@
 	  	<br/><br/>
 	  </div>
 	</div>
-	
+
 	<div id="popupGrammarIdInfo" class="ui-content" data-title="Grammar ID information">
-	  <p>The <strong>Grammar ID</strong> 
-	  	is internally used to identify the grammar, that is, 
+	  <p>The <strong>Grammar ID</strong>
+	  	is internally used to identify the grammar, that is,
 	  	the ID is used to manage multiple grammars.<br/>
 	  	If a grammar with the same ID already exists, it will replaced.<br/>
 	  </p>
@@ -225,12 +225,12 @@
 
 	<div id="popupFormatConversionInfo" class="ui-content" data-title="Upgrade Information">
 	  <div><h3>Upgrading old umlaut-encoded JSON grammars</h3>
-	     
+
 	     <br/>
 	     	<blockquote><span class="text warning sub-caption">Warning:</span> applying <em>upgrading/downgrading</em>
 	     	will <strong>re-format</strong> the JSON grammar.</blockquote>
 	     <br/>
-	  	
+
 	  	 The old file format for JSON grammars used a special masking
 	     for non-ASCII umlauts (e.g. &#246; or &#196;; also for &#223;).
 	     <div>
@@ -252,7 +252,7 @@
 	     The <b>new</b> file format internally uses a generic masking for all
 	     non-ASCII characters. But more importantly, it targets UTF-8
 	     encoded files which allows using (almost all) unicode characters
-	     directly within the JSON files; i.e. <b>no masking</b> in the 
+	     directly within the JSON files; i.e. <b>no masking</b> in the
 	     files themselves is required.
 	     <br/>
 	     For example:
@@ -265,11 +265,11 @@
 	    "ich",
 	    "m~~00F6~~chte",
 	    ...</pre>
-	    				 
+
 	     </div>
 	     <div>
-	     Unfortunately the new masking-mechanism is incompatible with 
-	     the old one, i.e. JSON files which contain the old masking 
+	     Unfortunately the new masking-mechanism is incompatible with
+	     the old one, i.e. JSON files which contain the old masking
 	     will not work correctly with the new masking.
 	     <br/>
 	     As a result, old-style formatted JSON files (with masking)
@@ -278,12 +278,12 @@
 	     alternatively, the new masking style may be used, too.
 	     </div>
 	     <div>
-	     For this purpose, the <b>upgrade</b> button will convert 
+	     For this purpose, the <b>upgrade</b> button will convert
 	     old-style masked umlauts back to the unmasked, original
 	     umlauts; and the <b>downgrade</b> button will reverse that
 	     effect (i.e. apply old-stlye masking).
 	     </div>
-	     
+
 	  </div>
 	</div>
 </div>
@@ -298,45 +298,45 @@
 	   <p>
 		    <div style="font-size: 0.9em;width: 100%; white-space: normal !important;">
 		    <strong>NOTE:</strong>
-				On initial load of the page, the <tt>Language</tt> list 
+				On initial load of the page, the <tt>Language</tt> list
 		    	is loaded from the file <code>config/directories.json</code>: for each found language
 		    	directory (<code>config/languages/</code>),	an entry is generated -- on selection, the
 		    	corresponing JSON file is attempted to be read and compiled.<br/>
 		    	<i>Note, that there may not be a JSON file for the lanuage available -- in this case an
 		    	 error message will be shown on selection.</i><br/>
-		    	
+
 		    	<p>You can use the file selector, for loading a JSON grammar from  the local file system</p>
-		    	
-		    	<p>Alternatively, you can enter (e.g. copy&paste) a JSON-formatted grammar into the 
+
+		    	<p>Alternatively, you can enter (e.g. copy&paste) a JSON-formatted grammar into the
 		    	<i>JSON Grammar Definition</i> field and then press the <i>parse</i> button.</p>
 		    	<br/>
 		    </div>
 		</p>
 	</div>
-    
+
     <div>
     	<!-- fieldset class="grid-cell" style="padding-left:0.2em;">
 			<label for="grammar-id">Grammar ID:</label>
 			<input id="grammar-id" type="text" data-inline="true"/>
 		</fieldset-->
-		
+
 		<div class="grid-cell" style="vertical-align:top">
 			<a href="#popupGrammarIdInfo" id="openPopupGrammarIdInfo"
-				class="ui-link ui-btn ui-btn-a ui-icon-info ui-btn-icon-notext ui-btn-inline ui-shadow ui-corner-all" 
-				data-rel="popup" 
-				data-role="button" 
-				data-inline="true" 
+				class="ui-link ui-btn ui-btn-a ui-icon-info ui-btn-icon-notext ui-btn-inline ui-shadow ui-corner-all"
+				data-rel="popup"
+				data-role="button"
+				data-inline="true"
 				data-transition="pop">
 				Grammar ID information
 			</a>
-			
+
 		</div>
 	</div>
-		
+
     <div class="grid-cell" style="padding-left:2em;"><div data-role="collapsible" data-collapsed="true" id="grammarTools">
 			   <h3>JSON Grammar Tools</h3>
 			   <p>
-			   
+
 				<div style="padding-left:2em;float:left;">
 					<fieldset data-role="controlgroup" data-type="horizontal">
 						<input type="button" onclick="maskJsonValues()" value="mask"/>
@@ -346,15 +346,15 @@
 				<div class="grid-cell" style="vertical-align:middle">
 					<a href="#popupMaskingInfo" id="openPopupMaskingInfo"
 						class="ui-link ui-btn ui-btn-a ui-icon-info ui-btn-icon-notext ui-btn-inline ui-shadow ui-corner-all"
-						data-rel="popup" 
-						data-role="button" 
-						data-inline="true" 
+						data-rel="popup"
+						data-role="button"
+						data-inline="true"
 						data-transition="pop">
 						Masking information
 					</a>
-					
+
 				</div>
-				
+
 				<div id="format-converter" style="padding-left:2em;float:left;">
 					<fieldset data-role="controlgroup" data-type="horizontal">
 						<input type="button" onclick="convertFromOldJSONFormat()" value="upgrade"/>
@@ -364,22 +364,22 @@
 				<div class="grid-cell" style="vertical-align:middle">
 					<a href="#popupFormatConversionInfo" id="openPopupFormatConversionInfo"
 						class="ui-link ui-btn ui-btn-a ui-icon-info ui-btn-icon-notext ui-btn-inline ui-shadow ui-corner-all"
-						data-rel="popup" 
-						data-role="button" 
-						data-inline="true" 
+						data-rel="popup"
+						data-role="button"
+						data-inline="true"
 						data-transition="pop">
 						Upgrade information
 					</a>
-					
+
 				</div>
 			</p>
 		</div></div>
-		
-		
+
+
 		<div style="width: 100%;">
-		
+
 			<a name="compiled-parser"></a>
-		
+
 		    <div style="float:left;" class="grid">
 		    	<div class="grid-cell" style="vertical-align: middle;padding-right:3em;">
 		    		<a href="#top" class="ui-link ui-btn ui-btn-b ui-icon-arrow-u ui-btn-icon-left ui-shadow ui-corner-all ui-mini">top</a>
@@ -389,8 +389,8 @@
 		    	</div>
 		    </div>
 			<div style="clear:both;"></div>
-			
-			<p>	
+
+			<p>
 				This is the compiled JavaScript code for the grammar.
 			</p>
 			<p>
@@ -404,16 +404,16 @@
 				<pre style="display:inline;">assets/www/gen/grammar/[Grammar ID]_grammar.json</pre>
 			</div>
 			<br/>
-			
+
 			<!-- div style="float:left;">
 				<input type="button" onclick="selectCompiledCode();" value="Select All"/>
 			</div-->
 			<div style="clear:both;"></div>
-			
+
 			<!-- textarea id="compiledParserOutBox" readonly="readonly" class="outbox"></textarea-->
 		</div>
-		
+
 </div>
-    
+
 </body>
 </html>
