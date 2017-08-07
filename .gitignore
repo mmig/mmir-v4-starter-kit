@@ -1,5 +1,6 @@
 /bin
 /gen
+/doc
 /build.settings
 /public_release-diff-info.txt
 /mmir-build.settings

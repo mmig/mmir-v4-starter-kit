@@ -1,14 +1,19 @@
-(function(){
-  var semanticInterpreter = require("semanticInterpreter");
-var options = {fileFormat:4,execMode:"sync"};
+(function(global){
+var mmirName = typeof MMIR_CORE_NAME === "string"? MMIR_CORE_NAME : "mmir";
+var mmir = global? global[mmirName] : void(0);
+var require = mmir && mmir.require? mmir.require : (typeof requirejs !== "undefined"? requirejs : (global? global.require : require));
+var semanticInterpreter = require("mmirf/semanticInterpreter");
+var options = {fileFormat:5,execMode:"\"sync\""};
 var grammarFunc = function(asr_recognized_text){
 var theGrammarConverterInstance = this;
 
  
+  var _tokenList = function(match, list) {if(!list){list = [];}var size = match.length, t;for (var i = 0; i < size; ++i) {t = match[i];if (!t) {continue;}if (t.tok.join) {_tokenList(t.tok, list);} else {list.push(t.tok);}}return list;};
+  var _getTok = function(phrases, type, index) {var count = 0, p;for(var i=0, size = phrases.length; i < size; ++i){p = phrases[i];if(p.type === type){if(index === count++){return typeof p.tok === 'string'? p.tok : p;}}}};
   var _$result = '';
-  var _$v_play_inf = {};
-  var _$rest = {};
-  var _$play = {};
+  var _$v_play_inf = [];
+  var _$rest = [];
+  var _$play = [];
 
 
 /*
@@ -408,13 +413,13 @@ switch( match )
 {
 	case 2:
 		{
-		 _$v_play_inf[info.att] = info.att; 
+		 _$v_play_inf.push(info.att);info.att = {i: ( info.offset - info.att.length ),type: 'v_play_inf',tok: info.att}; 
 		}
 		break;
 
 	case 3:
 		{
-		 _$rest[info.att] = info.att; 
+		 _$rest.push(info.att);info.att = {i: ( info.offset - info.att.length ),type: 'rest',tok: info.att}; 
 		}
 		break;
 
@@ -658,8 +663,9 @@ switch( act )
 	break;
 	case 2:
 	{
-		 rval = vstack[ vstack.length - 1 ]; var play_temp = {}; play_temp['phrases'] = {};play_temp['phrases']['v_play_inf'] = [];play_temp['phrases']['v_play_inf'][0] = {tok: vstack[ vstack.length - 1 ],i: 0};
-		var _$phrase = rval; play_temp['phrase']=_$phrase; play_temp['utterance']='play'; play_temp['engine']='jscc'; play_temp['semantic'] = {"Play":{}}; _$play[_$phrase] = play_temp; _$result = play_temp; 
+		 rval = {i: vstack[ vstack.length - 1 ].i,type: 'play',tok: null}; var play_temp = {}, tempMatch; play_temp['phrases'] = [];tempMatch = vstack[ vstack.length - 1 ];play_temp['phrases'].push(tempMatch);
+		rval.tok = play_temp['phrases'];play_temp['phrase']=_tokenList(play_temp['phrases']).join(' ');
+ play_temp['utterance']='play'; play_temp['engine']='jscc'; play_temp['semantic'] = {"Play":{}}; _$play.push(play_temp); _$result = play_temp; 
 	}
 	break;
 	case 3:
@@ -737,8 +743,10 @@ __parse( asr_recognized_text, new Array(), new Array(), _semanticAnnotationResul
 return _semanticAnnotationResult.result;
 
 };
+
+options.stopwords=["bitte"];
 semanticInterpreter.addGrammar("de", grammarFunc, options);
 
-semanticInterpreter.setStopwords("de",["bitte"]);
 return grammarFunc;
-})();
+})(typeof window !== "undefined"? window : global);
+
