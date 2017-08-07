@@ -1,12 +1,12 @@
 
-define(['dictionary', 'appUtil'], function(Dictionary, util){
-	
+define(['mmirf/dictionary', 'appUtil'], function(Dictionary, util){
+
 	var UNINITIALIZED_ENGINE_VALUE = '&lt;uncompiled&gt;';
-	
+
 	function GrammarModel(grammarId, type, url, jsonStr, json){
-		
+
 		this.engine = UNINITIALIZED_ENGINE_VALUE;
-		
+
 		if(typeof grammarId === 'object'){
 			type 		= grammarId.type;
 			url 		= grammarId.url;
@@ -14,49 +14,49 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 			json		= grammarId.json;
 			grammarId 	= grammarId.id;
 		}
-		
+
 		if(!grammarId){
 			console.error('GrammarModel.create: no grammarId!');
 		}
 		if(!grammarId){
 			console.error('GrammarModel.create: no type!');
 		}
-		
+
 		this.id = grammarId;
 		this.type = type;
-		
+
 		//"saved-dirty" dirty flag: FALSE if loaded from file/project-json
 		this.isDirty = this.isCompiled();
-		
+
 		var viewId = grammarId;
 		if(type === 'compiled'){
 			viewId = 'compiled_' + viewId;
 		} else if(type === 'file'){
 			viewId = 'file_' + url;
 		}
-		
+
 		this.viewId = viewId;
-		
+
 		if(jsonStr){
 			//if we only got a JSON object -> "generate" a JSON string
 			if(typeof jsonStr === 'object'){
 				json = jsonStr;
 				jsonStr = util.formatJson(jsonStr);
 			}
-			
+
 			this.jsonText = jsonStr;
 		}
-		
+
 		if(json){
 			this.json = json;
 		}
-		
-		
+
+
 		if(url){
 			this.url = url;
 		}
 	}
-	
+
 	GrammarModel.prototype.isProject = function(){
 		return this.type === 'project';
 	};
@@ -66,7 +66,7 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 	GrammarModel.prototype.isCompiled = function(){
 		return this.type === 'compiled';
 	};
-	
+
 	GrammarModel.prototype.setUrl = function(url){
 		this.url = url;
 	};
@@ -86,8 +86,8 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 		this.gc = grammarConverter;
 		this.engine = engine;
 	};
-	
-	
+
+
 	GrammarModel.prototype.getUrl = function(){
 		return this.url;
 	};
@@ -115,12 +115,12 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 	GrammarModel.prototype.getEngine = function(){
 		return this.engine;
 	};
-	
-	
+
+
 	GrammarModel.prototype.getLabel = function(){
 		return '<strong><pre>'+ this.id + '</pre></strong> <em class="text small hint">'+this.engine+'</em>';
 	};
-	
+
 	GrammarModel.prototype.getIcon = function(){
 		switch(this.type){
 		case 'project':
@@ -133,7 +133,7 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 			return;
 		}
 	};
-	
+
 	//isStored: is the (text of) the JSON grammar stored?
 	GrammarModel.prototype.isStored = function(){
 		return this.isDirty === false;
@@ -141,21 +141,21 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 	GrammarModel.prototype.setStored = function(isSaved){
 		this.isDirty = !isSaved;
 	};
-	
-	/** 
+
+	/**
 	 * @private
 	 * @type Dictionary
 	 * @memberOf ViewModel.private
 	 */
 	var _map = new Dictionary();
-	/** 
+	/**
 	 * @private
 	 * @type Dictionary
 	 * @memberOf ViewModel.private
 	 */
 	var _grammarMap = new Dictionary();
-	
-	/** 
+
+	/**
 	 * @private
 	 * @function
 	 * @memberOf ViewModel.private
@@ -164,11 +164,11 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 		var gm = new GrammarModel(grammarId, type, url, jsonStr, json);
 		_map.put(gm.id, gm);
 		_grammarMap.put(gm.viewId);
-		
+
 		return gm;
 	}
-	
-	/** 
+
+	/**
 	 * @private
 	 * @function
 	 * @memberOf ViewModel.private
@@ -179,8 +179,8 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 		_grammarMap.remove(gm.id);
 		return gm;
 	}
-	
-	/** 
+
+	/**
 	 * @private
 	 * @function
 	 * @memberOf ViewModel.private
@@ -188,8 +188,8 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 	function _get(id){
 		return _map.get(id);
 	}
-	
-	/** 
+
+	/**
 	 * @private
 	 * @function
 	 * @memberOf ViewModel.private
@@ -201,8 +201,8 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 		}
 		return gm;
 	}
-	
-	/** 
+
+	/**
 	 * @private
 	 * @function
 	 * @memberOf ViewModel.private
@@ -210,7 +210,7 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 	function _getGrammarId(grammarId){
 		return _grammarMap.get(grammarId);
 	}
-	
+
 	return {
 		/** @memberOf ViewModel */
 		create: _create,
@@ -219,7 +219,7 @@ define(['dictionary', 'appUtil'], function(Dictionary, util){
 		getByViewId: _get,
 		getByGrammarId: _getGrammarId,
 		remove: _remove,
-		
+
 		setJson: function(id, json){
 			_get(id).setJson(json);
 		}
