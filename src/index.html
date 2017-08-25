@@ -19,18 +19,11 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js')
         .then(() => console.log('service worker installed'))
-        .catch(err => console.log('Error', err));
+        .catch(err => console.error('Error', err));
     }
   </script>-->
 
   <link href="build/main.css" rel="stylesheet">
-  <link href="assets/content/stylesheets/flags.css" rel="stylesheet">
-
-  <script type="text/javascript" src="assets/mmirf/core.js"></script>
-  <script type="text/javascript" src="assets/appjs/preinit.js"></script>
-  <script type="text/javascript" src="assets/mmirf/vendor/libs/require.js" data-main="assets/mmirf/mainConfig" ></script>
-
-  <script type="text/javascript" src="assets/app.js"> </script>
 
 </head>
 <body>
@@ -41,10 +34,19 @@
   <!-- The polyfills js is generated during the build process -->
   <script src="build/polyfills.js"></script>
 
-  <!-- The bundle js is generated during the build process -->
+  <!-- mmir resources -->
+  <script type="text/javascript" src="assets/mmirf/core.js"></script>
+  <script type="text/javascript" src="assets/appjs/preinit.js"></script>
+  <script type="text/javascript" src="assets/mmirf/vendor/libs/require.js" data-main="assets/mmirf/mainConfig" ></script>
+
+  <script type="text/javascript" src="assets/app.js"> </script>
+
+  <!-- The vendor js is generated during the build process
+       It contains all of the dependencies in node_modules -->
+  <script src="build/vendor.js"></script>
+
+  <!-- The main bundle js is generated during the build process -->
   <script src="build/main.js"></script>
-
-
 
 </body>
 </html>
