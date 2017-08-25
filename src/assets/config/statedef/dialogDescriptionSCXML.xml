@@ -1222,7 +1222,11 @@
             	if(_event.data.readingData){
             		options.readingData = _event.data.readingData;
             	}
-            	_util.dlg.perform(_util.readCtrlName, 'read', options);
+            	var consumed = _util.dlg.perform(_util.readCtrlName, 'read', options);
+            	if(consumed === false){
+            		reading_status = false;
+            		_util.dlg.perform(_util.readCtrlName, 'showReadingStatus', {pageId: page_id, readingId: reading_id, active: reading_status, targetId: temp_restart_speech_with_id});
+            	}
             </script>
         </transition>
 
