@@ -506,7 +506,7 @@ define(['mmirf/util/deferred', 'mmirf/util/extend', 'mmirf/constants', 'mmirf/co
     			 * TODO add doc
     			 * 
 				 * @name ctx
-				 * @type mmir.Logger
+				 * @type Object
 				 * @default Object (empty context, i.e. plugins are loaded into the "root context", and no plugins loaded into the execution context)
 				 * @public
 				 * 
@@ -1482,7 +1482,7 @@ define(['mmirf/util/deferred', 'mmirf/util/extend', 'mmirf/constants', 'mmirf/co
     			 * mmir.MediaManager.getFunc(null, "textToSpeech")("some text");
     			 * 
     			 * //reset to root context:
-    			 * mmir.MediaManager.setDefaultCtx("nuance");
+    			 * mmir.MediaManager.setDefaultCtx(false);
     			 * 
     			 * // -> now the following call is equal to mmir.MediaManager.textToSpeech("some text") again
     			 * mmir.MediaManager.perform("textToSpeech", ["some text"]);
