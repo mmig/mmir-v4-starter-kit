@@ -49,7 +49,7 @@ export class RegistrationPage extends MmirPage {
     if(email && password){
 
     	this.user[email]= password;
-    	this.mmir.ModelManager.getModel('User').create(email);
+    	this.mmir.model.get('User').create(email);
 
       this.userAuth.addUserAuth(email, password)
           .then(() => this.dlg.raise('user_registered'))
@@ -63,7 +63,7 @@ export class RegistrationPage extends MmirPage {
       alert.addButton(this.lang.getText('buttonOk'));
       alert.present();
 
-      //FIXME need to reset this.mmir.ModelManager.getModel('User').getInstance()!!!
+      //FIXME need to reset this.mmir.model.get('User').getInstance()!!!
 
       this.dlg.raise('user_registered', {user: {name: name, password: password}});
     }

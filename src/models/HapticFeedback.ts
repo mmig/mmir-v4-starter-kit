@@ -9,7 +9,7 @@ export var CLICK_VIBRATE_DURATION = 50;//ms
 export type FeedbackOption = {sound?: boolean, haptic?: boolean};
 
 export function isSoundFeedbackEnabled() {
-  var isSound = mmir.ConfigurationManager.get('soundFeedbackEnabled');
+  var isSound = mmir.conf.get('soundFeedbackEnabled');
   if(typeof isSound === 'undefined'){
     isSound = IS_SOUND_FEEDBACK;
   }
@@ -17,7 +17,7 @@ export function isSoundFeedbackEnabled() {
 }
 
 export function isHapticFeedbackEnabled() {
-  var isHaptic = mmir.ConfigurationManager.get('hapticFeedbackEnabled');
+  var isHaptic = mmir.conf.get('hapticFeedbackEnabled');
   if(typeof isHaptic === 'undefined'){
     isHaptic = IS_HAPTIC_FEEDBACK;
   }
@@ -47,14 +47,14 @@ export function triggerClickFeedback(config?: FeedbackOption){
 
 export function triggerHapticFeedback(){
   setTimeout(function(){
-      mmir.NotificationManager.vibrate(CLICK_VIBRATE_DURATION);
+      mmir.notifier.vibrate(CLICK_VIBRATE_DURATION);
   },0);
 }
 
 export function triggerSoundFeedback(){
   //do not block function, return immediatly using setTimeout
   setTimeout(function(){
-      mmir.NotificationManager.beep(1);
+      mmir.notifier.beep(1);
   },0);
 }
 

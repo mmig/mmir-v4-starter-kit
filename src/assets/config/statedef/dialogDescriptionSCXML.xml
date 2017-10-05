@@ -98,9 +98,9 @@
 			defaultSpeechMode: speech_mode, //<- use the speech_mode that is set when engine is initialized as default!
 			defaultTargetId: target_id,     //<- use the target_id that is set when engine is initialized as default!
 
-			media: mmir.MediaManager,
-			dlg: mmir.DialogManager,
-			input: mmir.InputManager,
+			media: mmir.media,
+			dlg: mmir.dialog,
+			input: mmir.input,
 
 			isDebugVui: false
 		};
@@ -111,7 +111,7 @@
 		//get env:
 		// env.isBrowserEnv: BOOLEAN
 		// env.isCordovaEnv: BOOLEAN
-		_util.env = mmir.require('env');//NOTE: need to use requirejs(), since scion brings its own require-function
+		_util.env = mmir.require('mmirf/env');//NOTE: need to use requirejs(), since scion brings its own require-function
 
 
 		//apply config for debug-logging:
@@ -256,9 +256,9 @@
 
       		var newLang = _event.data &amp;&amp; _event.data.language ? _event.data.language : '';
           if(newLang){
-            currentLang = mmir.LanguageManager.getLanguage();
+            currentLang = mmir.lang.getLanguage();
             if(currentLang !== newLang){
-              newLang = mmir.LanguageManager.setLanguage(newLang);
+              newLang = mmir.lang.setLanguage(newLang);
               _util.dlg.perform('Application', 'updateLanguage', newLang);
             }
           }

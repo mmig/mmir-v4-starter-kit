@@ -18,7 +18,7 @@ mmir.ready(function () {
 
 	//FIXME HACK micrenderer
 	// mmir.app.renderer = mmir.app.renderer || {initPage: function(){}, repaint:function(){}};//FIXME dummy
-	mmir.app.initialize = mmir.require('jquery').Deferred();//FIXME HACK for ionic init
+	mmir.app.initialize = mmir.require('mmirf/util/deferred')();//FIXME HACK for ionic init
 
 
 	//FIXME "translate" to ionic
@@ -64,7 +64,7 @@ mmir.ready(function () {
 //    		}
 //    	}
 //
-//    	mmir.MediaManager.on('miclevelchanged', function(micLevel){
+//    	mmir.media.on('miclevelchanged', function(micLevel){
 //
 //    		var max = 90;
 //    		if(isCordova){
@@ -102,7 +102,7 @@ mmir.ready(function () {
 //    //setup handler for BACK button (and for swipe-left gesture)
 //    function initHistoryBackHandler() {
 //
-//    	var isCordovaEnv = ! mmir.Constants.isBrowserEnv();
+//    	var isCordovaEnv = ! mmir.const.isBrowserEnv();
 //
 //    	//generic BACK handler:
 //    	var backButtonHandler = function (event){
@@ -115,7 +115,7 @@ mmir.ready(function () {
 //        			return false; /////////////////////////// EARLY EXIT ///////////////////////////////////
 //        		}
 //        		triggerClickFeedback({haptic : false});//vibration is already triggered by system for this back-button...
-//        		mmir.DialogManager.raise('back', {
+//        		mmir.dialog.raise('back', {
 //    			    nativeBackButton : 'true'
 //    			});
 //        	}
@@ -179,7 +179,7 @@ mmir.ready(function () {
      */
     function microClicked(){
 
-    	var notification = mmir.NotificationManager;
+    	var notification = mmir.notifier;
     	notification.vibrate(500);
 
     	var isUseEndOfSpeechDetection = IS_WITH_END_OF_SPEECH_DETECTION;
@@ -200,7 +200,7 @@ mmir.ready(function () {
 
     	var evalSemantics = function(asr_result){
 
-    		mmir.SemanticInterpreter.getASRSemantic(asr_result, function(result){
+    		mmir.semantic.interpret(asr_result, function(result){
 
     			var semantic;
 	    		if(result.semantic != null) {
@@ -218,7 +218,7 @@ mmir.ready(function () {
 	    			};
 	    		}
 
-	    		mmir.InputEngine.raise("speech_input_event",  semantic);
+	    		mmir.input.raise("speech_input_event",  semantic);
 			});
 
     	};
@@ -251,7 +251,7 @@ mmir.ready(function () {
 //        			||	asr_type === 'INTERIM'
         		){
 
-		    		mmir.MediaManager.textToSpeech(asr_result,
+		    		mmir.media.tts(asr_result,
 
 		    				function onFinished(){
 
@@ -291,8 +291,8 @@ mmir.ready(function () {
     		console.error('[AudioInput] Error while finishing recoginition: '+JSON.stringify(err));
 
 
-       		var msg = JSON.stringify(err);//mmir.LanguageManager.getText('did_not_understand_msg');
-    		mmir.MediaManager.textToSpeech(msg, null, null);
+       	var msg = JSON.stringify(err);//mmir.LanguageManager.getText('did_not_understand_msg');
+    		mmir.media.tts(msg, null, null);
     	};
 
     	if(isUseEndOfSpeechDetection === false){
@@ -303,7 +303,7 @@ mmir.ready(function () {
 
     			console.log("[AudioInput] stop recoginition without automtic END OF SPEECH detection");
 
-    			mmir.MediaManager.stopRecord(successFunc, errorFunc);
+    			mmir.media.stopRecord(successFunc, errorFunc);
 
     		}
     		else {
@@ -312,7 +312,7 @@ mmir.ready(function () {
 
     			setActive(true);
 
-    			mmir.MediaManager.startRecord(
+    			mmir.media.startRecord(
     				successFunc, //FIXME should have different call for start/start-and-receive-intermediate-results ...
     				function onError(err){
     					var args = arguments;
@@ -332,7 +332,7 @@ mmir.ready(function () {
 
     			console.log("[AudioInput] speech recoginition with automtic END OF SPEECH detection: already in progress, stopping now...");
 
-    			mmir.MediaManager.stopRecord(
+    			mmir.media.stopRecord(
     				function onResult(res){
     					console.log("[AudioInput] MANUALLY stopped recoginition: "  + JSON.stringify(res));
     					successFunc.apply(null, arguments);
@@ -351,7 +351,7 @@ mmir.ready(function () {
 
     			setActive(true);
 
-    			mmir.MediaManager.recognize(successFunc, errorFunc);
+    			mmir.media.recognize(successFunc, errorFunc);
     		}
     	}
     }
@@ -375,7 +375,7 @@ mmir.ready(function () {
     function test_isNetworkAvailable(){
 
     	// Check if a network connection is established.
-    	if (mmir.CommonUtils.checkNetworkConnection() == false){
+    	if (mmir.util.checkNetworkConnection() == false){
     		alert("No network connection enabled.\nPlease enable network access.");
     	} else {
     		console.log("Network access is available.");

@@ -18,7 +18,7 @@ export class WelcomePage extends MmirPage {
     mmirProvider: MmirProvider
   ) {
     super(mmirProvider, ref);
-    this.userModel = this.mmir.ModelManager.getModel('User').getInstance();
+    this.userModel = this.mmir.model.get('User').getInstance();
   }
 
   ionViewDidLoad() {

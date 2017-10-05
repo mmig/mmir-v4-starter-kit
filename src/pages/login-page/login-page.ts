@@ -7,7 +7,7 @@ import { LanguageMenu } from './../../components/language-menu/language-menu';
 import { UserAuthProvider, UserAuth } from './../../providers/user-auth';
 import { MmirPage } from './../../models/MmirBasePage';
 import { MmirProvider } from './../../providers/mmir';
-import { ShowSpeechStateOptions } from '../../models/ISpeechInput';
+import { ShowSpeechStateOptions } from 'mmir-base-dialog';
 
 @Component({
   selector: 'login-page',
@@ -50,7 +50,7 @@ export class LoginPage extends MmirPage {
     this.initialized = new Promise<UserAuth>((resolve, reject) => {
 
       mmirProvider.ready().then(() => {
-        let user = this.mmir.ModelManager.getModel('User').getInstance();
+        let user = this.mmir.model.get('User').getInstance();
         if(user){
 
           this.authProvider.getUserAuth(user.getName()).then(registerdUser => {
@@ -114,7 +114,7 @@ export class LoginPage extends MmirPage {
 
       if(isValid){
 
-    		this.mmir.ModelManager.getModel('User').create(email);
+    		this.mmir.model.get('User').create(email);
     		this.dlg.raise("user_logged_in");
 
       } else {

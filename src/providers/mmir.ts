@@ -1,4 +1,3 @@
-import {ControllerManager} from './../models/MmirInterfaces';
 
 import { Injectable, Component } from '@angular/core';
 import { Http } from '@angular/http';
@@ -12,14 +11,17 @@ import 'rxjs/add/operator/distinctUntilChanged';
 import {Subject} from 'rxjs/Subject';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 
-import { MmirModule, DialogEngine, DialogManager, PresentationManager, Controller, View } from './../models/MmirInterfaces';
-import { ShowSpeechStateOptions, ReadingOptions, ReadingShowOptions, StopReadingOptions, RecognitionEmma, UnderstandingEmma } from './../models/ISpeechInput';
+import { MmirModule, DialogEngine, DialogManager, ControllerManager, PresentationManager, Controller, View } from 'mmir';
+import { ReadingOptions, ReadingShowOptions, StopReadingOptions } from '../models/SpeechData';
+import { ShowSpeechStateOptions, RecognitionEmma, UnderstandingEmma } from 'mmir-base-dialog';
 
 import { AppConfig } from './app-config';
 
-declare var mmir;//FIXME
+//FIXME should use import instead of declaring variable!
+// import * as mmir from 'mmir';
+declare var mmir;
 
-var __mmir = mmir;
+var __mmir: MmirModule = mmir as MmirModule;
 
 type SpeechEventName = 'showSpeechInputState' |                         //ISpeechState
                         'startMicLevels' | 'stopMicLevels' |            //ISpeechFeedback
@@ -135,12 +137,12 @@ export class MmirProvider {
       'read': new Subject<string|ReadingOptions>(),
       'stopReading': new Subject<StopReadingOptions>(),
       'showReadingStatus': new BehaviorSubject<ReadingShowOptions>(
-          {active: false, pageId: ''}//<-initial state
+          {active: false, dialogId: ''}//<-initial state
         ).distinctUntilChanged((state1: ReadingShowOptions, state2: ReadingShowOptions) => {
           if(state1.test || state2.test){
             return false;
           }
-          return state1.active === state2.active && state1.pageId === state2.pageId &&
+          return state1.active === state2.active && state1.dialogId === state2.dialogId &&
                   state1.readingId === state2.readingId && state1.targetId === state2.targetId &&
                   state1.readingData === state2.readingData;
         })//,
@@ -157,8 +159,8 @@ export class MmirProvider {
     this.isDebugVui = true;
   	this.appConfig.get('showVuiDebugOutput').then(isEnabled => {
   		this.isDebugVui = isEnabled;
-      if(this.mmir && this.mmir.DialogManager){
-        let dlg = this.mmir.DialogManager as IonicDialogManager;
+      if(this.mmir && this.mmir.dialog){
+        let dlg = this.mmir.dialog as IonicDialogManager;
         dlg._isDebugVui = isEnabled;
       }
   	});
@@ -183,9 +185,9 @@ export class MmirProvider {
     return new Promise<MmirProvider>((resolve, reject) => {
       this._mmir.ready(() => {
 
-        this.platform.setLang(this.mmir.LanguageManager.getLanguage(), true);
+        this.platform.setLang(this.mmir.lang.getLanguage(), true);
 
-        let presentMng: IonicPresentationManager = this.mmir.PresentationManager as IonicPresentationManager;
+        let presentMng: IonicPresentationManager = this.mmir.present as IonicPresentationManager;
         presentMng._ionicNavCtrl = this.nav;
         presentMng._getIonicViewController = function(ctrl: IonicController){
           let ionicViewController = this._ionicNavCtrl.getActive();
@@ -197,7 +199,7 @@ export class MmirProvider {
           return null;
         };
 
-        let ctrlManager = this.mmir.ControllerManager as IonicControllerManager;
+        let ctrlManager = this.mmir.ctrl as IonicControllerManager;
         let ctrl: IonicController;
         if(views){
           let decl: ViewDecl;
@@ -206,7 +208,7 @@ export class MmirProvider {
             decl = views[i];
             view = this.mmirCreateView(decl.name, decl.view);
 
-            ctrl = ctrlManager.getController(decl.ctrlName) as IonicController;
+            ctrl = ctrlManager.get(decl.ctrlName) as IonicController;
             if(!ctrl){
               ctrl = ctrlManager._createIonicController(decl.ctrlName, decl.name, decl.view);
             } else {
@@ -217,14 +219,14 @@ export class MmirProvider {
           }
         }
 
-        let ctrlList: Array<string> = ctrlManager.getControllerNames();
+        let ctrlList: Array<string> = ctrlManager.getNames();
         for(let i=ctrlList.length-1; i >= 0; --i){
-          ctrl = ctrlManager.getController(ctrlList[i]) as IonicController;
+          ctrl = ctrlManager.get(ctrlList[i]) as IonicController;
           ctrl._eventEmitter = new Subject<Action>();
         }
 
 
-        let dlg: IonicDialogManager = this.mmir.DialogManager as IonicDialogManager;
+        let dlg: IonicDialogManager = this.mmir.dialog as IonicDialogManager;
         dlg._perform = dlg.perform;//TODO do we need previous impl.?
         dlg._eventEmitter = this.evt;
         dlg._isDebugVui = this.isDebugVui;
@@ -243,7 +245,7 @@ export class MmirProvider {
           } else {
 
             //if component has a function actionName -> invoke this action
-            let ctrl = ctrlManager.getController(ctrlName) as IonicController;//TODO make ctrlManager instance property
+            let ctrl = ctrlManager.get(ctrlName) as IonicController;//TODO make ctrlManager instance property
             //FIXME should we check the requested controller's views (i.e. if the current view is one of the controller's)
             //      or should we just use/check the current view?
             let activeCtrlView = presentMng._getIonicViewController(ctrl);//TODO make presentMng instance propperty
@@ -268,7 +270,7 @@ export class MmirProvider {
         // };
 
 
-        let dlgEngine: IonicDialogEngine = this.mmir.DialogEngine as IonicDialogEngine;
+        let dlgEngine: IonicDialogEngine = this.mmir.dialogEngine as IonicDialogEngine;
 
         this.mmir.require(['emma'], (emma) => {
 

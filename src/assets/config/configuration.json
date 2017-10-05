@@ -27,7 +27,7 @@
     	"plugins": {
     		"browser": ["html5AudioOutput.js",
     		            "webspeechAudioInput.js",
-    		            { "mod": "webAudioTextToSpeech.js", "config": "ttsSpeakJsImpl"}
+    		            { "mod": "webAudioTextToSpeech.js", "config": "webttsMaryImpl"}
     		],
     		"cordova": ["cordovaAudioOutput.js",
     		            "androidAudioInput.js",

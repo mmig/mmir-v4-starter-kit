@@ -1,7 +1,7 @@
 import { Component, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
 import { ViewController } from 'ionic-angular';
 
-import {MmirModule, LanguageManager} from './../../models/MmirInterfaces';
+import {MmirModule, LanguageManager} from 'mmir';
 import {MmirProvider} from './../../providers/mmir';
 
 import {triggerClickFeedback} from '../../models/HapticFeedback';
@@ -28,7 +28,7 @@ export class LanguageMenu  implements OnInit, OnDestroy {
   ) {
     this.mmir = mmirProvider.mmir;
     this.mmir.ready(()=>{
-      this._lang = this.mmir.LanguageManager;
+      this._lang = this.mmir.lang;
       this.languages = this._lang.getLanguages();
       this.currentLanguage = this._lang.getLanguage();
       if(this._isInit && !this._isDestroyed){

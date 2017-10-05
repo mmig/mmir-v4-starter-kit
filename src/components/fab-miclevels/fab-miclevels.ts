@@ -1,12 +1,10 @@
 
 import { Component, Input, OnInit, OnDestroy, OnChanges, ViewChild } from '@angular/core';
 
-import { MmirProvider } from './../../providers/mmir';
+import { MmirProvider } from '../../providers/mmir';
 
-import { MmirModule } from './../../models/MmirInterfaces';
-import { SpeechFeedbackOptions, ISpeechFeedback } from './../../models/ISpeechInput';
-
-//TODO impl. interface ISpeechFeedback instead of OnInit/OnDestroy
+import { MmirModule } from 'mmir';
+import { SpeechFeedbackOptions, ISpeechFeedback } from 'mmir-base-dialog';
 
 @Component({
     selector: 'fab-miclevels',
@@ -42,7 +40,7 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
     @Input() active: boolean;
 
     constructor(
-        private mmirProvider: MmirProvider
+        mmirProvider: MmirProvider
     ) {
 
         this._mmir = mmirProvider.mmir;
@@ -54,7 +52,7 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
         // this.isNuanceSpeech = false;
     }
 
-    private static createMicLevelChangeHandler(fabMic: FabMiclevels): Function {
+    private static createMicLevelChangeHandler(fabMic: FabMiclevels): (micLevel: number, rms: number) => void {
 
         return function(micLevel: number, rms: number) {
 
@@ -124,6 +122,11 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
             return;
         }
 
+        if(!this.active){
+          //if mic is not active anymore, always paint mic-levels as 0
+          value = 0;
+        }
+
         const minLevelRad = this.targetRad;
         const centerx = this.width / 2;
         const centery = this.height / 2;
@@ -135,8 +138,8 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
         this.ctx.clearRect(0, 0, centerx * 2, centery * 2);
         this.ctx.beginPath();
         this.ctx.arc(centerx, centery, minLevelRad + value, 0, 2 * Math.PI);
-        this.ctx.fill()
-        this.ctx.restore()
+        this.ctx.fill();
+        this.ctx.restore();
     }
 
     ngOnInit() {
@@ -240,11 +243,11 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
 
               // console.log('registering mic-level-change handler...');//DEBUG
 
-              FabMiclevels.isCordova = this._mmir.require('env').isCordovaEnv;
+              FabMiclevels.isCordova = this._mmir.require('mmirf/env').isCordovaEnv;
               FabMiclevels.isNuanceSpeech = false;
 
               if (FabMiclevels.isCordova) {
-                  let cordovaSpeechModules = this._mmir.ConfigurationManager.get('mediaManager.plugins.cordova', true, null);
+                  let cordovaSpeechModules = this._mmir.conf.get('mediaManager.plugins.cordova', null);
                   if (cordovaSpeechModules) {
                       for (var i = cordovaSpeechModules.length - 1; i <= 0; --i) {
                           if (/nuanceAudioInput\.js/i.test(cordovaSpeechModules[i])) {
@@ -256,7 +259,7 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
                   }
               }
 
-              this._mmir.MediaManager.on('miclevelchanged', this.handleMicLevelChange);
+              this._mmir.media.on('miclevelchanged', this.handleMicLevelChange);
 
           });
         }
@@ -270,7 +273,7 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
 
         if (this._isInit) {
 
-          this._mmir.MediaManager.off('miclevelchanged', this.handleMicLevelChange)
+          this._mmir.media.off('miclevelchanged', this.handleMicLevelChange)
           this.handleMicLevelChange = null;
         }
     }

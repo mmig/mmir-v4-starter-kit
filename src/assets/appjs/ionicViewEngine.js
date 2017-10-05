@@ -4,7 +4,7 @@
  *
  * @example
  * //use page-transition with effect 'slide' (animated as not reversed motion)
- * mmir.DialogManager.render('theController', 'theView');
+ * mmir.dialog.render('theController', 'theView');
  *
  * @class
  * @name ionicViewEngine
@@ -14,17 +14,16 @@
  *  - Ionic2/Angular2
  *
  *  @depends Ionic2/Angular2
- *  @depends jQuery.Deferred
  *
  */
-define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
+define(['mmirf/util/deferred', 'mmirf/logger', 'module'],function(Deferred, Logger, module){
 
 	var log = Logger.create(module);
 
 
-	var promise = jquery.Deferred();
+	var promise = new Deferred();
 
-	require(['languageManager', 'controllerManager'],
+	require(['mmirf/languageManager', 'mmirf/controllerManager'],
 	    function(languageManager, controllerManager
 	){
 
@@ -82,7 +81,7 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 					//-> BACK: need to "update" dialog-engine, since BACK was triggered outside the state-engine
 					// WARNING: this also means that BACK must always be triggered via the navCtrl!
 					console.info('ionicViewEngine->BACK detected');//DEBUG
-					mmir.DialogManager.raise('back', {navRender: false});//<- just update the state-machine, without (re-) rendering the target view
+					mmir.dialog.raise('back', {navRender: false});//<- just update the state-machine, without (re-) rendering the target view
 				}//TODO else ...? trigger a listener?
 			}
 		};
@@ -249,21 +248,26 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 			render: doRenderView,
 			/**
              * Closes a modal window / dialog.<br>
-             * 
-             * TODO impl. with Ionic's ModalController(?)
+             *
+             * TODO impl
              *
              * @function hideCurrentDialog
              * @public
              */
             hideCurrentDialog : function() {
 
-                console.error('PresentationManager[ionicViewEngine].hideCurrentDialog: not implemented yet');
+//                 if (that.modal != null) {
+//                 	//TODO implement this!
+// //                    that.modal.close();
+//                 }
+//                 else {
+                	console.warn('PresentationManager[ionicViewEngine].hideCurrentDialog: not implemented yet!');
+                // }
             },
             /**
              * Opens the requested dialog.<br>
-             * 
-             * TODO impl. with Ionic's ModalController(?)
-             * 
+             *
+             * @depends jQuery Mobile SimpleModal
              * @depends mmir.ControllerManager
              *
              *
@@ -282,24 +286,22 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
             showDialog : function(ctrlName, dialogId, data) {
 
             	//TODO implement!!
-//				this.hideCurrentDialog();
-//
-//				var ctrl = controllerManager.getController(ctrlName);
-//
-//				if (ctrl != null) {
-//
-//					//TODO
-//
-//				} else {
-//					console.error("PresentationManager[ionicViewEngine].showDialog: Could not find Controller for '" + ctrlName + "'");
-//				}
-            	console.error("PresentationManager[ionicViewEngine].showDialog: not implemented yet");
+
+				this.hideCurrentDialog();
+
+				var ctrl = controllerManager.get(ctrlName);
+
+				if (ctrl != null) {
+
+					//TODO
+
+				} else {
+					console.error("PresentationManager[ionicViewEngine].showDialog: Could not find Controller for '" + ctrlName + "'");
+				}
 			},
 
 			/**
 			 * Shows a "wait" dialog, i.e. "work in progress" notification.
-			 * 
-			 * TODO impl. with Ionic components
 			 *
 			 * @function showWaitDialog
 			 *
@@ -308,13 +310,14 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 			 * 				If omitted the language setting for <code>loadingText</code>
 			 * 				will be used instead (from dictionary.json)
 			 * @param {String} [theme] OPTIONAL
-			 * 				set the theme to be used for the wait-dialog
-			 * 				(e.g. TODO).
+			 * 				set the jQuery Mobile theme to be used for the wait-dialog
+			 * 				(e.g. "a" or "b").
 			 * 				NOTE: if this argument is used, then the <code>text</code>
 			 * 					  must also be supplied.
 			 *
 			 * @public
 			 *
+			 * @depends stdlne-wait-dlg (Standalone Wait Dialog)
 			 * @depends mmir.LanguageManager
 			 *
 			 * @see #hideWaitDialog
@@ -330,24 +333,21 @@ define(['jquery', 'logger', 'module'],function(jquery, Logger, module){
 //
 //				dlg.show(loadingText, _viewEngineWaitId);
 				//TODO
-            	console.error("PresentationManager[ionicViewEngine].showWaitDialog: not implemented yet");
 			},
 
 			/**
 			 * Hides / closes the "wait" dialog.
-			 * 
-			 * TODO impl. with Ionic components
 			 *
 			 * @function hideWaitDialog
 			 * @public
 			 *
+			 * @depends stdlne-wait-dlg (Standalone Wait Dialog)
 			 *
 			 * @see #showWaitDialog
 			 */
 			hideWaitDialog : function() {
 //				dlg.hide(_viewEngineWaitId);
 				//TODO
-            	console.error("PresentationManager[ionicViewEngine].hideWaitDialog: not implemented yet");
 			}
 
 //			/////////////////////////////////// Additional non-standard functions & properties /////////////

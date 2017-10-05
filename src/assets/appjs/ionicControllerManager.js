@@ -1,5 +1,5 @@
 
-define(['dictionary', 'controller'],
+define(['mmirf/dictionary', 'mmirf/controller'],
 
 	/**
 	 * A class for managing the controllers of the application. <br>
@@ -101,20 +101,6 @@ define(['dictionary', 'controller'],
 	var _instance = {
 			/** @scope mmir.ControllerManager.prototype *///for jsdoc2
 
-			/**
-			 * Get instance of ControllerManager.
-			 *
-			 * @deprecated use directly: instead of <code>mmir.ControllerManager.getInstance()</code> use <code>mmir.ControllerManager</code>
-			 *
-			 * NOTE: The ControllerManager must be initialized, before it can be used! (see {@link ControllerManager#init})
-			 *
-			 * @memberOf mmir.ControllerManager.prototype
-			 */
-			getInstance : function () {
-
-				return this;
-			},
-
 			// public members
 
 			/**
@@ -125,7 +111,7 @@ define(['dictionary', 'controller'],
 			 * @returns {Object} controller if found, null else
 			 * @public
 			 */
-			getController: function(ctrlName){
+			get: function(ctrlName){
 				var ctrl = controllers.get(ctrlName);
 				if(!ctrl){
 					return null;
@@ -141,7 +127,7 @@ define(['dictionary', 'controller'],
 			 * @returns {Array<String>} Names of all loaded controllers
 			 * @public
 			 */
-			getControllerNames: function(){
+			getNames: function(){
 
 				return controllers.getKeys();
 			},
@@ -158,7 +144,7 @@ define(['dictionary', 'controller'],
 			 * @public
 			 */
 			perform: function(ctrlName, actionName, data){
-				var ctrl = this.getController(ctrlName);
+				var ctrl = this.get(ctrlName);
 				if (ctrl != null) {
 					return ctrl.perform(actionName, data);
 				}
@@ -180,7 +166,7 @@ define(['dictionary', 'controller'],
 			 */
 			performHelper: function(ctrlName, actionName, data) {
 
-				var ctrl = this.getController(ctrlName);
+				var ctrl = this.get(ctrlName);
 				if (ctrl != null) {
 					if(arguments.length > 3){
 						return ctrl.performHelper(actionName, data, arguments[3]);
@@ -219,7 +205,7 @@ define(['dictionary', 'controller'],
 			 * 				a Deferred.promise that will get fulfilled when controllers are loaded
 			 * @example
 			 *  //recommended style:
-			 *  require(['controllerManager', ...], function(controllerManager, ...) {
+			 *  require(['mmirf/controllerManager', ...], function(controllerManager, ...) {
 			 *  	controllerManager.init().then(function(theInitializedControllerInstance){
 			 *  		...
 			 *  	});
@@ -227,10 +213,10 @@ define(['dictionary', 'controller'],
 			 *
 			 *  //old style:
 			 * 	function afterLoadingControllers(controllerManagerInstance){
-			 * 		var appCtrl = controllerManagerInstance.getController('Application');
+			 * 		var appCtrl = controllerManagerInstance.get('Application');
 			 * 		//do something...
 			 * 	}
-			 * 	mmir.ControllerManager.init(afterLoadingControllers);
+			 * 	mmir.ctrl.init(afterLoadingControllers);
 			 * @public
 			 */
 			init: _init

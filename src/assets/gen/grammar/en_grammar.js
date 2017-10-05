@@ -1,18 +1,23 @@
-(function(){
-  var semanticInterpreter = require("semanticInterpreter");
-var options = {fileFormat:4,execMode:"sync"};
+(function(global){
+var mmirName = typeof MMIR_CORE_NAME === "string"? MMIR_CORE_NAME : "mmir";
+var mmir = global? global[mmirName] : void(0);
+var require = mmir && mmir.require? mmir.require : (typeof requirejs !== "undefined"? requirejs : (global? global.require : require));
+var semanticInterpreter = require("mmirf/semanticInterpreter");
+var options = {fileFormat:5,execMode:"\"sync\""};
 var grammarFunc = function(asr_recognized_text){
 var theGrammarConverterInstance = this;
 
  
+  var _tokenList = function(match, list) {if(!list){list = [];}var size = match.length, t;for (var i = 0; i < size; ++i) {t = match[i];if (!t) {continue;}if (t.tok.join) {_tokenList(t.tok, list);} else {list.push(t.tok);}}return list;};
+  var _getTok = function(phrases, type, index) {var count = 0, p;for(var i=0, size = phrases.length; i < size; ++i){p = phrases[i];if(p.type === type){if(index === count++){return typeof p.tok === 'string'? p.tok : p;}}}};
   var _$result = '';
-  var _$room = {};
-  var _$device = {};
-  var _$all_devices = {};
-  var _$state = {};
-  var _$rest = {};
-  var _$ctrl_device = {};
-  var _$ctrl_all_devices = {};
+  var _$room = [];
+  var _$device = [];
+  var _$all_devices = [];
+  var _$state = [];
+  var _$rest = [];
+  var _$ctrl_device = [];
+  var _$ctrl_all_devices = [];
 
 
 /*
@@ -454,31 +459,31 @@ switch( match )
 {
 	case 2:
 		{
-		 _$room[info.att] = info.att; 
+		 _$room.push(info.att);info.att = {i: ( info.offset - info.att.length ),type: 'room',tok: info.att}; 
 		}
 		break;
 
 	case 3:
 		{
-		 _$device[info.att] = info.att; 
+		 _$device.push(info.att);info.att = {i: ( info.offset - info.att.length ),type: 'device',tok: info.att}; 
 		}
 		break;
 
 	case 4:
 		{
-		 _$all_devices[info.att] = info.att; 
+		 _$all_devices.push(info.att);info.att = {i: ( info.offset - info.att.length ),type: 'all_devices',tok: info.att}; 
 		}
 		break;
 
 	case 5:
 		{
-		 _$state[info.att] = info.att; 
+		 _$state.push(info.att);info.att = {i: ( info.offset - info.att.length ),type: 'state',tok: info.att}; 
 		}
 		break;
 
 	case 6:
 		{
-		 _$rest[info.att] = info.att; 
+		 _$rest.push(info.att);info.att = {i: ( info.offset - info.att.length ),type: 'rest',tok: info.att}; 
 		}
 		break;
 
@@ -750,32 +755,36 @@ switch( act )
 	break;
 	case 2:
 	{
-		 rval = vstack[ vstack.length - 3 ] + ' ' + vstack[ vstack.length - 2 ] + ' ' + vstack[ vstack.length - 1 ]; var ctrl_device_temp = {}; ctrl_device_temp['phrases'] = {};ctrl_device_temp['phrases']['device'] = [];ctrl_device_temp['phrases']['device'][0] = {tok: vstack[ vstack.length - 3 ],i: 0};
-		ctrl_device_temp['phrases']['room'] = [];ctrl_device_temp['phrases']['room'][0] = {tok: vstack[ vstack.length - 2 ],i: 1};
-		ctrl_device_temp['phrases']['state'] = [];ctrl_device_temp['phrases']['state'][0] = {tok: vstack[ vstack.length - 1 ],i: 2};
-		var _$phrase = rval; ctrl_device_temp['phrase']=_$phrase; ctrl_device_temp['utterance']='ctrl_device'; ctrl_device_temp['engine']='jscc'; ctrl_device_temp['semantic'] = {"location": function(){try{return _$room[ctrl_device_temp['phrases']['room'][0].tok];} catch(e){return void(0);}}() ,"target": function(){try{return _$device[ctrl_device_temp['phrases']['device'][0].tok];} catch(e){return void(0);}}() ,"action": function(){try{return _$state[ctrl_device_temp['phrases']['state'][0].tok];} catch(e){return void(0);}}() }; _$ctrl_device[_$phrase] = ctrl_device_temp; _$result = ctrl_device_temp; 
+		 rval = {i: vstack[ vstack.length - 3 ].i,type: 'ctrl_device',tok: null}; var ctrl_device_temp = {}, tempMatch; ctrl_device_temp['phrases'] = [];tempMatch = vstack[ vstack.length - 3 ];ctrl_device_temp['phrases'].push(tempMatch);
+		tempMatch = vstack[ vstack.length - 2 ];ctrl_device_temp['phrases'].push(tempMatch);
+		tempMatch = vstack[ vstack.length - 1 ];ctrl_device_temp['phrases'].push(tempMatch);
+		rval.tok = ctrl_device_temp['phrases'];ctrl_device_temp['phrase']=_tokenList(ctrl_device_temp['phrases']).join(' ');
+ ctrl_device_temp['utterance']='ctrl_device'; ctrl_device_temp['engine']='jscc'; ctrl_device_temp['semantic'] = {"location": function(){try{ var res = _getTok(ctrl_device_temp['phrases'],'room', 0); return typeof res === 'string'? res : (typeof res === 'object' && res? _$room[0] : void(0));} catch(e){return void(0);}}() ,"target": function(){try{ var res = _getTok(ctrl_device_temp['phrases'],'device', 0); return typeof res === 'string'? res : (typeof res === 'object' && res? _$device[0] : void(0));} catch(e){return void(0);}}() ,"action": function(){try{ var res = _getTok(ctrl_device_temp['phrases'],'state', 0); return typeof res === 'string'? res : (typeof res === 'object' && res? _$state[0] : void(0));} catch(e){return void(0);}}() }; _$ctrl_device.push(ctrl_device_temp); _$result = ctrl_device_temp; 
 	}
 	break;
 	case 3:
 	{
-		 rval = vstack[ vstack.length - 3 ] + ' ' + vstack[ vstack.length - 2 ] + ' ' + vstack[ vstack.length - 1 ]; var ctrl_device_temp = {}; ctrl_device_temp['phrases'] = {};ctrl_device_temp['phrases']['room'] = [];ctrl_device_temp['phrases']['room'][0] = {tok: vstack[ vstack.length - 3 ],i: 0};
-		ctrl_device_temp['phrases']['device'] = [];ctrl_device_temp['phrases']['device'][0] = {tok: vstack[ vstack.length - 2 ],i: 1};
-		ctrl_device_temp['phrases']['state'] = [];ctrl_device_temp['phrases']['state'][0] = {tok: vstack[ vstack.length - 1 ],i: 2};
-		var _$phrase = rval; ctrl_device_temp['phrase']=_$phrase; ctrl_device_temp['utterance']='ctrl_device'; ctrl_device_temp['engine']='jscc'; ctrl_device_temp['semantic'] = {"location": function(){try{return _$room[ctrl_device_temp['phrases']['room'][0].tok];} catch(e){return void(0);}}() ,"target": function(){try{return _$device[ctrl_device_temp['phrases']['device'][0].tok];} catch(e){return void(0);}}() ,"action": function(){try{return _$state[ctrl_device_temp['phrases']['state'][0].tok];} catch(e){return void(0);}}() }; _$ctrl_device[_$phrase] = ctrl_device_temp; _$result = ctrl_device_temp; 
+		 rval = {i: vstack[ vstack.length - 3 ].i,type: 'ctrl_device',tok: null}; var ctrl_device_temp = {}, tempMatch; ctrl_device_temp['phrases'] = [];tempMatch = vstack[ vstack.length - 3 ];ctrl_device_temp['phrases'].push(tempMatch);
+		tempMatch = vstack[ vstack.length - 2 ];ctrl_device_temp['phrases'].push(tempMatch);
+		tempMatch = vstack[ vstack.length - 1 ];ctrl_device_temp['phrases'].push(tempMatch);
+		rval.tok = ctrl_device_temp['phrases'];ctrl_device_temp['phrase']=_tokenList(ctrl_device_temp['phrases']).join(' ');
+ ctrl_device_temp['utterance']='ctrl_device'; ctrl_device_temp['engine']='jscc'; ctrl_device_temp['semantic'] = {"location": function(){try{ var res = _getTok(ctrl_device_temp['phrases'],'room', 0); return typeof res === 'string'? res : (typeof res === 'object' && res? _$room[0] : void(0));} catch(e){return void(0);}}() ,"target": function(){try{ var res = _getTok(ctrl_device_temp['phrases'],'device', 0); return typeof res === 'string'? res : (typeof res === 'object' && res? _$device[0] : void(0));} catch(e){return void(0);}}() ,"action": function(){try{ var res = _getTok(ctrl_device_temp['phrases'],'state', 0); return typeof res === 'string'? res : (typeof res === 'object' && res? _$state[0] : void(0));} catch(e){return void(0);}}() }; _$ctrl_device.push(ctrl_device_temp); _$result = ctrl_device_temp; 
 	}
 	break;
 	case 4:
 	{
-		 rval = vstack[ vstack.length - 2 ] + ' ' + vstack[ vstack.length - 1 ]; var ctrl_all_devices_temp = {}; ctrl_all_devices_temp['phrases'] = {};ctrl_all_devices_temp['phrases']['all_devices'] = [];ctrl_all_devices_temp['phrases']['all_devices'][0] = {tok: vstack[ vstack.length - 2 ],i: 0};
-		ctrl_all_devices_temp['phrases']['state'] = [];ctrl_all_devices_temp['phrases']['state'][0] = {tok: vstack[ vstack.length - 1 ],i: 1};
-		var _$phrase = rval; ctrl_all_devices_temp['phrase']=_$phrase; ctrl_all_devices_temp['utterance']='ctrl_all_devices'; ctrl_all_devices_temp['engine']='jscc'; ctrl_all_devices_temp['semantic'] = {"target": function(){try{return _$all_devices[ctrl_all_devices_temp['phrases']['all_devices'][0].tok];} catch(e){return void(0);}}() ,"action": function(){try{return _$state[ctrl_all_devices_temp['phrases']['state'][0].tok];} catch(e){return void(0);}}() }; _$ctrl_all_devices[_$phrase] = ctrl_all_devices_temp; _$result = ctrl_all_devices_temp; 
+		 rval = {i: vstack[ vstack.length - 2 ].i,type: 'ctrl_all_devices',tok: null}; var ctrl_all_devices_temp = {}, tempMatch; ctrl_all_devices_temp['phrases'] = [];tempMatch = vstack[ vstack.length - 2 ];ctrl_all_devices_temp['phrases'].push(tempMatch);
+		tempMatch = vstack[ vstack.length - 1 ];ctrl_all_devices_temp['phrases'].push(tempMatch);
+		rval.tok = ctrl_all_devices_temp['phrases'];ctrl_all_devices_temp['phrase']=_tokenList(ctrl_all_devices_temp['phrases']).join(' ');
+ ctrl_all_devices_temp['utterance']='ctrl_all_devices'; ctrl_all_devices_temp['engine']='jscc'; ctrl_all_devices_temp['semantic'] = {"target": function(){try{ var res = _getTok(ctrl_all_devices_temp['phrases'],'all_devices', 0); return typeof res === 'string'? res : (typeof res === 'object' && res? _$all_devices[0] : void(0));} catch(e){return void(0);}}() ,"action": function(){try{ var res = _getTok(ctrl_all_devices_temp['phrases'],'state', 0); return typeof res === 'string'? res : (typeof res === 'object' && res? _$state[0] : void(0));} catch(e){return void(0);}}() }; _$ctrl_all_devices.push(ctrl_all_devices_temp); _$result = ctrl_all_devices_temp; 
 	}
 	break;
 	case 5:
 	{
-		 rval = vstack[ vstack.length - 2 ] + ' ' + vstack[ vstack.length - 1 ]; var ctrl_all_devices_temp = {}; ctrl_all_devices_temp['phrases'] = {};ctrl_all_devices_temp['phrases']['state'] = [];ctrl_all_devices_temp['phrases']['state'][0] = {tok: vstack[ vstack.length - 2 ],i: 0};
-		ctrl_all_devices_temp['phrases']['all_devices'] = [];ctrl_all_devices_temp['phrases']['all_devices'][0] = {tok: vstack[ vstack.length - 1 ],i: 1};
-		var _$phrase = rval; ctrl_all_devices_temp['phrase']=_$phrase; ctrl_all_devices_temp['utterance']='ctrl_all_devices'; ctrl_all_devices_temp['engine']='jscc'; ctrl_all_devices_temp['semantic'] = {"target": function(){try{return _$all_devices[ctrl_all_devices_temp['phrases']['all_devices'][0].tok];} catch(e){return void(0);}}() ,"action": function(){try{return _$state[ctrl_all_devices_temp['phrases']['state'][0].tok];} catch(e){return void(0);}}() }; _$ctrl_all_devices[_$phrase] = ctrl_all_devices_temp; _$result = ctrl_all_devices_temp; 
+		 rval = {i: vstack[ vstack.length - 2 ].i,type: 'ctrl_all_devices',tok: null}; var ctrl_all_devices_temp = {}, tempMatch; ctrl_all_devices_temp['phrases'] = [];tempMatch = vstack[ vstack.length - 2 ];ctrl_all_devices_temp['phrases'].push(tempMatch);
+		tempMatch = vstack[ vstack.length - 1 ];ctrl_all_devices_temp['phrases'].push(tempMatch);
+		rval.tok = ctrl_all_devices_temp['phrases'];ctrl_all_devices_temp['phrase']=_tokenList(ctrl_all_devices_temp['phrases']).join(' ');
+ ctrl_all_devices_temp['utterance']='ctrl_all_devices'; ctrl_all_devices_temp['engine']='jscc'; ctrl_all_devices_temp['semantic'] = {"target": function(){try{ var res = _getTok(ctrl_all_devices_temp['phrases'],'all_devices', 0); return typeof res === 'string'? res : (typeof res === 'object' && res? _$all_devices[0] : void(0));} catch(e){return void(0);}}() ,"action": function(){try{ var res = _getTok(ctrl_all_devices_temp['phrases'],'state', 0); return typeof res === 'string'? res : (typeof res === 'object' && res? _$state[0] : void(0));} catch(e){return void(0);}}() }; _$ctrl_all_devices.push(ctrl_all_devices_temp); _$result = ctrl_all_devices_temp; 
 	}
 	break;
 	case 6:
@@ -858,8 +867,10 @@ __parse( asr_recognized_text, new Array(), new Array(), _semanticAnnotationResul
 return _semanticAnnotationResult.result;
 
 };
+
+options.stopwords=["in","switch","turn","turned","please","the","and"];
 semanticInterpreter.addGrammar("en", grammarFunc, options);
 
-semanticInterpreter.setStopwords("en",["in","switch","turn","turned","please","the","and"]);
 return grammarFunc;
-})();
+})(typeof window !== "undefined"? window : global);
+

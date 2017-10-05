@@ -1,13 +1,9 @@
 
-import { MediaManager, DialogManager } from './MmirInterfaces';
-import { ReadingData } from './ISpeechInput';
+import { MediaManager, DialogManager } from 'mmir';
+import { ReadingData } from './SpeechData';
+import { prepareAcronyms , prepareAbbrevations , prepareDates , PromptType } from './PromptUtils';
 
 export class PromptReader {
-
-  // public static readonly PROMPT_RESULTS_FOUND = 'results-found-prompt';
-  public static readonly PROMPT_WELCOME = 'welcome-prompt';
-  public static readonly PROMPT_ANSWER = 'answer-prompt';
-
 
   protected _ttsActive: boolean;
   public get active(): boolean { return this._ttsActive; }
@@ -18,11 +14,6 @@ export class PromptReader {
   constructor(private dlg: DialogManager, private media: MediaManager){
     this._ttsActive = false;
     this.cancelOnNew = false;
-  }
-
-  public static isPromptId(id: string) : boolean {
-    //TODO use enum for prompt IDs
-    return id === PromptReader.PROMPT_WELCOME || id === PromptReader.PROMPT_ANSWER;//TODO: || id === PromptReader.PROMPT_RESULTS_FOUND;
   }
 
   public setActive(newState?: boolean) : boolean {
@@ -49,47 +40,27 @@ export class PromptReader {
     this.doRead(startPrompt);
   }
 
-  public readAnswer(answerPrompt: ReadingData){
+  public readMessage(answerPrompt: ReadingData, promptType: PromptType){
 
     //split into sentences, so that TTS can start after audio for 1st sentence was prepared
     // (instead of waiting for audio of complete text)
     let sentences: Array<string> = this.prepareSentences(
       //improve reading of acronyms by "spelling them out"
-      this.prepareAcronyms(answerPrompt.promptText)
+      prepareAcronyms(answerPrompt.promptText[1]), promptType
     );
+
+    sentences.unshift(answerPrompt.promptText[0]);
 
     this.doRead(sentences);
   }
 
-  prepareAcronyms(text: string): string {
+  prepareSentences(text: string, promptType: PromptType): Array<string>{
 
-    const len = text.length;
+    //read dates "<number> ten" (i.e. not "as subject", i.e. not as "<number> ter")
+    let useDateAsSubject: boolean = false;//promptType !== PromptType.PROMPT_DEADLINES;
 
-    //replace "SUV" with explicit German pronounciation
-    // text = text.replace(/\bSUV\b/g, 'Es Ju Wie,');TODO handle known special cases, that we know are treated incorretly by the TTS
-
-    //try to space-out letters in acronyms:
-    let re = /([ABCDEFGHIJKLMNOPQRSTUVWXYZ][ABCDEFGHIJKLMNOPQRSTUVWXYZ]+)/g;//<- RegExp for detecting acronyms (i.e. with 2 or more upper-case chars in a row)
-    text = text.replace(re, (acronym, match1, index) => {
-
-      //insert spaces between chars of detected acronym
-      let pronounciation = acronym.split('').join(' ');
-
-      //if acronym is followed by a whitespace, insert a comma (i.e. add a short pause for TTS)
-      let nextCharPos = index + acronym.length;//<- really: index + (acronym.length - 1) + 1
-      if(nextCharPos < len - 2 && /\s/.test(text.charAt(nextCharPos))){
-        pronounciation += ',';
-      }
-
-      return pronounciation;
-    });
-
-    return text;
-  }
-
-  prepareSentences(text: string): Array<string>{
     //split at ". ", i.e. <dot> FOLLOWED BY <white-space> OR <end>)
-    let sentences = text.split(/\.(\s|$)/m);
+    let sentences = prepareAbbrevations( prepareDates(text, useDateAsSubject)).split(/\.(\s|$)/m);
     for(let i=sentences.length - 1; i >= 0; --i){
 
       //remove empty entries from the array:
@@ -122,7 +93,7 @@ export class PromptReader {
     this.dlg.raise('reading-started');
     var self = this;
 
-    this.media.textToSpeech(text,
+    this.media.tts(text,
 
         function onFinished(){
 

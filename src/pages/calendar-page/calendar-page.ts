@@ -68,7 +68,7 @@ export class CalendarPage extends MmirPage {
 
     };
 
-    this.mmir.ModelManager.getModel('CalendarModel').getInstance().save_appointment(jData, cb_func);
+    this.mmir.model.get('CalendarModel').getInstance().save_appointment(jData, cb_func);
   }
 
 }

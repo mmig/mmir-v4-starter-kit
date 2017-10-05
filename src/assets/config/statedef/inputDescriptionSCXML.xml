@@ -29,10 +29,10 @@
 	    <!-- transition event="event" name="event">
 	        <script>
 	            if( mmir.app.isTactileEvent(_event.data) ){
-	            	mmir.InputManager.raise('touch', _event.data);
+	            	mmir.input.raise('touch', _event.data);
 	            }
 	            else if( mmir.app.isSpeechEvent(_event.data) ){
-	            	mmir.InputManager.raise('speech', _event.data);
+	            	mmir.input.raise('speech', _event.data);
 	            }
 	        </script>
 	    </transition-->
@@ -81,7 +81,7 @@
 		            <script>
 		                console.warn('entered Touch.Raw with '+ JSON.stringify(touch_data));
 
-		                mmir.DialogManager.raise('touch-raw', touch_data);
+		                mmir.dialog.raise('touch-raw', touch_data);
 		            </script>
 		        </onentry>
 		    </state>
@@ -90,10 +90,10 @@
 					<onentry>
 							<script>
 
-									var emma = mmir.DialogManager._emma._extractEmmaFuncData(touch_data, 'understanding');
+									var emma = mmir.dialog._emma._extractEmmaFuncData(touch_data, 'understanding');
 									console.info('entered Touch.Understanding with '+ JSON.stringify(emma));
 
-									mmir.DialogManager.raise(emma.name, emma.data);
+									mmir.dialog.raise(emma.name, emma.data);
 							</script>
 					</onentry>
 				</state>
@@ -154,7 +154,7 @@
 		            <script>
 		                console.info('entered Speech.Recognition with '+ JSON.stringify(speech_data));
 
-		                mmir.DialogManager.raise('speech-recognition', speech_data);
+		                mmir.dialog.raise('speech-recognition', speech_data);
 		            </script>
 		        </onentry>
 		    </state>
@@ -163,7 +163,7 @@
 	        	<onentry>
 		            <script>
 		                console.info('entrered Speech.Understanding with '+ JSON.stringify(speech_data));
-		                mmir.DialogManager.raise('speech-understanding', speech_data);
+		                mmir.dialog.raise('speech-understanding', speech_data);
 		            </script>
 		        </onentry>
 		    </state>

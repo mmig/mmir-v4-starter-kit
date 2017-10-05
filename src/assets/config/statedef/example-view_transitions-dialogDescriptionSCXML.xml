@@ -40,7 +40,7 @@
 	    
 		<onentry>
 			<script>
-				mmir.DialogManager.render('Application', 'login', {transition: navigation_transition, reverse: navigation_backwards_direction});
+				mmir.dialog.render('Application', 'login', {transition: navigation_transition, reverse: navigation_backwards_direction});
 			</script>
    			<assign expr="false" location="navigation_backwards_direction"></assign>
    			<assign expr="'slide'" location="navigation_transition"></assign>
@@ -51,7 +51,7 @@
 		
 		<transition name="click_on_language_btn" event="click_on_language_btn" >
 	        <script>
-		        mmir.DialogManager.perform('Application','slide_down_language_menu');
+		        mmir.dialog.perform('Application','slide_down_language_menu');
 	        </script>
 	    </transition>
 	
@@ -60,10 +60,10 @@
 	        <script>
 	            var isChanged = _event.data &amp;&amp; _event.data.changed ? _event.data.changed : false;
 	            if(isChanged){
-					mmir.DialogManager.render('Application', 'login', {transition: navigation_transition, reverse: navigation_backwards_direction});
+					mmir.dialog.render('Application', 'login', {transition: navigation_transition, reverse: navigation_backwards_direction});
 				}
 				else {
-					mmir.DialogManager.perform('Application','slide_up_language_menu');
+					mmir.dialog.perform('Application','slide_up_language_menu');
 				}
 	        </script>
    			<assign expr="'slide'" location="navigation_transition"></assign>
@@ -74,7 +74,7 @@
 	<state id="registration_form" name="registration_form">
 		<onentry>
 			<script>
-				mmir.DialogManager.render('Application', 'registration', {transition: navigation_transition, reverse: navigation_backwards_direction});
+				mmir.dialog.render('Application', 'registration', {transition: navigation_transition, reverse: navigation_backwards_direction});
 			</script>
    			<assign expr="false" location="navigation_backwards_direction"></assign>
 		</onentry>
@@ -87,7 +87,7 @@
 	<state id="try_to_register_new_user" name="try_to_register_new_user">
 		<onentry>
 			<script>
-				mmir.DialogManager.perform('Application', 'register');
+				mmir.dialog.perform('Application', 'register');
 			</script>
 		</onentry>
 		<transition cond="mmir.User.getInstance() == null" target="main_state"></transition>
@@ -97,7 +97,7 @@
 	<state id="login_user" name="login_user">
 		<onentry>
 			<script>
-				mmir.DialogManager.perform('Application','login', {transition: navigation_transition, reverse: navigation_backwards_direction});
+				mmir.dialog.perform('Application','login', {transition: navigation_transition, reverse: navigation_backwards_direction});
 			</script>
    			<assign expr="false" location="navigation_backwards_direction"></assign>
 		</onentry>
@@ -109,7 +109,7 @@
 	<state id="logged_in" name="logged_in">
 		<onentry>
 			<script>
-				mmir.DialogManager.render('Application', 'welcome', {transition: navigation_transition, reverse: navigation_backwards_direction});
+				mmir.dialog.render('Application', 'welcome', {transition: navigation_transition, reverse: navigation_backwards_direction});
 			</script>
    			<assign expr="false" location="navigation_backwards_direction"></assign>
 		</onentry>
@@ -124,7 +124,7 @@
 		<initial>
 			<onentry>
 				<script>
-					mmir.DialogManager.render('Calendar', 'create_appointment', {transition: navigation_transition, reverse: navigation_backwards_direction});
+					mmir.dialog.render('Calendar', 'create_appointment', {transition: navigation_transition, reverse: navigation_backwards_direction});
 				</script>
    				<assign expr="false" location="navigation_backwards_direction"></assign>
 			</onentry>
@@ -146,7 +146,7 @@
 			<onentry>
 				<script>
 					var data = jQuery.parseJSON('{"container_id":"create_appointment"}');
-					var result = mmir.DialogManager.perform('Calendar','create_appointment',data);
+					var result = mmir.dialog.perform('Calendar','create_appointment',data);
 				</script>
 			</onentry>
 			<transition target="logged_in" />

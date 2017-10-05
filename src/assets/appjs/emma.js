@@ -1,4 +1,4 @@
-define(['core', 'jquery'], function(mmir, $){
+define(['mmirf/core', 'mmirf/util/extendDeep'], function(mmir, extend){
 
 	/** @memberOf Emma# */
 	var defaultTactileInterpretation = {
@@ -78,7 +78,7 @@ define(['core', 'jquery'], function(mmir, $){
 			emmaIntp[modality] = {};
 		}
 
-		$.extend(emmaIntp[modality], {
+		extend(emmaIntp[modality], {
 			type: getType(evt)
 		});
 	}
@@ -90,10 +90,10 @@ define(['core', 'jquery'], function(mmir, $){
 			emmaIntp[modality] = {};
 		}
 
-		var src = $(evt.target);
+		var src = evt.currentTarget || evt.target;
 
 		var classesSet = {
-			keys: src.attr('class').split(/\s+/gm).filter(function(value){
+			keys: src['className'].split(/\s+/gm).filter(function(value){
 				if(value) return true;
 				return false;
 			})
@@ -102,13 +102,18 @@ define(['core', 'jquery'], function(mmir, $){
 			classesSet[value] = true;
 		});
 
-		$.extend(emmaIntp[modality], {
+		var data = {};
+		for(var n in src.dataset){
+			data[n] = src.dataset[n];
+		}
+
+		extend(emmaIntp[modality], {
 			reference: {
-				type: src.prop('tagName'),
-				id: src.attr('id'),
-				name: src.attr('name'),
+				type: src['tagName'],
+				id: src['id'],
+				name: src['name'],
 				classes: classesSet,
-				data: src.attr('data')//TODO add/merge with jQuery-data?
+				data: data
 			}
 		});
 	}
@@ -229,7 +234,7 @@ define(['core', 'jquery'], function(mmir, $){
 						, id: guid()
 				};
 
-				$.extend(true, emma.interpretation, defaultTactileInterpretation);
+				extend(true, emma.interpretation, defaultTactileInterpretation);
 
 				setModality(emma.interpretation, 'gesture', event);
 				setSource(emma.interpretation, 'gesture', event);
@@ -261,7 +266,7 @@ define(['core', 'jquery'], function(mmir, $){
 //							, end: event.timeStamp
 							, id: guid()
 					};
-					$.extend(true, emma.interpretation, defaultSpeechInterpretation);
+					extend(true, emma.interpretation, defaultSpeechInterpretation);
 				}
 
 				//HACK see emma.addTarget()
@@ -309,6 +314,12 @@ define(['core', 'jquery'], function(mmir, $){
 		isSpeechEvent: function(emmaData){
 			if( emmaData.interpretation['function'] ) return true;
 			return false;
+		},
+		setSpeechRecognition: function(emmaData, event, data){
+			setSpeechRecognition(emmaData.interpretation, event, data);
+		},
+		setSpeechUnderstanding: function(emmaData, event, data){
+			setSpeechUnderstanding(emmaData.interpretation, event, data);
 		},
 		addTarget: function(emmaData, target, isOverwrite){
 			if(! emmaData || !emmaData.interpretation){
@@ -383,7 +394,7 @@ define(['core', 'jquery'], function(mmir, $){
 		}
 	};
 
-	// $.extend(mmir.app, emmaUtils);
+	// extend(mmir.app, emmaUtils);
 	mmir.emma = emmaUtils;
 	return emmaUtils;
 

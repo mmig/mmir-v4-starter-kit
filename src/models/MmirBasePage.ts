@@ -1,10 +1,12 @@
-import {MmirModule, LanguageManager, InputManager, MediaManager, SemanticInterpreter} from './MmirInterfaces';
-import {MmirProvider, IonicDialogManager} from './../providers/mmir';
+import {MmirModule, LanguageManager, InputManager, MediaManager, SemanticInterpreter} from 'mmir';
+import {MmirProvider, IonicDialogManager} from '../providers/mmir';
 import {ChangeDetectorRef, OnInit, OnDestroy} from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import {PromptReader} from './PromptReader';
 import {triggerClickFeedback} from './HapticFeedback';
-import { RecognitionEmma , UnderstandingEmma , ReadingOptions , StopReadingOptions , ReadingShowOptions , ShowSpeechStateOptions } from './ISpeechInput';
+import { RecognitionEmma , UnderstandingEmma , ShowSpeechStateOptions } from 'mmir-base-dialog';
+import { ReadingOptions , StopReadingOptions , ReadingShowOptions } from './SpeechData';
+import { isPromptId, PromptType } from './PromptUtils';
 
 export interface MmirAppModule extends MmirModule {
   app: any;
@@ -47,8 +49,8 @@ export class MmirPage implements OnInit, OnDestroy {
 
   protected get lang(): LanguageManager {
     if(!this._lang){
-      if(this.mmir && this.mmir.LanguageManager){
-        this._lang = this.mmir.LanguageManager;
+      if(this.mmir && this.mmir.lang){
+        this._lang = this.mmir.lang;
       } else {
         return null;
       }
@@ -58,8 +60,8 @@ export class MmirPage implements OnInit, OnDestroy {
 
   protected get inp(): InputManager {
     if(!this._inp){
-      if(this.mmir && this.mmir.InputManager){
-        this._inp = this.mmir.InputManager;
+      if(this.mmir && this.mmir.input){
+        this._inp = this.mmir.input;
       } else {
         return null;
       }
@@ -69,8 +71,8 @@ export class MmirPage implements OnInit, OnDestroy {
 
   protected get dlg(): IonicDialogManager {
     if(!this._dlg){
-      if(this.mmir && this.mmir.DialogManager){
-        this._dlg = this.mmir.DialogManager as IonicDialogManager;
+      if(this.mmir && this.mmir.dialog){
+        this._dlg = this.mmir.dialog as IonicDialogManager;
       } else {
         return null;
       }
@@ -80,8 +82,8 @@ export class MmirPage implements OnInit, OnDestroy {
 
   protected get media(): MediaManager {
     if(!this._media){
-      if(this.mmir && this.mmir.MediaManager){
-        this._media = this.mmir.MediaManager;
+      if(this.mmir && this.mmir.media){
+        this._media = this.mmir.media;
       } else {
         return null;
       }
@@ -91,8 +93,8 @@ export class MmirPage implements OnInit, OnDestroy {
 
   protected get semantic(): SemanticInterpreter {
     if(!this._semantic){
-      if(this.mmir && this.mmir.SemanticInterpreter){
-        this._semantic = this.mmir.SemanticInterpreter;
+      if(this.mmir && this.mmir.semantic){
+        this._semantic = this.mmir.semantic;
       } else {
         return null;
       }
@@ -103,6 +105,8 @@ export class MmirPage implements OnInit, OnDestroy {
   protected _asrActive: boolean = false;
   protected _isInit: boolean = false;
   protected _isDestroyed: boolean = false;
+
+  protected _debugMsg: boolean = true;
 
   public get asrOn(){ return this._asrActive; }
   public get ttsOn() { return this.prompt? this.prompt.active : false; }
@@ -187,7 +191,7 @@ export class MmirPage implements OnInit, OnDestroy {
     });
     // this.dlg._emma.addTarget(emmaEvt, name, true);
     // this.dlg._emma.addProperty(emmaEvt, 'data', data, true);
-    console.log(emmaEvt);
+    if(this._debugMsg) console.log(emmaEvt);
     this.inp.raise('touch', emmaEvt);
   }
 
@@ -195,20 +199,20 @@ export class MmirPage implements OnInit, OnDestroy {
     if(this.lang){
       return this.lang.getText(res);
     } else {
-      // console.info('mmir.LanguageManager not ready yet...');
+      //if(this._debugMsg) console.info('mmir.LanguageManager not ready yet...');
       return '';
     }
   }
 
   public evalSemantics(asr_result: string){//TODO use emma-recognition event as input
 
-    this.semantic.getASRSemantic(asr_result, null, result => {
+    this.semantic.interpret(asr_result, null, result => {
 
       var semantic;
       if(result.semantic != null) {
         semantic = result.semantic;
         semantic.phrase = asr_result;
-        console.log("semantic : " + result.semantic);//DEBUG
+        if(this._debugMsg) console.log("semantic : " + result.semantic);//DEBUG
       }
       else {
 
@@ -236,7 +240,7 @@ export class MmirPage implements OnInit, OnDestroy {
 
     event.preventDefault();
 
-    // console.log('microClicked');
+    //if(this._debugMsg) console.log('microClicked');
 
     if(this.prompt.active){
       this.prompt.cancel();
@@ -273,7 +277,7 @@ export class MmirPage implements OnInit, OnDestroy {
       if(this._asrActive !== isActive){
 
         this._asrActive = isActive;
-        console.log('set asr active -> '+this._asrActive);//DEBUG
+        if(this._debugMsg) console.log('set asr active -> '+this._asrActive);//DEBUG
         this.detectChanges();
 
         // if(!isActive){
@@ -301,13 +305,13 @@ export class MmirPage implements OnInit, OnDestroy {
   ////////////////////////////////////////// Speech Feedback Handler ////////////////////////
 
   protected showSpeechInputState(options: ShowSpeechStateOptions): void {
-    console.log('showSpeechInputState -> ', options);
+    if(this._debugMsg) console.log('showSpeechInputState -> ', options);
     this._asrActive = options.state;
     this.detectChanges();
   };
 
   protected showReadingStatus(options: ReadingShowOptions): void {
-    console.log('showReadingStatus -> ', options);
+    if(this._debugMsg) console.log('showReadingStatus -> ', options);
     this.prompt.setActive(options.active);
     this.detectChanges();
   };
@@ -327,7 +331,7 @@ export class MmirPage implements OnInit, OnDestroy {
    *              the data specifying the (changed) speech input state etc.
    */
   protected startMicLevels(options: ShowSpeechStateOptions): void {
-    console.log('startMicLevels -> ', options);
+    if(this._debugMsg) console.log('startMicLevels -> ', options);
   };
 
   /**
@@ -343,7 +347,7 @@ export class MmirPage implements OnInit, OnDestroy {
    *              the data specifying the (changed) speech input state etc.
    */
   protected stopMicLevels(options: ShowSpeechStateOptions): void{
-    console.log('stopMicLevels -> ', options);
+    if(this._debugMsg) console.log('stopMicLevels -> ', options);
   };
 
   ////////////////////////////////////////// Speech Input Event Handler ////////////////////////
@@ -357,7 +361,7 @@ export class MmirPage implements OnInit, OnDestroy {
    *                                 speech recognition.
    */
   protected showDictationResult(asrEmmaEvent: RecognitionEmma): void {
-    console.log('showDictationResult -> ', asrEmmaEvent);
+    if(this._debugMsg) console.log('showDictationResult -> ', asrEmmaEvent);
   }
 
   /**
@@ -380,7 +384,7 @@ export class MmirPage implements OnInit, OnDestroy {
    *                                 speech recognition.
    */
   protected determineSpeechCmd(asrEmmaEvent: RecognitionEmma): void {
-    console.log('determineSpeechCmd -> ', asrEmmaEvent);
+    if(this._debugMsg) console.log('determineSpeechCmd -> ', asrEmmaEvent);
     // let cmd = ;
     // this.inp.raise('speech', cmd);
   }
@@ -403,7 +407,7 @@ export class MmirPage implements OnInit, OnDestroy {
    *                                    understood Cmd(s)
    */
   protected execSpeechCmd(semanticEmmaEvent: UnderstandingEmma): void {
-    console.log('execSpeechCmd -> ', semanticEmmaEvent);
+    if(this._debugMsg) console.log('execSpeechCmd -> ', semanticEmmaEvent);
   };
 
   /**
@@ -411,7 +415,7 @@ export class MmirPage implements OnInit, OnDestroy {
    * should be stopped.
    */
   protected cancelSpeechIO(): void {
-    console.log('cancelSpeechIO -> ()');
+    if(this._debugMsg) console.log('cancelSpeechIO -> ()');
     this.prompt.cancel();
     this.asrCancel();
   };
@@ -436,14 +440,14 @@ export class MmirPage implements OnInit, OnDestroy {
    *
    *
    * @param  {string|ReadingOptions} data the data for determining the text the should be read
-   *                                      (if string: corresponds to the ReadingOptions.pageId)
+   *                                      (if string: corresponds to the ReadingOptions.dialogId)
    *
    * @returns {void|boolean} if data.test === true, the function return TRUE, if the
    *                            reading-request is valid (e.g. if reading is context-sensitive)
    */
   protected read(data: string|ReadingOptions): void | boolean {
 
-    console.log('read -> ', data);
+    if(this._debugMsg) console.log('read -> ', data);
 
     let isConsumed = false;
     let isTest = false;
@@ -451,7 +455,7 @@ export class MmirPage implements OnInit, OnDestroy {
 
       isTest = data.test;
 
-      if(PromptReader.isPromptId(data.readingId)){
+      if(isPromptId(data.readingId)){
 
         if(isTest){
           return true;/////////////////// EARYL EXIT ///////////////////
@@ -459,13 +463,28 @@ export class MmirPage implements OnInit, OnDestroy {
 
         isConsumed = true;
 
-        if(data.readingId === PromptReader.PROMPT_WELCOME){
+        if(data.readingId === PromptType.PROMPT_WELCOME){
 
           this.prompt.readStartPrompt();
 
-        } else if(data.readingId === PromptReader.PROMPT_ANSWER){
+        } else if(data.readingId === PromptType.PROMPT_RESULTS){
 
-          this.prompt.readAnswer(data.readingData);
+          this.prompt.readMessage(data.readingData, data.readingId);
+
+        } else if(data.readingId === PromptType.PROMPT_DEADLINES){
+
+          //TODO impl./use specialized function?
+          this.prompt.readMessage(data.readingData, data.readingId);
+
+        } else if(data.readingId === PromptType.PROMPT_TAX_YEAR){
+
+          //TODO impl./use specialized function?
+          this.prompt.readMessage(data.readingData, data.readingId);
+
+        } else if(data.readingId === PromptType.PROMPT_ERROR){
+
+          //TODO impl./use specialized function?
+          this.prompt.readMessage(data.readingData, data.readingId);
 
         } else {
           isConsumed = false;
@@ -517,7 +536,7 @@ export class MmirPage implements OnInit, OnDestroy {
    * @param  {StopReadingOptions} data the data specifying, which TTS engine should be stopped
    */
   protected stopReading(options: StopReadingOptions): void {
-    console.log('stopReading -> ', options);
+    if(this._debugMsg) console.log('stopReading -> ', options);
     if(this.prompt){
       //NOTE raising 'reading-stopped' etc. is handled in prompt.cancel()
       this.prompt.cancel();
