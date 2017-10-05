@@ -134,100 +134,147 @@ Application.prototype.initAsrTestInput = function(){
 
 	var isAsrActive = false;
 
+	var isUseEndOfSpeechDetection = false;
+
+	//for setting text in ASR deticated textarea
+	var textElement = $('#asr-text');
+
+	var asrModeCtrl = $('#asr-mode');
+	asrModeCtrl.on(this.app.click_name, function(event){
+		var tis = $(this);
+		isUseEndOfSpeechDetection = !isUseEndOfSpeechDetection;
+
+		console.log('isUseEndOfSpeechDetection ' + isUseEndOfSpeechDetection);
+
+		//change jQuery Mobile icon
+		var addIcon = isUseEndOfSpeechDetection? 'ui-icon-check' : 'ui-icon-forbidden';
+		var removeIcon = isUseEndOfSpeechDetection? 'ui-icon-forbidden' : 'ui-icon-check';
+		tis.removeClass(removeIcon).addClass(addIcon);
+
+		var func = isUseEndOfSpeechDetection? 'add' : 'remove';
+		tis[func+'Class']('ui-btn-active');
+	});
+
 	var setActive = function(button, setToActive){
-		var label = 'start';
+		var label = 'Start';
 		var theming = 'a';//<- jQuery UI theme
+
 		if(setToActive === true){
-			label = 'stop';
+			label = 'Stop';
 			theming = 'b';
 		}
 
 		//use jQuery Mobile function to change button-label:
 		button.text(label);
 
+		//change jQuery Mobile icon
+		var removeIcon = setToActive? 'ui-icon-carat-r' : 'ui-icon-power';
+		var addIcon = setToActive? 'ui-icon-power' : 'ui-icon-carat-r';
+		button.removeClass(removeIcon).addClass(addIcon);
+
 		//change theme (i.e. marking as active/inactive)
 		button.buttonMarkup({theme: theming});
+	};
+
+	$('#asr-status').css({
+		'background-color': 'bisque',
+		'font-style': 'italic'
+	});
+
+	var showUnstableResult = function(unstable){
+		var status = $('#asr-status');
+		status.stop(true);
+		status.show().text(unstable);
+		status.fadeOut(3000);
+	}
+
+	var handleAsr = function(asr_result, asr_score, asr_type, asr_alternatives, asr_unstable){
+
+		console.log('handle ASR '+asr_type+'...');
+
+		if(asr_type === 'INTERMEDIATE' || asr_type === 'FINAL'){
+
+			if(asr_result){
+
+				var textSoFar = textElement.val();
+
+				if(!/\s$/.test(textSoFar)){
+					textSoFar += ' ';
+				}
+				textSoFar += asr_result;
+
+				textElement.val( textSoFar );
+			}
+
+		} else if(asr_type === 'INTERIM'){
+
+			showUnstableResult(asr_result  + (asr_unstable? ' ' + asr_unstable : ''));
+
+		}
+
+		if(asr_type === 'RECORDING_BEGIN'){
+
+			isAsrActive = true;
+			setActive( $('#asr'), isAsrActive);
+
+		} else if(asr_type === 'RECORDING_DONE' || asr_type === 'FINAL'){
+
+			isAsrActive = false;
+			setActive( $('#asr'), isAsrActive);
+
+			if(isUseEndOfSpeechDetection){
+				mmir.app.triggerClickFeedback({haptic: false});
+			}
+
+		}
+	};
+
+	var handleError = function(action, error){
+		console.error('Error using '+action+': '+ error);
+		isAsrActive = false;
+		setActive( $('#asr'), isAsrActive);
 	};
 
 	$('#asr').on(this.app.click_name, function(event) {
 
 		//switch ASR activation state
 
+		var options = {
+			success: handleAsr,
+			error: null,
+			intermediate: true	//<- isUseIntermediateResultsMode
+		};
 
-		//set text in textarea
-		var textElement = $('#asr-text');
-
-
-		//text += ' set-ASR-to_'+(isAsrActive? 'active' : 'INactive');
 		if (!isAsrActive){
-			mmir.media.startRecord(function(text, idInfo){
 
-				var textSoFar = textElement.val();
-				textSoFar += ' '+ text;
-				textElement.val( textSoFar );
+			options.error = function(e){
+				handleError('startRecord', e);
+			};
 
-			}, function(e){
-
-				console.error('Error using startRecord: '+ e);
-
-			}, true //<- isUseIntermediateResultsMode
-			);
-		} else {
-			mmir.media.stopRecord(function(text, idInfo){
-				var textSoFar = textElement.val();
-				textSoFar += ' '+ text;
-				textElement.val( textSoFar );
-			}, function(e){
-				console.error('Error using stopGetRecord: '+e);
-			});
-
-		}
-
-
-		isAsrActive = ! isAsrActive;
-		//change button in order to indicate active/inactive ASR state
-		setActive( $('#asr'), isAsrActive);
-	});
-
-	$('#asr-normal').on(this.app.click_name, function(event) {
-
-		//switch ASR activation state
-
-
-		//set text in textarea
-		var textElement = $('#asr-text');
-
-
-		//text += ' set-ASR-to_'+(isAsrActive? 'active' : 'INactive');
-		if (!isAsrActive){
-			mmir.media.startRecord(function(text, idInfo){
-				var textSoFar = textElement.val();
-				textSoFar += ' '+ text;
-				textElement.val( textSoFar );
-			}, function(e){
-				console.error('Error using startRecord: '+ e);
+			if(isUseEndOfSpeechDetection){
+				mmir.media.recognize(options);
+			} else {
+				mmir.media.startRecord(options);
 			}
-			, true //isUseIntermediateResultsMode
-			);
+
 		} else {
-			mmir.media.stopRecord(function(text, idInfo){
-				var textSoFar = textElement.val();
-				textSoFar += ' '+ text;
-				textElement.val( textSoFar );
-			}, function(e){
-				console.error('Error using stopGetRecord: '+e);
-			});
 
+			options.error = function(e){
+				handleError('stopRecord', e);
+			};
+
+			mmir.media.stopRecord(options);
 		}
-
 
 		isAsrActive = ! isAsrActive;
 		//change button in order to indicate active/inactive ASR state
-		setActive( $('#asr-normal'), isAsrActive);
+		setActive( $(this), isAsrActive);
+
 	});
 
 	$('#clear').on(this.app.click_name, function(event) {
 		$('#asr-text').val('');
+		$('#asr-status').stop(true).text('');
 	});
 };
 
