@@ -1,7 +1,7 @@
 [MMIR Starter Kit][0]
 ===========
 
-![MMIR](https://github.com/mmig/mmir-starter-kit/blob/master/platforms/android/res/drawable-xhdpi/icon.png "MMIR logo")
+![MMIR](https://github.com/mmig/mmir-starter-kit/blob/master/resources/android/icon/drawable-xhdpi-icon.png "MMIR logo")
 
 The MMIR StarterKit is a small example application for the MMIR framework that can run locally in an (HTML5 capable)
 internet browser, and using the [Cordova framework][1], it can also be run as an Android app.
