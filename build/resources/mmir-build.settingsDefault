@@ -1,0 +1,74 @@
+##
+## This file contains user specific settings for the ANT build.xml file
+##
+## build.settings: used settings by ANT build file 
+##                 (if missing, it will be created upon first time
+##                  the ANT build file is executed; you may have
+##                  to refresh the file viewer to make the new
+##                  file visible) 
+##                 NOTE: this file should be excluded from version control!
+##
+## build.settingsDefault: template file for build.settings.
+##
+
+########################## NodeJS ###########################
+# [optional] configure the following properties, if node.js should be used for 
+#            running JavaScript build tasks
+#			 (see target names in build.xml)
+#
+# [RECOMMENDED] it is highly recommended to use NodeJS for JavaScript compilation tasks
+#               (instead of the slower build-in/shipped-with Java-based Rhino environment)
+#
+# (1) EXAMPLE for Windows 
+#                     -- where executable is located relatively, in the a "parallel" directory:
+#                        [parent dir]
+#                                    /[this project]
+#                                    /nodejs/node.exe
+#
+#nodeJsDir=../nodejs/
+#nodeJsExec=node.exe
+#
+#
+# (2) EXAMPLE for MacOS 
+#                   -- where executable is installed in user's local bin folder
+#
+#nodeJsDir=/usr/local/bin/
+#nodeJsExec=node
+#
+#
+# (3) DEFAULT setting for globally executable NodeJS
+nodeJsDir=
+nodeJsExec=node
+
+
+########################## Force / Ignore Generation of Resources ###########################
+#
+# force re-compilation / generation of language grammars 
+# (enable this, if you want to re-compile the JSON grammars 
+#  regardless of checksum-file status)
+#
+# DEFAULT: setting is disabled (i.e. not defined; alternatively, setting
+#          it to anything but true will leave this setting disabled)
+#
+#forceGrammarGeneration=true
+
+#
+# force re-compilation / generation of compiled views
+# (enable this, if you want to re-compile the eHTML views 
+#  regardless of checksum-file status)
+#
+# DEFAULT: setting is disabled (i.e. not defined; alternatively, setting
+#          it to anything but true will leave this setting disabled)
+#
+#forceViewGeneration=true
+
+#
+#
+# prevent validation for Dialog-/Input-Engine SCXML files
+# (enable this, if you want to prevent validation of the SCXML files)
+#
+# DEFAULT: setting is disabled (i.e. not defined; alternatively, setting
+#          it to anything but true will leave this setting disabled)
+#
+#ignoreDialogEngineValidation=true
+#ignoreInputEngineValidation=true
