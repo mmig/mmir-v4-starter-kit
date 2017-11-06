@@ -49,7 +49,7 @@
   },
   "devDependencies": {
     "@ionic/app-scripts": "2.0.2",
-    "ionic": "3.12.0",
+    "ionic": "3.16.0",
     "mmir-plugin-tts-speakjs": "D:/git_repo/mmir-plugins-media/mmir-plugin-tts-speakjs",
     "typescript": "2.3.4"
   },
