@@ -1,0 +1,16 @@
+{
+  "name": "mmir-base-dialog",
+  "version": "1.0.0",
+  "description": "typescript definition for types of mmir's basic dialog system",
+  "keywords": [
+    "ts",
+    "mmir",
+	"dialog system"
+  ],
+  "author": "russa",
+  "license": "MIT",
+  "types": "mmir-base-dialog.d.ts",
+  "typescript": {
+    "definition": "mmir-base-dialog.d.ts"
+  }
+}

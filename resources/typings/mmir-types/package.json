@@ -1,0 +1,15 @@
+{
+  "name": "mmir",
+  "version": "2.0.0",
+  "description": "typescript definition for mmir-lib v4.x",
+  "keywords": [
+    "ts",
+    "mmir"
+  ],
+  "author": "russa",
+  "license": "MIT",
+  "types": "mmir.d.ts",
+  "typescript": {
+    "definition": "mmir.d.ts"
+  }
+}
