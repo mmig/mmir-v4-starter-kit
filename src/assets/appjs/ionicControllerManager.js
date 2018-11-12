@@ -1,23 +1,23 @@
 
 define(['mmirf/dictionary', 'mmirf/controller'],
 
-	/**
-	 * A class for managing the controllers of the application. <br>
-	 * It's purpose is to load the controllers and their views / partials and provide functions to find controllers or
-	 * perform actions or helper-actions.
-	 *
-	 * This "class" is structured as a singleton - so that only one instance is in use.<br>
-	 *
-	 *
-	 * @class
-	 * @name mmir.ControllerManager
-	 * @static
-	 *
-	 * @requires jQuery.Deferred
-	 */
-	function(
-		Dictionary, Controller
-){
+		/**
+		 * A class for managing the controllers of the application. <br>
+		 * It's purpose is to load the controllers and their views / partials and provide functions to find controllers or
+		 * perform actions or helper-actions.
+		 *
+		 * This "class" is structured as a singleton - so that only one instance is in use.<br>
+		 *
+		 *
+		 * @class
+		 * @name mmir.ControllerManager
+		 * @static
+		 *
+		 * @requires jQuery.Deferred
+		 */
+		function(
+				Dictionary, Controller
+		){
 	//the next comment enables JSDoc2 to map all functions etc. to the correct class description
 	/** @scope mmir.ControllerManager.prototype */
 
@@ -28,20 +28,22 @@ define(['mmirf/dictionary', 'mmirf/controller'],
 	 * @type Dictionary
 	 * @private
 	 *
-	 * @memberOf mmir.ControllerManager#
+	 * @memberOf mmir.ControllerManager.private
 	 */
 	var controllers = new Dictionary();
 
-  //MODIFICATION Ionic: method for adding ionic-ViewControllers
-  if(!Controller.prototype.addView){
-    Controller.prototype.addView = function(viewName, viewCtrlConstructor){
-      if(this.views.indexOf(viewName) !== -1){
-        return;
-      }
-      this._ionicViews[viewName] = viewCtrlConstructor;
-      this.views.push(viewName);
-    }
-  }
+	//MODIFICATION Ionic: method for adding ionic-ViewControllers
+	if(!Controller.prototype.addView){
+		
+		Controller.prototype._ionicViews = {};
+		Controller.prototype.addView = function(viewName, viewCtrlConstructor){
+			if(this.views.indexOf(viewName) !== -1){
+				return;
+			}
+			this._ionicViews[viewName] = viewCtrlConstructor;
+			this.views.push(viewName);
+		}
+	}
 
 	/**
 	 * Initialize ControllerManager:
@@ -58,7 +60,7 @@ define(['mmirf/dictionary', 'mmirf/controller'],
 	 * 				a Deferred.promise that will get fulfilled when controllers are loaded
 	 * @private
 	 *
-	 * @memberOf mmir.ControllerManager#
+	 * @memberOf mmir.ControllerManager.private
 	 */
 	function _init(callback, ctx) {
 
@@ -75,29 +77,29 @@ define(['mmirf/dictionary', 'mmirf/controller'],
 		ctx = ctx || window;
 
 
-	    	// var ctrlInfo = {
-	    	// 	fileName: rawControllerName,
-	    	// 	name:     controllerName,
-	    	// 	path:     controllerFilePath,
-	    	//
-	    	// 	views:    viewsList,
-	    	// 	partials: partialsInfoList,
-	    	// 	helper:   helperInfo,
-	    	// 	layout:   layoutInfo
-	    	// };
+		// var ctrlInfo = {
+		// 	fileName: rawControllerName,
+		// 	name:     controllerName,
+		// 	path:     controllerFilePath,
+		//
+		// 	views:    viewsList,
+		// 	partials: partialsInfoList,
+		// 	helper:   helperInfo,
+		// 	layout:   layoutInfo
+		// };
 
-    callback && callback(_instance);
+		callback && callback(_instance);
 		return Promise.resolve(_instance);
 	};
 
 	/**
-     * Object containing the instance of the class {@link mmir.ControllerManager}
-     *
-     * @type Object
-     * @private
+	 * Object containing the instance of the class {@link mmir.ControllerManager}
+	 *
+	 * @type Object
+	 * @private
 	 * @augments mmir.ControllerManager
 	 * @ignore
-     */
+	 */
 	var _instance = {
 			/** @scope mmir.ControllerManager.prototype *///for jsdoc2
 
@@ -218,21 +220,31 @@ define(['mmirf/dictionary', 'mmirf/controller'],
 			 * 	}
 			 * 	mmir.ctrl.init(afterLoadingControllers);
 			 * @public
+			 * @memberOf mmir.ControllerManager
 			 */
 			init: _init
 
-      , _createIonicController: function(ctrlName, viewName, ionicViewController){
+			/**
+			 * @memberOf mmir.ControllerManager
+			 */
+			, _createIonicController: function(ctrlName, viewName, ionicViewController){
 
-        var dummyCtrl = {};
-        dummyCtrl[ctrlName] = function(){};
+				var dummyCtrl = {};    	  
+				if(typeof ctrlName === 'string'){
 
-        ctrl = new Controller(ctrlName, {views:[], partials: []}, dummyCtrl);
-        ctrl._ionicViews = {};
-        ctrl.addView(viewName, ionicViewController);
+					dummyCtrl[ctrlName] = function(){};
+				} else {
 
-        controllers.put(ctrlName, ctrl);
-        return ctrl;
-      }
+					dummyCtrl[ctrlName.name] = ctrlName;
+					ctrlName = ctrlName.name;
+				}
+				
+				var ctrl = new Controller(ctrlName, {views:[], partials: []}, dummyCtrl);
+				ctrl.addView(viewName, ionicViewController);
+
+				controllers.put(ctrlName, ctrl);
+				return ctrl;
+			}
 
 	};
 	/**@ignore*/
