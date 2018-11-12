@@ -1,34 +1,13 @@
-import {MmirModule, LanguageManager, InputManager, MediaManager, SemanticInterpreter} from 'mmir';
-import {MmirProvider, IonicDialogManager} from '../providers/mmir';
+import {LanguageManager, InputManager, MediaManager, SemanticInterpreter} from 'mmir';
+import {MmirProvider, IonicDialogManager, IonicMmirModule } from '../providers/mmir';
 import {ChangeDetectorRef, OnInit, OnDestroy} from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import {PromptReader} from './PromptReader';
 import {triggerClickFeedback} from './HapticFeedback';
 import { RecognitionEmma , UnderstandingEmma , ShowSpeechStateOptions } from 'mmir-base-dialog';
 import { ReadingOptions , StopReadingOptions , ReadingShowOptions } from './SpeechData';
+import { MmirAppProvider , MmirAppModule , SpeechEventSubscription } from './ISpeechIO';
 import { isPromptId, PromptType } from './PromptUtils';
-
-export interface MmirAppModule extends MmirModule {
-  app: any;
-}
-
-export interface MmirAppProvider extends MmirProvider {
-  mmir: MmirAppModule;
-}
-
-export interface SpeechEventSubscription {
-    showSpeechInputState: Subscription;
-    startMicLevels: Subscription;
-    stopMicLevels: Subscription;
-    showDictationResult: Subscription;
-    determineSpeechCmd: Subscription;
-    execSpeechCmd: Subscription;
-    cancelSpeechIO: Subscription;
-    read: Subscription;
-    stopReading: Subscription;
-    showReadingStatus: Subscription//;
-    //'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed'
-}
 
 export class MmirPage implements OnInit, OnDestroy {
 

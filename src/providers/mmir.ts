@@ -52,6 +52,7 @@ export interface IonicPresentationManager extends PresentationManager {
 }
 
 export interface IonicControllerManager extends ControllerManager {
+  get: (ctrlName: string) => IonicController;
   _createIonicController: (ctrlName: string, viewName?: string, ionicViewCtrl?: any) => IonicController;
 }
 
@@ -74,6 +75,13 @@ export interface IonicController extends Controller {
   addView: (viewName:string, ionicView: any) => void;
 }
 
+export interface IonicMmirModule extends MmirModule {
+  ctrl: IonicControllerManager;
+  dialog: IonicDialogManager
+  dialogEngine: IonicDialogEngine;
+  present: IonicPresentationManager;
+}
+
 export type ViewDecl = {name: string, ctrlName: string, view: any};
 export type IonicView = {_name: string, getName: () => string, view: Component, ctrl?: IonicController};
 
@@ -85,7 +93,7 @@ export class MmirProvider {
   private evt: SpeechEventEmitter;//{[id: string]: Subject<any>};//Events;
   private appConfig: AppConfig;
 
-  private _mmir : MmirModule;
+  private _mmir : IonicMmirModule;
 
   private _initialize: Promise<MmirProvider>;
 
@@ -100,7 +108,7 @@ export class MmirProvider {
     private http: Http
   ) {
 
-    this._mmir = __mmir;
+    this._mmir = __mmir as IonicMmirModule;
 
   }
 
@@ -179,6 +187,28 @@ export class MmirProvider {
     return this._initialize;
   }
 
+  public addViews(views: Array<ViewDecl>){
+
+    const ctrlManager = this.mmir.ctrl;
+    const presentMng = this.mmir.present;
+    let ctrl: IonicController;
+    let decl: ViewDecl;
+    let view: IonicView;
+    for(let i=0,size = views.length; i < size; ++i){
+      decl = views[i];
+      view = this.mmirCreateView(decl.name, decl.view);
+
+      ctrl = ctrlManager.get(decl.ctrlName) as IonicController;
+      if(!ctrl){
+        ctrl = ctrlManager._createIonicController(decl.ctrlName, decl.name, decl.view);
+      } else {
+        ctrl.addView(decl.name, decl.view);
+      }
+
+      presentMng.addView(decl.ctrlName, view);
+    }
+  }
+
   private mmirInit(views?: Array<ViewDecl>): Promise<MmirProvider> {
 
     //promise for setting up mmir to work within angular/ionic
@@ -187,7 +217,7 @@ export class MmirProvider {
 
         this.platform.setLang(this.mmir.lang.getLanguage(), true);
 
-        let presentMng: IonicPresentationManager = this.mmir.present as IonicPresentationManager;
+        const presentMng: IonicPresentationManager = this.mmir.present;
         presentMng._ionicNavCtrl = this.nav;
         presentMng._getIonicViewController = function(ctrl: IonicController){
           let ionicViewController = this._ionicNavCtrl.getActive();
@@ -199,24 +229,10 @@ export class MmirProvider {
           return null;
         };
 
-        let ctrlManager = this.mmir.ctrl as IonicControllerManager;
+        const ctrlManager = this.mmir.ctrl;
         let ctrl: IonicController;
         if(views){
-          let decl: ViewDecl;
-          let view: IonicView;
-          for(let i=0,size = views.length; i < size; ++i){
-            decl = views[i];
-            view = this.mmirCreateView(decl.name, decl.view);
-
-            ctrl = ctrlManager.get(decl.ctrlName) as IonicController;
-            if(!ctrl){
-              ctrl = ctrlManager._createIonicController(decl.ctrlName, decl.name, decl.view);
-            } else {
-              ctrl.addView(decl.name, decl.view);
-            }
-
-          	presentMng.addView(decl.ctrlName, view);
-          }
+          this.addViews(views)
         }
 
         let ctrlList: Array<string> = ctrlManager.getNames();
@@ -226,7 +242,7 @@ export class MmirProvider {
         }
 
 
-        let dlg: IonicDialogManager = this.mmir.dialog as IonicDialogManager;
+        let dlg: IonicDialogManager = this.mmir.dialog;
         dlg._perform = dlg.perform;//TODO do we need previous impl.?
         dlg._eventEmitter = this.evt;
         dlg._isDebugVui = this.isDebugVui;
@@ -234,7 +250,6 @@ export class MmirProvider {
 
           let target = ctrlName+':'+actionName;
           if (this.isDebugVui) console.log('DialogManager: emit action for '+target+' ', data);
-          // this._eventEmitter.publish(target, data); FIXME: "convert" _perform to event-emitting?
           let speechEmitter: Subject<any> = this._eventEmitter[actionName];
           if(speechEmitter){
             if(typeof data !== 'undefined'){
@@ -245,11 +260,11 @@ export class MmirProvider {
           } else {
 
             //if component has a function actionName -> invoke this action
-            let ctrl = ctrlManager.get(ctrlName) as IonicController;//TODO make ctrlManager instance property
+            let ctrl = ctrlManager.get(ctrlName);//TODO make ctrlManager instance property
             //FIXME should we check the requested controller's views (i.e. if the current view is one of the controller's)
             //      or should we just use/check the current view?
-            let activeCtrlView = presentMng._getIonicViewController(ctrl);//TODO make presentMng instance propperty
-            if(activeCtrlView[actionName]){
+            let activeCtrlView = presentMng._getIonicViewController(ctrl);//TODO make presentMng instance property
+            if(activeCtrlView && activeCtrlView[actionName]){
 
               return activeCtrlView[actionName](data);//FIXME how should argument be handled? ... if view-function does not define arguments?
 
@@ -260,15 +275,6 @@ export class MmirProvider {
             }
           }
         };
-        // dlg._raise = dlg.raise;
-        // dlg.raise = function(eventName, eventData) {
-        //   if(eventName === 'init'){
-        //     //inject Events for inter-app communication:
-        //     eventData.eventEmitter = this.evt;
-        //   }
-        //   this._raise.apply(this, arguments);
-        // };
-
 
         let dlgEngine: IonicDialogEngine = this.mmir.dialogEngine as IonicDialogEngine;
 
