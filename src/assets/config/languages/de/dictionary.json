@@ -26,6 +26,7 @@
     "subject_label":"Betreff",
     "save":"Speichern",
     "discard":"Verwerfen",
+    "command":"Kommando",
 	"note_label": "Notiz",
 	"loadingText": "Bitte warten...",
 	"did_not_understand_msg": "Ich habe Sie leider nicht verstanden."
