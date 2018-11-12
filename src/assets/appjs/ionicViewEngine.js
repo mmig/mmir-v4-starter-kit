@@ -24,8 +24,8 @@ define(['mmirf/util/deferred', 'mmirf/logger', 'module'],function(Deferred, Logg
 	var promise = new Deferred();
 
 	require(['mmirf/languageManager', 'mmirf/controllerManager'],
-	    function(languageManager, controllerManager
-	){
+			function(languageManager, controllerManager
+			){
 
 
 		//property names for passing the respected objects from doRenderView() to afterViewLoadHandler()
@@ -136,10 +136,10 @@ define(['mmirf/util/deferred', 'mmirf/logger', 'module'],function(Deferred, Logg
 
 			//provide "change" data for before_page_load calls:
 			var pageEvtData = {
-				name: viewName//,
-//				id: newId,
-//				oldSel: oldId,
-//				content: newPage
+					name: viewName//,
+//					id: newId,
+//					oldSel: oldId,
+//					content: newPage
 			};
 
 			//trigger "before page loading" hooks on controller, if present/implemented:
@@ -167,8 +167,8 @@ define(['mmirf/util/deferred', 'mmirf/logger', 'module'],function(Deferred, Logg
 			}
 
 			var transitionOpt = {
-				// animate 	boolean 	Whether or not the transition should animate.
-				animate: data && data.navAnimate === true
+					// animate 	boolean 	Whether or not the transition should animate.
+					animate: data && data.navAnimate === true
 			};
 
 			if(transitionOpt.navAnimate){
@@ -176,9 +176,9 @@ define(['mmirf/util/deferred', 'mmirf/logger', 'module'],function(Deferred, Logg
 				transitionOpt.direction = data && data.navDirection? data.navDirection : 'forward';
 
 				//TODO evaluate ionic's other animation-options!
-					// animation 	string 	What kind of animation should be used: 'md-transition' | 'ios-transition' | 'wp-transition'.
-					// duration 	number 	The length in milliseconds the animation should take.
-					// easing 	string 	The easing for the animation.
+				// animation 	string 	What kind of animation should be used: 'md-transition' | 'ios-transition' | 'wp-transition'.
+				// duration 	number 	The length in milliseconds the animation should take.
+				// easing 	string 	The easing for the animation.
 			}
 
 			var goBack = data && data.navBack;
@@ -247,45 +247,45 @@ define(['mmirf/util/deferred', 'mmirf/logger', 'module'],function(Deferred, Logg
 
 			render: doRenderView,
 			/**
-             * Closes a modal window / dialog.<br>
-             *
-             * TODO impl
-             *
-             * @function hideCurrentDialog
-             * @public
-             */
-            hideCurrentDialog : function() {
+			 * Closes a modal window / dialog.<br>
+			 *
+			 * TODO impl
+			 *
+			 * @function hideCurrentDialog
+			 * @public
+			 */
+			hideCurrentDialog : function() {
 
-//                 if (that.modal != null) {
-//                 	//TODO implement this!
-// //                    that.modal.close();
-//                 }
-//                 else {
-                	console.warn('PresentationManager[ionicViewEngine].hideCurrentDialog: not implemented yet!');
-                // }
-            },
-            /**
-             * Opens the requested dialog.<br>
-             *
-             * @depends jQuery Mobile SimpleModal
-             * @depends mmir.ControllerManager
-             *
-             *
-             * @function showDialog
-             * @param {String}
-             *            ctrlName Name of the controller
-             * @param {String}
-             *            dialogId Id of the dialog
-             * @param {Object}
-             *            data Optionally data - not used
-             *
-             * @returns {Object} the instance of the current dialog that was opened
-             *
-             * @public
-             */
-            showDialog : function(ctrlName, dialogId, data) {
+//				if (that.modal != null) {
+//				//TODO implement this!
+//				//                    that.modal.close();
+//				}
+//				else {
+				console.warn('PresentationManager[ionicViewEngine].hideCurrentDialog: not implemented yet!');
+				// }
+			},
+			/**
+			 * Opens the requested dialog.<br>
+			 *
+			 * @depends jQuery Mobile SimpleModal
+			 * @depends mmir.ControllerManager
+			 *
+			 *
+			 * @function showDialog
+			 * @param {String}
+			 *            ctrlName Name of the controller
+			 * @param {String}
+			 *            dialogId Id of the dialog
+			 * @param {Object}
+			 *            data Optionally data - not used
+			 *
+			 * @returns {Object} the instance of the current dialog that was opened
+			 *
+			 * @public
+			 */
+			showDialog : function(ctrlName, dialogId, data) {
 
-            	//TODO implement!!
+				//TODO implement!!
 
 				this.hideCurrentDialog();
 
@@ -325,12 +325,12 @@ define(['mmirf/util/deferred', 'mmirf/logger', 'module'],function(Deferred, Logg
 			showWaitDialog : function(text, theme) {
 
 //				var loadingText = typeof text === 'undefined'? languageManager.getText('loadingText') : text;
-//
+
 //				if(typeof theme !== 'undefined'){
-//					dlg.defaultStyle = theme;
-//					//TOD
+//				dlg.defaultStyle = theme;
+//				//TOD
 //				}
-//
+
 //				dlg.show(loadingText, _viewEngineWaitId);
 				//TODO
 			},
