@@ -7,9 +7,7 @@
     "clean": "ionic-app-scripts clean",
     "build": "ionic-app-scripts build",
     "ionic:build": "ionic-app-scripts build",
-    "ionic:serve": "ionic-app-scripts serve",
-    "postinstall": "mmir-install-cordova-assets",
-    "preuninstall": "mmir-uninstall-cordova-assets"
+    "ionic:serve": "ionic-app-scripts serve"
   },
   "dependencies": {
     "@angular/common": "4.1.3",
@@ -43,6 +41,7 @@
     "ionicons": "3.0.0",
     "mmir": "file:resources/typings/mmir-types",
     "mmir-base-dialog": "file:resources/typings/mmir-base-dialog-types",
+    "requirejs": "^2.3.6",
     "rxjs": "5.4.0",
     "sw-toolbox": "3.6.0",
     "zone.js": "0.8.12"
@@ -50,7 +49,6 @@
   "devDependencies": {
     "@ionic/app-scripts": "2.0.2",
     "ionic": "3.16.0",
-    "mmir-plugin-tts-speakjs": "D:/git_repo/mmir-plugins-media/mmir-plugin-tts-speakjs",
     "typescript": "2.3.4"
   },
   "description": "mmir-starter-kit: the MMIR starter-kit based on Ionic2",
