@@ -46,7 +46,7 @@
 
   <ion-fab class="speech-input-ctrl" right bottom class="miclevels">
     <fab-miclevels [width]="96" [height]="96" [active]="asrOn" [target]="speechCmdBtn"></fab-miclevels>
-    <button #speechCmdBtn id="speech-cmd-btn" ion-fab color="vibrant"
+    <button #speechCmdBtn id="speech-cmd-btn" ion-fab [color]="asrOn? 'danger' : 'primary'"
 
         (click)="microClicked($event, 'speech-cmd-btn')"
         [class.isActive]="asrOn"><ion-icon name="mic"></ion-icon>
