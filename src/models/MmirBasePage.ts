@@ -184,12 +184,12 @@ export class MmirPage implements OnInit, OnDestroy {
     }
   }
 
-  public evalSemantics(asr_result: string){//TODO use emma-recognition event as input
+  public evalSemantics(asr_result: string, emmaEvent: RecognitionEmma){//TODO use emma-recognition event as input
 
     this.semantic.interpret(asr_result, null, result => {
 
-      var semantic;
-      if(result.semantic != null) {
+      let semantic;
+      if(result.semantic) {
         semantic = result.semantic;
         semantic.phrase = asr_result;
         if(this._debugMsg) console.log("semantic : " + result.semantic);//DEBUG
@@ -203,8 +203,9 @@ export class MmirPage implements OnInit, OnDestroy {
           }
         };
       }
-      //TODO create emma-understanding event
-      this.inp.raise("speech_input_event",  semantic);
+
+      this.dlg._emma._setEmmaFuncData(emmaEvent, 'understanding', semantic);
+      this.inp.raise('speech', emmaEvent);
 
     });
 
@@ -212,6 +213,10 @@ export class MmirPage implements OnInit, OnDestroy {
 
   public triggerTouchFeedback(){
     this.vuiCtrl.ctrl.triggerTouchFeedback({type: 'click'});
+  }
+
+  protected getPageId(): string {
+    return this.constructor.name;
   }
 
   ////////////////////////////////////////// Speech IO ////////////////////////
@@ -278,7 +283,7 @@ export class MmirPage implements OnInit, OnDestroy {
   };
 
   public asrCancel(){
-    this.media.cancelRecognition();
+    this.vuiCtrl.asrCancel();
     this._asrActive = false;
   }
 
@@ -364,14 +369,7 @@ export class MmirPage implements OnInit, OnDestroy {
     if(this._debugMsg) console.log('determineSpeechCmd -> ASR: ', asrEmmaEvent);
     const asr = this.dlg._emma._extractAsrData(asrEmmaEvent);
     if(asr && (asr.type === 'INTERMEDIATE' || asr.type === 'FINAL')){
-      const cmd = this.mmir.semantic.interpret(asr.text);
-      if(this._debugMsg) console.log('determineSpeechCmd -> INTERPRETATION: ', cmd);
-      if(cmd.semantic){
-        this.dlg._emma._setEmmaFuncData(asrEmmaEvent, 'understanding', cmd);
-      } else {
-        this.dlg._emma._setEmmaFuncData(asrEmmaEvent, 'understanding', {semantic: 'DidNotUnderstand'});
-      }
-      this.inp.raise('speech', asrEmmaEvent);
+      this.evalSemantics(asr.text, asrEmmaEvent);
     }
   }
 
@@ -397,14 +395,13 @@ export class MmirPage implements OnInit, OnDestroy {
     const cmd = this.dlg._emma._extractEmmaFuncData(semanticEmmaEvent, 'understanding');
     if(this._debugMsg) console.log('execSpeechCmd -> COMMAND: ', cmd);
     if(cmd){
-      let promptText: string;
-      if(cmd.semantic === 'DidNotUnderstand'){
-        promptText = this.lang.getText('did_not_understand_msg');
+      let sentences: Array<string>;
+      if(cmd && cmd.NoMatch){
+        sentences = [this.lang.getText('did_not_understand_msg'), this.lang.getText('command') + ': ' + cmd.NoMatch.phrase];
       } else {
-        promptText = cmd.phrase;
+        sentences = [cmd.phrase];
       }
-      const sentences = ['', promptText];//FIXME reimpl. readMessage instead for using this workaround!
-      this.prompt.readMessage({promptText: sentences}, PromptType.PROMPT_ERROR);
+      this.vuiCtrl.readPrompt({dialogId: this.getPageId(), readingId: PromptType.PROMPT_ERROR, readingData: {promptText: sentences}});
     }
   };
 
@@ -414,8 +411,7 @@ export class MmirPage implements OnInit, OnDestroy {
    */
   protected cancelSpeechIO(): void {
     if(this._debugMsg) console.log('cancelSpeechIO -> ()');
-    this.prompt.cancel();
-    this.asrCancel();
+    this.vuiCtrl.cancel();
   };
 
   ////////////////////////////////////////// Speech Output Event Handlers ///////////////////////
@@ -511,10 +507,7 @@ export class MmirPage implements OnInit, OnDestroy {
    */
   protected stopReading(options: StopReadingOptions): void {
     if(this._debugMsg) console.log('stopReading -> ', options);
-    if(this.prompt){
-      //NOTE raising 'reading-stopped' etc. is handled in prompt.cancel()
-      this.prompt.cancel();
-    }
+    this.vuiCtrl.ttsCancel();
   };
 
   ///////////////////////////////////////////////////

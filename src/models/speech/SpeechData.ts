@@ -25,7 +25,7 @@ export interface ReadingShowOptions extends ReadingOptions {
 }
 
 export interface StopReadingOptions extends ReadingShowOptions {
-  
+
   /**when guided speech input is active: indicates that speech-guidance should be canceled*/
   cancelGuidance?: boolean;
 
