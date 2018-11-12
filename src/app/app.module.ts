@@ -19,6 +19,7 @@ import { FabMiclevels } from './../components/fab-miclevels/fab-miclevels';
 import { LanguageMenu } from './../components/language-menu/language-menu';
 
 import { MmirProvider } from '../providers/mmir';
+import { VoiceUIProvider } from '../providers/mmir';
 import { AppConfig } from '../providers/app-config';
 import { UserAuthProvider } from './../providers/user-auth';
 
@@ -48,7 +49,7 @@ import { UserAuthProvider } from './../providers/user-auth';
     LanguageMenu
   ],
   providers: [
-    Storage, MmirProvider, AppConfig, UserAuthProvider,
+    Storage, MmirProvider, VoiceUIProvider, AppConfig, UserAuthProvider,
     StatusBar, SplashScreen,
     {provide: ErrorHandler, useClass: IonicErrorHandler}
   ]

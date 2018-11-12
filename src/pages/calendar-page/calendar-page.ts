@@ -2,9 +2,7 @@ import { Component, ChangeDetectorRef } from '@angular/core';
 import { NavController, AlertController } from 'ionic-angular';
 
 import {MmirPage} from './../../models/MmirBasePage';
-import {MmirProvider} from './../../providers/mmir';
-
-import {triggerClickFeedback} from '../../models/HapticFeedback';
+import {MmirProvider, VoiceUIProvider} from './../../providers/mmir';
 
 @Component({
   selector: 'calendar-page',
@@ -21,9 +19,10 @@ export class CalendarPage extends MmirPage {
     public navCtrl: NavController,
     private alertCtrl: AlertController,
     ref: ChangeDetectorRef,
+    vuiCtrl: VoiceUIProvider,
     mmirProvider: MmirProvider
   ) {
-    super(mmirProvider, ref);
+    super(vuiCtrl, mmirProvider, ref);
   }
 
   ionViewDidLoad() {
@@ -59,7 +58,7 @@ export class CalendarPage extends MmirPage {
         buttons: [{
           text: this.lang.getText('buttonOk'),
           handler: () => {
-            triggerClickFeedback();
+            this.vuiCtrl.ctrl.triggerTouchFeedback({type: 'click'});
           }
         }]
       });

@@ -11,11 +11,12 @@ import 'rxjs/add/operator/distinctUntilChanged';
 import {Subject} from 'rxjs/Subject';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 
-import { MmirModule, DialogEngine, DialogManager, ControllerManager, PresentationManager, Controller, View } from 'mmir';
-import { ReadingOptions, ReadingShowOptions, StopReadingOptions } from '../models/SpeechData';
-import { ShowSpeechStateOptions, RecognitionEmma, UnderstandingEmma } from 'mmir-base-dialog';
+import { MmirModule, DialogEngine, DialogManager, ControllerManager, PresentationManager, Controller, View , MediaManager , IAudio } from '../../assets/mmirf/mmir.d'; // 'mmir';
+import { ReadingOptions, ReadingShowOptions, StopReadingOptions, WaitReadyOptions } from '../../models/speech/SpeechData';
+import { ShowSpeechStateOptions, SpeechFeedbackOptions, RecognitionEmma, UnderstandingEmma } from './typings/mmir-base-dialog.d';//'mmir-base-dialog';
+import { EmmaUtil } from './typings/emma.d';//'mmir-emma';
 
-import { AppConfig } from './app-config';
+import { AppConfig } from '../app-config';
 
 //FIXME should use import instead of declaring variable!
 // import * as mmir from 'mmir';
@@ -24,7 +25,7 @@ declare var mmir;
 var __mmir: MmirModule = mmir as MmirModule;
 
 type SpeechEventName = 'showSpeechInputState' |                         //ISpeechState
-                        'startMicLevels' | 'stopMicLevels' |            //ISpeechFeedback
+                        'changeMicLevels' | 'waitReadyState' |          //ISpeechFeedback
                         'showDictationResult' |                         //ISpeechDictate
                         'determineSpeechCmd' | 'execSpeechCmd' |        //ISpeechCommand
                         'cancelSpeechIO' |                              //ISpeechInputProcessor
@@ -33,16 +34,22 @@ type SpeechEventName = 'showSpeechInputState' |                         //ISpeec
                         ;
 export interface SpeechEventEmitter {
     showSpeechInputState: BehaviorSubject<ShowSpeechStateOptions>;
-    startMicLevels: BehaviorSubject<ShowSpeechStateOptions>;
-    stopMicLevels: BehaviorSubject<ShowSpeechStateOptions>;
+    changeMicLevels: BehaviorSubject<SpeechFeedbackOptions>;
+    waitReadyState: BehaviorSubject<WaitReadyOptions>;
     showDictationResult: Subject<RecognitionEmma>;
     determineSpeechCmd: Subject<RecognitionEmma>;
     execSpeechCmd: Subject<UnderstandingEmma>;
     cancelSpeechIO: Subject<void>;
     read: Subject<string|ReadingOptions>;
     stopReading: Subject<StopReadingOptions>;
-    showReadingStatus: BehaviorSubject<ReadingShowOptions>//;
+    showReadingStatus: BehaviorSubject<ReadingShowOptions>;
     //'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed'
+    playError: Subject<PlayError>;
+}
+
+export interface PlayError {
+  audio: IAudio | HTMLAudioElement;
+  error: DOMException;
 }
 
 export interface IonicPresentationManager extends PresentationManager {
@@ -59,8 +66,8 @@ export interface IonicControllerManager extends ControllerManager {
 export interface IonicDialogManager extends DialogManager {
   _perform;
   _raise;
-  _emma;
-  _eventEmitter: SpeechEventEmitter;//{[id: string]: Subject<any>};//Events;
+  _emma: EmmaUtil;
+  _eventEmitter: SpeechEventEmitter;
   _isDebugVui: boolean;
 }
 
@@ -96,6 +103,10 @@ export class MmirProvider {
   private _mmir : IonicMmirModule;
 
   private _initialize: Promise<MmirProvider>;
+  private _readyWait: Promise<MmirProvider>;
+  private _resolveReadyWait: (mmirProvider: MmirProvider) => void;
+  private _readyWaitTimer: number;
+  private readonly _readyWaitTimeout: number = 10 * 60 * 1000;//10 min.
 
   //FLAG: should debug output for VUI (via dialog system) be shown in console
   private isDebugVui: boolean;
@@ -132,12 +143,16 @@ export class MmirProvider {
         ).distinctUntilChanged((state1: ShowSpeechStateOptions, state2: ShowSpeechStateOptions) => {
           return state1.state === state2.state && state1.mode === state2.mode && state1.inputMode === state2.inputMode && state1.targetId === state2.targetId;
         }),
-      'startMicLevels': new BehaviorSubject<ShowSpeechStateOptions>(
-          {state: false, mode: 'command', inputMode: ''}//<-initial state
-        ),
-      'stopMicLevels': new BehaviorSubject<ShowSpeechStateOptions>(
-          {state: false, mode: 'command', inputMode: ''}//<-initial state
-        ),
+      'changeMicLevels': new BehaviorSubject<SpeechFeedbackOptions>(
+          {isStart: false, state: false, mode: 'command', inputMode: ''}//<-initial state
+        ).distinctUntilChanged((state1: SpeechFeedbackOptions, state2: SpeechFeedbackOptions) => {
+          return state1.isStart === state2.isStart && state1.state === state2.state && state1.mode === state2.mode && state1.inputMode === state2.inputMode && state1.targetId === state2.targetId;
+        }),
+      'waitReadyState': new BehaviorSubject<WaitReadyOptions>(
+          {state: 'ready', module: ''}//<-initial state
+        ).distinctUntilChanged((state1: WaitReadyOptions, state2: WaitReadyOptions) => {
+          return state1.state === state2.state && state1.module === state2.module;
+        }),
       'showDictationResult': new Subject<RecognitionEmma>(),
       'determineSpeechCmd': new Subject<RecognitionEmma>(),
       'execSpeechCmd': new Subject<UnderstandingEmma>(),
@@ -153,10 +168,12 @@ export class MmirProvider {
           return state1.active === state2.active && state1.dialogId === state2.dialogId &&
                   state1.readingId === state2.readingId && state1.targetId === state2.targetId &&
                   state1.readingData === state2.readingData;
-        })//,
+        }),
 
       //TODO GuidedInput events?
       //'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed'
+
+      'playError': new Subject<PlayError>()
 
     } as SpeechEventEmitter;
 
@@ -182,7 +199,32 @@ export class MmirProvider {
 
   public ready(): Promise<MmirProvider> {
     if(!this._initialize){
-      throw new Error('Must call init() first.');
+
+      if(!this._readyWait){
+
+        console.log('Called MmirProvider.ready() before init(): waiting...');
+
+        this._readyWait = new Promise<MmirProvider>((resolve, reject) => {
+
+          //resolve "wait for ready":
+          this._resolveReadyWait = (mmirProvider: MmirProvider) => {
+            clearTimeout(this._readyWaitTimer);
+            console.log('Resolved "wait for MmirProvider.ready()".');
+            resolve(mmirProvider);
+            this._readyWait = null;
+            this._resolveReadyWait = null;
+          };
+
+          //set timeout for waiting to resolve:
+          this._readyWaitTimer = setTimeout(() => {
+            reject('Timed out waiting for MmirProvider initialization (exceeded timeout _readyWaitTimeout: '+this._readyWaitTimeout+' ms)');
+          }, this._readyWaitTimeout);
+
+        });
+
+      }
+
+      return this._readyWait;
     }
     return this._initialize;
   }
@@ -217,10 +259,20 @@ export class MmirProvider {
 
         this.platform.setLang(this.mmir.lang.getLanguage(), true);
 
+        this.mmir.media.on('errorplay', (audio, error) => {
+          this.evt.playError.next({audio: audio, error: error});
+        });
+
         const presentMng: IonicPresentationManager = this.mmir.present;
         presentMng._ionicNavCtrl = this.nav;
         presentMng._getIonicViewController = function(ctrl: IonicController){
-          let ionicViewController = this._ionicNavCtrl.getActive();
+          if(!ctrl) {
+            return null;
+          }
+          const ionicViewController = this._ionicNavCtrl.getActive();
+          if(!ionicViewController) {
+            return null;
+          }
           for(let viewName in ctrl._ionicViews){
             if(ionicViewController.instance.constructor == ctrl._ionicViews[viewName]){
               return ionicViewController.instance;
@@ -241,8 +293,19 @@ export class MmirProvider {
           ctrl._eventEmitter = new Subject<Action>();
         }
 
+        const media: MediaManager = this.mmir.media;
+        media.waitReadyImpl = {
+          eventHandler: this.evt,
+          preparing: function(module: string){
+            this.eventHandler.waitReadyState.next({state: 'wait', module: module});
+          },
+          ready: function(module: string){
+            this.eventHandler.waitReadyState.next({state: 'ready', module: module});
+          }
+        } as any;
 
-        let dlg: IonicDialogManager = this.mmir.dialog;
+
+        const dlg: IonicDialogManager = this.mmir.dialog;
         dlg._perform = dlg.perform;//TODO do we need previous impl.?
         dlg._eventEmitter = this.evt;
         dlg._isDebugVui = this.isDebugVui;
@@ -289,7 +352,11 @@ export class MmirProvider {
             emma: emma
           });
 
-          dlg._emma = emma;
+          dlg._emma = emma as EmmaUtil;
+
+          if(this._resolveReadyWait){
+            this._resolveReadyWait(this);
+          }
 
           resolve(this);
 

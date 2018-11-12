@@ -31,7 +31,10 @@
 			'apprenderer': 'appjs/micrenderer',
 
 			//register a 3rd party library
-			'jbox': 'content/js/jBox-v0.3.2'
+			'jbox': 'content/js/jBox-v0.3.2',
+
+			'lengthUtil': 'lib/length.min',
+			'caretPosition': 'lib/caretPosition.min'
 
 		},
 		shim : {

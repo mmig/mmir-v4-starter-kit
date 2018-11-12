@@ -3,7 +3,7 @@ import { NavController, NavParams, AlertController } from 'ionic-angular';
 
 import { UserAuthProvider } from './../../providers/user-auth';
 import { MmirPage } from './../../models/MmirBasePage';
-import { MmirProvider } from './../../providers/mmir';
+import { MmirProvider , VoiceUIProvider } from './../../providers/mmir';
 
 @Component({
   selector: 'registration-page',
@@ -23,9 +23,10 @@ export class RegistrationPage extends MmirPage {
     private userAuth: UserAuthProvider,
     ref: ChangeDetectorRef,
     params: NavParams,
+    vuiCtrl: VoiceUIProvider,
     mmirProvider: MmirProvider
   ) {
-    super(mmirProvider, ref);
+    super(vuiCtrl, mmirProvider, ref);
 
     let user = params.get('data');
     if(user){

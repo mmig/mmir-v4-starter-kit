@@ -1,12 +1,20 @@
 
 declare var mmir;//FIXME
 
-export var IS_SOUND_FEEDBACK  = true;
-export var IS_HAPTIC_FEEDBACK = true;
+export var IS_SOUND_FEEDBACK : boolean  = true;
+export var IS_HAPTIC_FEEDBACK: boolean = true;
 //default time-duration for click-feedback vibration
-export var CLICK_VIBRATE_DURATION = 50;//ms
+export var CLICK_VIBRATE_DURATION: number = 100;//ms
 
 export type FeedbackOption = {sound?: boolean, haptic?: boolean};
+
+export function enableSoundFeedback(enable: boolean): void {
+  IS_SOUND_FEEDBACK = enable;
+}
+
+export function enableHapticFeedback(enable: boolean): void {
+  IS_HAPTIC_FEEDBACK = enable;
+}
 
 export function isSoundFeedbackEnabled() {
   var isSound = mmir.conf.get('soundFeedbackEnabled');
@@ -30,6 +38,10 @@ export function isHapticFeedbackEnabled() {
  * 			config.haptic BOOLEAN set if vibration should be included in this feedback
  */
 export function triggerClickFeedback(config?: FeedbackOption){
+
+  if(typeof mmir === 'undefined' || !mmir.notifier){
+    return;
+  }
 
   var isSound  = config && typeof config.sound  !== 'undefined'? config.sound  : true;
   var isHaptic = config && typeof config.haptic !== 'undefined'? config.haptic : true;

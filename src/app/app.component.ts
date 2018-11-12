@@ -12,7 +12,7 @@ import { CalendarPage } from '../pages/calendar-page/calendar-page';
 // import { Page1 } from '../pages/page1/page1';
 // import { Page2 } from '../pages/page2/page2';
 
-import { MmirProvider } from '../providers/mmir';
+import { MmirProvider , VoiceUIProvider } from '../providers/mmir';
 import { AppConfig } from './../providers/app-config';
 
 @Component({
@@ -34,6 +34,7 @@ export class MyApp implements OnInit {
     public splashScreen: SplashScreen,
     public events: Events,
     public appConfig: AppConfig,
+    public vuiCtrl: VoiceUIProvider,
     public mmirProvider: MmirProvider
   ) {
 

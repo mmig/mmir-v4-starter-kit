@@ -4,7 +4,7 @@
       {{localize('choose_language')}}
     </ion-title>
     <ion-buttons start>
-      <button ion-button (click)="dismiss()">
+      <button ion-button (click)="dismiss($event)">
         <span color="primary" showWhen="ios">{{localize('buttonCancel')}}</span>
         <ion-icon name="md-close" hideWhen="ios"></ion-icon>
       </button>
@@ -16,7 +16,7 @@
 
   <ion-list>
     <div ion-item *ngFor="let lang of languages"
-      (click)="select(lang)"
+      (click)="select(lang, $event)"
       [color]="(lang === currentLanguage? 'dark':'light')">
 
         <ion-avatar item-left>

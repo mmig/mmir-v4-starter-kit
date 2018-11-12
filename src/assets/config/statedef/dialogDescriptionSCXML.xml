@@ -2,7 +2,7 @@
        profile="ecmascript" id="scxmlRoot" initial="AppStart">
 
 
-<!-- State Machine for Daimler Chatbot App -->
+<!-- State Machine for MMIR StarterKit App -->
 
 
 <datamodel>
@@ -125,7 +125,9 @@
 
     	//apply setting for debug output:
     	_util.appConfig.get('showVuiDebugOutput').then(function(isEnabled){
+          if(typeof isEnabled === 'boolean'){
     		_util.isDebugVui = isEnabled;
+          }
     	});
 
 		_util.logEmma = function(emma){};//stub
@@ -157,7 +159,7 @@
 		<onexit>
 		    <script>
 		        //remove listener for micro-level changes:
-		        _util.dlg.perform(_util.speechCtrlName, 'stopMicLevels');
+		        _util.dlg.raise('showMicLevelsInactive');
 		        //close cmd-dialog ect. if necessary, before leaving:
        	        _util.dlg.perform(_util.speechCtrlName, 'showSpeechInputState', {state: false, mode: speech_mode});
 
@@ -176,7 +178,7 @@
 		    <script>
 		        var options = _util.createVuiOptions(_event.data);
 		        options.state = true;
-		        console.warn('showSpeechStateActive: ', options);
+		        if(_util.isDebugVui) console.warn('showSpeechStateActive: ', options);
        	        _util.dlg.perform(_util.speechCtrlName, 'showSpeechInputState', options);
 		    </script>
 		</transition>
@@ -185,7 +187,7 @@
 		    <script>
 		        var options = _util.createVuiOptions(_event.data);
 		        options.state = false;
-		        console.warn('showSpeechStateInactive: ', options);
+		        if(_util.isDebugVui) console.warn('showSpeechStateInactive: ', options);
        	        _util.dlg.perform(_util.speechCtrlName, 'showSpeechInputState', options);
 		    </script>
 		</transition>
@@ -196,28 +198,29 @@
 		        var options = _util.createVuiOptions(_event.data);
 		        options.isStart = true;
 		        if(_util.isDebugVui) console.warn('showMicLevelsActive: ', options);
-		        _util.dlg.perform(_util.speechCtrlName, 'startMicLevels', options);
+		        _util.dlg.perform(_util.speechCtrlName, 'changeMicLevels', options);
 		    </script>
 		</transition>
 
 		<transition event="showMicLevelsInactive" name="showMicLevelsInactive">
 		    <script>
 		        var options = _util.createVuiOptions(_event.data);
+            options.isStart = false;
 		        if(_util.isDebugVui) console.warn('showMicLevelsInactive: ', options);
-		        _util.dlg.perform(_util.speechCtrlName, 'stopMicLevels', options);
+		        _util.dlg.perform(_util.speechCtrlName, 'changeMicLevels', options);
 		    </script>
 		</transition>
 
 		<transition event="speech-recognition" name="speech-recognition" cond="_util.isSpeechCommand(_event.data)">
 		    <script>
-		        console.info('speech-recognition (command-mode) with data ', _event.data);
+		        if(_util.isDebugVui) console.info('speech-recognition (command-mode) with data ', _event.data);
        	        _util.dlg.perform(_util.speechCtrlName, 'determineSpeechCmd', _event.data);
 		    </script>
 		</transition>
 
 		<transition event="speech-recognition" name="speech-recognition" cond="_util.isSpeechDictation(_event.data)">
 		    <script>
-		        console.info('speech-recognition (dictation-mode) with data ', _event.data);
+		        if(_util.isDebugVui) console.info('speech-recognition (dictation-mode) with data ', _event.data);
 		        var data = _event.data;//_util.emma.addTarget(_event.data, target_id);
        	        _util.dlg.perform(_util.speechCtrlName, 'showDictationResult', data);
 		    </script>
@@ -225,7 +228,7 @@
 
 		<transition event="speech-understanding" name="speech-understanding">
 		    <script>
-		        console.info('speech-understanding with data ', _event.data);
+		        if(_util.isDebugVui) console.info('speech-understanding with data ', _event.data);
        	        _util.dlg.perform(_util.speechCtrlName, 'execSpeechCmd', _event.data);
 		    </script>
 		</transition>
@@ -524,7 +527,6 @@
         	        	true, isDisableImprovedDictationFeedback//, isUseLongPauseDetection
         	        ]);
 
-   	        		//_util.ctrlSpeechIn.perform('startMicLevels', true);
    	        		_util.dlg.raise('showMicLevelsActive', {mode: speech_mode, targetId: speechTargetElem});
 
         	    //]]></script>
@@ -534,7 +536,6 @@
 
         	        if(_util.isDebugVui) console.info('stopping speech input ('+speech_mode+')...');
 
-        	        //_util.ctrlSpeechIn.perform('stopMicLevels');
         	        _util.dlg.raise('showMicLevelsInactive', {mode: speech_mode, targetId: target_id});
 
         	        if(_event.data){
@@ -972,7 +973,6 @@
         	<onentry>
         	    <script>
         	        if(_util.isDebugVui) console.info('speech deactivated, stopping recognition...');
-        	        //_util.ctrlSpeechIn.perform('stopMicLevels');
         	        _util.dlg.raise('showMicLevelsInactive');
         	    </script>
         	    <raise event="showSpeechState"/>
@@ -1130,7 +1130,6 @@
         	<transition event="cancel-speech-input" name="cancel-speech-input">
         	    <!-- FIXME: this should work: assign location="temp_restart_speech_with_id" expr="''" /-->
 		        <script>
-		            //_util.ctrlSpeechIn.perform('stopMicLevels');
         	        _util.dlg.raise('showMicLevelsInactive');
 		            _util.media.perform(asr_ctx, 'cancelRecognition');
 
@@ -1199,6 +1198,10 @@
         	 -->
             <if cond="_event.data.readingId !== reading_id &amp;&amp; !_event.data.stopReading">
             	<assign location="temp_reading_data" expr="_event.data" />
+              <else/>
+              <if cond="_event.data.readingId === reading_id &amp;&amp; _event.data.cancelActivePrompts">
+              	<assign location="temp_reading_data" expr="_event.data" />
+              </if>
             </if>
 
             <script>
@@ -1246,6 +1249,9 @@
                 var data = {pageId: page_id, readingId: reading_id, targetId: temp_restart_speech_with_id};
                 if(_event.data &amp;&amp; _event.data.cancelGuidance){
                 	data.cancelGuidance = _event.data.cancelGuidance;
+                }
+                if(temp_reading_data){
+                    data.continuesReading = true;
                 }
 
             	_util.dlg.perform(_util.readCtrlName, 'stopReading', data);

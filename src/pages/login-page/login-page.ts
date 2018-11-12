@@ -6,7 +6,7 @@ import { LanguageMenu } from './../../components/language-menu/language-menu';
 
 import { UserAuthProvider, UserAuth } from './../../providers/user-auth';
 import { MmirPage } from './../../models/MmirBasePage';
-import { MmirProvider } from './../../providers/mmir';
+import { MmirProvider , VoiceUIProvider } from './../../providers/mmir';
 import { ShowSpeechStateOptions } from 'mmir-base-dialog';
 
 @Component({
@@ -38,9 +38,10 @@ export class LoginPage extends MmirPage {
     private authProvider: UserAuthProvider,
     ref: ChangeDetectorRef,
     params: NavParams,
+    vuiCtrl: VoiceUIProvider,
     mmirProvider: MmirProvider
   ) {
-    super(mmirProvider, ref);
+    super(vuiCtrl, mmirProvider, ref);
 
     let data = params.get('data');
     if(data && data.user){

@@ -1,7 +1,7 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
 import { NavController } from 'ionic-angular';
 
-import { MmirProvider } from './../../providers/mmir';
+import { MmirProvider , VoiceUIProvider } from './../../providers/mmir';
 import { MmirPage } from './../../models/MmirBasePage';
 
 @Component({
@@ -15,9 +15,10 @@ export class WelcomePage extends MmirPage {
   constructor(
     public navCtrl: NavController,
     ref: ChangeDetectorRef,
+    vuiCtrl: VoiceUIProvider,
     mmirProvider: MmirProvider
   ) {
-    super(mmirProvider, ref);
+    super(vuiCtrl, mmirProvider, ref);
     this.userModel = this.mmir.model.get('User').getInstance();
   }
 

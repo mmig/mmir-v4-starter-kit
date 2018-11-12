@@ -289,6 +289,7 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
 
 
     /**
+     * If <code>options.isStart === true</code>:
      * Called when GUI should show indicator for Microphone input levels.
      *
      * This should also initialize/start listening to mic-levels changes, e.g.
@@ -299,14 +300,8 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
      * where miclevelsChandeHandler:
      *    function(micLevel: number)
      *
-     * @param {ShowSpeechStateOptions} options
-     *              the data specifying the (changed) speech input state etc.
-     */
-    startMicLevels(options: SpeechFeedbackOptions): void {
-        //TODO ... handled direcly by fab-miclevels component ... should this be extracted to separate interaface definition?
-    }
-
-    /**
+     *
+     * If <code>options.isStart === false</code>:
      * Called when GUI should hide/deactivate indicator for Microphone input levels.
      *
      * This should destroy/free resource that were set up for visualizing mic-level
@@ -315,11 +310,10 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
      * mmir.MediaManager.off('miclevelchanged', miclevelsChandeHandler);
      * </pre>
      *
-     * @param {ShowSpeechStateOptions} options
+     * @param {SpeechFeedbackOptions} options
      *              the data specifying the (changed) speech input state etc.
      */
-    stopMicLevels(options: SpeechFeedbackOptions): void {
+    changeMicLevels(options: SpeechFeedbackOptions): void {
         //TODO ... handled direcly by fab-miclevels component ... should this be extracted to separate interaface definition?
     }
-
 }

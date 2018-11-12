@@ -12,6 +12,7 @@ export interface ISpeechState {
 }
 
 export interface ISpeechFeedback {
+
   /**
    * If <code>options.isStart === true</code>:
    * Called when GUI should show indicator for Microphone input levels.
@@ -38,6 +39,7 @@ export interface ISpeechFeedback {
    *              the data specifying the (changed) speech input state etc.
    */
   changeMicLevels(options: SpeechFeedbackOptions): void;
+
 }
 
 export interface ISpeechDictate {
@@ -211,13 +213,19 @@ export interface ReadingOptions {
 }
 
 export interface ReadingShowOptions extends ReadingOptions {
-  //if reading is active or inactive
+  /**context for reading target (may also be used for selecting reading target/text)*/
+  dialogId?: string;
+  /**if reading is active or inactive*/
   active: boolean;
 }
 
-export interface StopReadingOptions extends ReadingOptions {
-  //when guided speech input is active: indicates that speech-guidance should be canceled
+export interface StopReadingOptions extends ReadingShowOptions {
+
+  /**when guided speech input is active: indicates that speech-guidance should be canceled*/
   cancelGuidance?: boolean;
+
+  /**indicates that current prompt/readingId stops, but another prompt will continue after this one has stopped*/
+  continuesReading?: boolean;
 }
 
 export interface ReadingData {
@@ -265,6 +273,7 @@ export interface SpeechInterpretation extends Interpretation {
     func: RecognitionFunc | UnderstandingFunc;
     isGuided?: boolean;
     context?: 'form-overlay'//information for special app/gui context from which the ASR was triggered
+    inputMode?: SpeechInputMode;
 }
 
 export interface RecogitionInterpretation extends SpeechInterpretation {

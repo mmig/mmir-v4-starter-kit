@@ -1,7 +1,9 @@
 
-import { MediaManager, DialogManager } from 'mmir';
-import { ReadingData } from './SpeechData';
-import { prepareAcronyms , prepareAbbrevations , prepareDates , PromptType } from './PromptUtils';
+import { MediaManager, DialogManager } from '../../../assets/mmirf/mmir.d';//'mmir';
+
+
+import { ReadingData, StopReadingOptions } from '../../../models/speech/SpeechData';//FIXME do not link to ../../model/* ?
+import { prepTts , prepareAcronyms , prepareAbbrevations , prepareDates , PromptType } from '../../../models/speech/PromptUtils';
 
 export class PromptReader {
 
@@ -24,11 +26,13 @@ export class PromptReader {
     return this._ttsActive;
   }
 
-  cancel(){
+  cancel(options?: StopReadingOptions){
     this.media.cancelSpeech();
     if(this._ttsActive){
-      this.setActive(false);
-      this.dlg.raise('reading-stopped');
+      if(!(options && options.continuesReading)){//do not send status-updates, if there is a "next reading"
+        this.setActive(false);
+        this.dlg.raise('reading-stopped');
+      }
     }
   }
 
@@ -42,30 +46,61 @@ export class PromptReader {
 
   public readMessage(answerPrompt: ReadingData, promptType: PromptType){
 
+    const size: number = answerPrompt.promptText.length;
+    const main = size > 1? answerPrompt.promptText[1] : answerPrompt.promptText[0];
+    const caption = size > 1 && answerPrompt.promptText[0] ? answerPrompt.promptText[0] : '';
+
     //split into sentences, so that TTS can start after audio for 1st sentence was prepared
     // (instead of waiting for audio of complete text)
     let sentences: Array<string> = this.prepareSentences(
       //improve reading of acronyms by "spelling them out"
-      prepareAcronyms(answerPrompt.promptText[1]), promptType
+      prepTts(prepareAcronyms(main)), promptType
     );
 
-    sentences.unshift(answerPrompt.promptText[0]);
+    // if(caption){
+      sentences.unshift(prepTts(caption));
+    // }
 
     this.doRead(sentences);
   }
 
-  prepareSentences(text: string, promptType: PromptType): Array<string>{
+  public readPrompt(answerPrompt: ReadingData, promptType: PromptType){
+
+    //split into sentences, so that TTS can start after audio for 1st sentence was prepared
+    // (instead of waiting for audio of complete text)
+    let sentences: Array<string> = [];
+
+    for(const part of answerPrompt.promptText){
+      this.prepareSentences(
+        //improve reading of acronyms by "spelling them out"
+        prepTts(prepareAcronyms(part)), promptType, sentences
+      );
+    }
+
+    this.doRead(sentences);
+  }
+
+  /**
+   *
+   * @param  [sentences] IN/OUT parameter: if specified, sentences will be appended to this array & it will be the return value
+   * @return the (modified) sentences param, or if omitted a new string-array with the sentences
+   */
+  prepareSentences(text: string, promptType: PromptType, sentences?: Array<string>): Array<string>{
+
+    sentences = sentences || [];
 
     //read dates "<number> ten" (i.e. not "as subject", i.e. not as "<number> ter")
     let useDateAsSubject: boolean = false;//promptType !== PromptType.PROMPT_DEADLINES;
 
     //split at ". ", i.e. <dot> FOLLOWED BY <white-space> OR <end>)
-    let sentences = prepareAbbrevations( prepareDates(text, useDateAsSubject)).split(/\.(\s|$)/m);
-    for(let i=sentences.length - 1; i >= 0; --i){
+    let preparedText: string = prepareAbbrevations( prepareDates(text, useDateAsSubject));
+    const splitText = preparedText.split(/\.(\s|$)/m);
+    for(let s of splitText){
 
-      //remove empty entries from the array:
-      if(!sentences[i].trim()){
-        sentences.splice(i,1);
+      s = s.trim();
+      //omit empty strings:
+      if(s){
+        sentences.push(s);
       }
     }
     return sentences;
@@ -97,15 +132,13 @@ export class PromptReader {
 
         function onFinished(){
 
-          // self.ttsActive(false);
-          // console.debug('Synthesized ', text);
+          // console.warn('doRead: finished reading ', text);//DEBU
           self.dlg.raise('reading-stopped');
 
         },
         function onError(err){
 
-          // self.ttsActive(false);
-          // console.error('Could not synthesize ', text, ': '+err);
+          // console.warn('doRead: error reading ', text, ' -> ', err);//DEBU
           self.dlg.raise('reading-stopped');
 
         },

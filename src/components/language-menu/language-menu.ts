@@ -2,9 +2,7 @@ import { Component, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
 import { ViewController } from 'ionic-angular';
 
 import {MmirModule, LanguageManager} from 'mmir';
-import {MmirProvider} from './../../providers/mmir';
-
-import {triggerClickFeedback} from '../../models/HapticFeedback';
+import {MmirProvider, VoiceUIProvider} from './../../providers/mmir';
 
 @Component({
   selector: 'language-menu',
@@ -23,6 +21,7 @@ export class LanguageMenu  implements OnInit, OnDestroy {
 
   constructor(
     private mmirProvider: MmirProvider,
+    private vuiCtrl: VoiceUIProvider,
     private ref: ChangeDetectorRef,
     private viewCtrl: ViewController
   ) {
@@ -45,14 +44,14 @@ export class LanguageMenu  implements OnInit, OnDestroy {
     }
   }
 
-  public select(lang: string){
+  public select(lang: string, event: MouseEvent){
     // console.log('selected language ', lang);
-    triggerClickFeedback();
+    this.vuiCtrl.ctrl.triggerTouchFeedback(event || {type: 'click'});
     this.viewCtrl.dismiss(lang);
   }
 
-  public dismiss(){
-    triggerClickFeedback();
+  public dismiss(event: MouseEvent){
+    this.vuiCtrl.ctrl.triggerTouchFeedback(event || {type: 'click'});
     this.viewCtrl.dismiss(null);
   }
 

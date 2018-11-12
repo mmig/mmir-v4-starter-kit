@@ -13,10 +13,30 @@ define(['mmirf/core', 'mmirf/util/extendDeep'], function(mmir, extend){
 			medium: "acoustic",
 			'function': {}
 	};
+
 	/** @memberOf Emma# */
-	var DEFAULT_TACTILE_TYPE = 'click';
+	var EVENT_SUFFIXES = ['start', 'move', 'end', 'cancel'];
 	/** @memberOf Emma# */
-	var DEFAULT_SPEECH_TYPE  = 'speech';
+	var EVENT_SUFFIXES_HORIZONTAL = ['left', 'right'];
+	/** @memberOf Emma# */
+	var EVENT_SUFFIXES_VERTICAL = ['up', 'down'];
+	/** @memberOf Emma# */
+	var RE_TACTILE_SUB_TYPES = new RegExp('('+EVENT_SUFFIXES.concat(EVENT_SUFFIXES_HORIZONTAL, EVENT_SUFFIXES_VERTICAL).join('|')+')$', 'i');
+
+	/** @memberOf Emma# */
+	var DEFAULT_TACTILE_TYPES = {
+		click: 'click',
+		mouse: 'mouse',
+		pan: 'pan',
+		pinch: 'pitch',
+		press: 'press',
+		rotate: 'rotate',
+		swipe: 'swipe',
+		tap: 'tap',
+		touch: 'touch'
+	};
+	/** @memberOf Emma# */
+	var DEFAULT_SPEECH_TYPE = 'speech';
 	/** @memberOf Emma# */
 	var SPEECH_RECOGNITION_RESULT_NAME = 'text';
 	/** @memberOf Emma# */
@@ -54,7 +74,7 @@ define(['mmirf/core', 'mmirf/util/extendDeep'], function(mmir, extend){
 
 	/** @memberOf Emma# */
 	function isTactile(evt, data){
-		return evt.type === DEFAULT_TACTILE_TYPE;
+		return DEFAULT_TACTILE_TYPES[evt.type] === evt.type || (evt.type && DEFAULT_TACTILE_TYPES[evt.type.replace(RE_TACTILE_SUB_TYPES, '')]);
 	}
 
 	/** @memberOf Emma# */
@@ -91,6 +111,9 @@ define(['mmirf/core', 'mmirf/util/extendDeep'], function(mmir, extend){
 		}
 
 		var src = evt.currentTarget || evt.target;
+		if(!src){
+			return;////////// EARLY EXIT ///////////////////////
+		}
 
 		var classesSet = {
 			keys: src['className'].split(/\s+/gm).filter(function(value){

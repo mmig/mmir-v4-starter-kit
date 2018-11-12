@@ -1,38 +1,35 @@
 
-// import { QuestionIntent } from './QuestionRequest';
-
-// public static readonly PROMPT_RESULTS_FOUND = 'results-found-prompt';
-// export const PROMPT_WELCOME = 'welcome-prompt';
-// export const PROMPT_RESULTS = 'results-prompt';
-// export const PROMPT_DEADLINES = 'deadlines-prompt';
-// export const PROMPT_TAX_YEAR = 'tax-year-prompt';
+// public static readonly PROMPT_WELCOME = 'welcome-prompt';
+// public static readonly PROMPT_MESSAGE_TEXT = 'message-prompt';
 
 export enum PromptType {
-  PROMPT_WELCOME, PROMPT_RESULTS, PROMPT_DEADLINES, PROMPT_TAX_YEAR, PROMPT_ERROR
+  PROMPT_WELCOME, PROMPT_RESULTS, PROMPT_ERROR
 }
 
 export function isPromptId(id: number) : boolean {
   //TODO use enum for prompt IDs
-  return id === PromptType.PROMPT_WELCOME || id === PromptType.PROMPT_RESULTS || id === PromptType.PROMPT_DEADLINES || id === PromptType.PROMPT_TAX_YEAR  || id === PromptType.PROMPT_ERROR;
+  return id === PromptType.PROMPT_WELCOME || id === PromptType.PROMPT_RESULTS || id === PromptType.PROMPT_ERROR;
 }
 
-// export function getPromptId(intent: QuestionIntent) : PromptType {
-//   if(intent === 'rate' || intent === 'change')
-//     return PromptType.PROMPT_RESULTS;
-//   if(intent === 'deadline')
-//     return PromptType.PROMPT_DEADLINES;
-//   if(intent === 'duration')
-//       return PromptType.PROMPT_TAX_YEAR;
-//
-//   return PromptType.PROMPT_ERROR;
-// }
+/**
+ * prepare text for TTS output: reformat etc. the text for "better sounding"
+ * speech synthesis.
+ * @param  {string} text the text for TTS
+ * @return {string}      modified text for better TTS results
+ */
+export function prepTts(text: string): string {
+  //TODO more processing(?)
+  let newText = text.replace(/(\w)therap(eut|ie)\b/igm, '$1-Therap$2');//<- separate composites with -therapie/-therapeut
+  newText = newText.replace(/\bMoreCare\b/igm, 'Mor Kähr')
+                      .replace(/</g, 'kleiner')
+                      .replace(/>/g, 'größer');
+
+  return newText;
+}
 
 export function prepareAcronyms(text: string): string {
 
   const len = text.length;
-
-  //replace "SUV" with explicit German pronounciation
-  // text = text.replace(/\bSUV\b/g, 'Es Ju Wie,');TODO handle known special cases, that we know are treated incorretly by the TTS
 
   //try to space-out letters in acronyms:
   let re = /([ABCDEFGHIJKLMNOPQRSTUVWXYZ][ABCDEFGHIJKLMNOPQRSTUVWXYZ]+)/g;//<- RegExp for detecting acronyms (i.e. with 2 or more upper-case chars in a row)

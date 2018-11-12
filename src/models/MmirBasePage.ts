@@ -1,19 +1,20 @@
 import {LanguageManager, InputManager, MediaManager, SemanticInterpreter} from 'mmir';
-import {MmirProvider, IonicDialogManager, IonicMmirModule } from '../providers/mmir';
 import {ChangeDetectorRef, OnInit, OnDestroy} from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
-import {PromptReader} from './PromptReader';
-import {triggerClickFeedback} from './HapticFeedback';
 import { RecognitionEmma , UnderstandingEmma , ShowSpeechStateOptions } from 'mmir-base-dialog';
-import { ReadingOptions , StopReadingOptions , ReadingShowOptions } from './SpeechData';
-import { MmirAppProvider , MmirAppModule , SpeechEventSubscription } from './ISpeechIO';
-import { isPromptId, PromptType } from './PromptUtils';
+import { ReadingOptions , StopReadingOptions , ReadingShowOptions } from './speech/SpeechData';
+import { isPromptId, PromptType } from './speech/PromptUtils';
+import { MmirProvider , IonicDialogManager , IonicMmirModule } from '../providers/mmir/mmir-provider';
+import { SpeechEventSubscription } from '../providers/mmir/io/ISpeechIO';
+import { SpeechFeedbackOptions } from '../providers/mmir/typings/mmir-base-dialog.d';
+import { PromptReader } from '../providers/mmir/io/PromptReader';
+import { VoiceUIProvider } from '../providers/mmir/voice-ui-provider';
 
 export class MmirPage implements OnInit, OnDestroy {
 
-  protected _mmirProvider: MmirAppProvider;
+  protected _mmirProvider: MmirProvider;
 
-  protected mmir: MmirAppModule;
+  protected mmir: IonicMmirModule;
   protected ref: ChangeDetectorRef;
 
   protected _lang: LanguageManager;
@@ -92,8 +93,7 @@ export class MmirPage implements OnInit, OnDestroy {
 
   protected _speechEventSubscriptions: SpeechEventSubscription = {
       'showSpeechInputState': null,
-      'startMicLevels': null,
-      'stopMicLevels': null,
+      'changeMicLevels': null,
       'showDictationResult': null,
       'determineSpeechCmd': null,
       'execSpeechCmd': null,
@@ -105,15 +105,16 @@ export class MmirPage implements OnInit, OnDestroy {
   };
 
   constructor(
+    protected vuiCtrl: VoiceUIProvider,
     mmirProvider: MmirProvider,
     changeDetectorRef: ChangeDetectorRef
   ) {
-    this._mmirProvider = (mmirProvider as MmirAppProvider);
+    this._mmirProvider = (mmirProvider as MmirProvider);
     this.mmir = this._mmirProvider.mmir;
     this.ref = changeDetectorRef;
 
-    mmirProvider.ready().then(() => {
-      this.prompt = new PromptReader(this.dlg, this.media);
+    vuiCtrl.ready().then(() => {
+      this.prompt = vuiCtrl.prompt;
     });
   }
 
@@ -210,7 +211,7 @@ export class MmirPage implements OnInit, OnDestroy {
   }
 
   public triggerTouchFeedback(){
-    triggerClickFeedback();
+    this.vuiCtrl.ctrl.triggerTouchFeedback({type: 'click'});
   }
 
   ////////////////////////////////////////// Speech IO ////////////////////////
@@ -291,11 +292,14 @@ export class MmirPage implements OnInit, OnDestroy {
 
   protected showReadingStatus(options: ReadingShowOptions): void {
     if(this._debugMsg) console.log('showReadingStatus -> ', options);
-    this.prompt.setActive(options.active);
-    this.detectChanges();
+    if(this.prompt){
+      this.prompt.setActive(options.active);
+      this.detectChanges();
+    }
   };
 
   /**
+   * If <code>options.isStart === true</code>:
    * Called when GUI should show indicator for Microphone input levels.
    *
    * This should also initialize/start listening to mic-levels changes, e.g.
@@ -306,14 +310,8 @@ export class MmirPage implements OnInit, OnDestroy {
    * where miclevelsChandeHandler:
    *    function(micLevel: number)
    *
-   * @param {ShowSpeechStateOptions} options
-   *              the data specifying the (changed) speech input state etc.
-   */
-  protected startMicLevels(options: ShowSpeechStateOptions): void {
-    if(this._debugMsg) console.log('startMicLevels -> ', options);
-  };
-
-  /**
+   *
+   * If <code>options.isStart === false</code>:
    * Called when GUI should hide/deactivate indicator for Microphone input levels.
    *
    * This should destroy/free resource that were set up for visualizing mic-level
@@ -322,11 +320,11 @@ export class MmirPage implements OnInit, OnDestroy {
    * mmir.MediaManager.off('miclevelchanged', miclevelsChandeHandler);
    * </pre>
    *
-   * @param {ShowSpeechStateOptions} options
+   * @param {SpeechFeedbackOptions} options
    *              the data specifying the (changed) speech input state etc.
    */
-  protected stopMicLevels(options: ShowSpeechStateOptions): void{
-    if(this._debugMsg) console.log('stopMicLevels -> ', options);
+  protected changeMicLevels(options: SpeechFeedbackOptions): void{
+    if(this._debugMsg) console.log('changeMicLevels -> ', options);
   };
 
   ////////////////////////////////////////// Speech Input Event Handler ////////////////////////
@@ -363,9 +361,18 @@ export class MmirPage implements OnInit, OnDestroy {
    *                                 speech recognition.
    */
   protected determineSpeechCmd(asrEmmaEvent: RecognitionEmma): void {
-    if(this._debugMsg) console.log('determineSpeechCmd -> ', asrEmmaEvent);
-    // let cmd = ;
-    // this.inp.raise('speech', cmd);
+    if(this._debugMsg) console.log('determineSpeechCmd -> ASR: ', asrEmmaEvent);
+    const asr = this.dlg._emma._extractAsrData(asrEmmaEvent);
+    if(asr && (asr.type === 'INTERMEDIATE' || asr.type === 'FINAL')){
+      const cmd = this.mmir.semantic.interpret(asr.text);
+      if(this._debugMsg) console.log('determineSpeechCmd -> INTERPRETATION: ', cmd);
+      if(cmd.semantic){
+        this.dlg._emma._setEmmaFuncData(asrEmmaEvent, 'understanding', cmd);
+      } else {
+        this.dlg._emma._setEmmaFuncData(asrEmmaEvent, 'understanding', {semantic: 'DidNotUnderstand'});
+      }
+      this.inp.raise('speech', asrEmmaEvent);
+    }
   }
 
   /**
@@ -387,6 +394,18 @@ export class MmirPage implements OnInit, OnDestroy {
    */
   protected execSpeechCmd(semanticEmmaEvent: UnderstandingEmma): void {
     if(this._debugMsg) console.log('execSpeechCmd -> ', semanticEmmaEvent);
+    const cmd = this.dlg._emma._extractEmmaFuncData(semanticEmmaEvent, 'understanding');
+    if(this._debugMsg) console.log('execSpeechCmd -> COMMAND: ', cmd);
+    if(cmd){
+      let promptText: string;
+      if(cmd.semantic === 'DidNotUnderstand'){
+        promptText = this.lang.getText('did_not_understand_msg');
+      } else {
+        promptText = cmd.phrase;
+      }
+      const sentences = ['', promptText];//FIXME reimpl. readMessage instead for using this workaround!
+      this.prompt.readMessage({promptText: sentences}, PromptType.PROMPT_ERROR);
+    }
   };
 
   /**
@@ -450,16 +469,6 @@ export class MmirPage implements OnInit, OnDestroy {
 
           this.prompt.readMessage(data.readingData, data.readingId);
 
-        } else if(data.readingId === PromptType.PROMPT_DEADLINES){
-
-          //TODO impl./use specialized function?
-          this.prompt.readMessage(data.readingData, data.readingId);
-
-        } else if(data.readingId === PromptType.PROMPT_TAX_YEAR){
-
-          //TODO impl./use specialized function?
-          this.prompt.readMessage(data.readingData, data.readingId);
-
         } else if(data.readingId === PromptType.PROMPT_ERROR){
 
           //TODO impl./use specialized function?
@@ -470,23 +479,9 @@ export class MmirPage implements OnInit, OnDestroy {
           console.error('requested to read unkown prompt: "'+data.readingId+'"');
         }
 
-        // if(data.readingId === PromptReader.PROMPT_RESULTS_FOUND){
-        //
-        //   let prevFuzzyQueryProps = typeof data === 'string'? null : data.readingData;
-        //
-        //   this.prompt.readResults(this.searchResults, this.searchParams.fuzzyRatings, this.selectedFuzzyProperties, prevFuzzyQueryProps);
-        //
         // } else if(data.readingId === PromptReader.PROMPT_WELCOME){
         //
         //   this.prompt.readStartPrompt();
-        //
-        // } else if(data.readingId === PromptReader.PROMPT_TEST_DRIVE){
-        //
-        //   if(this._currentItem){
-        //     this.prompt.readTestDrivePrompt(this._currentItem);
-        //   } else {
-        //     this.prompt.readNoModelSelectedPrompt('für eine Probefahrt');
-        //   }
         //
         // } else {
         //   isConsumed = false;
