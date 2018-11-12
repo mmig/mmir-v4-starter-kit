@@ -4,7 +4,7 @@
     "defaultLayoutName": null,
     "usePrecompiledGrammarsOnly": "true",
     "grammarCompiler": "jscc",
-    
+
     "html5AudioInput": {
 	    "silenceDetector": {
 	    	"noiseTreshold": "0.1",
@@ -12,17 +12,17 @@
 		    "minimalSpeachCount": "3",
 		    "resetCount": "15"
 		},
-		
+
 		"silenceBuffer": "2000000",
 	    "webSocketAddress": "ws://localhost:9999",
 	    "soundPackageSize": "4096",
 	    "silenceDetectorPath": "mmirf/env/media/silenceDetection.js"
     },
-    
+
     "maryTextToSpeech": {
     	"serverBasePath": "http://mary.dfki.de:59125/"
     },
-    
+
     "mediaManager": {
     	"plugins": {
     		"browser": ["html5AudioOutput.js",
@@ -30,8 +30,8 @@
     		            { "mod": "webAudioTextToSpeech.js", "config": "webttsMaryImpl"}
     		],
     		"cordova": ["cordovaAudioOutput.js",
-    		            "androidAudioInput.js",
-    		            "androidTextToSpeech.js"
+    		            {"mod": "../../../../mmirf/env/media/androidAudioInput.js"},
+    		            {"mod": "../../../../mmirf/env/media/androidTextToSpeech.js"}
     		]
     	}
     }
