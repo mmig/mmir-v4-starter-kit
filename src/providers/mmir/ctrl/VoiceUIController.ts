@@ -13,7 +13,7 @@ import { SubscriptionUtil } from '../util/SubscriptionUtil';
 import { DictationTargetHandler , DictationHandler, DictationTarget , SelectionMode } from '../io/SpeechDictation';
 import { ReadTargetHandler , ReadHandler } from '../io/SpeechReading';
 import { EventLike } from '../typings/emma.d';
-import { ISpeechInputIndicator , ISpeechOutputIndicator } from '../typings/speech-indicator.d';
+import { ISpeechInputIndicator , ISpeechOutputIndicator } from '../typings/speech-io-indicator.d';
 import { IonicMmirModule , SpeechEventName } from '../typings/mmir-ionic.d';
 
 // import { ReadOverlay } from '../../../components/speech-overlay/dialogs/read-overlay';
