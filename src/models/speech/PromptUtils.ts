@@ -19,9 +19,7 @@ export function isPromptId(id: number) : boolean {
  */
 export function prepTts(text: string): string {
   //TODO more processing(?)
-  let newText = text.replace(/(\w)therap(eut|ie)\b/igm, '$1-Therap$2');//<- separate composites with -therapie/-therapeut
-  newText = newText.replace(/\bMoreCare\b/igm, 'Mor Kähr')
-                      .replace(/</g, 'kleiner')
+  let newText = text.replace(/</g, 'kleiner')
                       .replace(/>/g, 'größer');
 
   return newText;
