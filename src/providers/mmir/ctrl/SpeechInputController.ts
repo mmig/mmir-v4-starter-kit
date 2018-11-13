@@ -4,8 +4,8 @@ import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
 import { MmirProvider } from '../mmir-provider';
-import { RecognitionEmma , UnderstandingEmma , ShowSpeechStateOptions , RecognitionType , SpeechRecognitionResult } from '../typings/mmir-base-dialog.d';// 'mmir-base-dialog';
-import { EmmaUtil } from '../typings/emma.d';// 'mmir-emma';
+import { RecognitionEmma , UnderstandingEmma , ShowSpeechStateOptions , RecognitionType , SpeechRecognitionResult } from '../typings/mmir-base-dialog.d';
+import { EmmaUtil } from '../typings/emma.d';
 
 import { SubscriptionUtil } from '../util/SubscriptionUtil';
 import { DictationTargetHandler , DictationHandler , DictationTarget , CurrentInputData , UNSTABLE_RESULT_HTML_PREFIX , UNSTABLE_RESULT_HTML_SUFFIX , SelectionMode } from '../io/SpeechDictation';

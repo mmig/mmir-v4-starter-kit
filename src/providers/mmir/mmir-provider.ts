@@ -2,22 +2,16 @@
 import { Injectable, Component } from '@angular/core';
 import { Platform, Nav } from 'ionic-angular';
 
-import 'rxjs/add/operator/distinctUntilChanged';
-// import 'rxjs/add/operator/map';
-// import 'rxjs/add/operator/toPromise';
-
-// import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+import 'rxjs/add/operator/distinctUntilChanged';
 
-// import { MmirModule, DialogEngine, DialogManager, ControllerManager, PresentationManager, Controller, View , MediaManager , IAudio } from '../../assets/mmirf/mmir.d'; // 'mmir';
-import { MmirModule , MediaManager } from '../../assets/mmirf/mmir.d'; // 'mmir';
-import { ShowSpeechStateOptions, SpeechFeedbackOptions, RecognitionEmma, UnderstandingEmma , ReadingOptions , StopReadingOptions, ReadingShowOptions } from './typings/mmir-base-dialog.d';//'mmir-base-dialog';
-import { EmmaUtil } from './typings/emma.d';//'mmir-emma';
+import { MmirModule , MediaManager } from '../../assets/mmirf/mmir.d';
+import { ShowSpeechStateOptions, SpeechFeedbackOptions, RecognitionEmma, UnderstandingEmma , ReadingOptions , StopReadingOptions, ReadingShowOptions } from './typings/mmir-base-dialog.d';
+import { EmmaUtil } from './typings/emma.d';
 import { IAppSettings } from './typings/app-settings';
 import { SpeechEventEmitter , IonicMmirModule , ViewDecl , IonicDialogEngine , IonicDialogManager , IonicView , PlayError , IonicPresentationManager , IonicController , Action , WaitReadyOptions } from './typings/mmir-ionic.d';
 
-// import { WaitReadyOptions , ReadingShowOptions } from '../../models/speech/SpeechData';
 
 //FIXME should use import instead of declaring variable!
 // import * as mmir from 'mmir';
@@ -30,7 +24,7 @@ export class MmirProvider<CmdType, CmdParam> {
 
   private platform: Platform;
   private nav: Nav;
-  private evt: SpeechEventEmitter<CmdType, CmdParam>;//{[id: string]: Subject<any>};//Events;
+  private evt: SpeechEventEmitter<CmdType, CmdParam>;
   private appConfig: IAppSettings;
 
   private _mmir : IonicMmirModule<CmdType, CmdParam>;
@@ -56,7 +50,6 @@ export class MmirProvider<CmdType, CmdParam> {
   public init(
     platform: Platform,
     nav: Nav,
-    // events: Events,
     appConfig: IAppSettings,
     views?: Array<ViewDecl>
   ): Promise<MmirProvider<CmdType, CmdParam>> {

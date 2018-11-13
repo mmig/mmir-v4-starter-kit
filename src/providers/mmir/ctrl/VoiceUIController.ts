@@ -1,8 +1,9 @@
 import { ElementRef, Component } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+
 import { MmirProvider } from '../mmir-provider';
-import { RecognitionEmma , UnderstandingEmma , ShowSpeechStateOptions, ReadingShowOptions , ReadingOptions , StopReadingOptions, SpeechFeedbackOptions } from '../typings/mmir-base-dialog.d';//'mmir-base-dialog';
+import { RecognitionEmma , UnderstandingEmma , ShowSpeechStateOptions, ReadingShowOptions , ReadingOptions , StopReadingOptions, SpeechFeedbackOptions } from '../typings/mmir-base-dialog.d';
 import { SPEECH_ACTIVE , READ_ACTIVE } from '../consts';
 import { triggerClickFeedback , FeedbackOption } from '../io/HapticFeedback';
 import { PromptReader } from '../io/PromptReader';
@@ -11,11 +12,11 @@ import { SpeechOutputController } from '../ctrl/SpeechOutputController';
 import { SubscriptionUtil } from '../util/SubscriptionUtil';
 import { DictationTargetHandler , DictationHandler, DictationTarget , SelectionMode } from '../io/SpeechDictation';
 import { ReadTargetHandler , ReadHandler } from '../io/SpeechReading';
-import { PromptType , isPromptId } from '../../../models/speech/PromptUtils';
 import { EventLike } from '../typings/emma.d';
 import { ISpeechInputIndicator , ISpeechOutputIndicator } from '../typings/speech-indicator.d';
-// import { ReadOverlay } from '../../../components/speech-overlay/dialogs/read-overlay';
 import { IonicMmirModule , SpeechEventName } from '../typings/mmir-ionic.d';
+
+// import { ReadOverlay } from '../../../components/speech-overlay/dialogs/read-overlay';
 
 export class VoiceUIController<CmdType, CmdParam> {
 
