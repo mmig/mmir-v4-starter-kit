@@ -102,7 +102,7 @@ export class DictationHandler {
   protected setInputTarget(textfield: ElementRef){
 
     this.textfield = textfield;
-    const textEl = textfield.nativeElement as HTMLElement;
+    const textEl: HTMLElement = textfield.nativeElement;
     this.nativeInput = textEl;
 
 	  const tagType = textEl.tagName;

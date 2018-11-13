@@ -19,6 +19,7 @@ import {
 import { CmdParam , CmdType } from '../models/speech/SpeechCommand';
 import { SubscriptionUtil } from '../providers/mmir/util/SubscriptionUtil';
 import { SpeechEventName } from '../providers/mmir/typings/mmir-ionic.d';
+import { PromptHandler } from './speech/PromptHandler';
 
 export class MmirPage implements OnInit, OnDestroy {
 
@@ -114,6 +115,7 @@ export class MmirPage implements OnInit, OnDestroy {
 
     vuiCtrl.ready().then(() => {
       this.prompt = vuiCtrl.prompt;
+      this.prompt.handler = new PromptHandler();
     });
   }
 
@@ -429,57 +431,7 @@ export class MmirPage implements OnInit, OnDestroy {
    *                            reading-request is valid (e.g. if reading is context-sensitive)
    */
   protected read(data: string|AppReadingOptions): void | boolean {
-
     if(this._debugMsg) console.log('read -> ', data);
-
-    let isConsumed = false;
-    let isTest = false;
-    if(typeof data !== 'string'){
-
-      isTest = data.test;
-
-      if(isPromptId(data.readingId)){
-
-        if(isTest){
-          return true;/////////////////// EARYL EXIT ///////////////////
-        }
-
-        isConsumed = true;
-
-        if(data.readingId === PromptType.PROMPT_WELCOME){
-
-          this.prompt.readStartPrompt();
-
-        } else if(data.readingId === PromptType.PROMPT_RESULTS){
-
-          this.prompt.readMessage(data.readingData, data.readingId);
-
-        } else if(data.readingId === PromptType.PROMPT_ERROR){
-
-          //TODO impl./use specialized function?
-          this.prompt.readMessage(data.readingData, data.readingId);
-
-        } else {
-          isConsumed = false;
-          console.error('requested to read unkown prompt: "'+data.readingId+'"');
-        }
-
-        // } else if(data.readingId === PromptReader.PROMPT_WELCOME){
-        //
-        //   this.prompt.readStartPrompt();
-        //
-        // } else {
-        //   isConsumed = false;
-        //   console.error('requested to read unkown prompt: "'+data.readingId+'"');
-        // }
-      }
-    }
-
-    if(!isConsumed && !isTest){
-      console.error('read: unknown read target ', data);
-    }
-
-    return false;
   };
 
   /**

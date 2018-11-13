@@ -1,14 +1,14 @@
 
 import { MediaManager, DialogManager } from '../../../assets/mmirf/mmir.d';//'mmir';
-
-
 import { ReadingData, StopReadingOptions } from '../typings/mmir-base-dialog';
-import { prepTts , prepareAcronyms , prepareAbbrevations , prepareDates , PromptType } from '../../../models/speech/PromptUtils';
+import { IPromptHandler } from '../typings/mmir-ionic.d';
 
 export class PromptReader {
 
   protected _ttsActive: boolean;
   public get active(): boolean { return this._ttsActive; }
+
+  public handler: IPromptHandler;
 
   /** if a prompt is active, when a new one is requested: cancel the current one, or discard the new one?  */ //TODO impl. queuing-mode for new prompts?
   public cancelOnNew: boolean;
@@ -36,77 +36,15 @@ export class PromptReader {
     }
   }
 
-  public readStartPrompt(){
-
-    //NOTE inserted comma after "Mikrofonsymbol" to improve TTS audio (i.e. inserts a short pause)
-    let startPrompt = 'Bitte tippen Sie auf das Mikrophon-Symbol, und stellen Sie eine Frage.';
-
-    this.doRead(startPrompt);
+  public setHandler(handler: IPromptHandler): void {
+    this.handler = handler;
   }
 
-  public readMessage(answerPrompt: ReadingData, promptType: PromptType){
-
-    const size: number = answerPrompt.promptText.length;
-    const main = size > 1? answerPrompt.promptText[1] : answerPrompt.promptText[0];
-    const caption = size > 1 && answerPrompt.promptText[0] ? answerPrompt.promptText[0] : '';
-
-    //split into sentences, so that TTS can start after audio for 1st sentence was prepared
-    // (instead of waiting for audio of complete text)
-    let sentences: Array<string> = this.prepareSentences(
-      //improve reading of acronyms by "spelling them out"
-      prepTts(prepareAcronyms(main)), promptType
-    );
-
-    // if(caption){
-      sentences.unshift(prepTts(caption));
-    // }
-
-    this.doRead(sentences);
+  public readPrompt(text: string|Array<string>): void {
+    this.doRead(text);
   }
 
-  public readPrompt(answerPrompt: ReadingData, promptType: PromptType){
-
-    //split into sentences, so that TTS can start after audio for 1st sentence was prepared
-    // (instead of waiting for audio of complete text)
-    let sentences: Array<string> = [];
-
-    for(const part of answerPrompt.promptText){
-      this.prepareSentences(
-        //improve reading of acronyms by "spelling them out"
-        prepTts(prepareAcronyms(part)), promptType, sentences
-      );
-    }
-
-    this.doRead(sentences);
-  }
-
-  /**
-   *
-   * @param  [sentences] IN/OUT parameter: if specified, sentences will be appended to this array & it will be the return value
-   * @return the (modified) sentences param, or if omitted a new string-array with the sentences
-   */
-  prepareSentences(text: string, promptType: PromptType, sentences?: Array<string>): Array<string>{
-
-    sentences = sentences || [];
-
-    //read dates "<number> ten" (i.e. not "as subject", i.e. not as "<number> ter")
-    let useDateAsSubject: boolean = false;//promptType !== PromptType.PROMPT_DEADLINES;
-
-    //split at ". ", i.e. <dot> FOLLOWED BY <white-space> OR <end>)
-    let preparedText: string = prepareAbbrevations( prepareDates(text, useDateAsSubject));
-    const splitText = preparedText.split(/\.(\s|$)/m);
-    for(let s of splitText){
-
-      s = s.trim();
-      //omit empty strings:
-      if(s){
-        sentences.push(s);
-      }
-    }
-    return sentences;
-  }
-
-  protected doRead(text: string|Array<string>){
+  protected doRead(text: string|Array<string>): void {
 
 
     //do not start/queue, if TTS is active right now, but discard the read-request

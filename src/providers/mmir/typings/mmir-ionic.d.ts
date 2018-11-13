@@ -8,7 +8,6 @@ import { Subject } from 'rxjs/Subject';
 import { ShowSpeechStateOptions , SpeechFeedbackOptions , RecognitionEmma , UnderstandingEmma , ReadingOptions , StopReadingOptions , ReadingShowOptions } from './mmir-base-dialog.d';
 import { EmmaUtil } from './emma.d';
 
-
 import { IAudio , PresentationManager , View , ControllerManager , DialogManager , DialogEngine , Controller , MmirModule } from '../../../assets/mmirf/mmir.d';
 
 
@@ -26,6 +25,7 @@ export type SpeechEventName = 'showSpeechInputState' |                         /
                         'read' | 'stopReading' | 'showReadingStatus' |  //ISpeechOutput
                         'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed' //IGuidedSpeechInput
                         ;
+
 export interface SpeechEventEmitter<CmdType, CmdParam> {
     showSpeechInputState: BehaviorSubject<ShowSpeechStateOptions>;
     changeMicLevels: BehaviorSubject<SpeechFeedbackOptions>;
@@ -85,3 +85,8 @@ export interface IonicMmirModule<CmdType, CmdParam> extends MmirModule {
 
 export type ViewDecl = {name: string, ctrlName: string, view: any};
 export type IonicView = {_name: string, getName: () => string, view: Component, ctrl?: IonicController};
+
+export interface IPromptHandler {
+  willReadPrompt(contextId, readingId): boolean;
+  preparePrompt(readingData: ReadingOptions): string | Array<string>;
+}

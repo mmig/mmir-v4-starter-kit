@@ -1,18 +1,14 @@
 
+import { Subscription } from 'rxjs/Subscription';
+
 import { PromptReader } from '../io/PromptReader';
 import { MmirProvider } from '../mmir-provider';
-
-import { isPromptId , PromptType } from '../../../models/speech/PromptUtils';
 
 import { SubscriptionUtil } from '../util/SubscriptionUtil';
 import { ReadingOptions } from '../typings/mmir-base-dialog.d';
 import { SpeechEventName } from '../typings/mmir-ionic.d';
 
-import { Subscription } from 'rxjs/Subscription';
-
 export class SpeechOutputController {
-
-  protected prompt: PromptReader;
 
   protected _debugMsg: boolean = false;
 
@@ -24,6 +20,7 @@ export class SpeechOutputController {
   }
 
   constructor(
+    protected prompt: PromptReader,
     protected subsUtil: SubscriptionUtil,
     mmirProvider: MmirProvider<any, any>
   ) {
@@ -31,7 +28,6 @@ export class SpeechOutputController {
     mmirProvider.ready().then(mmirp => {
 
       const mmir = mmirp.mmir;
-      this.prompt = new PromptReader(mmir.dialog, mmir.media);
       this._speechEventSubscriptions = this.subsUtil.subscribe(['read'], this);
 
     });
@@ -40,6 +36,7 @@ export class SpeechOutputController {
   public destroy() {
     this.subsUtil.unsubscribe(this._speechEventSubscriptions);
   }
+
   ////////////////////////////////////////// Speech Output Event Handlers ///////////////////////
 
 
@@ -68,41 +65,45 @@ export class SpeechOutputController {
    */
   protected read(data: string|ReadingOptions): void | boolean {
 
-    if(this._debugMsg) console.log('read -> ', data);
+    if(this._debugMsg){
+
+      console.log('read -> ', data);
+
+      if(!this.prompt.handler){
+        console.warn('SpeechOutputController.read(): no IPromptHandler set!');
+      }
+    }
 
     let isConsumed = false;
     let isTest = false;
+    let promptText: string | Array<string>;
     if(typeof data !== 'string'){
 
       isTest = data.test;
 
-      if(typeof data.readingId == 'number' && isPromptId(data.readingId)){
+      if(!this.prompt.handler || this.prompt.handler.willReadPrompt(data.contextId, data.readingId)){
 
         if(isTest){
           return true;/////////////////// EARYL EXIT ///////////////////
         }
 
-        isConsumed = true;
-
-        if(data.readingId === PromptType.PROMPT_WELCOME){
-
-          this.prompt.readStartPrompt();
-
-        } else if(data.readingId === PromptType.PROMPT_RESULTS){
-
-          this.prompt.readMessage(data.readingData, data.readingId);
-
-        } else if(data.readingId === PromptType.PROMPT_ERROR){
-
-          //TODO impl. function for reading appointment?
-          this.prompt.readPrompt(data.readingData, data.readingId);
-
+        if(this.prompt.handler){
+          promptText = this.prompt.handler.preparePrompt(data);
         } else {
-          isConsumed = false;
-          console.error('requested to read unkown prompt: "'+data.readingId+'"');
+          promptText = this.getText(data);
         }
 
+        isConsumed = !!((Array.isArray(promptText) && promptText.length > 0) || promptText);
       }
+
+    } else {
+
+      promptText = data;
+      isConsumed = !!((Array.isArray(promptText) && promptText.length > 0) || promptText);
+    }
+
+    if(isConsumed && !isTest){
+      this.prompt.readPrompt(promptText);
     }
 
     if(!isConsumed && !isTest){
@@ -110,6 +111,13 @@ export class SpeechOutputController {
     }
 
     return false;
-  };
+  }
+
+  protected getText(data: ReadingOptions): string | Array<string> {
+    if(data && data.readingData){
+      return data.readingData.promptText;
+    }
+    return null;
+  }
 
 }

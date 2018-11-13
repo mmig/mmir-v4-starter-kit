@@ -95,8 +95,6 @@ export class VoiceUIController<CmdType, CmdParam> {
     this.ttsActiveChange = new BehaviorSubject<boolean>(false);
 
     this._defaultDictationFeedbackStyle = 'interim';//'unstable';//FIXME retrieve from settings?
-    this.speechIn = new SpeechInputController(this.subsUtil, mmirProvider, this.dictTargetHandler);
-    this.speechOut = new SpeechOutputController(this.subsUtil, mmirProvider);
 
     this.isDictationOverlaySingleton = false;
     this.isReadOverlaySingleton = false;
@@ -105,6 +103,8 @@ export class VoiceUIController<CmdType, CmdParam> {
 
       this.prompt = new PromptReader(this.mmir.dialog, this.mmir.media);
       this.prompt.cancelOnNew = true;
+      this.speechIn = new SpeechInputController(this.subsUtil, mmirProvider, this.dictTargetHandler);
+      this.speechOut = new SpeechOutputController(this.prompt, this.subsUtil, mmirProvider);
       this._speechEventSubscriptions = this.subsUtil.subscribe([
         'showSpeechInputState',
         'changeMicLevels',
@@ -124,8 +124,12 @@ export class VoiceUIController<CmdType, CmdParam> {
 
   public destroy() {
 
-    this.speechIn.destroy();
-    this.speechOut.destroy();
+    if(this.speechIn){
+      this.speechIn.destroy();
+    }
+    if(this.speechOut){
+      this.speechOut.destroy();
+    }
     this.releaseUiResources(true);
     this.dictTargetHandler.destroy();
     this.readTargetHandler.destroy();
@@ -152,7 +156,7 @@ export class VoiceUIController<CmdType, CmdParam> {
 
   public ttsCancel(options?: StopReadingOptions): void {
     if(this.prompt){
-      this.prompt.cancel(options as any);//FIXME cast necessary, because prompt uses /model/SpeechData::StopReadingOptions ... should use generics to set TTS/ASR option types...
+      this.prompt.cancel(options);
     }
   }
 
