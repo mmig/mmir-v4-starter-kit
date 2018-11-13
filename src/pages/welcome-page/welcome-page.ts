@@ -1,9 +1,10 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
-import { NavController } from 'ionic-angular';
+import { NavController, IonicPage } from 'ionic-angular';
 
 import { MmirProvider , VoiceUIProvider } from './../../providers/mmir';
 import { MmirPage } from './../../models/MmirBasePage';
 
+@IonicPage()
 @Component({
   selector: 'welcome-page',
   templateUrl: 'welcome-page.html'

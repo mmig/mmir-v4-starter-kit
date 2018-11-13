@@ -7,11 +7,7 @@ import { SplashScreen } from '@ionic-native/splash-screen';
 
 import { LoginPage } from '../pages/login-page/login-page';
 import { RegistrationPage } from './../pages/registration-page/registration-page';
-import { WelcomePage } from '../pages/welcome-page/welcome-page';
 import { CalendarPage } from '../pages/calendar-page/calendar-page';
-// import { Page1 } from '../pages/page1/page1';
-// import { Page2 } from '../pages/page2/page2';
-
 import { MmirProvider , VoiceUIProvider } from '../providers/mmir';
 import { AppConfig } from './../providers/app-config';
 import { CmdParam , CmdType } from '../models/speech/SpeechCommand';
@@ -45,7 +41,7 @@ export class MyApp implements OnInit {
     this.pages = [
       { title: 'Login', component: LoginPage },
       { title: 'Registration', component: RegistrationPage },
-      { title: 'Welcome', component: WelcomePage },
+      { title: 'Welcome', component: 'WelcomePage' },
       { title: 'Add Appointment', component: CalendarPage }
     ];
 
@@ -78,7 +74,7 @@ export class MyApp implements OnInit {
     this.mmirProvider.init(this.platform, this.nav, /*this.events,*/ this.appConfig, [
       { ctrlName: 'Application', name: 'login', view: LoginPage },
       { ctrlName: 'Application', name: 'registration', view: RegistrationPage },
-      { ctrlName: 'Application', name: 'welcome', view: WelcomePage },
+      { ctrlName: 'Application', name: 'welcome', view: 'WelcomePage' },
       { ctrlName: 'Calendar', name: 'create_appointment', view: CalendarPage }
     ]);
 
