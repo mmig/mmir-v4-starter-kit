@@ -16,7 +16,7 @@ import { ReadingOptions, ReadingShowOptions, StopReadingOptions, WaitReadyOption
 import { ShowSpeechStateOptions, SpeechFeedbackOptions, RecognitionEmma, UnderstandingEmma } from './typings/mmir-base-dialog.d';//'mmir-base-dialog';
 import { EmmaUtil } from './typings/emma.d';//'mmir-emma';
 
-import { AppConfig } from '../app-config';
+import { IAppSettings } from './typings/app-settings';
 
 //FIXME should use import instead of declaring variable!
 // import * as mmir from 'mmir';
@@ -98,7 +98,7 @@ export class MmirProvider {
   private platform: Platform;
   private nav: Nav;
   private evt: SpeechEventEmitter;//{[id: string]: Subject<any>};//Events;
-  private appConfig: AppConfig;
+  private appConfig: IAppSettings;
 
   private _mmir : IonicMmirModule;
 
@@ -128,7 +128,7 @@ export class MmirProvider {
     platform: Platform,
     nav: Nav,
     // events: Events,
-    appConfig: AppConfig,
+    appConfig: IAppSettings,
     views?: Array<ViewDecl>
   ): Promise<MmirProvider> {
 
