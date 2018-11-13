@@ -1,7 +1,7 @@
 
 import { ElementRef } from '@angular/core';
 import { getHtmlElement } from '../util/Utils';
-import { READ_CONTROL } from './ISpeechIO';
+import { READ_CONTROL } from '../consts';
 
 export class ReadTargetHandler {
 

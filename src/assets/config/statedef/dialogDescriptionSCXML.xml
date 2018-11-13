@@ -1214,7 +1214,7 @@
 
         <transition event="read" name="read-inactive" cond="!reading_status">
             <assign location="reading_id" expr="_event.data.readingId" />
-            <assign location="dialog_id" expr="_event.data.dialogId" />
+            <assign location="dialog_id" expr="_event.data.contextId" />
             <script>
                 if(_util.isDebugVui) console.debug('read-inactive: reading '+page_id,' ', _event.data);
 
@@ -1224,14 +1224,14 @@
                 //cancel any speech-input, if active:
             	_util.dlg.raise('pause-speech-input');//'cancel-speech-input');
 
-            	var options = {dialogId: dialog_id || page_id, readingId: reading_id};
+            	var options = {contextId: dialog_id || page_id, readingId: reading_id};
             	if(_event.data.readingData){
             		options.readingData = _event.data.readingData;
             	}
             	var consumed = _util.dlg.perform(_util.readCtrlName, 'read', options);
             	if(consumed === false){
             		reading_status = false;
-            		_util.dlg.perform(_util.readCtrlName, 'showReadingStatus', {dialogId: dialog_id || page_id, readingId: reading_id, active: reading_status, targetId: temp_restart_speech_with_id});
+            		_util.dlg.perform(_util.readCtrlName, 'showReadingStatus', {contextId: dialog_id || page_id, readingId: reading_id, active: reading_status, targetId: temp_restart_speech_with_id});
             	}
             </script>
         </transition>
@@ -1249,7 +1249,7 @@
             <script>
 
                 //console.debug('stop reading!');
-                var data = {dialogId: dialog_id || page_id, readingId: reading_id, targetId: temp_restart_speech_with_id};
+                var data = {contextId: dialog_id || page_id, readingId: reading_id, targetId: temp_restart_speech_with_id};
                 if(_event.data &amp;&amp; _event.data.cancelGuidance){
                 	data.cancelGuidance = _event.data.cancelGuidance;
                 }
@@ -1266,7 +1266,7 @@
                 //console.debug('reading has started...');
             	reading_status = true;
 
-            	_util.dlg.perform(_util.readCtrlName, 'showReadingStatus', {dialogId: dialog_id || page_id, readingId: reading_id, active: reading_status, targetId: temp_restart_speech_with_id});
+            	_util.dlg.perform(_util.readCtrlName, 'showReadingStatus', {contextId: dialog_id || page_id, readingId: reading_id, active: reading_status, targetId: temp_restart_speech_with_id});
             </script>
         </transition>
 
@@ -1280,7 +1280,7 @@
             		temp_resume_speech_with_id = '';
             	}
 
-            	_util.dlg.perform(_util.readCtrlName, 'showReadingStatus', {dialogId: dialog_id || page_id, readingId: reading_id, active: reading_status, targetId: temp_restart_speech_with_id});
+            	_util.dlg.perform(_util.readCtrlName, 'showReadingStatus', {contextId: dialog_id || page_id, readingId: reading_id, active: reading_status, targetId: temp_restart_speech_with_id});
 
             	if(temp_reading_data){
             		var options = temp_reading_data;

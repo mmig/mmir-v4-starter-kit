@@ -2,7 +2,7 @@
 import { Emma , RecognitionEmma , UnderstandingEmma , TactileEmma, SpeechRecognitionResult } from './mmir-base-dialog.d';
 
 export type EmmaFunctionType = 'recognition' | 'understanding';
-export type AnyEmma = Emma | RecognitionEmma | UnderstandingEmma | TactileEmma;
+export type AnyEmma<CmdType, CmdParam> = Emma | RecognitionEmma | UnderstandingEmma<CmdType, CmdParam> | TactileEmma;
 export type RecognitionData = Array<any>;//really: argument-list of recogntion-callback, see ASROnStatus
 export type UnderstandingData = {semantic: any, phrase: string, phrases: Array<string>};
 
@@ -13,17 +13,17 @@ export interface EventLike {
 
 export interface EmmaUtil {
 
-  toEmma(event: MouseEvent | TouchEvent | Emma | RecognitionEmma | UnderstandingEmma | EventLike, data?: any): RecognitionEmma | UnderstandingEmma | TactileEmma;
-  fire(event: MouseEvent | TouchEvent | Emma | RecognitionEmma | UnderstandingEmma | EventLike, data?: any): RecognitionEmma | UnderstandingEmma | TactileEmma;
-  isTactileEvent(emmaData: AnyEmma) : boolean;
-  isSpeechEvent(emmaData: AnyEmma) : boolean;
-  setSpeechRecognition(emmaData: AnyEmma, event: any, data: RecognitionData): void;
-  setSpeechUnderstanding(emmaData: AnyEmma, event: any, data: UnderstandingData): void;
-  addTarget(emmaData: AnyEmma, target: any, isOverwrite?: boolean): void;
-  addProperty(emmaData: AnyEmma, name: string, value: any, isOverwrite?: boolean): void;
-  getTarget(emmaData: AnyEmma): any;
-  getProperty(emmaData: AnyEmma, name: string): any;
-  _setEmmaFuncData(emmaEvent: AnyEmma, funcName: EmmaFunctionType, funcData: any, isOverwrite?: boolean): void;
-  _extractAsrData(asrEmmaEvent: AnyEmma): SpeechRecognitionResult;
-  _extractEmmaFuncData(emmaEvent: AnyEmma, func: EmmaFunctionType): any;
+  toEmma<CmdType, CmdParam>(event: MouseEvent | TouchEvent | Emma | RecognitionEmma | UnderstandingEmma<CmdType, CmdParam> | EventLike, data?: any): RecognitionEmma | UnderstandingEmma<CmdType, CmdParam> | TactileEmma;
+  fire<CmdType, CmdParam>(event: MouseEvent | TouchEvent | Emma | RecognitionEmma | UnderstandingEmma<CmdType, CmdParam> | EventLike, data?: any): RecognitionEmma | UnderstandingEmma<CmdType, CmdParam> | TactileEmma;
+  isTactileEvent<CmdType, CmdParam>(emmaData: AnyEmma<CmdType, CmdParam>) : boolean;
+  isSpeechEvent<CmdType, CmdParam>(emmaData: AnyEmma<CmdType, CmdParam>) : boolean;
+  setSpeechRecognition<CmdType, CmdParam>(emmaData: AnyEmma<CmdType, CmdParam>, event: any, data: RecognitionData): void;
+  setSpeechUnderstanding<CmdType, CmdParam>(emmaData: AnyEmma<CmdType, CmdParam>, event: any, data: UnderstandingData): void;
+  addTarget<CmdType, CmdParam>(emmaData: AnyEmma<CmdType, CmdParam>, target: any, isOverwrite?: boolean): void;
+  addProperty<CmdType, CmdParam>(emmaData: AnyEmma<CmdType, CmdParam>, name: string, value: any, isOverwrite?: boolean): void;
+  getTarget<CmdType, CmdParam>(emmaData: AnyEmma<CmdType, CmdParam>): any;
+  getProperty<CmdType, CmdParam>(emmaData: AnyEmma<CmdType, CmdParam>, name: string): any;
+  _setEmmaFuncData<CmdType, CmdParam>(emmaEvent: AnyEmma<CmdType, CmdParam>, funcName: EmmaFunctionType, funcData: any, isOverwrite?: boolean): void;
+  _extractAsrData<CmdType, CmdParam>(asrEmmaEvent: AnyEmma<CmdType, CmdParam>): SpeechRecognitionResult;
+  _extractEmmaFuncData<CmdType, CmdParam>(emmaEvent: AnyEmma<CmdType, CmdParam>, func: EmmaFunctionType): any;
 }

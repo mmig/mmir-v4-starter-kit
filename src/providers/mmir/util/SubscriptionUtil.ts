@@ -1,15 +1,15 @@
 
-import { SpeechEventSubscription } from '../io/ISpeechIO';
-import { IonicMmirModule } from '../mmir-provider';
+import { SpeechEventName , IonicMmirModule } from '../typings/mmir-ionic.d';
+import { Subscription } from 'rxjs/Subscription';
 
 export class SubscriptionUtil {
 
-  constructor(private mmir: IonicMmirModule){}
+  constructor(private mmir: IonicMmirModule<any, any>){}
 
-  public subscribe(speechEventSubscriptions: SpeechEventSubscription, handler: any): void {
-    const keys = Object.keys(speechEventSubscriptions);
-    keys.forEach(name => {
-      speechEventSubscriptions[name] = this.mmir.dialog._eventEmitter[name].subscribe(function() {
+  public subscribe(subscriptions: Array<SpeechEventName>, handler: any): Map<SpeechEventName, Subscription> {
+    const speechSubs: Map<SpeechEventName, Subscription> = new Map<SpeechEventName, Subscription>();
+    subscriptions.forEach(name => {
+      speechSubs.set(name, this.mmir.dialog._eventEmitter[name].subscribe(function() {
         //DEBUG
         // let args = arguments.length === 1? arguments[0] : (arguments.length? arguments.length : void(0));
         // console.log(name +' -> ', args);
@@ -18,19 +18,17 @@ export class SubscriptionUtil {
         } else {
           console.warn('No function "'+name+'" in View available!');
         }
-      });
+      }));
     });
+    return speechSubs;
   }
 
-  public unsubscribe(speechEventSubscriptions: SpeechEventSubscription): void {
-    const keys = Object.keys(speechEventSubscriptions);
-    let subname: string;
-    for(let i = keys.length - 1; i >= 0; --i){
-      subname = keys[i];
-      if(speechEventSubscriptions[subname]){
-        speechEventSubscriptions[subname].unsubscribe();
+  public unsubscribe(speechEventSubscriptions: Map<SpeechEventName, Subscription>): void {
+    speechEventSubscriptions.forEach((subscription) => {
+      if(subscription && !subscription.closed){
+        subscription.unsubscribe();
       }
-    }
+    });
   }
 
 }

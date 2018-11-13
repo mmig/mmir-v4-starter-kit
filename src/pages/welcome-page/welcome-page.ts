@@ -15,8 +15,8 @@ export class WelcomePage extends MmirPage {
   constructor(
     public navCtrl: NavController,
     ref: ChangeDetectorRef,
-    vuiCtrl: VoiceUIProvider,
-    mmirProvider: MmirProvider
+    vuiCtrl: VoiceUIProvider<any, any>,
+    mmirProvider: MmirProvider<any, any>
   ) {
     super(vuiCtrl, mmirProvider, ref);
     this.userModel = this.mmir.model.get('User').getInstance();

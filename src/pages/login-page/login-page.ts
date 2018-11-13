@@ -38,8 +38,8 @@ export class LoginPage extends MmirPage {
     private authProvider: UserAuthProvider,
     ref: ChangeDetectorRef,
     params: NavParams,
-    vuiCtrl: VoiceUIProvider,
-    mmirProvider: MmirProvider
+    vuiCtrl: VoiceUIProvider<any, any>,
+    mmirProvider: MmirProvider<any, any>
   ) {
     super(vuiCtrl, mmirProvider, ref);
 

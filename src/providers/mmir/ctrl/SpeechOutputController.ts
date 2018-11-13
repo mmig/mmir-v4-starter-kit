@@ -1,11 +1,14 @@
 
-import { SpeechEventSubscription } from '../io/ISpeechIO';
 import { PromptReader } from '../io/PromptReader';
 import { MmirProvider } from '../mmir-provider';
 
-import { ReadingShowOptions , ReadingOptions , StopReadingOptions } from '../../../models/speech/SpeechData';
 import { isPromptId , PromptType } from '../../../models/speech/PromptUtils';
+
 import { SubscriptionUtil } from '../util/SubscriptionUtil';
+import { ReadingOptions } from '../typings/mmir-base-dialog.d';
+import { SpeechEventName } from '../typings/mmir-ionic.d';
+
+import { Subscription } from 'rxjs/Subscription';
 
 export class SpeechOutputController {
 
@@ -13,9 +16,7 @@ export class SpeechOutputController {
 
   protected _debugMsg: boolean = false;
 
-  protected _speechEventSubscriptions: SpeechEventSubscription = {
-      'read': null
-  };
+  protected _speechEventSubscriptions: Map<SpeechEventName, Subscription>;
 
   public get debug(): boolean { return this._debugMsg; }
   public set debug(value: boolean) {
@@ -24,14 +25,14 @@ export class SpeechOutputController {
 
   constructor(
     protected subsUtil: SubscriptionUtil,
-    mmirProvider: MmirProvider
+    mmirProvider: MmirProvider<any, any>
   ) {
 
     mmirProvider.ready().then(mmirp => {
 
       const mmir = mmirp.mmir;
       this.prompt = new PromptReader(mmir.dialog, mmir.media);
-      this.subsUtil.subscribe(this._speechEventSubscriptions, this);
+      this._speechEventSubscriptions = this.subsUtil.subscribe(['read'], this);
 
     });
   }

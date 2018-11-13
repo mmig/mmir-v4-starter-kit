@@ -23,8 +23,8 @@ export class RegistrationPage extends MmirPage {
     private userAuth: UserAuthProvider,
     ref: ChangeDetectorRef,
     params: NavParams,
-    vuiCtrl: VoiceUIProvider,
-    mmirProvider: MmirProvider
+    vuiCtrl: VoiceUIProvider<any, any>,
+    mmirProvider: MmirProvider<any, any>
   ) {
     super(vuiCtrl, mmirProvider, ref);
 

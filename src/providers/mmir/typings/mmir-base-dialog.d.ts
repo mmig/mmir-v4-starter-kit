@@ -93,7 +93,7 @@ export interface ISpeechCommand {
    * @param  {semanticEmmaEvent} emma the EMMA event contain an understanding result with a list
    *                                    understood Cmd(s)
    */
-  execSpeechCmd(semanticEmmaEvent: UnderstandingEmma): void;
+  execSpeechCmd<CmdType, CmdParam>(semanticEmmaEvent: UnderstandingEmma<CmdType, CmdParam>): void;
 
 }
 
@@ -191,7 +191,7 @@ export interface ShowSpeechStateOptions {
   state: boolean;// is active/inactive
 	mode: SpeechMode;
 	inputMode: SpeechInputMode;	// '' (default) | 'guided'
-	targetId?: string;//target-id for GUI widget (which should show/update its Speech State feedback)
+	targetId?: any;//target-id for GUI widget (which should show/update its Speech State feedback)
 }
 
 export interface SpeechFeedbackOptions extends ShowSpeechStateOptions {
@@ -201,11 +201,11 @@ export interface SpeechFeedbackOptions extends ShowSpeechStateOptions {
 
 export interface ReadingOptions {
   //context for reading target (may also be used for selecting reading target/text)
-  pageId: string;
+  contextId?: any;
   //selecting reading target / text (subcategory) -- specific readingIds may specify system prompts
-  readingId?: string;
+  readingId?: any;
   //target ID for restarting speech-input after prompt was read.
-  targetId?: string;
+  targetId?: any;
   //should not actually start but only return TRUE if reading-request is valid (e.g. if reading is context-sensitive)
   test?: boolean;
   //if readingId refers to a general/type of prompt ID, this field may contain the concrete text that should be read and/or additional information for generating the prompt
@@ -214,7 +214,7 @@ export interface ReadingOptions {
 
 export interface ReadingShowOptions extends ReadingOptions {
   /**context for reading target (may also be used for selecting reading target/text)*/
-  dialogId?: string;
+  contextId: any;
   /**if reading is active or inactive*/
   active: boolean;
 }
@@ -230,7 +230,7 @@ export interface StopReadingOptions extends ReadingShowOptions {
 
 export interface ReadingData {
   promptText?: string | Array<string>;//(general) system prompt that should be read to the user
-  textCmds?: string;//text representing a command (or command list)
+  textCmds?: string | Array<string>;//text representing a command (or command list)
   tryCount?: number;//TODO remove? too app specific? -> re-try count for mis-/not understood commands
 }
 
@@ -251,8 +251,8 @@ export interface RecognitionEmma extends Emma {
     interpretation: RecogitionInterpretation;
 }
 
-export interface UnderstandingEmma extends Emma {
-    interpretation: UnderstandingInterpretation;
+export interface UnderstandingEmma<CmdType, CmdParam> extends Emma {
+    interpretation: UnderstandingInterpretation<CmdType, CmdParam>;
 }
 
 export interface TactileEmma extends Emma {
@@ -270,7 +270,6 @@ export interface Interpretation {
 export interface SpeechInterpretation extends Interpretation {
     mode: 'voice';
     medium: 'acoustic';
-    func: RecognitionFunc | UnderstandingFunc;
     isGuided?: boolean;
     context?: 'form-overlay'//information for special app/gui context from which the ASR was triggered
     inputMode?: SpeechInputMode;
@@ -280,8 +279,8 @@ export interface RecogitionInterpretation extends SpeechInterpretation {
     func: RecognitionFunc;
 }
 
-export interface UnderstandingInterpretation extends SpeechInterpretation {
-    func: UnderstandingFunc;
+export interface UnderstandingInterpretation<CmdType, CmdParam> extends SpeechInterpretation {
+    func: UnderstandingFunc<CmdType, CmdParam>;
 }
 
 export interface TactileInterpretation extends Interpretation {
@@ -292,7 +291,6 @@ export interface TactileInterpretation extends Interpretation {
 
 export interface Func {
     recognition?: SpeechRecognitionResult[];
-    understandig?: UnderstandigResult;
     gesture?: Gesture;
 }
 
@@ -308,8 +306,8 @@ export interface SpeechRecognitionResult {
 		unstable?: string;
 }
 
-export interface UnderstandingFunc extends Func {
-    understandig: UnderstandigResult;
+export interface UnderstandingFunc<CmdType, CmdParam> extends Func {
+    understandig: UnderstandigResult<CmdType, CmdParam>;
 }
 
 export interface TactileFunc extends Func {
@@ -331,44 +329,16 @@ export interface GestureSource {
 
 ////////////////////////////////////// Speech Commands /////////////////////////////
 
-export interface UnderstandigResult {
+export interface UnderstandigResult<CmdType, CmdParam> {
   id: number;		//INT "server-wide" ID
 	start: number;	//INT UNIX timestamp (incl. milli-seconds)
 	sourceId: number;		//INT interpretation-ID from the request (i.e. req.interpretation.id)
-	nlu: Array<Cmd>;
+	nlu: Array<Cmd<CmdType, CmdParam>>;
 }
 
-export interface Cmd {
+export interface Cmd<CmdType, CmdParam> {
     action: CmdType;
     param: CmdParam;
     confidence: number;//range [0,1]
     // type: boolean;//true for recognized cmd
-}
-
-////////////////// FIXME these are actually application specific -- remove these from here! //////////////
-
-export type CmdType = 'nav' | 'show' | 'close' | 'read' | 'choose';
-
-export interface CmdParam {
-    // field: string;
-}
-
-export interface NavCmdParam {
-    target: string;
-}
-
-export interface ShowCmdParam {
-    field: 'commands' | 'notice' | 'details';
-}
-
-export interface CloseCmdParam {
-    target: 'commands' | 'speech';
-}
-
-export interface ReadCmdParam {
-    field: 'all' | 'traveltime' | 'distance';
-}
-
-export interface ChooseCmdParam {
-    field: 'edit' | 'option' | 'caption' | 'switch';
 }

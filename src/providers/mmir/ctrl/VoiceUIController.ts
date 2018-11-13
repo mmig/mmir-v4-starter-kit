@@ -1,9 +1,9 @@
 import { ElementRef, Component } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { MmirProvider, IonicDialogManager, IonicMmirModule } from '../mmir-provider';
+import { MmirProvider } from '../mmir-provider';
 import { RecognitionEmma , UnderstandingEmma , ShowSpeechStateOptions, ReadingShowOptions , ReadingOptions , StopReadingOptions, SpeechFeedbackOptions } from '../typings/mmir-base-dialog.d';//'mmir-base-dialog';
-import { MmirAppProvider , MmirAppModule , SpeechEventSubscription , ISpeechView , SPEECH_ACTIVE , READ_ACTIVE } from '../io/ISpeechIO';
+import { SPEECH_ACTIVE , READ_ACTIVE } from '../consts';
 import { triggerClickFeedback , FeedbackOption } from '../io/HapticFeedback';
 import { PromptReader } from '../io/PromptReader';
 import { SpeechInputController } from '../ctrl/SpeechInputController';
@@ -13,13 +13,14 @@ import { DictationTargetHandler , DictationHandler, DictationTarget , SelectionM
 import { ReadTargetHandler , ReadHandler } from '../io/SpeechReading';
 import { PromptType , isPromptId } from '../../../models/speech/PromptUtils';
 import { EventLike } from '../typings/emma.d';
-import { ISpeechInputIndicator , ISpeechOutputIndicator } from '../io/ISpeechIndicator';
+import { ISpeechInputIndicator , ISpeechOutputIndicator } from '../typings/speech-indicator.d';
 // import { ReadOverlay } from '../../../components/speech-overlay/dialogs/read-overlay';
+import { IonicMmirModule , SpeechEventName } from '../typings/mmir-ionic.d';
 
-export class VoiceUIController {
+export class VoiceUIController<CmdType, CmdParam> {
 
-  protected _mmirProvider: MmirAppProvider;
-  protected mmir: MmirAppModule;
+  protected _mmirProvider: MmirProvider<CmdType, CmdParam>;
+  protected mmir: IonicMmirModule<CmdType, CmdParam>;
 
   protected prompt: PromptReader;
   protected _asrActive: boolean = false;
@@ -73,21 +74,14 @@ export class VoiceUIController {
     this.speechOut.debug = value;
   }
 
-  protected _speechEventSubscriptions: SpeechEventSubscription = {
-      'showSpeechInputState': null,
-      'changeMicLevels': null,
-      'cancelSpeechIO': null,
-      'stopReading': null,
-      'showReadingStatus': null
-      //'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed'
-  };
+  protected _speechEventSubscriptions: Map<SpeechEventName, Subscription>;
 
-  protected initializing: Promise<MmirProvider>;
+  protected initializing: Promise<MmirProvider<CmdType, CmdParam>>;
 
   constructor(
-    mmirProvider: MmirProvider
+    mmirProvider: MmirProvider<CmdType, CmdParam>
   ) {
-    this._mmirProvider = (mmirProvider as MmirAppProvider);
+    this._mmirProvider = mmirProvider;
     this.mmir = this._mmirProvider.mmir;
 
     this.subsUtil = new SubscriptionUtil(this.mmir);
@@ -110,13 +104,20 @@ export class VoiceUIController {
 
       this.prompt = new PromptReader(this.mmir.dialog, this.mmir.media);
       this.prompt.cancelOnNew = true;
-      this.subsUtil.subscribe(this._speechEventSubscriptions, this);
+      this._speechEventSubscriptions = this.subsUtil.subscribe([
+        'showSpeechInputState',
+        'changeMicLevels',
+        'cancelSpeechIO',
+        'stopReading',
+        'showReadingStatus'
+        //'resetGuidedInputForCurrentControl' , 'startGuidedInput' , 'resetGuidedInput' , 'isDictAutoProceed'
+      ], this);
 
       return mp;
     });
   }
 
-  public ready(): Promise<MmirProvider> {
+  public ready(): Promise<MmirProvider<CmdType, CmdParam>> {
     return this.initializing;
   }
 
@@ -227,7 +228,7 @@ export class VoiceUIController {
       }
   }
 
-  public handleClick(event: MouseEvent | TouchEvent | RecognitionEmma | UnderstandingEmma | EventLike, name: string, data?){
+  public handleClick(event: MouseEvent | TouchEvent | RecognitionEmma | UnderstandingEmma<CmdType, CmdParam> | EventLike, name: string, data?){
 
     this.triggerTouchFeedback(event);
 
@@ -279,13 +280,13 @@ export class VoiceUIController {
 
   }
 
-  public triggerTouchFeedback(event: MouseEvent | TouchEvent | RecognitionEmma | UnderstandingEmma | EventLike, feedbackOptions?: FeedbackOption){
+  public triggerTouchFeedback(event: MouseEvent | TouchEvent | RecognitionEmma | UnderstandingEmma<CmdType, CmdParam> | EventLike, feedbackOptions?: FeedbackOption){
     triggerClickFeedback(feedbackOptions);
   }
 
   ////////////////////////////////////////// Speech IO ////////////////////////
 
-  public commandClicked(event: MouseEvent | TouchEvent | RecognitionEmma | UnderstandingEmma | EventLike, btnId: string, feedbackOptions?: FeedbackOption){
+  public commandClicked(event: MouseEvent | TouchEvent | RecognitionEmma | UnderstandingEmma<CmdType, CmdParam> | EventLike, btnId: string, feedbackOptions?: FeedbackOption){
 
     if(event && (event as any).preventDefault){
       (event as any).preventDefault();

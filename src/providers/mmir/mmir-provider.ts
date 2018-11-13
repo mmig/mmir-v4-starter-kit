@@ -1,6 +1,5 @@
 
 import { Injectable, Component } from '@angular/core';
-import { Http } from '@angular/http';
 import { Platform, Nav } from 'ionic-angular';
 
 import 'rxjs/add/operator/distinctUntilChanged';
@@ -11,12 +10,14 @@ import 'rxjs/add/operator/distinctUntilChanged';
 import {Subject} from 'rxjs/Subject';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 
-import { MmirModule, DialogEngine, DialogManager, ControllerManager, PresentationManager, Controller, View , MediaManager , IAudio } from '../../assets/mmirf/mmir.d'; // 'mmir';
-import { ReadingOptions, ReadingShowOptions, StopReadingOptions, WaitReadyOptions } from '../../models/speech/SpeechData';
-import { ShowSpeechStateOptions, SpeechFeedbackOptions, RecognitionEmma, UnderstandingEmma } from './typings/mmir-base-dialog.d';//'mmir-base-dialog';
+// import { MmirModule, DialogEngine, DialogManager, ControllerManager, PresentationManager, Controller, View , MediaManager , IAudio } from '../../assets/mmirf/mmir.d'; // 'mmir';
+import { MmirModule , MediaManager } from '../../assets/mmirf/mmir.d'; // 'mmir';
+import { ShowSpeechStateOptions, SpeechFeedbackOptions, RecognitionEmma, UnderstandingEmma , ReadingOptions , StopReadingOptions, ReadingShowOptions } from './typings/mmir-base-dialog.d';//'mmir-base-dialog';
 import { EmmaUtil } from './typings/emma.d';//'mmir-emma';
-
 import { IAppSettings } from './typings/app-settings';
+import { SpeechEventEmitter , IonicMmirModule , ViewDecl , IonicDialogEngine , IonicDialogManager , IonicView , PlayError , IonicPresentationManager , IonicController , Action , WaitReadyOptions } from './typings/mmir-ionic.d';
+
+// import { WaitReadyOptions , ReadingShowOptions } from '../../models/speech/SpeechData';
 
 //FIXME should use import instead of declaring variable!
 // import * as mmir from 'mmir';
@@ -24,87 +25,19 @@ declare var mmir;
 
 var __mmir: MmirModule = mmir as MmirModule;
 
-type SpeechEventName = 'showSpeechInputState' |                         //ISpeechState
-                        'changeMicLevels' | 'waitReadyState' |          //ISpeechFeedback
-                        'showDictationResult' |                         //ISpeechDictate
-                        'determineSpeechCmd' | 'execSpeechCmd' |        //ISpeechCommand
-                        'cancelSpeechIO' |                              //ISpeechInputProcessor
-                        'read' | 'stopReading' | 'showReadingStatus' |  //ISpeechOutput
-                        'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed' //IGuidedSpeechInput
-                        ;
-export interface SpeechEventEmitter {
-    showSpeechInputState: BehaviorSubject<ShowSpeechStateOptions>;
-    changeMicLevels: BehaviorSubject<SpeechFeedbackOptions>;
-    waitReadyState: BehaviorSubject<WaitReadyOptions>;
-    showDictationResult: Subject<RecognitionEmma>;
-    determineSpeechCmd: Subject<RecognitionEmma>;
-    execSpeechCmd: Subject<UnderstandingEmma>;
-    cancelSpeechIO: Subject<void>;
-    read: Subject<string|ReadingOptions>;
-    stopReading: Subject<StopReadingOptions>;
-    showReadingStatus: BehaviorSubject<ReadingShowOptions>;
-    //'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed'
-    playError: Subject<PlayError>;
-}
-
-export interface PlayError {
-  audio: IAudio | HTMLAudioElement;
-  error: DOMException;
-}
-
-export interface IonicPresentationManager extends PresentationManager {
-  _ionicNavCtrl: Nav;
-  addView: (ctrlName: string, view: View|IonicView) => void;
-  _getIonicViewController: (ctrl: IonicController) => Component;
-}
-
-export interface IonicControllerManager extends ControllerManager {
-  get: (ctrlName: string) => IonicController;
-  _createIonicController: (ctrlName: string, viewName?: string, ionicViewCtrl?: any) => IonicController;
-}
-
-export interface IonicDialogManager extends DialogManager {
-  _perform;
-  _raise;
-  _emma: EmmaUtil;
-  _eventEmitter: SpeechEventEmitter;
-  _isDebugVui: boolean;
-}
-
-export interface IonicDialogEngine extends DialogEngine {
-  worker;
-}
-
-export type Action = {name: string, data: any};
-export interface IonicController extends Controller {
-  _eventEmitter: Subject<Action>;
-  _ionicViews: {[id:string]: IonicView};
-  addView: (viewName:string, ionicView: any) => void;
-}
-
-export interface IonicMmirModule extends MmirModule {
-  ctrl: IonicControllerManager;
-  dialog: IonicDialogManager
-  dialogEngine: IonicDialogEngine;
-  present: IonicPresentationManager;
-}
-
-export type ViewDecl = {name: string, ctrlName: string, view: any};
-export type IonicView = {_name: string, getName: () => string, view: Component, ctrl?: IonicController};
-
 @Injectable()
-export class MmirProvider {
+export class MmirProvider<CmdType, CmdParam> {
 
   private platform: Platform;
   private nav: Nav;
-  private evt: SpeechEventEmitter;//{[id: string]: Subject<any>};//Events;
+  private evt: SpeechEventEmitter<CmdType, CmdParam>;//{[id: string]: Subject<any>};//Events;
   private appConfig: IAppSettings;
 
-  private _mmir : IonicMmirModule;
+  private _mmir : IonicMmirModule<CmdType, CmdParam>;
 
-  private _initialize: Promise<MmirProvider>;
-  private _readyWait: Promise<MmirProvider>;
-  private _resolveReadyWait: (mmirProvider: MmirProvider) => void;
+  private _initialize: Promise<MmirProvider<CmdType, CmdParam>>;
+  private _readyWait: Promise<MmirProvider<CmdType, CmdParam>>;
+  private _resolveReadyWait: (mmirProvider: MmirProvider<CmdType, CmdParam>) => void;
   private _readyWaitTimer: number;
   private readonly _readyWaitTimeout: number = 10 * 60 * 1000;//10 min.
 
@@ -115,12 +48,8 @@ export class MmirProvider {
     return this._mmir;
   }
 
-  constructor(
-    private http: Http
-  ) {
-
-    this._mmir = __mmir as IonicMmirModule;
-
+  constructor() {
+    this._mmir = __mmir as IonicMmirModule<CmdType, CmdParam>;
   }
 
   //FIXME find better way to "inject" dependencies
@@ -130,7 +59,7 @@ export class MmirProvider {
     // events: Events,
     appConfig: IAppSettings,
     views?: Array<ViewDecl>
-  ): Promise<MmirProvider> {
+  ): Promise<MmirProvider<CmdType, CmdParam>> {
 
     this.platform = platform;
     this.nav = nav;
@@ -155,17 +84,17 @@ export class MmirProvider {
         }),
       'showDictationResult': new Subject<RecognitionEmma>(),
       'determineSpeechCmd': new Subject<RecognitionEmma>(),
-      'execSpeechCmd': new Subject<UnderstandingEmma>(),
+      'execSpeechCmd': new Subject<UnderstandingEmma<CmdType, CmdParam>>(),
       'cancelSpeechIO': new Subject<void>(),
       'read': new Subject<string|ReadingOptions>(),
       'stopReading': new Subject<StopReadingOptions>(),
       'showReadingStatus': new BehaviorSubject<ReadingShowOptions>(
-          {active: false, dialogId: ''}//<-initial state
+          {active: false, contextId: ''}//<-initial state
         ).distinctUntilChanged((state1: ReadingShowOptions, state2: ReadingShowOptions) => {
           if(state1.test || state2.test){
             return false;
           }
-          return state1.active === state2.active && state1.dialogId === state2.dialogId &&
+          return state1.active === state2.active && state1.contextId === state2.contextId &&
                   state1.readingId === state2.readingId && state1.targetId === state2.targetId &&
                   state1.readingData === state2.readingData;
         }),
@@ -175,7 +104,7 @@ export class MmirProvider {
 
       'playError': new Subject<PlayError>()
 
-    } as SpeechEventEmitter;
+    } as SpeechEventEmitter<CmdType, CmdParam>;
 
     // apply setting for debug output:
     //  (technically we should wait for the promise to finish, but since this
@@ -185,7 +114,7 @@ export class MmirProvider {
   	this.appConfig.get('showVuiDebugOutput').then(isEnabled => {
   		this.isDebugVui = isEnabled;
       if(this.mmir && this.mmir.dialog){
-        let dlg = this.mmir.dialog as IonicDialogManager;
+        let dlg = this.mmir.dialog as IonicDialogManager<CmdType, CmdParam>;
         dlg._isDebugVui = isEnabled;
       }
   	});
@@ -197,17 +126,17 @@ export class MmirProvider {
     return this._initialize;
   }
 
-  public ready(): Promise<MmirProvider> {
+  public ready(): Promise<MmirProvider<CmdType, CmdParam>> {
     if(!this._initialize){
 
       if(!this._readyWait){
 
         console.log('Called MmirProvider.ready() before init(): waiting...');
 
-        this._readyWait = new Promise<MmirProvider>((resolve, reject) => {
+        this._readyWait = new Promise<MmirProvider<CmdType, CmdParam>>((resolve, reject) => {
 
           //resolve "wait for ready":
-          this._resolveReadyWait = (mmirProvider: MmirProvider) => {
+          this._resolveReadyWait = (mmirProvider: MmirProvider<CmdType, CmdParam>) => {
             clearTimeout(this._readyWaitTimer);
             console.log('Resolved "wait for MmirProvider.ready()".');
             resolve(mmirProvider);
@@ -240,7 +169,7 @@ export class MmirProvider {
       decl = views[i];
       view = this.mmirCreateView(decl.name, decl.view);
 
-      ctrl = ctrlManager.get(decl.ctrlName) as IonicController;
+      ctrl = ctrlManager.get(decl.ctrlName);
       if(!ctrl){
         ctrl = ctrlManager._createIonicController(decl.ctrlName, decl.name, decl.view);
       } else {
@@ -251,10 +180,10 @@ export class MmirProvider {
     }
   }
 
-  private mmirInit(views?: Array<ViewDecl>): Promise<MmirProvider> {
+  private mmirInit(views?: Array<ViewDecl>): Promise<MmirProvider<CmdType, CmdParam>> {
 
     //promise for setting up mmir to work within angular/ionic
-    return new Promise<MmirProvider>((resolve, reject) => {
+    return new Promise<MmirProvider<CmdType, CmdParam>>((resolve, reject) => {
       this._mmir.ready(() => {
 
         this.platform.setLang(this.mmir.lang.getLanguage(), true);
@@ -305,7 +234,7 @@ export class MmirProvider {
         } as any;
 
 
-        const dlg: IonicDialogManager = this.mmir.dialog;
+        const dlg: IonicDialogManager<CmdType, CmdParam> = this.mmir.dialog;
         dlg._perform = dlg.perform;//TODO do we need previous impl.?
         dlg._eventEmitter = this.evt;
         dlg._isDebugVui = this.isDebugVui;
@@ -339,7 +268,7 @@ export class MmirProvider {
           }
         };
 
-        let dlgEngine: IonicDialogEngine = this.mmir.dialogEngine as IonicDialogEngine;
+        let dlgEngine: IonicDialogEngine = this.mmir.dialogEngine;
 
         this.mmir.require(['emma'], (emma) => {
 

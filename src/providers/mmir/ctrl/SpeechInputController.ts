@@ -3,15 +3,15 @@ import { ElementRef, ChangeDetectorRef } from '@angular/core'
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
-import { MmirProvider, IonicDialogManager, IonicMmirModule } from '../mmir-provider';
+import { MmirProvider } from '../mmir-provider';
 import { RecognitionEmma , UnderstandingEmma , ShowSpeechStateOptions , RecognitionType , SpeechRecognitionResult } from '../typings/mmir-base-dialog.d';// 'mmir-base-dialog';
 import { EmmaUtil } from '../typings/emma.d';// 'mmir-emma';
 
-import { SpeechEventSubscription } from '../io/ISpeechIO';
 import { SubscriptionUtil } from '../util/SubscriptionUtil';
 import { DictationTargetHandler , DictationHandler , DictationTarget , CurrentInputData , UNSTABLE_RESULT_HTML_PREFIX , UNSTABLE_RESULT_HTML_SUFFIX , SelectionMode } from '../io/SpeechDictation';
 import { triggerClickFeedback } from '../io/HapticFeedback';
 import { SelectionUtil } from '../util/SelectionUtil';
+import { IonicMmirModule , SpeechEventName } from '../typings/mmir-ionic.d';
 
 export type RecognitionTypeExt = RecognitionType | 'RECOGNITION_ERROR';
 
@@ -33,15 +33,10 @@ export class SpeechInputController {
 
   public dictationResults: Observable<RecognitionEmma>;//TODO remove?
 
-  protected _speechEventSubscriptions: SpeechEventSubscription = {
-      'showDictationResult': null,
-      'determineSpeechCmd': null,
-      'execSpeechCmd': null
-      //'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed'
-  };
+  protected _speechEventSubscriptions: Map<SpeechEventName, Subscription>;
 
   protected _emma: EmmaUtil;
-  protected _mmir: IonicMmirModule;
+  protected _mmir: IonicMmirModule<any, any>;
 
   protected _selectionUtil: SelectionUtil;
 
@@ -59,14 +54,21 @@ export class SpeechInputController {
 
   constructor(
     protected subsUtil: SubscriptionUtil,
-    protected mmirProvider: MmirProvider,
+    protected mmirProvider: MmirProvider<any, any>,
     protected dictTargetHandler: DictationTargetHandler
   ) {
 
     mmirProvider.ready().then(mmirp => {
       this._mmir = mmirp.mmir;
       this._emma = mmirp.mmir.dialog._emma;
-      this.subsUtil.subscribe(this._speechEventSubscriptions, this);
+
+      this._speechEventSubscriptions = this.subsUtil.subscribe([
+        'showDictationResult',
+        'determineSpeechCmd',
+        'execSpeechCmd'
+        //'resetGuidedInputForCurrentControl' , 'startGuidedInput' , 'resetGuidedInput' , 'isDictAutoProceed'
+      ], this);
+
       this.dictationResults = mmirp.mmir.dialog._eventEmitter.showDictationResult.map(dictation => this._processDictationResult(dictation));
 
       //FIXME should get configuration from somewhere else?
@@ -226,7 +228,7 @@ export class SpeechInputController {
    * @param  {semanticEmmaEvent} emma the EMMA event contain an understanding result with a list
    *                                    understood Cmd(s)
    */
-  protected execSpeechCmd(semanticEmmaEvent: UnderstandingEmma): void {
+  protected execSpeechCmd(semanticEmmaEvent: UnderstandingEmma<any, any>): void {
     if(this._debugMsg) console.log('execSpeechCmd -> ', semanticEmmaEvent);
   }
 

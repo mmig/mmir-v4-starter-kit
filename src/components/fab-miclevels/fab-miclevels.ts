@@ -40,7 +40,7 @@ export class FabMiclevels implements OnInit, OnDestroy, OnChanges, ISpeechFeedba
     @Input() active: boolean;
 
     constructor(
-        mmirProvider: MmirProvider
+        mmirProvider: MmirProvider<any,any>
     ) {
 
         this._mmir = mmirProvider.mmir;

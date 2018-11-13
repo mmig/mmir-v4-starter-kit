@@ -2,7 +2,8 @@
 import { MediaManager, DialogManager } from '../../../assets/mmirf/mmir.d';//'mmir';
 
 
-import { ReadingData, StopReadingOptions } from '../../../models/speech/SpeechData';//FIXME do not link to ../../model/* ?
+// import { ReadingData, StopReadingOptions } from '../../../models/speech/SpeechData';//FIXME do not link to ../../model/* ?
+import { ReadingData, StopReadingOptions } from '../typings/mmir-base-dialog';
 import { prepTts , prepareAcronyms , prepareAbbrevations , prepareDates , PromptType } from '../../../models/speech/PromptUtils';
 
 export class PromptReader {

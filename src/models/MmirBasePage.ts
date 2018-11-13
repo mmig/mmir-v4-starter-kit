@@ -1,25 +1,35 @@
 import {LanguageManager, InputManager, MediaManager, SemanticInterpreter} from 'mmir';
 import {ChangeDetectorRef, OnInit, OnDestroy} from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
-import { RecognitionEmma , UnderstandingEmma , ShowSpeechStateOptions } from 'mmir-base-dialog';
-import { ReadingOptions , StopReadingOptions , ReadingShowOptions } from './speech/SpeechData';
+
+import { AppReadingOptions , AppStopReadingOptions, AppReadingShowOptions } from './speech/SpeechData';
 import { isPromptId, PromptType } from './speech/PromptUtils';
-import { MmirProvider , IonicDialogManager , IonicMmirModule } from '../providers/mmir/mmir-provider';
-import { SpeechEventSubscription } from '../providers/mmir/io/ISpeechIO';
-import { SpeechFeedbackOptions } from '../providers/mmir/typings/mmir-base-dialog.d';
-import { PromptReader } from '../providers/mmir/io/PromptReader';
-import { VoiceUIProvider } from '../providers/mmir/voice-ui-provider';
+
+import {
+  MmirProvider,
+  VoiceUIProvider,
+  IonicDialogManager,
+  IonicMmirModule,
+  PromptReader,
+
+  RecognitionEmma , UnderstandingEmma , ShowSpeechStateOptions, SpeechFeedbackOptions,
+
+} from '../providers/mmir';
+
+import { CmdParam , CmdType } from '../models/speech/SpeechCommand';
+import { SubscriptionUtil } from '../providers/mmir/util/SubscriptionUtil';
+import { SpeechEventName } from '../providers/mmir/typings/mmir-ionic.d';
 
 export class MmirPage implements OnInit, OnDestroy {
 
-  protected _mmirProvider: MmirProvider;
+  protected _mmirProvider: MmirProvider<CmdType, CmdParam>;
 
-  protected mmir: IonicMmirModule;
+  protected mmir: IonicMmirModule<CmdType, CmdParam>;
   protected ref: ChangeDetectorRef;
 
   protected _lang: LanguageManager;
   protected _inp: InputManager;
-  protected _dlg: IonicDialogManager;
+  protected _dlg: IonicDialogManager<CmdType, CmdParam>;
   protected _media: MediaManager;
   protected _semantic: SemanticInterpreter;
 
@@ -49,10 +59,10 @@ export class MmirPage implements OnInit, OnDestroy {
     return this._inp;
   }
 
-  protected get dlg(): IonicDialogManager {
+  protected get dlg(): IonicDialogManager<CmdType, CmdParam> {
     if(!this._dlg){
       if(this.mmir && this.mmir.dialog){
-        this._dlg = this.mmir.dialog as IonicDialogManager;
+        this._dlg = this.mmir.dialog;
       } else {
         return null;
       }
@@ -91,25 +101,14 @@ export class MmirPage implements OnInit, OnDestroy {
   public get asrOn(){ return this._asrActive; }
   public get ttsOn() { return this.prompt? this.prompt.active : false; }
 
-  protected _speechEventSubscriptions: SpeechEventSubscription = {
-      'showSpeechInputState': null,
-      'changeMicLevels': null,
-      'showDictationResult': null,
-      'determineSpeechCmd': null,
-      'execSpeechCmd': null,
-      'cancelSpeechIO': null,
-      'read': null,
-      'stopReading': null,
-      'showReadingStatus': null//;
-      //'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed'
-  };
+  protected _speechEventSubscriptions: Map<SpeechEventName, Subscription>;
 
   constructor(
-    protected vuiCtrl: VoiceUIProvider,
-    mmirProvider: MmirProvider,
+    protected vuiCtrl: VoiceUIProvider<CmdType, CmdParam>,
+    mmirProvider: MmirProvider<CmdType, CmdParam>,
     changeDetectorRef: ChangeDetectorRef
   ) {
-    this._mmirProvider = (mmirProvider as MmirProvider);
+    this._mmirProvider = mmirProvider;
     this.mmir = this._mmirProvider.mmir;
     this.ref = changeDetectorRef;
 
@@ -124,20 +123,19 @@ export class MmirPage implements OnInit, OnDestroy {
       if(this.isActiveView === false){
         return;
       }
-      const keys = Object.keys(this._speechEventSubscriptions);
-      const selfPage = this;
-      keys.forEach(name => {
-        this._speechEventSubscriptions[name] = this.dlg._eventEmitter[name].subscribe(function() {
-          //DEBUG
-          // let args = arguments.length === 1? arguments[0] : (arguments.length? arguments.length : void(0));
-          // console.log(name +' -> ', args);
-          if(selfPage[name]){
-            selfPage[name].apply(selfPage, arguments);
-          } else {
-            console.warn('No function "'+name+'" in View available!');
-          }
-        });
-      })
+      const subsUtil = new SubscriptionUtil(this.mmir);
+      this._speechEventSubscriptions = subsUtil.subscribe([
+        'showSpeechInputState',
+        'changeMicLevels',
+        'showDictationResult',
+        'determineSpeechCmd',
+        'execSpeechCmd',
+        'cancelSpeechIO',
+        'read',
+        'stopReading',
+        'showReadingStatus'//;
+        //'resetGuidedInputForCurrentControl' , 'startGuidedInput' , 'resetGuidedInput' , 'isDictAutoProceed'
+      ], this);
     });
     return true;
   }
@@ -145,16 +143,7 @@ export class MmirPage implements OnInit, OnDestroy {
   public ionViewCanLeave() {
 
     this.isActiveView = false;
-
-    const keys = Object.keys(this._speechEventSubscriptions);
-    let subname: string;
-    for(let i = keys.length - 1; i >= 0; --i){
-      subname = keys[i];
-      if(this._speechEventSubscriptions[subname]){
-        this._speechEventSubscriptions[subname].unsubscribe();
-      }
-    }
-
+    this._speechEventSubscriptions.forEach(subs => subs.unsubscribe());
     return true;
   }
 
@@ -295,7 +284,7 @@ export class MmirPage implements OnInit, OnDestroy {
     this.detectChanges();
   };
 
-  protected showReadingStatus(options: ReadingShowOptions): void {
+  protected showReadingStatus(options: AppReadingShowOptions): void {
     if(this._debugMsg) console.log('showReadingStatus -> ', options);
     if(this.prompt){
       this.prompt.setActive(options.active);
@@ -390,7 +379,7 @@ export class MmirPage implements OnInit, OnDestroy {
    * @param  {semanticEmmaEvent} emma the EMMA event contain an understanding result with a list
    *                                    understood Cmd(s)
    */
-  protected execSpeechCmd(semanticEmmaEvent: UnderstandingEmma): void {
+  protected execSpeechCmd(semanticEmmaEvent: UnderstandingEmma<CmdType, CmdParam>): void {
     if(this._debugMsg) console.log('execSpeechCmd -> ', semanticEmmaEvent);
     const cmd = this.dlg._emma._extractEmmaFuncData(semanticEmmaEvent, 'understanding');
     if(this._debugMsg) console.log('execSpeechCmd -> COMMAND: ', cmd);
@@ -401,7 +390,7 @@ export class MmirPage implements OnInit, OnDestroy {
       } else {
         sentences = [cmd.phrase];
       }
-      this.vuiCtrl.readPrompt({dialogId: this.getPageId(), readingId: PromptType.PROMPT_ERROR, readingData: {promptText: sentences}});
+      this.vuiCtrl.readPrompt({contextId: this.getPageId(), readingId: PromptType.PROMPT_ERROR, readingData: {promptText: sentences}});
     }
   };
 
@@ -439,7 +428,7 @@ export class MmirPage implements OnInit, OnDestroy {
    * @returns {void|boolean} if data.test === true, the function return TRUE, if the
    *                            reading-request is valid (e.g. if reading is context-sensitive)
    */
-  protected read(data: string|ReadingOptions): void | boolean {
+  protected read(data: string|AppReadingOptions): void | boolean {
 
     if(this._debugMsg) console.log('read -> ', data);
 
@@ -505,7 +494,7 @@ export class MmirPage implements OnInit, OnDestroy {
    *
    * @param  {StopReadingOptions} data the data specifying, which TTS engine should be stopped
    */
-  protected stopReading(options: StopReadingOptions): void {
+  protected stopReading(options: AppStopReadingOptions): void {
     if(this._debugMsg) console.log('stopReading -> ', options);
     this.vuiCtrl.ttsCancel();
   };

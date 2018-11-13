@@ -20,8 +20,8 @@ export class LanguageMenu  implements OnInit, OnDestroy {
   public currentLanguage: string = '';
 
   constructor(
-    private mmirProvider: MmirProvider,
-    private vuiCtrl: VoiceUIProvider,
+    private mmirProvider: MmirProvider<any, any>,
+    private vuiCtrl: VoiceUIProvider<any, any>,
     private ref: ChangeDetectorRef,
     private viewCtrl: ViewController
   ) {

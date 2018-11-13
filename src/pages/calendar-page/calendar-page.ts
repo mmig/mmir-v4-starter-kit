@@ -19,8 +19,8 @@ export class CalendarPage extends MmirPage {
     public navCtrl: NavController,
     private alertCtrl: AlertController,
     ref: ChangeDetectorRef,
-    vuiCtrl: VoiceUIProvider,
-    mmirProvider: MmirProvider
+    vuiCtrl: VoiceUIProvider<any, any>,
+    mmirProvider: MmirProvider<any, any>
   ) {
     super(vuiCtrl, mmirProvider, ref);
   }

@@ -4,13 +4,13 @@ import { FormControl } from '@angular/forms'
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
-import { MmirProvider, IonicDialogManager, IonicMmirModule } from '../mmir-provider';
-import { RecognitionEmma , UnderstandingEmma , ShowSpeechStateOptions , SpeechRecognitionResult , RecognitionType } from '../typings/mmir-base-dialog.d';// 'mmir-base-dialog';
-import { EmmaUtil } from '../typings/emma.d';// 'mmir-emma';
+import { MmirProvider } from '../mmir-provider';
+import { RecognitionEmma , UnderstandingEmma , ShowSpeechStateOptions , SpeechRecognitionResult , RecognitionType } from '../typings/mmir-base-dialog.d';
+import { EmmaUtil } from '../typings/emma.d';
 import { SpeechInputController , DisplayText } from '../ctrl/SpeechInputController';
 import { triggerClickFeedback } from '../io/HapticFeedback';
 import { SelectionUtil } from '../util/SelectionUtil';
-import { DICTATION_CONTROL } from '../io/ISpeechIO';
+import { DICTATION_CONTROL } from '../consts';
 
 
 export const UNSTABLE_RESULT_HTML_PREFIX = '<span class="unstable">';

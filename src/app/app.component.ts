@@ -14,6 +14,7 @@ import { CalendarPage } from '../pages/calendar-page/calendar-page';
 
 import { MmirProvider , VoiceUIProvider } from '../providers/mmir';
 import { AppConfig } from './../providers/app-config';
+import { CmdParam , CmdType } from '../models/speech/SpeechCommand';
 
 @Component({
   templateUrl: 'app.html'
@@ -34,8 +35,8 @@ export class MyApp implements OnInit {
     public splashScreen: SplashScreen,
     public events: Events,
     public appConfig: AppConfig,
-    public vuiCtrl: VoiceUIProvider,
-    public mmirProvider: MmirProvider
+    public vuiCtrl: VoiceUIProvider<CmdType, CmdParam>,
+    public mmirProvider: MmirProvider<CmdType, CmdParam>
   ) {
 
     this.mmir = mmirProvider.mmir;
