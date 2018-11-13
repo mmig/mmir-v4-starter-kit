@@ -19,6 +19,7 @@
 			//register a custom rendering module
 			// NOTE: the framework also needs to be configured to actually use it (see below for an example)
 			'ionicViewEngine': 'appjs/ionicViewEngine',
+      'mmirf/viewLoader': 'appjs/ionicViewLoader',
 
 			'emma': 'appjs/emma',
 
