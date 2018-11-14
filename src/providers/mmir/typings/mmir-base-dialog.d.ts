@@ -93,7 +93,7 @@ export interface ISpeechCommand {
    * @param  {semanticEmmaEvent} emma the EMMA event contain an understanding result with a list
    *                                    understood Cmd(s)
    */
-  execSpeechCmd<CmdType, CmdParam>(semanticEmmaEvent: UnderstandingEmma<CmdType, CmdParam>): void;
+  execSpeechCmd<CmdImpl extends Cmd>(semanticEmmaEvent: UnderstandingEmma<CmdImpl>): void;
 
 }
 
@@ -251,8 +251,8 @@ export interface RecognitionEmma extends Emma {
     interpretation: RecogitionInterpretation;
 }
 
-export interface UnderstandingEmma<CmdType, CmdParam> extends Emma {
-    interpretation: UnderstandingInterpretation<CmdType, CmdParam>;
+export interface UnderstandingEmma<CmdImpl extends Cmd> extends Emma {
+    interpretation: UnderstandingInterpretation<CmdImpl>;
 }
 
 export interface TactileEmma extends Emma {
@@ -262,6 +262,7 @@ export interface TactileEmma extends Emma {
 export interface Interpretation {
     start: number;//timestamp
     id: number;//app-wide ID
+    target?: any;//target of the interpretation, e.g. ID of the button that started the evaluation/interpretation
     mode: EmmaMode;
     medium: EmmaMedium;
     func: Func;
@@ -279,8 +280,8 @@ export interface RecogitionInterpretation extends SpeechInterpretation {
     func: RecognitionFunc;
 }
 
-export interface UnderstandingInterpretation<CmdType, CmdParam> extends SpeechInterpretation {
-    func: UnderstandingFunc<CmdType, CmdParam>;
+export interface UnderstandingInterpretation<CmdImpl extends Cmd> extends SpeechInterpretation {
+    func: UnderstandingFunc<CmdImpl>;
 }
 
 export interface TactileInterpretation extends Interpretation {
@@ -306,8 +307,8 @@ export interface SpeechRecognitionResult {
 		unstable?: string;
 }
 
-export interface UnderstandingFunc<CmdType, CmdParam> extends Func {
-    understandig: UnderstandigResult<CmdType, CmdParam>;
+export interface UnderstandingFunc<CmdImpl extends Cmd> extends Func {
+    understandig: UnderstandigResult<CmdImpl>;
 }
 
 export interface TactileFunc extends Func {
@@ -329,16 +330,15 @@ export interface GestureSource {
 
 ////////////////////////////////////// Speech Commands /////////////////////////////
 
-export interface UnderstandigResult<CmdType, CmdParam> {
+export interface UnderstandigResult<CmdImpl extends Cmd> {
   id: number;		//INT "server-wide" ID
 	start: number;	//INT UNIX timestamp (incl. milli-seconds)
 	sourceId: number;		//INT interpretation-ID from the request (i.e. req.interpretation.id)
-	nlu: Array<Cmd<CmdType, CmdParam>>;
+	nlu: Array<CmdImpl>;
 }
 
-export interface Cmd<CmdType, CmdParam> {
-    action: CmdType;
-    param: CmdParam;
+export interface Cmd {
+    // action: CmdType;
+    // param: CmdParam;
     confidence: number;//range [0,1]
-    // type: boolean;//true for recognized cmd
 }

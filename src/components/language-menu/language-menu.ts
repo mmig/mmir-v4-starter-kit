@@ -1,9 +1,10 @@
 import { Component, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
-import { ViewController } from 'ionic-angular';
+import { IonicPage, ViewController } from 'ionic-angular';
 
 import {MmirModule, LanguageManager} from 'mmir';
 import {MmirProvider, VoiceUIProvider} from './../../providers/mmir';
 
+@IonicPage()
 @Component({
   selector: 'language-menu',
   templateUrl: 'language-menu.html'
@@ -20,8 +21,8 @@ export class LanguageMenu  implements OnInit, OnDestroy {
   public currentLanguage: string = '';
 
   constructor(
-    private mmirProvider: MmirProvider<any, any>,
-    private vuiCtrl: VoiceUIProvider<any, any>,
+    private mmirProvider: MmirProvider<any>,
+    private vuiCtrl: VoiceUIProvider<any>,
     private ref: ChangeDetectorRef,
     private viewCtrl: ViewController
   ) {

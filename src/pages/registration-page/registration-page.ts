@@ -1,10 +1,11 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
-import { NavController, NavParams, AlertController } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, AlertController } from 'ionic-angular';
 
 import { UserAuthProvider } from './../../providers/user-auth';
 import { MmirPage } from './../../models/MmirBasePage';
 import { MmirProvider , VoiceUIProvider } from './../../providers/mmir';
 
+@IonicPage()
 @Component({
   selector: 'registration-page',
   templateUrl: 'registration-page.html'
@@ -23,8 +24,8 @@ export class RegistrationPage extends MmirPage {
     private userAuth: UserAuthProvider,
     ref: ChangeDetectorRef,
     params: NavParams,
-    vuiCtrl: VoiceUIProvider<any, any>,
-    mmirProvider: MmirProvider<any, any>
+    vuiCtrl: VoiceUIProvider<any>,
+    mmirProvider: MmirProvider<any>
   ) {
     super(vuiCtrl, mmirProvider, ref);
 

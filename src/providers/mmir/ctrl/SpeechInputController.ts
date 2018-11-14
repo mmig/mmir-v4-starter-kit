@@ -36,7 +36,7 @@ export class SpeechInputController {
   protected _speechEventSubscriptions: Map<SpeechEventName, Subscription>;
 
   protected _emma: EmmaUtil;
-  protected _mmir: IonicMmirModule<any, any>;
+  protected _mmir: IonicMmirModule<any>;
 
   protected _selectionUtil: SelectionUtil;
 
@@ -54,7 +54,7 @@ export class SpeechInputController {
 
   constructor(
     protected subsUtil: SubscriptionUtil,
-    protected mmirProvider: MmirProvider<any, any>,
+    protected mmirProvider: MmirProvider<any>,
     protected dictTargetHandler: DictationTargetHandler
   ) {
 
@@ -228,7 +228,7 @@ export class SpeechInputController {
    * @param  {semanticEmmaEvent} emma the EMMA event contain an understanding result with a list
    *                                    understood Cmd(s)
    */
-  protected execSpeechCmd(semanticEmmaEvent: UnderstandingEmma<any, any>): void {
+  protected execSpeechCmd(semanticEmmaEvent: UnderstandingEmma<any>): void {
     if(this._debugMsg) console.log('execSpeechCmd -> ', semanticEmmaEvent);
   }
 

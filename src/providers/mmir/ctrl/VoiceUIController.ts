@@ -3,7 +3,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 import { MmirProvider } from '../mmir-provider';
-import { RecognitionEmma , UnderstandingEmma , ShowSpeechStateOptions, ReadingShowOptions , ReadingOptions , StopReadingOptions, SpeechFeedbackOptions } from '../typings/mmir-base-dialog.d';
+import { RecognitionEmma , UnderstandingEmma , ShowSpeechStateOptions, ReadingShowOptions , ReadingOptions , StopReadingOptions, SpeechFeedbackOptions , Cmd } from '../typings/mmir-base-dialog.d';
 import { SPEECH_ACTIVE , READ_ACTIVE } from '../consts';
 import { triggerClickFeedback , FeedbackOption } from '../io/HapticFeedback';
 import { PromptReader } from '../io/PromptReader';
@@ -18,10 +18,10 @@ import { IonicMmirModule , SpeechEventName } from '../typings/mmir-ionic.d';
 
 // import { ReadOverlay } from '../../../components/speech-overlay/dialogs/read-overlay';
 
-export class VoiceUIController<CmdType, CmdParam> {
+export class VoiceUIController<CmdImpl extends Cmd> {
 
-  protected _mmirProvider: MmirProvider<CmdType, CmdParam>;
-  protected mmir: IonicMmirModule<CmdType, CmdParam>;
+  protected _mmirProvider: MmirProvider<CmdImpl>;
+  protected mmir: IonicMmirModule<CmdImpl>;
 
   protected prompt: PromptReader;
   protected _asrActive: boolean = false;
@@ -77,10 +77,10 @@ export class VoiceUIController<CmdType, CmdParam> {
 
   protected _speechEventSubscriptions: Map<SpeechEventName, Subscription>;
 
-  protected initializing: Promise<MmirProvider<CmdType, CmdParam>>;
+  protected initializing: Promise<MmirProvider<CmdImpl>>;
 
   constructor(
-    mmirProvider: MmirProvider<CmdType, CmdParam>
+    mmirProvider: MmirProvider<CmdImpl>
   ) {
     this._mmirProvider = mmirProvider;
     this.mmir = this._mmirProvider.mmir;
@@ -118,7 +118,7 @@ export class VoiceUIController<CmdType, CmdParam> {
     });
   }
 
-  public ready(): Promise<MmirProvider<CmdType, CmdParam>> {
+  public ready(): Promise<MmirProvider<CmdImpl>> {
     return this.initializing;
   }
 
@@ -233,7 +233,7 @@ export class VoiceUIController<CmdType, CmdParam> {
       }
   }
 
-  public handleClick(event: MouseEvent | TouchEvent | RecognitionEmma | UnderstandingEmma<CmdType, CmdParam> | EventLike, name: string, data?){
+  public handleClick(event: MouseEvent | TouchEvent | RecognitionEmma | UnderstandingEmma<CmdImpl> | EventLike, name: string, data?){
 
     this.triggerTouchFeedback(event);
 
@@ -285,13 +285,13 @@ export class VoiceUIController<CmdType, CmdParam> {
 
   }
 
-  public triggerTouchFeedback(event: MouseEvent | TouchEvent | RecognitionEmma | UnderstandingEmma<CmdType, CmdParam> | EventLike, feedbackOptions?: FeedbackOption){
+  public triggerTouchFeedback(event: MouseEvent | TouchEvent | RecognitionEmma | UnderstandingEmma<CmdImpl> | EventLike, feedbackOptions?: FeedbackOption){
     triggerClickFeedback(feedbackOptions);
   }
 
   ////////////////////////////////////////// Speech IO ////////////////////////
 
-  public commandClicked(event: MouseEvent | TouchEvent | RecognitionEmma | UnderstandingEmma<CmdType, CmdParam> | EventLike, btnId: string, feedbackOptions?: FeedbackOption){
+  public commandClicked(event: MouseEvent | TouchEvent | RecognitionEmma | UnderstandingEmma<CmdImpl> | EventLike, btnId: string, feedbackOptions?: FeedbackOption){
 
     if(event && (event as any).preventDefault){
       (event as any).preventDefault();

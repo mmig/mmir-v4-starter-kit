@@ -16,21 +16,22 @@ import {
 
 } from '../providers/mmir';
 
-import { CmdParam , CmdType } from '../models/speech/SpeechCommand';
+import { AppCmd } from '../models/speech/SpeechCommand';
 import { SubscriptionUtil } from '../providers/mmir/util/SubscriptionUtil';
 import { SpeechEventName } from '../providers/mmir/typings/mmir-ionic.d';
 import { PromptHandler } from './speech/PromptHandler';
+import { UnderstandigResult } from '../providers/mmir/typings/mmir-base-dialog.d';
 
 export class MmirPage implements OnInit, OnDestroy {
 
-  protected _mmirProvider: MmirProvider<CmdType, CmdParam>;
+  protected _mmirProvider: MmirProvider<AppCmd>;
 
-  protected mmir: IonicMmirModule<CmdType, CmdParam>;
+  protected mmir: IonicMmirModule<AppCmd>;
   protected ref: ChangeDetectorRef;
 
   protected _lang: LanguageManager;
   protected _inp: InputManager;
-  protected _dlg: IonicDialogManager<CmdType, CmdParam>;
+  protected _dlg: IonicDialogManager<AppCmd>;
   protected _media: MediaManager;
   protected _semantic: SemanticInterpreter;
 
@@ -60,7 +61,7 @@ export class MmirPage implements OnInit, OnDestroy {
     return this._inp;
   }
 
-  protected get dlg(): IonicDialogManager<CmdType, CmdParam> {
+  protected get dlg(): IonicDialogManager<AppCmd> {
     if(!this._dlg){
       if(this.mmir && this.mmir.dialog){
         this._dlg = this.mmir.dialog;
@@ -105,8 +106,8 @@ export class MmirPage implements OnInit, OnDestroy {
   protected _speechEventSubscriptions: Map<SpeechEventName, Subscription>;
 
   constructor(
-    protected vuiCtrl: VoiceUIProvider<CmdType, CmdParam>,
-    mmirProvider: MmirProvider<CmdType, CmdParam>,
+    protected vuiCtrl: VoiceUIProvider<AppCmd>,
+    mmirProvider: MmirProvider<AppCmd>,
     changeDetectorRef: ChangeDetectorRef
   ) {
     this._mmirProvider = mmirProvider;
@@ -179,24 +180,36 @@ export class MmirPage implements OnInit, OnDestroy {
 
     this.semantic.interpret(asr_result, null, result => {
 
-      let semantic;
-      if(result.semantic) {
-        semantic = result.semantic;
-        semantic.phrase = asr_result;
-        if(this._debugMsg) console.log("semantic : " + result.semantic);//DEBUG
-      }
-      else {
+      // let semantic;
+      // if(result.semantic) {
+      //   semantic = result.semantic;
+      //   semantic.phrase = asr_result;
+      //   if(this._debugMsg) console.log("semantic : " + result.semantic);//DEBUG
+      // }
+      // else {
+      //
+      //   //create "no-match" semantic-object:
+      //   semantic = {
+      //     "NoMatch": {
+      //       "phrase": asr_result
+      //     }
+      //   };
+      // }
+      // this.dlg._emma._setEmmaFuncData(emmaEvent, 'understanding', semantic);
+      // this.inp.raise('speech', emmaEvent);
 
-        //create "no-match" semantic-object:
-        semantic = {
-          "NoMatch": {
-            "phrase": asr_result
-          }
+      if(!result.semantic){
+
+        result = {
+          semantic: void(0),// -> NoMatch
+          phrase: asr_result
         };
+
       }
 
-      this.dlg._emma._setEmmaFuncData(emmaEvent, 'understanding', semantic);
-      this.inp.raise('speech', emmaEvent);
+      const targetId = emmaEvent.interpretation.target || 'speech-cmd-btn';
+      const cmdEvent = this.dlg._emma.toEmma({type: 'speech', mode: 'command', target: targetId}, result);
+      this.inp.raise('speech', cmdEvent);
 
     });
 
@@ -381,16 +394,20 @@ export class MmirPage implements OnInit, OnDestroy {
    * @param  {semanticEmmaEvent} emma the EMMA event contain an understanding result with a list
    *                                    understood Cmd(s)
    */
-  protected execSpeechCmd(semanticEmmaEvent: UnderstandingEmma<CmdType, CmdParam>): void {
+  protected execSpeechCmd(semanticEmmaEvent: UnderstandingEmma<AppCmd>): void {
     if(this._debugMsg) console.log('execSpeechCmd -> ', semanticEmmaEvent);
-    const cmd = this.dlg._emma._extractEmmaFuncData(semanticEmmaEvent, 'understanding');
+    const cmd: UnderstandigResult<AppCmd> = this.dlg._emma._extractEmmaFuncData(semanticEmmaEvent, 'understanding');
     if(this._debugMsg) console.log('execSpeechCmd -> COMMAND: ', cmd);
     if(cmd){
       let sentences: Array<string>;
-      if(cmd && cmd.NoMatch){
-        sentences = [this.lang.getText('did_not_understand_msg'), this.lang.getText('command') + ': ' + cmd.NoMatch.phrase];
+      if(cmd && Array.isArray(cmd.nlu) && cmd.nlu.length > 0 && cmd.nlu[0].semantic){
+        //TODO evaluate all commands
+        sentences = cmd.nlu.map(cmd => cmd.preproc);
       } else {
-        sentences = [cmd.phrase];
+        sentences = [this.lang.getText('did_not_understand_msg')];
+        if(cmd && Array.isArray(cmd.nlu) && cmd.nlu.length > 0){
+          sentences.push(this.lang.getText('command') + ': ' + cmd.nlu[0].preproc);
+        }
       }
       this.vuiCtrl.readPrompt({contextId: this.getPageId(), readingId: PromptType.PROMPT_ERROR, readingData: {promptText: sentences}});
     }

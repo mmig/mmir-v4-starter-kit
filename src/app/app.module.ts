@@ -8,13 +8,6 @@ import { SplashScreen } from '@ionic-native/splash-screen';
 
 import { MyApp } from './app.component';
 
-import { LoginPage } from '../pages/login-page/login-page';
-import { RegistrationPage } from '../pages/registration-page/registration-page';
-import { CalendarPage } from '../pages/calendar-page/calendar-page';
-
-import { FabMiclevels } from './../components/fab-miclevels/fab-miclevels';
-import { LanguageMenu } from './../components/language-menu/language-menu';
-
 import { MmirProvider } from '../providers/mmir';
 import { VoiceUIProvider } from '../providers/mmir';
 import { AppConfig } from '../providers/app-config';
@@ -23,25 +16,16 @@ import { UserAuthProvider } from './../providers/user-auth';
 @NgModule({
   declarations: [
     MyApp,
-    LoginPage,
-    RegistrationPage,
-    CalendarPage,
-    FabMiclevels,
-    LanguageMenu
   ],
   imports: [
     BrowserModule,
     IonicModule.forRoot(MyApp),
     IonicStorageModule.forRoot(),
-    HttpModule
+    HttpModule,
   ],
   bootstrap: [IonicApp],
   entryComponents: [
     MyApp,
-    LoginPage,
-    RegistrationPage,
-    CalendarPage,
-    LanguageMenu
   ],
   providers: [
     Storage, MmirProvider, VoiceUIProvider, AppConfig, UserAuthProvider,

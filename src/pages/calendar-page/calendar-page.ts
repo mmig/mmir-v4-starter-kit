@@ -1,9 +1,10 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
-import { NavController, AlertController } from 'ionic-angular';
+import { IonicPage, NavController, AlertController } from 'ionic-angular';
 
 import {MmirPage} from './../../models/MmirBasePage';
 import {MmirProvider, VoiceUIProvider} from './../../providers/mmir';
 
+@IonicPage()
 @Component({
   selector: 'calendar-page',
   templateUrl: 'calendar-page.html'
@@ -19,8 +20,8 @@ export class CalendarPage extends MmirPage {
     public navCtrl: NavController,
     private alertCtrl: AlertController,
     ref: ChangeDetectorRef,
-    vuiCtrl: VoiceUIProvider<any, any>,
-    mmirProvider: MmirProvider<any, any>
+    vuiCtrl: VoiceUIProvider<any>,
+    mmirProvider: MmirProvider<any>
   ) {
     super(vuiCtrl, mmirProvider, ref);
   }

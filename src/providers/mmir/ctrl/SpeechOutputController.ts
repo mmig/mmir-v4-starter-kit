@@ -22,7 +22,7 @@ export class SpeechOutputController {
   constructor(
     protected prompt: PromptReader,
     protected subsUtil: SubscriptionUtil,
-    mmirProvider: MmirProvider<any, any>
+    mmirProvider: MmirProvider<any>
   ) {
 
     mmirProvider.ready().then(mmirp => {

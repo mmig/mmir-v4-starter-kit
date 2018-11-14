@@ -5,7 +5,7 @@ import { Nav } from 'ionic-angular';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Subject } from 'rxjs/Subject';
 
-import { ShowSpeechStateOptions , SpeechFeedbackOptions , RecognitionEmma , UnderstandingEmma , ReadingOptions , StopReadingOptions , ReadingShowOptions } from './mmir-base-dialog.d';
+import { ShowSpeechStateOptions , SpeechFeedbackOptions , RecognitionEmma , UnderstandingEmma , ReadingOptions , StopReadingOptions , ReadingShowOptions , Cmd } from './mmir-base-dialog.d';
 import { EmmaUtil } from './emma.d';
 
 import { IAudio , PresentationManager , View , ControllerManager , DialogManager , DialogEngine , Controller , MmirModule } from '../../../assets/mmirf/mmir.d';
@@ -26,13 +26,13 @@ export type SpeechEventName = 'showSpeechInputState' |                         /
                         'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed' //IGuidedSpeechInput
                         ;
 
-export interface SpeechEventEmitter<CmdType, CmdParam> {
+export interface SpeechEventEmitter<CmdImpl extends Cmd> {
     showSpeechInputState: BehaviorSubject<ShowSpeechStateOptions>;
     changeMicLevels: BehaviorSubject<SpeechFeedbackOptions>;
     waitReadyState: BehaviorSubject<WaitReadyOptions>;
     showDictationResult: Subject<RecognitionEmma>;
     determineSpeechCmd: Subject<RecognitionEmma>;
-    execSpeechCmd: Subject<UnderstandingEmma<CmdType, CmdParam>>;
+    execSpeechCmd: Subject<UnderstandingEmma<CmdImpl>>;
     cancelSpeechIO: Subject<void>;
     read: Subject<string|ReadingOptions>;
     stopReading: Subject<StopReadingOptions>;
@@ -57,11 +57,11 @@ export interface IonicControllerManager extends ControllerManager {
   _createIonicController: (ctrlName: string, viewName?: string, ionicViewCtrl?: any) => IonicController;
 }
 
-export interface IonicDialogManager<CmdType, CmdParam> extends DialogManager {
+export interface IonicDialogManager<CmdImpl extends Cmd> extends DialogManager {
   _perform;
   _raise;
   _emma: EmmaUtil;
-  _eventEmitter: SpeechEventEmitter<CmdType, CmdParam>;
+  _eventEmitter: SpeechEventEmitter<CmdImpl>;
   _isDebugVui: boolean;
 }
 
@@ -72,13 +72,13 @@ export interface IonicDialogEngine extends DialogEngine {
 export type Action = {name: string, data: any};
 export interface IonicController extends Controller {
   _eventEmitter: Subject<Action>;
-  _ionicViews: {[id:string]: IonicView};
+  _ionicViews: {[id:string]: Function | string};
   addView: (viewName:string, ionicView: any) => void;
 }
 
-export interface IonicMmirModule<CmdType, CmdParam> extends MmirModule {
+export interface IonicMmirModule<CmdImpl extends Cmd> extends MmirModule {
   ctrl: IonicControllerManager;
-  dialog: IonicDialogManager<CmdType, CmdParam>
+  dialog: IonicDialogManager<CmdImpl>
   dialogEngine: IonicDialogEngine;
   present: IonicPresentationManager;
 }

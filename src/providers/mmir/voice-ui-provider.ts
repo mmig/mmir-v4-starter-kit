@@ -4,20 +4,20 @@ import { PromptReader } from './io/PromptReader';
 import { VoiceUIController } from './ctrl/VoiceUIController';
 
 import { IonicMmirModule } from './typings/mmir-ionic.d';
-import { ReadingOptions } from './typings/mmir-base-dialog.d';
+import { ReadingOptions , Cmd } from './typings/mmir-base-dialog.d';
 
 @Injectable()
-export class VoiceUIProvider<CmdType, CmdParam> {
+export class VoiceUIProvider<CmdImpl extends Cmd> {
 
-  private vuiCtrl: VoiceUIController<CmdType, CmdParam>;
-  private mmirProvider: MmirProvider<CmdType, CmdParam>;
+  private vuiCtrl: VoiceUIController<CmdImpl>;
+  private mmirProvider: MmirProvider<CmdImpl>;
 
   private _debug: boolean = false;
   private _initialized = false;
 
-  public get mmir(): IonicMmirModule<CmdType, CmdParam> { return this.mmirProvider.mmir;}
+  public get mmir(): IonicMmirModule<CmdImpl> { return this.mmirProvider.mmir;}
   public get prompt(): PromptReader { return this.vuiCtrl.getPromptReader();}
-  public get ctrl(): VoiceUIController<CmdType, CmdParam> { return this.vuiCtrl;}
+  public get ctrl(): VoiceUIController<CmdImpl> { return this.vuiCtrl;}
 
   public get asrActive(): boolean {
     if(this._initialized){
@@ -39,12 +39,12 @@ export class VoiceUIProvider<CmdType, CmdParam> {
     this.ctrl.debug = value;
   }
 
-  constructor(mmirProvider: MmirProvider<CmdType, CmdParam>) {
+  constructor(mmirProvider: MmirProvider<CmdImpl>) {
     this.mmirProvider = mmirProvider;
     this.vuiCtrl = new VoiceUIController(mmirProvider);
   }
 
-  public ready(): Promise<VoiceUIController<CmdType, CmdParam>> {
+  public ready(): Promise<VoiceUIController<CmdImpl>> {
     return this.vuiCtrl.ready().then(() => {
       this._initialized = true;
       return this.vuiCtrl;

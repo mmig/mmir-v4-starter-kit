@@ -40,7 +40,9 @@ define(['mmirf/core', 'mmirf/util/extendDeep'], function(mmir, extend){
 	/** @memberOf Emma# */
 	var SPEECH_RECOGNITION_RESULT_NAME = 'text';
 	/** @memberOf Emma# */
-	var SPEECH_UNDERSTANDING_SEMANTICS_NAME = 'nlu';// <- asr.semantic
+	var SPEECH_UNDERSTANDING_RESULTS_NAME = 'nlu';
+	/** @memberOf Emma# */
+	var SPEECH_UNDERSTANDING_SEMANTICS_NAME = 'semantic';// <- asr.semantic
 	/** @memberOf Emma# */
 	var SPEECH_UNDERSTANDING_PREPROCESSED_PHRASE_NAME = 'preproc'; // <- asr.phrase
 	/** @memberOf Emma# */
@@ -219,20 +221,27 @@ define(['mmirf/core', 'mmirf/util/extendDeep'], function(mmir, extend){
 	function setSpeechUnderstanding(emmaIntp, evt, data){
 
 //		emma.interpretation['function'].understanding = {
-//				confidence: 1.0,
-//				id: guid(),
-////				nlu: event//or semantic?
+//        id: guid(),//number;		//INT "server-wide" ID
+//        start: number;	//INT UNIX timestamp (incl. milli-seconds)
+//        sourceId: number;		//INT interpretation-ID from the request (i.e. req.interpretation.id)
+//        nlu: event//or semantic? Array<CmdImpl>;
 //		}
 
-		var semantics = {
-				confidence: 1.0,
-				id: guid()
-		};
-		semantics[SPEECH_UNDERSTANDING_SEMANTICS_NAME] 				= data.semantic;
-		semantics[SPEECH_UNDERSTANDING_PREPROCESSED_PHRASE_NAME]	= data.phrase;
-		semantics[SPEECH_UNDERSTANDING_SEMANTICS_PARTS_NAME]		= data.phrases;
+    var semantics = {
+				confidence: 1.0
+    };
+    semantics[SPEECH_UNDERSTANDING_SEMANTICS_NAME] 				= data.semantic;
+    semantics[SPEECH_UNDERSTANDING_PREPROCESSED_PHRASE_NAME]	= data.phrase;
+    semantics[SPEECH_UNDERSTANDING_SEMANTICS_PARTS_NAME]		= data.phrases;
 
-		emmaIntp['function']['understanding'] = semantics;
+		var understanding = {
+				id: guid(),
+        // start: ,//TODO from recoginition emma
+        // startId: //TODO from recoginition emma
+		};
+		understanding[SPEECH_UNDERSTANDING_RESULTS_NAME] 				= [semantics];
+
+		emmaIntp['function']['understanding'] = understanding;
 	}
 
 

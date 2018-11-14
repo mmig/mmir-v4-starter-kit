@@ -1,18 +1,18 @@
 import { NgModule } from '@angular/core';
 import { IonicPageModule } from 'ionic-angular';
-import { WelcomePage } from './welcome-page';
+import { CalendarPage } from './calendar-page';
 import { SpeechCmdBtnModule } from '../../components/speech-cmd-button/speech-cmd-btn.module';
 
 @NgModule({
   declarations: [
-    WelcomePage
+    CalendarPage
   ],
   imports: [
-    IonicPageModule.forChild(WelcomePage),
+    IonicPageModule.forChild(CalendarPage),
     SpeechCmdBtnModule,
   ],
   exports: [
-    WelcomePage,
+    CalendarPage,
   ]
 })
-export class WelcomePageModule {}
+export class CalendarPageModule {}

@@ -7,7 +7,7 @@ import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import 'rxjs/add/operator/distinctUntilChanged';
 
 import { MmirModule , MediaManager } from '../../assets/mmirf/mmir.d';
-import { ShowSpeechStateOptions, SpeechFeedbackOptions, RecognitionEmma, UnderstandingEmma , ReadingOptions , StopReadingOptions, ReadingShowOptions } from './typings/mmir-base-dialog.d';
+import { ShowSpeechStateOptions, SpeechFeedbackOptions, RecognitionEmma, UnderstandingEmma , ReadingOptions , StopReadingOptions, ReadingShowOptions , Cmd } from './typings/mmir-base-dialog.d';
 import { EmmaUtil } from './typings/emma.d';
 import { IAppSettings } from './typings/app-settings';
 import { SpeechEventEmitter , IonicMmirModule , ViewDecl , IonicDialogEngine , IonicDialogManager , IonicView , PlayError , IonicPresentationManager , IonicController , Action , WaitReadyOptions } from './typings/mmir-ionic.d';
@@ -20,18 +20,18 @@ declare var mmir;
 var __mmir: MmirModule = mmir as MmirModule;
 
 @Injectable()
-export class MmirProvider<CmdType, CmdParam> {
+export class MmirProvider<CmdImpl extends Cmd> {
 
   private platform: Platform;
   private nav: Nav;
-  private evt: SpeechEventEmitter<CmdType, CmdParam>;
+  private evt: SpeechEventEmitter<CmdImpl>;
   private appConfig: IAppSettings;
 
-  private _mmir : IonicMmirModule<CmdType, CmdParam>;
+  private _mmir : IonicMmirModule<CmdImpl>;
 
-  private _initialize: Promise<MmirProvider<CmdType, CmdParam>>;
-  private _readyWait: Promise<MmirProvider<CmdType, CmdParam>>;
-  private _resolveReadyWait: (mmirProvider: MmirProvider<CmdType, CmdParam>) => void;
+  private _initialize: Promise<MmirProvider<CmdImpl>>;
+  private _readyWait: Promise<MmirProvider<CmdImpl>>;
+  private _resolveReadyWait: (mmirProvider: MmirProvider<CmdImpl>) => void;
   private _readyWaitTimer: number;
   private readonly _readyWaitTimeout: number = 10 * 60 * 1000;//10 min.
 
@@ -43,7 +43,7 @@ export class MmirProvider<CmdType, CmdParam> {
   }
 
   constructor() {
-    this._mmir = __mmir as IonicMmirModule<CmdType, CmdParam>;
+    this._mmir = __mmir as IonicMmirModule<CmdImpl>;
   }
 
   //FIXME find better way to "inject" dependencies
@@ -52,7 +52,7 @@ export class MmirProvider<CmdType, CmdParam> {
     nav: Nav,
     appConfig: IAppSettings,
     views?: Array<ViewDecl>
-  ): Promise<MmirProvider<CmdType, CmdParam>> {
+  ): Promise<MmirProvider<CmdImpl>> {
 
     this.platform = platform;
     this.nav = nav;
@@ -77,7 +77,7 @@ export class MmirProvider<CmdType, CmdParam> {
         }),
       'showDictationResult': new Subject<RecognitionEmma>(),
       'determineSpeechCmd': new Subject<RecognitionEmma>(),
-      'execSpeechCmd': new Subject<UnderstandingEmma<CmdType, CmdParam>>(),
+      'execSpeechCmd': new Subject<UnderstandingEmma<CmdImpl>>(),
       'cancelSpeechIO': new Subject<void>(),
       'read': new Subject<string|ReadingOptions>(),
       'stopReading': new Subject<StopReadingOptions>(),
@@ -97,7 +97,7 @@ export class MmirProvider<CmdType, CmdParam> {
 
       'playError': new Subject<PlayError>()
 
-    } as SpeechEventEmitter<CmdType, CmdParam>;
+    } as SpeechEventEmitter<CmdImpl>;
 
     // apply setting for debug output:
     //  (technically we should wait for the promise to finish, but since this
@@ -107,7 +107,7 @@ export class MmirProvider<CmdType, CmdParam> {
   	this.appConfig.get('showVuiDebugOutput').then(isEnabled => {
   		this.isDebugVui = isEnabled;
       if(this.mmir && this.mmir.dialog){
-        let dlg = this.mmir.dialog as IonicDialogManager<CmdType, CmdParam>;
+        let dlg = this.mmir.dialog as IonicDialogManager<CmdImpl>;
         dlg._isDebugVui = isEnabled;
       }
   	});
@@ -119,17 +119,17 @@ export class MmirProvider<CmdType, CmdParam> {
     return this._initialize;
   }
 
-  public ready(): Promise<MmirProvider<CmdType, CmdParam>> {
+  public ready(): Promise<MmirProvider<CmdImpl>> {
     if(!this._initialize){
 
       if(!this._readyWait){
 
         console.log('Called MmirProvider.ready() before init(): waiting...');
 
-        this._readyWait = new Promise<MmirProvider<CmdType, CmdParam>>((resolve, reject) => {
+        this._readyWait = new Promise<MmirProvider<CmdImpl>>((resolve, reject) => {
 
           //resolve "wait for ready":
-          this._resolveReadyWait = (mmirProvider: MmirProvider<CmdType, CmdParam>) => {
+          this._resolveReadyWait = (mmirProvider: MmirProvider<CmdImpl>) => {
             clearTimeout(this._readyWaitTimer);
             console.log('Resolved "wait for MmirProvider.ready()".');
             resolve(mmirProvider);
@@ -173,10 +173,10 @@ export class MmirProvider<CmdType, CmdParam> {
     }
   }
 
-  private mmirInit(views?: Array<ViewDecl>): Promise<MmirProvider<CmdType, CmdParam>> {
+  private mmirInit(views?: Array<ViewDecl>): Promise<MmirProvider<CmdImpl>> {
 
     //promise for setting up mmir to work within angular/ionic
-    return new Promise<MmirProvider<CmdType, CmdParam>>((resolve, reject) => {
+    return new Promise<MmirProvider<CmdImpl>>((resolve, reject) => {
       this._mmir.ready(() => {
 
         this.platform.setLang(this.mmir.lang.getLanguage(), true);
@@ -195,8 +195,13 @@ export class MmirProvider<CmdType, CmdParam> {
           if(!ionicViewController) {
             return null;
           }
+
+          const viewConstructor: Function = ionicViewController.instance.constructor;
+          const viewName = viewConstructor.name;
+          let view;
           for(let viewName in ctrl._ionicViews){
-            if(ionicViewController.instance.constructor == ctrl._ionicViews[viewName]){
+            view = ctrl._ionicViews[viewName];
+            if(typeof view === 'string'? view === ctrl._ionicViews[viewName] : view === viewConstructor){
               return ionicViewController.instance;
             }
           }
@@ -227,7 +232,7 @@ export class MmirProvider<CmdType, CmdParam> {
         } as any;
 
 
-        const dlg: IonicDialogManager<CmdType, CmdParam> = this.mmir.dialog;
+        const dlg: IonicDialogManager<CmdImpl> = this.mmir.dialog;
         dlg._perform = dlg.perform;//TODO do we need previous impl.?
         dlg._eventEmitter = this.evt;
         dlg._isDebugVui = this.isDebugVui;

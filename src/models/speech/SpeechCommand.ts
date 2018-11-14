@@ -1,4 +1,6 @@
 
+import { Cmd } from '../../providers/mmir/typings/mmir-base-dialog.d';
+
 export type CmdType = 'nav' | 'show' | 'close' | 'read' | 'choose';
 
 export interface CmdParam {
@@ -23,4 +25,19 @@ export interface ReadCmdParam {
 
 export interface ChooseCmdParam {
     field: 'edit' | 'option' | 'caption' | 'switch';
+}
+
+export interface AppCmd extends Cmd {
+  semantic?: {
+    type: CmdType,
+    param: CmdParam
+  };
+  preproc: string;//evaluated phrase (may be only part of the ASR text)
+  phrases?: Array<PhraseInfo>;
+}
+
+export interface PhraseInfo {
+  i: number,//index within phrase
+  type: string,//token type
+  tok: string//recognized token
 }

@@ -1,14 +1,13 @@
 
 import { Component, ChangeDetectorRef } from '@angular/core';
-import { NavController, AlertController, ModalController, NavParams } from 'ionic-angular';
-
-import { LanguageMenu } from './../../components/language-menu/language-menu';
+import { IonicPage, NavController, AlertController, ModalController, NavParams } from 'ionic-angular';
 
 import { UserAuthProvider, UserAuth } from './../../providers/user-auth';
 import { MmirPage } from './../../models/MmirBasePage';
 import { MmirProvider , VoiceUIProvider } from './../../providers/mmir';
 import { ShowSpeechStateOptions } from 'mmir-base-dialog';
 
+@IonicPage()
 @Component({
   selector: 'login-page',
   templateUrl: 'login-page.html'
@@ -38,8 +37,8 @@ export class LoginPage extends MmirPage {
     private authProvider: UserAuthProvider,
     ref: ChangeDetectorRef,
     params: NavParams,
-    vuiCtrl: VoiceUIProvider<any, any>,
-    mmirProvider: MmirProvider<any, any>
+    vuiCtrl: VoiceUIProvider<any>,
+    mmirProvider: MmirProvider<any>
   ) {
     super(vuiCtrl, mmirProvider, ref);
 
@@ -86,7 +85,7 @@ export class LoginPage extends MmirPage {
 
   showLangMenu(): void {
     this.cancelSpeechIO();
-    let languageDialog = this.modalCtrl.create(LanguageMenu);
+    let languageDialog = this.modalCtrl.create('LanguageMenu');
     languageDialog.onDidDismiss(data => {
       // console.log(data);
       if(data){

@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs/Subscription';
 
 export class SubscriptionUtil {
 
-  constructor(private mmir: IonicMmirModule<any, any>){}
+  constructor(private mmir: IonicMmirModule<any>){}
 
   public subscribe(subscriptions: Array<SpeechEventName>, handler: any): Map<SpeechEventName, Subscription> {
     const speechSubs: Map<SpeechEventName, Subscription> = new Map<SpeechEventName, Subscription>();
