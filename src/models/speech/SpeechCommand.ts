@@ -1,7 +1,7 @@
 
 import { Cmd } from '../../providers/mmir/typings/mmir-base-dialog.d';
 
-export type CmdType = 'nav' | 'show' | 'close' | 'read' | 'choose';
+export type CmdType = 'nav' | 'show' | 'close' | 'read' | 'choose' | 'nomatch';
 
 export interface CmdParam {
     // field: string;

@@ -201,7 +201,7 @@ export class MmirPage implements OnInit, OnDestroy {
       if(!result.semantic){
 
         result = {
-          semantic: void(0),// -> NoMatch
+          semantic: {type: 'nomatch'},// -> NoMatch
           phrase: asr_result
         };
 
@@ -400,7 +400,7 @@ export class MmirPage implements OnInit, OnDestroy {
     if(this._debugMsg) console.log('execSpeechCmd -> COMMAND: ', cmd);
     if(cmd){
       let sentences: Array<string>;
-      if(cmd && Array.isArray(cmd.nlu) && cmd.nlu.length > 0 && cmd.nlu[0].semantic){
+      if(cmd && Array.isArray(cmd.nlu) && cmd.nlu.length > 0 && cmd.nlu[0].semantic.type !== 'nomatch'){
         //TODO evaluate all commands
         sentences = cmd.nlu.map(cmd => cmd.preproc);
       } else {
