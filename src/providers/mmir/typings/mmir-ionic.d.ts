@@ -2,13 +2,14 @@
 import { Component } from '@angular/core';
 import { Nav } from 'ionic-angular';
 
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Subject } from 'rxjs/Subject';
+import { Observable } from 'rxjs/Observable';
+// import { Subject } from 'rxjs/Subject';
 
 import { ShowSpeechStateOptions , SpeechFeedbackOptions , RecognitionEmma , UnderstandingEmma , ReadingOptions , StopReadingOptions , ReadingShowOptions , Cmd } from './mmir-base-dialog.d';
 import { EmmaUtil } from './emma.d';
 
 import { IAudio , PresentationManager , View , ControllerManager , DialogManager , DialogEngine , Controller , MmirModule } from '../../../assets/mmirf/mmir.d';
+
 
 
 
@@ -27,18 +28,18 @@ export type SpeechEventName = 'showSpeechInputState' |                         /
                         ;
 
 export interface SpeechEventEmitter<CmdImpl extends Cmd> {
-    showSpeechInputState: BehaviorSubject<ShowSpeechStateOptions>;
-    changeMicLevels: BehaviorSubject<SpeechFeedbackOptions>;
-    waitReadyState: BehaviorSubject<WaitReadyOptions>;
-    showDictationResult: Subject<RecognitionEmma>;
-    determineSpeechCmd: Subject<RecognitionEmma>;
-    execSpeechCmd: Subject<UnderstandingEmma<CmdImpl>>;
-    cancelSpeechIO: Subject<void>;
-    read: Subject<string|ReadingOptions>;
-    stopReading: Subject<StopReadingOptions>;
-    showReadingStatus: BehaviorSubject<ReadingShowOptions>;
+    showSpeechInputState: Observable<ShowSpeechStateOptions>;
+    changeMicLevels: Observable<SpeechFeedbackOptions>;
+    waitReadyState: Observable<WaitReadyOptions>;
+    showDictationResult: Observable<RecognitionEmma>;
+    determineSpeechCmd: Observable<RecognitionEmma>;
+    execSpeechCmd: Observable<UnderstandingEmma<CmdImpl>>;
+    cancelSpeechIO: Observable<void>;
+    read: Observable<string|ReadingOptions>;
+    stopReading: Observable<StopReadingOptions>;
+    showReadingStatus: Observable<ReadingShowOptions>;
     //'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed'
-    playError: Subject<PlayError>;
+    playError: Observable<PlayError>;
 }
 
 export interface PlayError {
@@ -71,7 +72,7 @@ export interface IonicDialogEngine extends DialogEngine {
 
 export type Action = {name: string, data: any};
 export interface IonicController extends Controller {
-  _eventEmitter: Subject<Action>;
+  // _eventEmitter: Subject<Action>;
   _ionicViews: {[id:string]: Function | string};
   addView: (viewName:string, ionicView: any) => void;
 }

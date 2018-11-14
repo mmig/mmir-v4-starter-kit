@@ -28,7 +28,7 @@ export class SpeechCmdBtnComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.mmir.ready().then(() => {
 
-      this.asrActive = this.mmir.mmir.dialog._eventEmitter.showSpeechInputState.asObservable().map(status => {
+      this.asrActive = this.mmir.mmir.dialog._eventEmitter.showSpeechInputState.map(status => {
         setTimeout(() =>  this.changeRef && this.changeRef.detectChanges(), 0);//HACK: need to force re-evalution?!? ... otherwise the privious state will be shown
         return status.state;
       });

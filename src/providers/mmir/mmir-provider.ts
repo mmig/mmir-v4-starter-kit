@@ -19,12 +19,27 @@ declare var mmir;
 
 var __mmir: MmirModule = mmir as MmirModule;
 
+interface SpeechEventEmitterImpl<CmdImpl extends Cmd> extends SpeechEventEmitter<CmdImpl> {
+    showSpeechInputState: BehaviorSubject<ShowSpeechStateOptions>;
+    changeMicLevels: BehaviorSubject<SpeechFeedbackOptions>;
+    waitReadyState: BehaviorSubject<WaitReadyOptions>;
+    showDictationResult: Subject<RecognitionEmma>;
+    determineSpeechCmd: Subject<RecognitionEmma>;
+    execSpeechCmd: Subject<UnderstandingEmma<CmdImpl>>;
+    cancelSpeechIO: Subject<void>;
+    read: Subject<string|ReadingOptions>;
+    stopReading: Subject<StopReadingOptions>;
+    showReadingStatus: BehaviorSubject<ReadingShowOptions>;
+    //'resetGuidedInputForCurrentControl' | 'startGuidedInput' | 'resetGuidedInput' | 'isDictAutoProceed'
+    playError: Subject<PlayError>;
+}
+
 @Injectable()
 export class MmirProvider<CmdImpl extends Cmd> {
 
   private platform: Platform;
   private nav: Nav;
-  private evt: SpeechEventEmitter<CmdImpl>;
+  private evt: SpeechEventEmitterImpl<CmdImpl>;
   private appConfig: IAppSettings;
 
   private _mmir : IonicMmirModule<CmdImpl>;
@@ -97,7 +112,7 @@ export class MmirProvider<CmdImpl extends Cmd> {
 
       'playError': new Subject<PlayError>()
 
-    } as SpeechEventEmitter<CmdImpl>;
+    } as SpeechEventEmitterImpl<CmdImpl>;
 
     // apply setting for debug output:
     //  (technically we should wait for the promise to finish, but since this
@@ -217,7 +232,7 @@ export class MmirProvider<CmdImpl extends Cmd> {
         let ctrlList: Array<string> = ctrlManager.getNames();
         for(let i=ctrlList.length-1; i >= 0; --i){
           ctrl = ctrlManager.get(ctrlList[i]) as IonicController;
-          ctrl._eventEmitter = new Subject<Action>();
+          // ctrl._eventEmitter = new Subject<Action>();
         }
 
         const media: MediaManager = this.mmir.media;
