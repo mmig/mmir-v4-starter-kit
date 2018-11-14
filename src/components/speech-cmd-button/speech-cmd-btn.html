@@ -1,0 +1,8 @@
+
+<ion-fab class="speech-input-ctrl" right bottom class="miclevels">
+  <fab-miclevels [width]="96" [height]="96" [active]="(asrActive | async)" [target]="speechCmdBtn"></fab-miclevels>
+  <button #speechCmdBtn [id]="btnId" ion-fab [color]="(asrActive | async)? 'danger' : 'primary'"
+      (click)="speechCommandClicked($event)"
+      [class.isActive]="asrActive | async"><ion-icon name="mic"></ion-icon>
+  </button>
+</ion-fab>
