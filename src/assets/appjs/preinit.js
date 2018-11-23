@@ -21,8 +21,6 @@
 			'ionicViewEngine': 'appjs/ionicViewEngine',
       'mmirf/viewLoader': 'appjs/ionicViewLoader',
 
-			'emma': 'appjs/emma',
-
 //			//overwrite framework's jQuery library with another version:
 //			'jquery': '../content/js/jquery-x.y.z',
 
@@ -33,9 +31,6 @@
 
 			//register a 3rd party library
 			'jbox': 'content/js/jBox-v0.3.2',
-
-			'lengthUtil': 'lib/length.min',
-			'caretPosition': 'lib/caretPosition.min'
 
 		},
 		shim : {

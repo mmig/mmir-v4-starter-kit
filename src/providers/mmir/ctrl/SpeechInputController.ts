@@ -13,6 +13,9 @@ import { triggerClickFeedback } from '../io/HapticFeedback';
 import { SelectionUtil } from '../util/SelectionUtil';
 import { IonicMmirModule , SpeechEventName } from '../typings/mmir-ionic.d';
 
+import * as len from '../lib/length.js';
+import * as pos from '../lib/caretPosition.js';
+
 export type RecognitionTypeExt = RecognitionType | 'RECOGNITION_ERROR';
 
 export interface ASRResult extends SpeechRecognitionResult {
@@ -73,24 +76,22 @@ export class SpeechInputController {
 
       //FIXME should get configuration from somewhere else?
       const stopWord = this._mmir.conf.get('app.dictStopWord', 'anhalten');
-    	if(stopWord){
-    	  const cancelWord: string = this._mmir.conf.get('app.dictAbortWord', '');
-    		this.setDictationCommand(stopWord, cancelWord);
-    	}
+      if(stopWord){
+        const cancelWord: string = this._mmir.conf.get('app.dictAbortWord', '');
+        this.setDictationCommand(stopWord, cancelWord);
+      }
 
-      this._mmir.require(['lengthUtil', 'caretPosition'], (len, pos) =>  {
-        this._selectionUtil = new SelectionUtil(len, pos);
+      this._selectionUtil = new SelectionUtil(len, pos);
 
-        //TODO move this, since it's application specific...
-        //style faux-span: must force some global-styling for SPAN to use the selection's own style
-        //                 -> set ID for faux SPAN and specify style for "reseting" global styling
-        const opt = this._selectionUtil.getSelectionOptions();
-        opt.fauxId = 'sel-marker-faux';
+      //TODO move this, since it's application specific...
+      //style faux-span: must force some global-styling for SPAN to use the selection's own style
+      //                 -> set ID for faux SPAN and specify style for "reseting" global styling
+      const opt = this._selectionUtil.getSelectionOptions();
+      opt.fauxId = 'sel-marker-faux';
 
-        const fauxStyle = document.createElement('style');
-    		fauxStyle.textContent = '#sel-marker-faux {font-size:inherit;text-align:inherit;}';
-        document.head.appendChild(fauxStyle);
-      });
+      const fauxStyle = document.createElement('style');
+      fauxStyle.textContent = '#sel-marker-faux {font-size:inherit;text-align:inherit;}';
+      document.head.appendChild(fauxStyle);
     });
   }
 

@@ -6,12 +6,13 @@ import {Subject} from 'rxjs/Subject';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import 'rxjs/add/operator/distinctUntilChanged';
 
-import { MmirModule , MediaManager } from '../../assets/mmirf/mmir.d';
+import { MmirModule , MediaManager } from 'mmir';
 import { ShowSpeechStateOptions, SpeechFeedbackOptions, RecognitionEmma, UnderstandingEmma , ReadingOptions , StopReadingOptions, ReadingShowOptions , Cmd } from './typings/mmir-base-dialog.d';
 import { EmmaUtil } from './typings/emma.d';
 import { IAppSettings } from './typings/app-settings';
 import { SpeechEventEmitter , IonicMmirModule , ViewDecl , IonicDialogEngine , IonicDialogManager , IonicView , PlayError , IonicPresentationManager , IonicController , Action , WaitReadyOptions } from './typings/mmir-ionic.d';
 
+import * as emma from './lib/emma.js';
 
 //FIXME should use import instead of declaring variable!
 // import * as mmir from 'mmir';
@@ -283,27 +284,22 @@ export class MmirProvider<CmdImpl extends Cmd> {
 
         let dlgEngine: IonicDialogEngine = this.mmir.dialogEngine;
 
-        this.mmir.require(['emma'], (emma) => {
+        //circumvent message-queue for init-event:
+        // (this allows to pass non-stringified and non-stringifyable object instances)
+    		dlgEngine.worker._engineGen.call(dlgEngine.worker._engineInstance, 'init', {
+          eventHandler: this.evt,
+          appConfig: this.appConfig,
+          mmir: this._mmir,
+          emma: emma
+        });
 
-          //circumvent message-queue for init-event:
-          // (this allows to pass non-stringified and non-stringifyable object instances)
-      		dlgEngine.worker._engineGen.call(dlgEngine.worker._engineInstance, 'init', {
-            eventHandler: this.evt,
-            appConfig: this.appConfig,
-            mmir: this._mmir,
-            emma: emma
-          });
+        dlg._emma = emma._init(this.mmir) as EmmaUtil;
 
-          dlg._emma = emma as EmmaUtil;
+        if(this._resolveReadyWait){
+          this._resolveReadyWait(this);
+        }
 
-          if(this._resolveReadyWait){
-            this._resolveReadyWait(this);
-          }
-
-          resolve(this);
-
-        }, err => reject(err));
-
+        resolve(this);
       });
 
     });//END: new Promise()
