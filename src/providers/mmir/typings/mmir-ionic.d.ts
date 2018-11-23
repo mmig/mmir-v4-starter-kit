@@ -8,7 +8,7 @@ import { Observable } from 'rxjs/Observable';
 import { ShowSpeechStateOptions , SpeechFeedbackOptions , RecognitionEmma , UnderstandingEmma , ReadingOptions , StopReadingOptions , ReadingShowOptions , Cmd } from './mmir-base-dialog.d';
 import { EmmaUtil } from './emma.d';
 
-import { IAudio , PresentationManager , View , ControllerManager , DialogManager , DialogEngine , Controller , MmirModule } from '../../../assets/mmirf/mmir.d';
+import { IAudio , PresentationManager , View , ControllerManager , DialogManager , DialogEngine , Controller , MmirModule } from 'mmir';
 
 
 

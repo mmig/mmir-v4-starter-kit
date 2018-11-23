@@ -1,10 +1,8 @@
 
 import { Component, Input, OnInit, OnDestroy, OnChanges, ViewChild } from '@angular/core';
 
-import { MmirProvider } from '../../providers/mmir';
-
+import { MmirProvider , SpeechFeedbackOptions, ISpeechFeedback } from '../../providers/mmir';
 import { MmirModule } from 'mmir';
-import { SpeechFeedbackOptions, ISpeechFeedback } from 'mmir-base-dialog';
 
 @Component({
     selector: 'fab-miclevels',

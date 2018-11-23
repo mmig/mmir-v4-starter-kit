@@ -4,8 +4,7 @@ import { IonicPage, NavController, AlertController, ModalController, NavParams }
 
 import { UserAuthProvider, UserAuth } from './../../providers/user-auth';
 import { MmirPage } from './../../models/MmirBasePage';
-import { MmirProvider , VoiceUIProvider } from './../../providers/mmir';
-import { ShowSpeechStateOptions } from 'mmir-base-dialog';
+import { MmirProvider , VoiceUIProvider , ShowSpeechStateOptions } from './../../providers/mmir';
 
 @IonicPage()
 @Component({

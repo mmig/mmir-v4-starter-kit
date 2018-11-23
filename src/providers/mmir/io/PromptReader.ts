@@ -1,5 +1,5 @@
 
-import { MediaManager, DialogManager } from '../../../assets/mmirf/mmir.d';//'mmir';
+import { MediaManager, DialogManager } from 'mmir';
 import { ReadingData, StopReadingOptions } from '../typings/mmir-base-dialog';
 import { IPromptHandler } from '../typings/mmir-ionic.d';
 
