@@ -40,6 +40,13 @@
   -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: gap: https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src * blob: file:">
+
+  <!-- inlcude jquery v2.x for jquery-mobile
+               NOTE: including jquery before loading the MMIR framework ensures that the framework
+			         will use jquery-functionality instead of alternative implementation
+			         (e.g. for cloning objects) which provides greater browser backwards compatability
+  -->
+  <script type="text/javascript" src="content/libs/jquery-2.2.3.js"></script>
   
   <!-- auto-detect Cordova-environment and load its library if necessary: -->
   <script type="text/javascript" src="mmirf/tools/initCordova.js"></script>
