@@ -1,9 +1,13 @@
-[MMIR Starter Kit][0]
+MMIR Starter Kit
 ===========
 
-![MMIR](https://github.com/mmig/mmir-starter-kit/blob/master/resources/android/icon/drawable-xhdpi-icon.png "MMIR logo")
+<h1 style="color: red;">
+DEPRECATED this is an outdated starter-kit that targets `mmir` version 4.x - for current starter-kit go to <a href="https://github.com/mmig/mmir-starter-kit">mmir-starter-kit</a>
+</h1>
 
-The MMIR StarterKit is a small example application for the MMIR framework that can run locally in an (HTML5 capable)
+![MMIR](https://github.com/mmig/mmir-v4-starter-kit/blob/master/resources/android/icon/drawable-xhdpi-icon.png "MMIR logo")
+
+The [MMIR v4 Starter Kit][0] is a small example application for the MMIR framework that can run locally in an (HTML5 capable)
 internet browser, and using the [Cordova framework][1], it can also be run as an Android app.
 
 There is also a special branch that includes a graphical Grammar Editor (see branch `new-grammar-editor`'s [www/appTestSemantic][11] directory).
@@ -110,14 +114,14 @@ from the `/www` directory to the `/platform/android/assets/www` directory.
 #### License
 If not stated otherwise, the code, resource files etc. is provided under the MIT license (see license file).
 
- [0]: https://github.com/mmig/mmir-starter-kit
+ [0]: https://github.com/mmig/mmir-v4-starter-kit
  [1]: http://cordova.apache.org/
- [4]: https://github.com/mmig/mmir-lib
- [5]: https://github.com/mmig/mmir-tooling
+ [4]: https://github.com/mmig/mmir-lib/tree/v4.2.1
+ [5]: https://github.com/mmig/mmir-tooling/tree/v4.0.0
  [6]: https://github.com/mmig/mmir-plugin-scionqueue
  [8]: https://github.com/mmig/mmir
- [9]: http://mmig.github.io/mmir-starter-kit/www
-[10]: http://mmig.github.io/mmir-starter-kit/www/testSemanticInterpreter.html
-[11]: https://github.com/mmig/mmir-starter-kit/tree/new-grammar-editor/www/appTestSemantic
+ [9]: http://mmig.github.io/mmir-v4-starter-kit/www
+[10]: http://mmig.github.io/mmir-v4-starter-kit/www/testSemanticInterpreter.html
+[11]: https://github.com/mmig/mmir-v4-starter-kit/tree/new-grammar-editor/www/appTestSemantic
 [12]: https://cordova.apache.org/docs/en/latest/guide/platforms/android/
 [13]: https://github.com/mmig/mmir-plugin-speech-nuance
