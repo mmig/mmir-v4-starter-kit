@@ -2,8 +2,13 @@ MMIR Starter Kit
 ===========
 
 <h1 style="color: red;">
-DEPRECATED this is an outdated starter-kit that targets `mmir` version 4.x - for current starter-kit go to <a href="https://github.com/mmig/mmir-starter-kit">mmir-starter-kit</a>
+DEPRECATED this is an outdated starter-kit that targets <pre>MMIR</pre> version 4.x - for current starter-kit go to <a href="https://github.com/mmig/mmir-starter-kit">mmir-starter-kit</a>
 </h1>
+
+```diff
+- DEPRECATED this is an outdated starter-kit that targets MMIR version 4.x 
+- for current starter-kit go to https://github.com/mmig/mmir-starter-kit
+```
 
 ![MMIR](https://github.com/mmig/mmir-v4-starter-kit/blob/master/resources/android/icon/drawable-xhdpi-icon.png "MMIR logo")
 
