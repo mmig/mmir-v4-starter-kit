@@ -10,8 +10,6 @@ DEPRECATED this is an outdated starter-kit that targets <code>MMIR</code> versio
 - for current starter-kit go to https://github.com/mmig/mmir-starter-kit
 ```
 
-![MMIR](https://github.com/mmig/mmir-v4-starter-kit/blob/master/resources/android/icon/drawable-xhdpi-icon.png "MMIR logo")
-
 The [MMIR v4 Starter Kit][0] is a small example application for the MMIR framework that can run locally in an (HTML5 capable)
 internet browser, and using the [Cordova framework][1], it can also be run as an Android app.
 
