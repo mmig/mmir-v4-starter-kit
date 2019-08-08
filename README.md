@@ -1,6 +1,9 @@
 MMIR Starter Kit
 ===========
 
+----
+----
+
 <h1 style="color: red;">
 DEPRECATED this is an outdated starter-kit that targets <code>MMIR</code> version 4.x - for current starter-kit go to <a href="https://github.com/mmig/mmir-starter-kit">mmir-starter-kit</a>
 </h1>
@@ -9,6 +12,9 @@ DEPRECATED this is an outdated starter-kit that targets <code>MMIR</code> versio
 - DEPRECATED this is an outdated starter-kit that targets MMIR version 4.x 
 - for current starter-kit go to https://github.com/mmig/mmir-starter-kit
 ```
+
+----
+----
 
 The [MMIR v4 Starter Kit][0] is a small example application for the MMIR framework that can run locally in an (HTML5 capable)
 internet browser, and using the [Cordova framework][1], it can also be run as an Android app.
@@ -27,7 +33,6 @@ WARINING: _this project includes resources from [MMIR-lib][4] at `www/mmirf/` an
           For your own MMIR-based applications you should use the resources from
           [MMIR-lib][4] and [MMIR-tooling][5] directly._
 
-----
 
 #### Details
 
