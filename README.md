@@ -2,7 +2,7 @@ MMIR Starter Kit
 ===========
 
 <h1 style="color: red;">
-DEPRECATED this is an outdated starter-kit that targets <pre>MMIR</pre> version 4.x - for current starter-kit go to <a href="https://github.com/mmig/mmir-starter-kit">mmir-starter-kit</a>
+DEPRECATED this is an outdated starter-kit that targets <code>MMIR</code> version 4.x - for current starter-kit go to <a href="https://github.com/mmig/mmir-starter-kit">mmir-starter-kit</a>
 </h1>
 
 ```diff
